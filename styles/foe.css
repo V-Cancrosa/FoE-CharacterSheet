@@ -1,79 +1,518 @@
-/* Paleta: Stable-Tec — stalowy błękit, bursztyn ostrzegawczy, chłodny papier */
-.foe-rpg {
-  --foe-ink: #1e2830;
-  --foe-paper: #dde3e0;
-  --foe-panel: #eef1ef;
-  --foe-steel: #2f5d7c;
-  --foe-amber: #c98a1b;
-  --foe-danger: #9e3324;
-  --foe-ok: #3d6b3a;
+/* ==========================================================================
+   Fallout: Equestria RPG — ekran PipBucka
+   Cała kolorystyka wynika z jednej zmiennej --pip (kolor fosforu),
+   którą gracz wybiera w ustawieniach (zielony / bursztynowy / niebieski / biały).
+   ========================================================================== */
+
+@font-face { font-family: "FoE VT323"; src: url("../fonts/VT323-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "FoE Plex Mono"; src: url("../fonts/IBMPlexMono-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "FoE Plex Mono"; src: url("../fonts/IBMPlexMono-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+
+.foe-rpg, .foe-card {
+  --pip: #4dff8a;
+  --pip-alert: #ff6a4d;
+  --pip-bright: color-mix(in srgb, var(--pip) 70%, white);
+  --pip-mid: color-mix(in srgb, var(--pip) 75%, black);
+  --pip-dim: color-mix(in srgb, var(--pip) 45%, black);
+  --pip-line: color-mix(in srgb, var(--pip) 35%, transparent);
+  --pip-faint: color-mix(in srgb, var(--pip) 12%, transparent);
+  --pip-glow: color-mix(in srgb, var(--pip) 55%, transparent);
+  --pip-bg: color-mix(in srgb, var(--pip) 5%, #030604);
+  --pip-bg-hi: color-mix(in srgb, var(--pip) 13%, #050a07);
+  --foe-mono: "FoE Plex Mono", "IBM Plex Mono", "Consolas", monospace;
+  --foe-crt: "FoE VT323", "VT323", var(--foe-mono);
 }
-.foe-rpg .window-content { background: var(--foe-paper); color: var(--foe-ink); padding: 0.5rem 0.75rem; }
-.foe-rpg h3 { font-family: "Modesto Condensed", var(--font-primary), sans-serif; font-size: 1.35rem;
-  color: var(--foe-steel); border-bottom: 2px solid var(--foe-steel); margin: 0.75rem 0 0.35rem; display: flex; gap: .5rem; align-items: baseline; }
-.foe-rpg h3 a { font-size: .9rem; color: var(--foe-amber); }
-.foe-rpg input, .foe-rpg select { color: var(--foe-ink); background: var(--foe-panel); border: 1px solid #9aa7ad; }
-.foe-rpg input[type=number] { width: 3.2rem; text-align: center; }
+body[data-foe-pip="amber"] :is(.foe-rpg, .foe-card) { --pip: #ffb547; --pip-alert: #ff5040; }
+body[data-foe-pip="blue"]  :is(.foe-rpg, .foe-card) { --pip: #5fd8ff; --pip-alert: #ff6a5a; }
+body[data-foe-pip="white"] :is(.foe-rpg, .foe-card) { --pip: #e4f2e8; --pip-alert: #ff6a5a; }
 
-.foe-rpg .foe-header { display: flex; gap: .75rem; align-items: flex-start; padding-bottom: .5rem; border-bottom: 3px solid var(--foe-amber); }
-.foe-rpg .foe-header .portrait { width: 96px; height: 96px; object-fit: cover; border: 2px solid var(--foe-steel); cursor: pointer; }
-.foe-rpg .foe-header.small .portrait { width: 56px; height: 56px; }
-.foe-rpg .identity { flex: 1; display: flex; flex-direction: column; gap: .35rem; }
-.foe-rpg .name { font-family: "Modesto Condensed", var(--font-primary), sans-serif; font-size: 2rem; height: auto; border: none; background: transparent; }
-.foe-rpg .row { display: flex; flex-wrap: wrap; gap: .4rem 1rem; align-items: center; }
-.foe-rpg .row label { display: flex; gap: .3rem; align-items: center; font-size: .85rem; }
-.foe-rpg .row input[type=text] { width: 9rem; }
-.foe-rpg .resources { background: var(--foe-steel); color: #f2f4f3; padding: .3rem .5rem; }
-.foe-rpg .resources button { margin-left: auto; width: auto; background: var(--foe-amber); color: var(--foe-ink); border: none; }
+/* ---------- Ramka okna ---------- */
+.foe-rpg.application {
+  background: #000;
+  border: 1px solid var(--pip-dim);
+  box-shadow: 0 0 0 1px #000, 0 0 24px var(--pip-faint), 0 8px 30px rgba(0, 0, 0, .7);
+  min-width: 380px;
+}
+.foe-rpg.application .window-header {
+  background: var(--pip-bg);
+  color: var(--pip);
+  border-bottom: 1px solid var(--pip-line);
+  font-family: var(--foe-crt);
+  font-size: 1.15rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px var(--pip-glow);
+}
+.foe-rpg.application .window-header button,
+.foe-rpg.application .window-header a { color: var(--pip-mid); }
+.foe-rpg.application .window-header button:hover { color: var(--pip-bright); }
 
-.foe-rpg nav.tabs { margin: .5rem 0; border-bottom: 1px solid var(--foe-steel); }
-.foe-rpg nav.tabs a.active { color: var(--foe-steel); text-shadow: none; border-bottom: 3px solid var(--foe-amber); }
+/* ---------- Ekran CRT ---------- */
+.foe-rpg .window-content {
+  --input-background-color: transparent;
+  --input-text-color: var(--pip);
+  --input-border-color: var(--pip-line);
+  --input-focus-outline-color: var(--pip);
+  --input-placeholder-color: var(--pip-dim);
+  --color-text-primary: var(--pip);
+  position: relative;
+  container: foe-sheet / inline-size;
+  padding: .6rem .8rem .5rem;
+  color: var(--pip);
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 40%, var(--pip-bg-hi) 0%, var(--pip-bg) 65%, #000 115%);
+  font-family: var(--foe-mono);
+  font-size: 13px;
+  text-shadow: 0 0 3px var(--pip-glow);
+}
+/* Arkusz postaci: nagłówek i zakładki stoją, przewija się tylko treść zakładki */
+.foe-rpg.actor .window-content { display: flex; flex-direction: column; overflow: hidden; }
+.foe-rpg.actor .window-content > .tab { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: .2rem .35rem .8rem 0; }
+.foe-rpg.actor .window-content > .tab:not(.active) { display: none; }
+.foe-rpg.item .window-content { overflow-y: auto; }
 
-.foe-rpg .cols { display: grid; grid-template-columns: minmax(220px, 1fr) 2fr; gap: 1rem; }
-.foe-rpg .foe-table { width: 100%; border-collapse: collapse; font-size: .85rem; background: var(--foe-panel); }
-.foe-rpg .foe-table th { background: var(--foe-ink); color: #f2f4f3; font-weight: 600; padding: .2rem .25rem; text-align: center; }
-.foe-rpg .foe-table td { padding: .1rem .25rem; text-align: center; border-bottom: 1px solid #c6cfcc; }
-.foe-rpg .foe-table td:first-child, .foe-rpg .foe-table td:nth-child(2) { text-align: left; }
-.foe-rpg .foe-table td.tn { font-weight: 700; color: var(--foe-steel); }
-.foe-rpg .foe-table tr.racial td:first-child { font-style: italic; }
-.foe-rpg .foe-table tr.lethal td { background: color-mix(in srgb, var(--foe-danger) 22%, transparent); }
-.foe-rpg .rollable { cursor: pointer; color: var(--foe-ink); }
-.foe-rpg .rollable:hover { color: var(--foe-amber); text-decoration: underline; }
+/* Linie skanowania + winieta (wyłączalne w ustawieniach) */
+.foe-rpg .window-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, .18) 2px 3px),
+    radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, .45) 100%);
+}
+body[data-foe-crt="off"] .foe-rpg .window-content::after,
+body[data-foe-crt="off"] .foe-card::after { display: none; }
+
+/* Pasek przewijania */
+.foe-rpg ::-webkit-scrollbar { width: 8px; height: 8px; }
+.foe-rpg ::-webkit-scrollbar-track { background: transparent; }
+.foe-rpg ::-webkit-scrollbar-thumb { background: var(--pip-dim); border: 0; border-radius: 0; }
+.foe-rpg * { scrollbar-color: var(--pip-dim) transparent; }
+
+/* ---------- Pola formularza ---------- */
+.foe-rpg input[type=text],
+.foe-rpg input[type=number],
+.foe-rpg select {
+  height: 1.7em;
+  padding: 0 .3em;
+  color: var(--pip);
+  background: var(--pip-faint);
+  border: 1px solid var(--pip-line);
+  border-radius: 0;
+  font-family: var(--foe-mono);
+  font-size: 13px;
+  text-shadow: 0 0 3px var(--pip-glow);
+  box-shadow: none;
+}
+.foe-rpg select option { background: #050805; color: var(--pip); }
+.foe-rpg input:focus, .foe-rpg select:focus {
+  outline: none;
+  border-color: var(--pip);
+  box-shadow: 0 0 6px var(--pip-glow);
+}
+.foe-rpg input[type=number] { width: 3em; text-align: center; -moz-appearance: textfield; appearance: textfield; }
+.foe-rpg input[type=number]::-webkit-inner-spin-button,
+.foe-rpg input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.foe-rpg input[type=checkbox] {
+  appearance: none; -webkit-appearance: none;
+  width: 14px; height: 14px; margin: 0;
+  border: 1px solid var(--pip-mid);
+  background: transparent;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.foe-rpg input[type=checkbox]::before, .foe-rpg input[type=checkbox]::after { display: none; }
+.foe-rpg input[type=checkbox]:checked { background: var(--pip); box-shadow: 0 0 6px var(--pip-glow), inset 0 0 0 2px #000; }
+.foe-rpg button {
+  font-family: var(--foe-crt);
+  font-size: 1.05rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--pip);
+  background: transparent;
+  border: 1px solid var(--pip-mid);
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: 0 0 4px var(--pip-glow);
+}
+.foe-rpg button:hover { color: #000; background: var(--pip); text-shadow: none; box-shadow: 0 0 8px var(--pip-glow); }
+
+/* ---------- Typografia ---------- */
+.foe-rpg h3 {
+  display: flex; gap: .6rem; align-items: center;
+  margin: .9rem 0 .4rem;
+  padding: 0 0 .1rem;
+  border-bottom: 1px solid var(--pip-line);
+  color: var(--pip);
+  font-family: var(--foe-crt);
+  font-size: 1.45rem;
+  font-weight: 400;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.foe-rpg h3::before { content: ">"; color: var(--pip-mid); }
+.foe-rpg h3 a { font-size: .95rem; color: var(--pip-mid); margin-left: auto; }
+.foe-rpg h3 a:hover { color: var(--pip-bright); text-shadow: 0 0 8px var(--pip-glow); }
+.foe-rpg a { color: inherit; }
+.foe-rpg .hint { margin: .4rem 0; color: var(--pip-dim); font-size: 12px; text-shadow: none; }
+.foe-rpg .empty { color: var(--pip-dim); font-style: italic; text-shadow: none; }
+
+/* ---------- Nagłówek ---------- */
+.foe-rpg .foe-header { flex: 0 0 auto; display: flex; flex-direction: column; gap: .45rem; padding-bottom: .5rem; }
+.foe-rpg .pip-bar {
+  display: flex; justify-content: space-between; gap: 1rem;
+  padding: .05rem .45rem;
+  color: #000;
+  background: var(--pip);
+  font-family: var(--foe-crt);
+  font-size: 1.05rem;
+  letter-spacing: .12em;
+  text-shadow: none;
+  box-shadow: 0 0 10px var(--pip-glow);
+}
+.foe-rpg .foe-id { display: flex; gap: .7rem; align-items: flex-start; }
+.foe-rpg .portrait {
+  flex: 0 0 auto;
+  width: 76px; height: 76px;
+  object-fit: cover;
+  border: 1px solid var(--pip-mid);
+  cursor: pointer;
+  filter: grayscale(1) sepia(1) contrast(1.1);
+  mix-blend-mode: screen;
+  opacity: .9;
+}
+.foe-rpg .portrait:hover { filter: none; mix-blend-mode: normal; opacity: 1; }
+.foe-rpg .identity { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .35rem; }
+.foe-rpg input.name {
+  width: 100%;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pip-line);
+  background: transparent;
+  font-family: var(--foe-crt);
+  font-size: 2.1rem;
+  line-height: 1;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px var(--pip-glow);
+}
+.foe-rpg .row { display: flex; flex-wrap: wrap; gap: .35rem 1rem; align-items: center; }
+.foe-rpg label { color: var(--pip-mid); }
+.foe-rpg .row label { display: flex; gap: .35rem; align-items: center; white-space: nowrap; text-transform: uppercase; font-size: 12px; }
+.foe-rpg .row input[type=text] { width: 9.5rem; }
+
+.foe-rpg .resources {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: .35rem .9rem;
+  padding: .45rem .55rem;
+  border: 1px solid var(--pip-line);
+  background: var(--pip-faint);
+}
+.foe-rpg .res { display: grid; grid-template-columns: auto 1fr; gap: .1rem .5rem; align-items: center; }
+.foe-rpg .res-lbl { font-family: var(--foe-crt); font-size: 1.15rem; letter-spacing: .06em; text-transform: uppercase; }
+.foe-rpg .res-val { justify-self: end; white-space: nowrap; color: var(--pip-mid); }
+.foe-rpg .meter { grid-column: 1 / -1; height: 7px; border: 1px solid var(--pip-dim); padding: 1px; }
+.foe-rpg .meter > span { display: block; height: 100%; background: var(--pip); box-shadow: 0 0 6px var(--pip-glow); transition: width .3s; }
+.foe-rpg .meter.alert > span { background: var(--pip-alert); }
+.foe-rpg .resources button { align-self: center; justify-self: stretch; }
+
+/* ---------- Zakładki ---------- */
+.foe-rpg nav.tabs {
+  flex: 0 0 auto;
+  display: flex; flex-wrap: wrap; justify-content: flex-start; gap: .2rem;
+  margin: 0 0 .5rem;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--pip-mid);
+}
+.foe-rpg nav.tabs > a, .foe-rpg nav.tabs > .item {
+  flex: 0 0 auto;
+  padding: .1rem .7rem 0;
+  color: var(--pip-mid);
+  font-family: var(--foe-crt);
+  font-size: 1.3rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  text-shadow: none;
+  border: 1px solid transparent;
+  border-bottom: 0;
+}
+.foe-rpg nav.tabs > a:hover { color: var(--pip); text-shadow: 0 0 6px var(--pip-glow); }
+.foe-rpg nav.tabs > a.active {
+  color: var(--pip-bright);
+  border-color: var(--pip-mid);
+  background: var(--pip-faint);
+  text-shadow: 0 0 8px var(--pip-glow);
+  box-shadow: none;
+}
+
+/* ---------- Tabele ---------- */
+.foe-rpg .scroll-x { overflow-x: auto; }
+.foe-rpg table.foe-table {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-collapse: collapse;
+  background: transparent;
+  font-size: 13px;
+}
+.foe-rpg table.foe-table thead { background: none; }
+.foe-rpg table.foe-table th {
+  padding: .15rem .3rem;
+  color: var(--pip-mid);
+  background: transparent;
+  border-bottom: 1px solid var(--pip-mid);
+  font-family: var(--foe-crt);
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: .04em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.foe-rpg table.foe-table th.frac { font-family: var(--foe-mono); font-size: 13px; }
+.foe-rpg table.foe-table tr { background: transparent; }
+.foe-rpg table.foe-table tbody tr:nth-child(odd) { background: color-mix(in srgb, var(--pip) 4%, transparent); }
+.foe-rpg table.foe-table tbody tr:hover { background: var(--pip-faint); }
+.foe-rpg table.foe-table td { padding: .12rem .3rem; text-align: center; border-bottom: 1px dotted var(--pip-line); }
+.foe-rpg table.foe-table td.l, .foe-rpg table.foe-table th.l { text-align: left; }
+.foe-rpg table.foe-table td.tn { color: var(--pip-bright); font-weight: 700; text-shadow: 0 0 6px var(--pip-glow); }
+.foe-rpg table.foe-table td.q { color: var(--pip-mid); }
+.foe-rpg table.foe-table td input[type=number] { width: 2.7em; }
+.foe-rpg table.foe-table tr.racial td:first-child { font-style: italic; }
+.foe-rpg table.foe-table tr.lethal td { color: var(--pip-alert); background: color-mix(in srgb, var(--pip-alert) 14%, transparent); }
+.foe-rpg table.foe-table tr.lethal input { color: var(--pip-alert); border-color: var(--pip-alert); }
+
+.foe-rpg .rollable { cursor: pointer; white-space: nowrap; }
+.foe-rpg .rollable::before { content: "▸\00a0"; color: var(--pip-dim); }
+.foe-rpg .rollable:hover { color: #000; background: var(--pip); text-shadow: none; }
+.foe-rpg .rollable:hover::before { color: #000; }
+.foe-rpg .skills .rollable { white-space: normal; }
+.foe-rpg .special-letter { font-family: var(--foe-crt); font-size: 1.2rem; line-height: 1; color: var(--pip-bright); }
+.foe-rpg .rollable:hover .special-letter { color: #000; }
+
 .foe-rpg .ctl { white-space: nowrap; }
-.foe-rpg .ctl a { color: var(--foe-steel); margin-left: .3rem; }
-.foe-rpg .empty { color: #5c6a70; font-style: italic; }
-.foe-rpg .hint { font-size: .78rem; color: #5c6a70; margin: .3rem 0; }
+.foe-rpg .ctl a { color: var(--pip-dim); margin-left: .35rem; }
+.foe-rpg .ctl a:hover { color: var(--pip-bright); }
 
-.foe-rpg .derived { display: grid; grid-template-columns: auto 1fr; gap: .2rem .6rem; font-size: .85rem; margin-top: .6rem; }
-.foe-rpg .derived dt { font-weight: 600; }
+/* ---------- Zakładka główna: układ responsywny ---------- */
+.foe-rpg .cols { display: grid; grid-template-columns: 1fr; gap: .4rem 1.1rem; align-items: start; }
+@container foe-sheet (min-width: 900px) {
+  .foe-rpg .cols { grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); }
+}
+@container foe-sheet (max-width: 560px) {
+  .foe-rpg .hide-narrow { display: none; }
+  .foe-rpg .row input[type=text] { width: 7rem; }
+  .foe-rpg input.name { font-size: 1.7rem; }
+  .foe-rpg .portrait { width: 56px; height: 56px; }
+}
+
+.foe-rpg .derived {
+  display: grid; grid-template-columns: auto 1fr; gap: .25rem .7rem;
+  margin: .7rem 0 0; padding: .45rem .55rem;
+  border: 1px solid var(--pip-line);
+}
+.foe-rpg .derived dt { color: var(--pip-mid); font-weight: 400; text-transform: uppercase; font-size: 12px; align-self: center; }
 .foe-rpg .derived dd { margin: 0; }
 
+/* ---------- Listy przedmiotów ---------- */
 .foe-rpg .item-list { list-style: none; padding: 0; margin: 0; }
-.foe-rpg .item-list li { display: flex; align-items: center; gap: .5rem; padding: .2rem .3rem; border-bottom: 1px solid #c6cfcc; background: var(--foe-panel); }
-.foe-rpg .item-list .nm { flex: 1; font-weight: 600; }
-.foe-rpg .item-list .kind { color: var(--foe-steel); font-size: .8rem; }
-.foe-rpg prose-mirror { min-height: 180px; background: var(--foe-panel); }
+.foe-rpg .item-list li { display: flex; align-items: center; gap: .55rem; padding: .25rem .35rem; border-bottom: 1px dotted var(--pip-line); }
+.foe-rpg .item-list li:hover { background: var(--pip-faint); }
+.foe-rpg .item-list .nm { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+.foe-rpg .item-list .kind { color: var(--pip-mid); text-transform: uppercase; font-size: 12px; }
+.foe-rpg img.icon { width: 24px; height: 24px; border: 1px solid var(--pip-line); filter: grayscale(1) sepia(1); mix-blend-mode: screen; }
 
-.foe-rpg .foe-item .fields { display: grid; grid-template-columns: 1fr; gap: .35rem; margin: .5rem 0; }
-.foe-rpg .foe-item .fields label { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+/* ---------- Edytor tekstu ---------- */
+.foe-rpg prose-mirror {
+  min-height: 180px;
+  color: var(--pip);
+  background: var(--pip-faint);
+  border: 1px solid var(--pip-line);
+}
+.foe-rpg prose-mirror .editor-content, .foe-rpg prose-mirror .editor-content * { color: var(--pip); }
+.foe-rpg prose-mirror menu { background: #050805; border-bottom: 1px solid var(--pip-line); }
+.foe-rpg prose-mirror menu button { color: var(--pip-mid); border: 0; font-size: .9rem; }
+
+/* ---------- Arkusz przedmiotu ---------- */
+.foe-rpg .foe-item .foe-id { align-items: center; padding-bottom: .4rem; border-bottom: 1px solid var(--pip-mid); }
+.foe-rpg .foe-item .portrait { width: 48px; height: 48px; }
+.foe-rpg .foe-item input.name { font-size: 1.7rem; }
+.foe-rpg .foe-item .fields { display: grid; grid-template-columns: 1fr; gap: .4rem; margin: .6rem 0; }
+.foe-rpg .foe-item .fields label { display: flex; justify-content: space-between; align-items: center; gap: .5rem; text-transform: uppercase; font-size: 12px; }
 .foe-rpg .foe-item .fields input[type=text], .foe-rpg .foe-item .fields select { width: 60%; }
 
-/* Okno rzutu */
-.foe-dialog { display: flex; flex-direction: column; gap: .5rem; }
-.foe-dialog label { display: flex; flex-direction: column; gap: .2rem; }
+/* ---------- Okno rzutu ---------- */
+.foe-rpg.foe-roll-dialog { width: 380px; }
+.foe-rpg.foe-roll-dialog .window-content { padding: .7rem .9rem; }
+.foe-rpg .foe-dialog { display: flex; flex-direction: column; gap: .55rem; }
+.foe-rpg .foe-dialog .dlg-base { color: var(--pip-mid); text-transform: uppercase; font-size: 12px; }
+.foe-rpg .foe-dialog .mfd-pick { display: flex; flex-direction: column; border: 1px solid var(--pip-line); }
+.foe-rpg .foe-dialog .mfd-pick label {
+  display: grid; grid-template-columns: 4.2em 1fr auto; gap: .5rem; align-items: center;
+  padding: .15rem .5rem;
+  color: var(--pip);
+  cursor: pointer;
+  border-bottom: 1px dotted var(--pip-line);
+}
+.foe-rpg .foe-dialog .mfd-pick label:last-child { border-bottom: 0; }
+.foe-rpg .foe-dialog .mfd-pick input { position: absolute; opacity: 0; pointer-events: none; }
+.foe-rpg .foe-dialog .mfd-pick .k { font-weight: 700; }
+.foe-rpg .foe-dialog .mfd-pick .d { color: var(--pip-mid); }
+.foe-rpg .foe-dialog .mfd-pick .t { font-weight: 700; }
+.foe-rpg .foe-dialog .mfd-pick label:hover { background: var(--pip-faint); }
+.foe-rpg .foe-dialog .mfd-pick label:has(input:checked) { color: #000; background: var(--pip); text-shadow: none; box-shadow: 0 0 10px var(--pip-glow); }
+.foe-rpg .foe-dialog .mfd-pick label:has(input:checked) .d { color: #000; }
+.foe-rpg .foe-dialog .mod-row { display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; font-size: 12px; }
+.foe-rpg .foe-dialog .mod-row input { width: 4.5em; }
+.foe-rpg.foe-roll-dialog .form-footer button { flex: 1; }
 
-/* Karta na czacie */
-.foe-card { border-left: 5px solid #8a969b; padding: .3rem .5rem; }
-.foe-card h3 { margin: 0 0 .2rem; font-size: 1.05rem; border: none; }
-.foe-card .foe-result { font-size: 2rem; font-weight: 700; text-align: center; line-height: 1.1; }
-.foe-card .foe-outcome { text-align: center; font-weight: 700; margin-bottom: .2rem; }
-.foe-card .foe-line.small { font-size: .78rem; opacity: .8; }
-.foe-card.success { border-color: #3d6b3a; }
-.foe-card.crit-success { border-color: #c98a1b; }
-.foe-card.crit-success .foe-outcome { color: #c98a1b; }
-.foe-card.fail { border-color: #6a7276; }
-.foe-card.crit-fail { border-color: #9e3324; }
-.foe-card.crit-fail .foe-outcome { color: #9e3324; }
-.foe-card .foe-luck { margin-top: .3rem; }
+/* ==========================================================================
+   Karty na czacie
+   ========================================================================== */
+.foe-card {
+  position: relative;
+  margin: -2px 0 0;
+  padding: .45rem .6rem .5rem;
+  color: var(--pip);
+  background: radial-gradient(ellipse 130% 100% at 50% 30%, var(--pip-bg-hi) 0%, var(--pip-bg) 70%, #000 120%);
+  border: 1px solid var(--pip-mid);
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, .8), 0 0 8px var(--pip-faint);
+  font-family: var(--foe-mono);
+  font-size: 12px;
+  line-height: 1.35;
+  text-shadow: 0 0 3px var(--pip-glow);
+  overflow: hidden;
+  animation: foe-crt-on .35s ease-out;
+}
+.foe-card::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, .2) 2px 3px);
+}
+.foe-card .fc-tag {
+  display: flex; justify-content: space-between;
+  margin: -.45rem -.6rem .35rem;
+  padding: 0 .6rem;
+  color: #000;
+  background: var(--pip);
+  font-family: var(--foe-crt);
+  font-size: 1rem;
+  letter-spacing: .12em;
+  text-shadow: none;
+}
+.foe-card h3 {
+  margin: 0 0 .3rem;
+  padding: 0;
+  border: 0;
+  color: var(--pip-bright);
+  font-family: var(--foe-crt);
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px var(--pip-glow);
+}
+.foe-card .fc-main { display: grid; grid-template-columns: auto 1fr; gap: .1rem .7rem; align-items: center; }
+.foe-card .fc-roll {
+  grid-row: span 2;
+  min-width: 1.9em;
+  padding: 0 .3rem;
+  border: 1px solid var(--pip-mid);
+  font-family: var(--foe-crt);
+  font-size: 2.9rem;
+  line-height: 1;
+  text-align: center;
+  color: var(--pip-bright);
+  text-shadow: 0 0 10px var(--pip-glow);
+}
+.foe-card .fc-roll small { display: block; font-size: .95rem; color: var(--pip-mid); letter-spacing: .1em; }
+.foe-card .fc-outcome {
+  font-family: var(--foe-crt);
+  font-size: 1.75rem;
+  line-height: 1;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.foe-card .fc-sum { color: var(--pip-mid); }
+.foe-card .fc-sum b { color: var(--pip-bright); }
 
-@media (max-width: 700px) { .foe-rpg .cols { grid-template-columns: 1fr; } }
+/* Drabinka MFD */
+.foe-card .fc-ladder { width: 100%; margin: .45rem 0 .25rem; border-collapse: collapse; background: none; border: 0; font-size: 12px; }
+.foe-card .fc-ladder tr { background: none; }
+.foe-card .fc-ladder td { padding: .05rem .3rem; border: 0; border-bottom: 1px dotted var(--pip-line); text-align: left; color: var(--pip-dim); text-shadow: none; }
+.foe-card .fc-ladder td.k { width: 2.6em; font-weight: 700; }
+.foe-card .fc-ladder td.t { white-space: nowrap; }
+.foe-card .fc-ladder td.m { width: 1.2em; text-align: center; }
+.foe-card .fc-ladder td.tg { width: 1%; white-space: nowrap; text-align: right; }
+.foe-card .fc-ladder tr.pass td { color: var(--pip); text-shadow: 0 0 3px var(--pip-glow); }
+.foe-card .fc-ladder tr.target td { border-top: 1px solid var(--pip-mid); border-bottom: 1px solid var(--pip-mid); }
+.foe-card .fc-ladder tr.target td:first-child { border-left: 1px solid var(--pip-mid); }
+.foe-card .fc-ladder tr.target td:last-child { border-right: 1px solid var(--pip-mid); }
+.foe-card .fc-ladder tr.achieved td { color: #000; background: var(--pip); text-shadow: none; }
+.foe-card .badge {
+  display: inline-block;
+  padding: 0 .3rem;
+  font-family: var(--foe-crt);
+  font-size: .95rem;
+  line-height: 1.15;
+  letter-spacing: .08em;
+  border: 1px solid currentColor;
+}
+.foe-card .fc-meta { margin-top: .2rem; color: var(--pip-dim); font-size: 11px; text-shadow: none; }
+.foe-card .fc-meta div + div { margin-top: .1rem; }
+.foe-card button.foe-luck {
+  position: relative; z-index: 1;
+  width: 100%;
+  margin-top: .4rem;
+  color: var(--pip);
+  background: transparent;
+  border: 1px solid var(--pip-mid);
+  border-radius: 0;
+  font-family: var(--foe-crt);
+  font-size: 1.1rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.foe-card button.foe-luck:hover:not(:disabled) { color: #000; background: var(--pip); box-shadow: 0 0 8px var(--pip-glow); }
+.foe-card button.foe-luck:disabled { opacity: .45; }
+
+/* Wyniki */
+.foe-card.success .fc-outcome { color: var(--pip-bright); }
+.foe-card.fail { border-color: var(--pip-dim); }
+.foe-card.fail .fc-outcome, .foe-card.fail .fc-roll { color: var(--pip-mid); }
+.foe-card.crit-success { border-color: var(--pip); box-shadow: inset 0 0 18px rgba(0, 0, 0, .8), 0 0 14px var(--pip-glow); }
+.foe-card.crit-success .fc-outcome {
+  display: inline-block; justify-self: start;
+  padding: 0 .3rem;
+  color: #000; background: var(--pip); text-shadow: none;
+  box-shadow: 0 0 12px var(--pip-glow);
+  animation: foe-blink 1s steps(2, start) 3;
+}
+.foe-card.crit-fail { border-color: var(--pip-alert); }
+.foe-card.crit-fail .fc-outcome, .foe-card.crit-fail .fc-roll {
+  color: var(--pip-alert);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--pip-alert) 60%, transparent);
+}
+.foe-card.crit-fail .fc-roll { border-color: var(--pip-alert); }
+.foe-card.crit-fail .fc-outcome { animation: foe-blink 1s steps(2, start) 3; }
+
+/* Karta obrażeń */
+.foe-card .fc-dice { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .1rem; }
+.foe-card .fc-dice span { min-width: 1.8em; padding: 0 .2rem; border: 1px solid var(--pip-dim); text-align: center; }
+
+@keyframes foe-crt-on {
+  0% { opacity: 0; transform: scaleY(.02); filter: brightness(3); }
+  60% { opacity: 1; transform: scaleY(1.03); filter: brightness(1.6); }
+  100% { transform: none; filter: none; }
+}
+@keyframes foe-blink { to { visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) {
+  .foe-card, .foe-card .fc-outcome { animation: none !important; }
+}

@@ -28,13 +28,13 @@ export const SKILLS = {
 
 // Kroki MFD od najłatwiejszego do najtrudniejszego
 export const MFD_STEPS = [
-  { key: "2",   label: "2 (bardzo łatwe)",    f: 2 },
-  { key: "1.5", label: "1½ (łatwe)",          f: 1.5 },
-  { key: "1",   label: "1 (normalne)",        f: 1 },
-  { key: "3/4", label: "¾ (trudne)",          f: 0.75 },
-  { key: "1/2", label: "½ (bardzo trudne)",   f: 0.5 },
-  { key: "1/4", label: "¼ (frustrująco trudne)", f: 0.25 },
-  { key: "1/10", label: "1/10 (ekstremalne)", f: 0.1 }
+  { key: "2",    name: "2",    desc: "bardzo łatwe",        f: 2 },
+  { key: "1.5",  name: "1,5",   desc: "łatwe",               f: 1.5 },
+  { key: "1",    name: "1",    desc: "normalne",            f: 1 },
+  { key: "3/4",  name: "3/4",    desc: "trudne",              f: 0.75 },
+  { key: "1/2",  name: "1/2",    desc: "bardzo trudne",       f: 0.5 },
+  { key: "1/4",  name: "1/4",    desc: "frustrująco trudne",  f: 0.25 },
+  { key: "1/10", name: "1/10", desc: "ekstremalne",         f: 0.1 }
 ];
 
 export const LOCATIONS = {

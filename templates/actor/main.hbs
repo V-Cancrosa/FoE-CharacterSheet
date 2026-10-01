@@ -1,15 +1,16 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="main">
   <div class="cols">
     <div class="col-attrs">
+      <h3>S.P.E.C.I.A.L.</h3>
       <table class="foe-table">
-        <thead><tr><th>Atrybut</th><th>Wart.</th><th>Mod</th><th>1</th><th>¾</th><th>½</th><th>¼</th></tr></thead>
+        <thead><tr><th class="l">Atrybut</th><th>Wart.</th><th>Mod</th><th title="MFD 1 (normalne)">1</th><th class="frac" title="MFD 3/4 (trudne)">3/4</th><th class="frac" title="MFD 1/2 (bardzo trudne)">1/2</th><th class="frac" title="MFD 1/4 (frustrująco trudne)">1/4</th></tr></thead>
         <tbody>
         {{#each attrs}}
           <tr>
-            <td><a class="rollable" data-action="rollAttr" data-key="{{key}}">{{label}}</a></td>
+            <td class="l"><a class="rollable" data-action="rollAttr" data-key="{{key}}" title="Rzuć: {{label}} ×10"><span class="special-letter">{{letter}}</span>{{rest}}</a></td>
             <td><input type="number" name="system.attributes.{{key}}.value" value="{{value}}"></td>
             <td><input type="number" name="system.attributes.{{key}}.mod" value="{{mod}}"></td>
-            <td class="tn">{{tn}}</td><td>{{q3}}</td><td>{{q2}}</td><td>{{q1}}</td>
+            <td class="tn">{{tn}}</td><td class="q">{{q3}}</td><td class="q">{{q2}}</td><td class="q">{{q1}}</td>
           </tr>
         {{/each}}
         </tbody>
@@ -23,25 +24,28 @@
       </dl>
     </div>
     <div class="col-skills">
+      <h3>Umiejętności</h3>
+      <div class="scroll-x">
       <table class="foe-table skills">
-        <thead><tr><th>Umiejętność</th><th>Atr</th><th title="Tag skill: +15">Tag</th><th>Baza</th><th title="Punkty z awansów">Pkt</th><th title="Rasa, cechy, perki">Bonus</th><th>Ranga</th><th title="Stały modyfikator rzutu">Mod</th><th>MFD 1</th><th>½</th></tr></thead>
+        <thead><tr><th class="l">Umiejętność</th><th>Atr</th><th title="Tag skill: +15">Tag</th><th class="hide-narrow">Baza</th><th title="Punkty z awansów">Pkt</th><th title="Rasa, cechy, perki">Bonus</th><th>Ranga</th><th title="Stały modyfikator rzutu">Mod</th><th title="Próg przy MFD 1 (normalne)">MFD 1</th><th class="frac hide-narrow" title="Próg przy MFD 1/2">1/2</th></tr></thead>
         <tbody>
         {{#each skills}}
           <tr class="{{#if racial}}racial{{/if}}">
-            <td><a class="rollable" data-action="rollSkill" data-key="{{key}}">{{label}}</a></td>
-            <td>{{#if attrChoices}}<select name="system.skills.{{key}}.attr">{{#each attrChoices}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{v}}</option>{{/each}}</select>{{else}}{{attrLabel}}{{/if}}</td>
+            <td class="l"><a class="rollable" data-action="rollSkill" data-key="{{key}}">{{label}}</a></td>
+            <td>{{#if attrChoices}}<select name="system.skills.{{key}}.attr">{{#each attrChoices}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{upper}}</option>{{/each}}</select>{{else}}{{attrLabel}}{{/if}}</td>
             <td><input type="checkbox" name="system.skills.{{key}}.tag" {{checked tag}}></td>
-            <td>{{base}}</td>
+            <td class="q hide-narrow">{{base}}</td>
             <td><input type="number" name="system.skills.{{key}}.points" value="{{points}}"></td>
             <td><input type="number" name="system.skills.{{key}}.bonus" value="{{bonus}}"></td>
             <td><b>{{rank}}</b></td>
             <td><input type="number" name="system.skills.{{key}}.mod" value="{{mod}}"></td>
-            <td class="tn">{{tnShown}}</td><td>{{q2}}</td>
+            <td class="tn">{{tnShown}}</td><td class="q hide-narrow">{{q2}}</td>
           </tr>
         {{/each}}
         </tbody>
       </table>
-      <p class="hint">Kursywą umiejętności rasowe. Kliknij nazwę, by rzucić.</p>
+      </div>
+      <p class="hint">Kursywą umiejętności rasowe. Kliknij nazwę (▸), by rzucić.</p>
     </div>
   </div>
 </section>

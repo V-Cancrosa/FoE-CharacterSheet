@@ -1,5 +1,5 @@
 import { ATTRS, SKILLS, LOCATIONS } from "./data.mjs";
-import { promptMfd, rollTest } from "./rolls.mjs";
+import { promptMfd, rollTest, rollDamage } from "./rolls.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -8,7 +8,7 @@ const P = "systems/foe-rpg/templates";
 export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static DEFAULT_OPTIONS = {
     classes: ["foe-rpg", "actor"],
-    position: { width: 760, height: 820 },
+    position: { width: 940, height: 860 },
     window: { resizable: true },
     form: { submitOnChange: true },
     actions: {
@@ -35,10 +35,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static TABS = {
     primary: {
       tabs: [
-        { id: "main", label: "S.P.E.C.I.A.L. i umiejętności" },
+        { id: "main", label: "Statystyki" },
         { id: "combat", label: "Walka" },
         { id: "gear", label: "Ekwipunek" },
-        { id: "notes", label: "Cechy i notatki" }
+        { id: "notes", label: "Cechy i dane" }
       ],
       initial: "main"
     }
@@ -50,9 +50,18 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.actor = this.document;
     ctx.system = sys;
     ctx.tabs = this._prepareTabs("primary");
+    ctx.isNpc = this.document.type === "npc";
+    const pct = (v, m) => (m > 0 ? Math.max(0, Math.min(100, Math.round(100 * v / m))) : 0);
+    const res = sys.resources;
+    ctx.meters = {
+      sats: pct(res.sats.value, res.sats.max),
+      luck: pct(res.luck.value, res.luck.max),
+      strain: pct(res.strain.value, res.strain.max),
+      rads: pct(res.rads.value, res.rads.max)
+    };
     ctx.attrs = Object.entries(ATTRS).map(([k, label]) => {
       const a = sys.attributes[k];
-      return { key: k, label, ...a, q3: Math.floor(a.tn * .75), q2: Math.floor(a.tn / 2), q1: Math.floor(a.tn / 4) };
+      return { key: k, label, letter: label[0], rest: label.slice(1), ...a, q3: Math.floor(a.tn * .75), q2: Math.floor(a.tn / 2), q1: Math.floor(a.tn / 4) };
     });
     ctx.skills = Object.entries(SKILLS).map(([k, def]) => {
       const s = sys.skills[k];
@@ -60,7 +69,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return {
         key: k, label: def.label, racial: def.racial, ...s,
         attrLabel: s.attr.toUpperCase(),
-        attrChoices: def.choice ? def.choice.map(c => ({ v: c, sel: c === s.attr })) : null,
+        attrChoices: def.choice ? def.choice.map(c => ({ v: c, upper: c.toUpperCase(), sel: c === s.attr })) : null,
         tnShown: tn, q3: Math.floor(s.tn * .75) + s.mod, q2: Math.floor(s.tn / 2) + s.mod, q1: Math.floor(s.tn / 4) + s.mod
       };
     });
@@ -94,7 +103,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static async #onRollSkill(event, target) {
     const k = target.dataset.key;
     const s = this.document.system.skills[k];
-    const r = await promptMfd(SKILLS[k].label, s.tn);
+    const r = await promptMfd(SKILLS[k].label, s.tn, s.mod);
     if (r) rollTest(this.document, { label: SKILLS[k].label, baseTn: s.tn, step: r.step, mod: r.mod + s.mod });
   }
 
@@ -102,7 +111,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const item = this.document.items.get(target.closest("[data-item-id]").dataset.itemId);
     const s = this.document.system.skills[item.system.skill];
     if (!s) return ui.notifications.warn("Broń nie ma przypisanej umiejętności.");
-    const r = await promptMfd(`Atak: ${item.name}`, s.tn);
+    const r = await promptMfd(`Atak: ${item.name}`, s.tn, s.mod);
     if (!r) return;
     const { ammo } = item.system;
     if (ammo.max > 0) {
@@ -114,14 +123,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onRollDamage(event, target) {
     const item = this.document.items.get(target.closest("[data-item-id]").dataset.itemId);
-    let formula = item.system.damage || "0";
-    // Energy Weapons: bonus do obrażeń = ranga /10
-    if (item.system.skill === "energy") formula += ` + ${Math.floor(this.document.system.skills.energy.rank / 10)}`;
-    const roll = await new Roll(formula, this.document.getRollData()).evaluate();
-    roll.toMessage({
-      speaker: ChatMessage.getSpeaker({ actor: this.document }),
-      flavor: `Obrażenia: ${item.name} — DT celu odejmij przed liczeniem ran (1 rana / ${this.document.system.dmgPerWound} obrażeń u postaci gracza).`
-    });
+    if (item) rollDamage(this.document, item);
   }
 
   static async #onCreateItem(event, target) {
@@ -156,7 +158,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static DEFAULT_OPTIONS = {
     classes: ["foe-rpg", "item"],
-    position: { width: 480, height: 520 },
+    position: { width: 500, height: 560 },
     window: { resizable: true },
     form: { submitOnChange: true }
   };
