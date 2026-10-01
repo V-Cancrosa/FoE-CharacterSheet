@@ -14,5 +14,5 @@ Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 
-Nowe wydanie: na GitHubie utwórz Release z tagiem `vX.Y.Z` — workflow `.github/workflows/release.yml`
+Nowe wydanie: podbij wersję i wypchnij tag `vX.Y.Z` (albo utwórz Release z takim tagiem na GitHubie) — workflow `.github/workflows/release.yml`
 sam ustawi wersję w system.json i dołączy `foe-rpg.zip` oraz `system.json`.
