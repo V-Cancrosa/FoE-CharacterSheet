@@ -24,4 +24,33 @@ Hooks.once("init", () => {
   Items.registerSheet("foe-rpg", FoeItemSheet, { makeDefault: true, label: "FoE: przedmiot" });
 
   registerChatListeners();
+  registerDisplaySettings();
 });
+
+/** Ustawienia wyglądu ekranu PipBucka (każdy gracz wybiera dla siebie). */
+function registerDisplaySettings() {
+  const apply = () => {
+    document.body.dataset.foePip = game.settings.get("foe-rpg", "pipColor");
+    document.body.dataset.foeCrt = game.settings.get("foe-rpg", "crtEffect") ? "on" : "off";
+  };
+  game.settings.register("foe-rpg", "pipColor", {
+    name: "Kolor ekranu PipBucka",
+    hint: "Kolor fosforu na kartach postaci i w rzutach na czacie.",
+    scope: "client",
+    config: true,
+    type: String,
+    choices: { green: "Zielony", amber: "Bursztynowy", blue: "Niebieski", white: "Biały" },
+    default: "green",
+    onChange: apply
+  });
+  game.settings.register("foe-rpg", "crtEffect", {
+    name: "Efekt kineskopu (linie skanowania)",
+    hint: "Wyłącz, jeśli linie skanowania przeszkadzają w czytaniu.",
+    scope: "client",
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: apply
+  });
+  apply();
+}

@@ -1,14 +1,15 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="combat">
   <h3>Broń <a data-action="createItem" data-type="weapon" title="Dodaj broń"><i class="fa-solid fa-plus"></i></a></h3>
+  <div class="scroll-x">
   <table class="foe-table items">
-    <thead><tr><th></th><th>Nazwa</th><th>Umiejętność</th><th>Obrażenia</th><th>SATS</th><th>Amunicja</th><th>Zasięg</th><th></th></tr></thead>
+    <thead><tr><th></th><th class="l">Nazwa</th><th>Umiejętność</th><th>Obrażenia</th><th>SATS</th><th>Amunicja</th><th>Zasięg</th><th></th></tr></thead>
     <tbody>
     {{#each weapons}}
       <tr data-item-id="{{id}}">
-        <td><img src="{{img}}" width="24" height="24" alt=""></td>
-        <td><a class="rollable" data-action="rollWeapon">{{name}}</a></td>
+        <td><img class="icon" src="{{img}}" alt=""></td>
+        <td class="l"><a class="rollable" data-action="rollWeapon" title="Rzut na atak">{{name}}</a></td>
         <td>{{skillLabel}}</td>
-        <td><a class="rollable" data-action="rollDamage">{{damage}}</a></td>
+        <td><a class="rollable" data-action="rollDamage" title="Rzut na obrażenia">{{damage}}</a></td>
         <td>{{satsCost}}</td>
         <td>{{#if ammo.max}}{{ammo.value}}/{{ammo.max}}{{else}}—{{/if}}</td>
         <td>{{range}}</td>
@@ -18,14 +19,15 @@
     {{/each}}
     </tbody>
   </table>
+  </div>
 
   <h3>Rany i DT na lokacjach</h3>
   <table class="foe-table">
-    <thead><tr><th>Lokacja</th><th>Rany</th><th>DT</th><th>Okaleczona</th></tr></thead>
+    <thead><tr><th class="l">Lokacja</th><th>Rany</th><th>DT</th><th>Okaleczona</th></tr></thead>
     <tbody>
     {{#each locations}}
       <tr class="{{#if lethal}}lethal{{/if}}">
-        <td>{{label}}</td>
+        <td class="l">{{label}}</td>
         <td><input type="number" name="system.locations.{{key}}.wounds" value="{{wounds}}"></td>
         <td><input type="number" name="system.locations.{{key}}.dt" value="{{dt}}"></td>
         <td><input type="checkbox" name="system.locations.{{key}}.crippled" {{checked crippled}}></td>

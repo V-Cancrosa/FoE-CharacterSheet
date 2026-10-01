@@ -1,19 +1,38 @@
 <header class="foe-header">
-  <img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
-  <div class="identity">
-    <input class="name" type="text" name="name" value="{{actor.name}}" placeholder="Imię">
-    <div class="row">
-      <label>Rasa <input type="text" name="system.race" value="{{system.race}}"></label>
-      <label>Poziom <input type="number" name="system.level" value="{{system.level}}"></label>
-      <label>Karma <input type="number" name="system.karma" value="{{system.karma}}"></label>
-      <label>Kapsle <input type="number" name="system.caps" value="{{system.caps}}"></label>
+  <div class="pip-bar"><span>PIPBUCK 3000 · STABLE-TEC</span><span>{{#if isNpc}}NPC{{else}}POZ. {{system.level}}{{/if}}</span></div>
+  <div class="foe-id">
+    <img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
+    <div class="identity">
+      <input class="name" type="text" name="name" value="{{actor.name}}" placeholder="Imię">
+      <div class="row">
+        <label>Rasa <input type="text" name="system.race" value="{{system.race}}"></label>
+        <label>Poziom <input type="number" name="system.level" value="{{system.level}}"></label>
+        <label>Karma <input type="number" name="system.karma" value="{{system.karma}}"></label>
+        <label>Kapsle <input type="number" name="system.caps" value="{{system.caps}}"></label>
+      </div>
     </div>
-    <div class="row resources">
-      <label>SATS <input type="number" name="system.resources.sats.value" value="{{system.resources.sats.value}}"> / {{system.resources.sats.max}}</label>
-      <label>Karty szczęścia <input type="number" name="system.resources.luck.value" value="{{system.resources.luck.value}}"> / {{system.resources.luck.max}}</label>
-      <label>Strain <input type="number" name="system.resources.strain.value" value="{{system.resources.strain.value}}"> / <input type="number" name="system.resources.strain.max" value="{{system.resources.strain.max}}"></label>
-      <label>Rady <input type="number" name="system.resources.rads.value" value="{{system.resources.rads.value}}"></label>
-      <button type="button" data-action="newSession" title="Odnów karty szczęścia i SATS">Nowa sesja</button>
+  </div>
+  <div class="resources">
+    <div class="res">
+      <span class="res-lbl">SATS</span>
+      <span class="res-val"><input type="number" name="system.resources.sats.value" value="{{system.resources.sats.value}}"> / {{system.resources.sats.max}}</span>
+      <div class="meter"><span style="width: {{meters.sats}}%"></span></div>
     </div>
+    <div class="res">
+      <span class="res-lbl" title="Karty szczęścia">Szczęście</span>
+      <span class="res-val"><input type="number" name="system.resources.luck.value" value="{{system.resources.luck.value}}"> / {{system.resources.luck.max}}</span>
+      <div class="meter"><span style="width: {{meters.luck}}%"></span></div>
+    </div>
+    <div class="res">
+      <span class="res-lbl">Strain</span>
+      <span class="res-val"><input type="number" name="system.resources.strain.value" value="{{system.resources.strain.value}}"> / <input type="number" name="system.resources.strain.max" value="{{system.resources.strain.max}}"></span>
+      <div class="meter"><span style="width: {{meters.strain}}%"></span></div>
+    </div>
+    <div class="res">
+      <span class="res-lbl">Rady</span>
+      <span class="res-val"><input type="number" name="system.resources.rads.value" value="{{system.resources.rads.value}}"> / {{system.resources.rads.max}}</span>
+      <div class="meter alert"><span style="width: {{meters.rads}}%"></span></div>
+    </div>
+    <button type="button" data-action="newSession" title="Odnów karty szczęścia i SATS"><i class="fa-solid fa-rotate"></i> Nowa sesja</button>
   </div>
 </header>
