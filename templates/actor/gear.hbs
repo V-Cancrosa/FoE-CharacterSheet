@@ -1,0 +1,16 @@
+<section class="tab {{tab.cssClass}}" data-group="primary" data-tab="gear">
+  <h3>Pancerze i ubrania <a data-action="createItem" data-type="armor"><i class="fa-solid fa-plus"></i></a></h3>
+  <ul class="item-list">
+  {{#each armor}}
+    <li data-item-id="{{id}}"><img src="{{img}}" width="24" height="24" alt=""> <span class="nm">{{name}}</span> <span>DT {{system.dt}}{{#if system.equipped}} · założony{{/if}}</span>
+      <span class="ctl"><a data-action="editItem"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem"><i class="fa-solid fa-trash"></i></a></span></li>
+  {{else}}<li class="empty">Brak pancerza.</li>{{/each}}
+  </ul>
+  <h3>Przedmioty <a data-action="createItem" data-type="gear"><i class="fa-solid fa-plus"></i></a></h3>
+  <ul class="item-list">
+  {{#each gearItems}}
+    <li data-item-id="{{id}}"><img src="{{img}}" width="24" height="24" alt=""> <span class="nm">{{name}}</span> <span>×{{system.qty}}</span>
+      <span class="ctl"><a data-action="editItem"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem"><i class="fa-solid fa-trash"></i></a></span></li>
+  {{else}}<li class="empty">Pusto w jukach.</li>{{/each}}
+  </ul>
+</section>

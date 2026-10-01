@@ -1,0 +1,47 @@
+<section class="tab {{tab.cssClass}}" data-group="primary" data-tab="main">
+  <div class="cols">
+    <div class="col-attrs">
+      <table class="foe-table">
+        <thead><tr><th>Atrybut</th><th>Wart.</th><th>Mod</th><th>1</th><th>¾</th><th>½</th><th>¼</th></tr></thead>
+        <tbody>
+        {{#each attrs}}
+          <tr>
+            <td><a class="rollable" data-action="rollAttr" data-key="{{key}}">{{label}}</a></td>
+            <td><input type="number" name="system.attributes.{{key}}.value" value="{{value}}"></td>
+            <td><input type="number" name="system.attributes.{{key}}.mod" value="{{mod}}"></td>
+            <td class="tn">{{tn}}</td><td>{{q3}}</td><td>{{q2}}</td><td>{{q1}}</td>
+          </tr>
+        {{/each}}
+        </tbody>
+      </table>
+      <dl class="derived">
+        <dt>Udźwig</dt><dd>{{system.carry}} lb (niesiesz {{weight}})</dd>
+        <dt>Ruch</dt><dd>{{system.speed}} ft / akcję (lot/kopanie {{system.flySpeed}})</dd>
+        <dt>Obrażenia na ranę</dt><dd>{{system.dmgPerWound}} <input type="number" name="system.woundBonus" value="{{system.woundBonus}}" title="Modyfikator (Large +2, Pipsqueak −2…)"></dd>
+        <dt>Inicjatywa</dt><dd>d100 − {{system.initMod}} (niżej = szybciej)</dd>
+        <dt>Odp. na promieniowanie</dt><dd><input type="number" name="system.radResist" value="{{system.radResist}}"> %</dd>
+      </dl>
+    </div>
+    <div class="col-skills">
+      <table class="foe-table skills">
+        <thead><tr><th>Umiejętność</th><th>Atr</th><th title="Tag skill: +15">Tag</th><th>Baza</th><th title="Punkty z awansów">Pkt</th><th title="Rasa, cechy, perki">Bonus</th><th>Ranga</th><th title="Stały modyfikator rzutu">Mod</th><th>MFD 1</th><th>½</th></tr></thead>
+        <tbody>
+        {{#each skills}}
+          <tr class="{{#if racial}}racial{{/if}}">
+            <td><a class="rollable" data-action="rollSkill" data-key="{{key}}">{{label}}</a></td>
+            <td>{{#if attrChoices}}<select name="system.skills.{{key}}.attr">{{#each attrChoices}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{v}}</option>{{/each}}</select>{{else}}{{attrLabel}}{{/if}}</td>
+            <td><input type="checkbox" name="system.skills.{{key}}.tag" {{checked tag}}></td>
+            <td>{{base}}</td>
+            <td><input type="number" name="system.skills.{{key}}.points" value="{{points}}"></td>
+            <td><input type="number" name="system.skills.{{key}}.bonus" value="{{bonus}}"></td>
+            <td><b>{{rank}}</b></td>
+            <td><input type="number" name="system.skills.{{key}}.mod" value="{{mod}}"></td>
+            <td class="tn">{{tnShown}}</td><td>{{q2}}</td>
+          </tr>
+        {{/each}}
+        </tbody>
+      </table>
+      <p class="hint">Kursywą umiejętności rasowe. Kliknij nazwę, by rzucić.</p>
+    </div>
+  </div>
+</section>

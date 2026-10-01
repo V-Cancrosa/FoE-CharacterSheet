@@ -1,0 +1,31 @@
+<div class="foe-item">
+  <header class="foe-header small">
+    <img class="portrait" src="{{item.img}}" data-edit="img" data-action="editImage" alt="">
+    <input class="name" type="text" name="name" value="{{item.name}}">
+  </header>
+  <div class="fields">
+  {{#if isWeapon}}
+    <label>Umiejętność <select name="system.skill">{{selectOptions skillOptions selected=system.skill}}</select></label>
+    <label>Obrażenia (formuła) <input type="text" name="system.damage" value="{{system.damage}}"></label>
+    <label>Koszt SATS <input type="number" name="system.satsCost" value="{{system.satsCost}}"></label>
+    <label>Amunicja <input type="number" name="system.ammo.value" value="{{system.ammo.value}}"> / <input type="number" name="system.ammo.max" value="{{system.ammo.max}}"></label>
+    <label>Zasięg <input type="text" name="system.range" value="{{system.range}}"></label>
+    <label>Krytyk <input type="text" name="system.crit" value="{{system.crit}}"></label>
+    <label>Waga <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
+  {{/if}}
+  {{#if isArmor}}
+    <label>DT <input type="number" name="system.dt" value="{{system.dt}}"></label>
+    <label>Kategoria <select name="system.category">{{selectOptions armorCats selected=system.category}}</select></label>
+    <label>Założony <input type="checkbox" name="system.equipped" {{checked system.equipped}}></label>
+    <label>Waga <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
+  {{/if}}
+  {{#if isGear}}
+    <label>Ilość <input type="number" name="system.qty" value="{{system.qty}}"></label>
+    <label>Waga (szt.) <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
+  {{/if}}
+  {{#if isFeature}}
+    <label>Rodzaj <select name="system.kind">{{selectOptions featureKinds selected=system.kind}}</select></label>
+  {{/if}}
+  </div>
+  <prose-mirror name="system.description" toggled value="{{system.description}}">{{{descHTML}}}</prose-mirror>
+</div>

@@ -1,0 +1,37 @@
+<section class="tab {{tab.cssClass}}" data-group="primary" data-tab="combat">
+  <h3>Broń <a data-action="createItem" data-type="weapon" title="Dodaj broń"><i class="fa-solid fa-plus"></i></a></h3>
+  <table class="foe-table items">
+    <thead><tr><th></th><th>Nazwa</th><th>Umiejętność</th><th>Obrażenia</th><th>SATS</th><th>Amunicja</th><th>Zasięg</th><th></th></tr></thead>
+    <tbody>
+    {{#each weapons}}
+      <tr data-item-id="{{id}}">
+        <td><img src="{{img}}" width="24" height="24" alt=""></td>
+        <td><a class="rollable" data-action="rollWeapon">{{name}}</a></td>
+        <td>{{skillLabel}}</td>
+        <td><a class="rollable" data-action="rollDamage">{{damage}}</a></td>
+        <td>{{satsCost}}</td>
+        <td>{{#if ammo.max}}{{ammo.value}}/{{ammo.max}}{{else}}—{{/if}}</td>
+        <td>{{range}}</td>
+        <td class="ctl"><a data-action="editItem"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem"><i class="fa-solid fa-trash"></i></a></td>
+      </tr>
+    {{else}}<tr><td colspan="8" class="empty">Brak broni — dodaj ją plusem.</td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+
+  <h3>Rany i DT na lokacjach</h3>
+  <table class="foe-table">
+    <thead><tr><th>Lokacja</th><th>Rany</th><th>DT</th><th>Okaleczona</th></tr></thead>
+    <tbody>
+    {{#each locations}}
+      <tr class="{{#if lethal}}lethal{{/if}}">
+        <td>{{label}}</td>
+        <td><input type="number" name="system.locations.{{key}}.wounds" value="{{wounds}}"></td>
+        <td><input type="number" name="system.locations.{{key}}.dt" value="{{dt}}"></td>
+        <td><input type="checkbox" name="system.locations.{{key}}.crippled" {{checked crippled}}></td>
+      </tr>
+    {{/each}}
+    </tbody>
+  </table>
+  <p class="hint">Czerwony wiersz: rany ≥ Endurance — śmierć (głowa/tułów) albo utrata kończyny. Okaleczenie: −25 do powiązanych rzutów.</p>
+</section>
