@@ -1,40 +1,52 @@
 name: Release
 
-# Po wypchnięciu tagu vX.Y.Z (albo opublikowaniu Release na GitHubie)
-# buduje foe-rpg.zip i dołącza go razem z system.json do wydania,
-# żeby działał manifest URL w Foundry VTT.
+# Gdy na main trafi system.json z nową wersją (np. "0.2.0"), a wydania
+# v0.2.0 jeszcze nie ma: tworzy tag i wydanie, pakuje foe-rpg.zip
+# i dołącza go razem z system.json, żeby działał manifest URL w Foundry VTT.
 on:
   push:
-    tags: ['v*']
-  release:
-    types: [published]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     env:
-      TAG: ${{ github.event.release.tag_name || github.ref_name }}
       REPO: ${{ github.repository }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Ustaw wersję i link do pobrania w system.json
+      - name: Sprawdź, czy ta wersja ma już wydanie
+        id: check
         run: |
-          VERSION="${TAG#v}"
-          jq --arg v "$VERSION" \
-             --arg d "https://github.com/$REPO/releases/download/$TAG/foe-rpg.zip" \
-             '.version = $v | .download = $d' system.json > system.tmp
+          TAG="v$(jq -r .version system.json)"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          if gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
+            echo "Wydanie $TAG już istnieje — pomijam."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ustaw link do pobrania w system.json
+        if: steps.check.outputs.exists != 'true'
+        env:
+          TAG: ${{ steps.check.outputs.tag }}
+        run: |
+          jq --arg d "https://github.com/$REPO/releases/download/$TAG/foe-rpg.zip" \
+             '.download = $d' system.json > system.tmp
           mv system.tmp system.json
 
       - name: Spakuj system
+        if: steps.check.outputs.exists != 'true'
         run: zip -r foe-rpg.zip system.json README.md module templates styles
 
-      - name: Utwórz wydanie i dołącz pliki
+      - name: Utwórz wydanie
+        if: steps.check.outputs.exists != 'true'
+        env:
+          TAG: ${{ steps.check.outputs.tag }}
         run: |
-          gh release view "$TAG" -R "$REPO" >/dev/null 2>&1 || \
-            gh release create "$TAG" -R "$REPO" --title "$TAG" --generate-notes
-          gh release upload "$TAG" system.json foe-rpg.zip -R "$REPO" --clobber
+          gh release create "$TAG" system.json foe-rpg.zip -R "$REPO" \
+            --target "$GITHUB_SHA" --title "$TAG" --generate-notes
