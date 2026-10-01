@@ -1,0 +1,35 @@
+name: Release
+
+# Po opublikowaniu wydania (np. tag v0.2.0) buduje foe-rpg.zip i dołącza
+# go razem z system.json, żeby działał manifest URL w Foundry VTT.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ustaw wersję i link do pobrania w system.json
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          VERSION="${TAG#v}"
+          jq --arg v "$VERSION" \
+             --arg d "https://github.com/$REPO/releases/download/$TAG/foe-rpg.zip" \
+             '.version = $v | .download = $d' system.json > system.tmp
+          mv system.tmp system.json
+
+      - name: Spakuj system
+        run: zip -r foe-rpg.zip system.json README.md module templates styles
+
+      - name: Dołącz pliki do wydania
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" system.json foe-rpg.zip --clobber

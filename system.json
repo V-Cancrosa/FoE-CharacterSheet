@@ -15,7 +15,7 @@
   "grid": { "distance": 5, "units": "ft" },
   "primaryTokenAttribute": "resources.sats",
   "secondaryTokenAttribute": "resources.luck",
-  "url": "",
-  "manifest": "",
-  "download": ""
+  "url": "https://github.com/V-Cancrosa/FoE-CharacterSheet",
+  "manifest": "https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json",
+  "download": "https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/download/v0.1.0/foe-rpg.zip"
 }

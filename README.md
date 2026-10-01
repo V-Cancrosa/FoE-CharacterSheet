@@ -10,4 +10,9 @@ inicjatywa d100 − ¼ progu AGI, niższa działa pierwsza.
 Czego NIE ma (świadomie): automatyczne liczenie ran z obrażeń, efekty okaleczeń, kompendia (rasy, perki, bronie), magia/alchemia,
 wybór „dodaj/odejmij” do inicjatywy (domyślnie odejmuje).
 
-Instalacja: wrzuć folder `foe-rpg` do `Data/systems/` albo hostuj na GitHubie i podaj manifest URL (uzupełnij pola manifest/download w system.json).
+Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL:
+`https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
+Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
+
+Nowe wydanie: na GitHubie utwórz Release z tagiem `vX.Y.Z` — workflow `.github/workflows/release.yml`
+sam ustawi wersję w system.json i dołączy `foe-rpg.zip` oraz `system.json`.
