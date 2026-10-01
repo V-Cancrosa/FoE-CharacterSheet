@@ -118,12 +118,12 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (ammo.value <= 0) return ui.notifications.warn(`${item.name}: brak amunicji — przeładuj.`);
       await item.update({ "system.ammo.value": ammo.value - 1 });
     }
-    rollTest(this.document, { label: `Atak: ${item.name} (${SKILLS[item.system.skill].label})`, baseTn: s.tn, step: r.step, mod: r.mod + s.mod });
+    rollTest(this.document, { label: `Atak: ${item.name} (${SKILLS[item.system.skill].label})`, baseTn: s.tn, step: r.step, mod: r.mod + s.mod, itemUuid: item.uuid });
   }
 
   static async #onRollDamage(event, target) {
     const item = this.document.items.get(target.closest("[data-item-id]").dataset.itemId);
-    if (item) rollDamage(this.document, item);
+    if (item) rollDamage(this.document, item, { crit: event.shiftKey });   // Shift+klik = krytyk
   }
 
   static async #onCreateItem(event, target) {

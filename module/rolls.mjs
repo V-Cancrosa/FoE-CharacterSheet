@@ -3,7 +3,6 @@ import { MFD_STEPS } from "./data.mjs";
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
 const threshold = (baseTn, step, mod) => Math.floor(baseTn * step.f) + mod;
-const stepName = s => `MFD ${s.name} (${s.desc})`;
 const elementOf = x => (x instanceof HTMLElement ? x : x?.element instanceof HTMLElement ? x.element : null);
 
 /**
@@ -61,7 +60,7 @@ function achievedStep(total, baseTn, mod) {
 
 /**
  * Wykonuje rzut d100 i tworzy kartę na czacie.
- * data: {label, baseTn, step, mod, rerolls}
+ * data: {label, baseTn, step, mod, rerolls, itemUuid?} — itemUuid: broń, dla której karta pokaże przycisk obrażeń
  */
 export async function rollTest(actor, data) {
   const rerolls = data.rerolls ?? 0;
@@ -105,16 +104,18 @@ export async function rollTest(actor, data) {
     <div class="fc-main">
       <div class="fc-roll">${r}<small>RZUT</small></div>
       <div class="fc-outcome">${outcome}</div>
-      <div class="fc-sum">
-        Wymagane: <b>${stepName(step)}</b> → próg <b>≤ ${tn}</b><br>
-        Osiągnięto: <b>${ach ? stepName(ach) : "żaden poziom"}</b>
-      </div>
+      <div class="fc-sum">${r} ${r <= tn ? "≤" : ">"} ${tn}</div>
     </div>
+    <dl class="fc-mfd">
+      <dt>Cel</dt><dd><b>MFD ${step.name}</b><span class="t">≤ ${tn}</span><span class="d">${step.desc}</span></dd>
+      <dt>Wynik</dt><dd>${ach ? `<b>MFD ${ach.name}</b><span class="t">≤ ${threshold(data.baseTn, ach, data.mod)}</span><span class="d">${ach.desc}</span>` : `<b>brak</b><span class="t"></span><span class="d">żaden poziom</span>`}</dd>
+    </dl>
     <table class="fc-ladder"><tbody>${ladder}</tbody></table>
     <div class="fc-meta">
       <div>${meta}</div>
       ${cls === "crit-fail" ? `<div>Kartą szczęścia + rzutem na Luck×10 można zamienić krytyczną porażkę w zwykłą.</div>` : ""}
     </div>
+    ${data.itemUuid && !failed ? `<button type="button" class="foe-luck" data-action="foeDamage"><i class="fa-solid fa-burst"></i> ${cls === "crit-success" ? "Obrażenia krytyczne" : "Rzuć obrażenia"}</button>` : ""}
     ${canReroll ? `<button type="button" class="foe-luck" data-action="foeLuckReroll"><i class="fa-solid fa-clover"></i> Przerzuć za kartę szczęścia</button>` : ""}
   </div>`;
 
@@ -127,23 +128,44 @@ export async function rollTest(actor, data) {
   });
 }
 
-/** Rzut na obrażenia broni z kartą w stylu PipBucka. */
-export async function rollDamage(actor, item) {
+/**
+ * Jak liczyć krytyk z pola „Krytyk” broni:
+ *   puste lub „max” → maksymalne obrażenia z kości
+ *   „x2”, „×1.5”    → mnożnik obrażeń
+ *   „+1d6”, „+5”    → dodatkowe obrażenia
+ *   inny tekst      → tylko wyświetlany jako efekt krytyka (np. „krwawienie”)
+ */
+function parseCrit(text) {
+  const raw = String(text ?? "").trim();
+  const spec = raw.toLowerCase().replace(",", ".");
+  if (!spec || spec === "max") return { maximize: true, note: "maksymalne obrażenia z kości" };
+  const mult = spec.match(/^[x×*]\s*(\d+(?:\.\d+)?)$/);
+  if (mult) return { multiplier: Number(mult[1]), note: `obrażenia ×${mult[1].replace(".", ",")}` };
+  if (spec.startsWith("+") && Roll.validate(spec.slice(1))) return { extra: spec.slice(1).trim(), note: `dodatkowo ${raw}` };
+  return { note: `efekt: ${raw}` };
+}
+
+/** Rzut na obrażenia broni z kartą w stylu PipBucka. crit: krytyczne trafienie. */
+export async function rollDamage(actor, item, { crit = false } = {}) {
   let formula = item.system.damage || "0";
   // Energy Weapons: bonus do obrażeń = ranga /10
   if (item.system.skill === "energy") formula += ` + ${Math.floor(actor.system.skills.energy.rank / 10)}`;
-  const roll = await new Roll(formula, actor.getRollData()).evaluate();
+  const c = crit ? parseCrit(item.system.crit) : {};
+  if (c.extra) formula = `${formula} + ${c.extra}`;
+  const roll = await new Roll(formula, actor.getRollData()).evaluate({ maximize: !!c.maximize });
+  const total = c.multiplier ? Math.floor(roll.total * c.multiplier) : roll.total;
   const dice = roll.dice.flatMap(d => d.results.filter(x => x.active !== false).map(x => `<span>${x.result}</span>`)).join("");
 
   const content = `
-  <div class="foe-card damage">
-    <div class="fc-tag"><span>PIPBUCK // OBRAŻENIA</span><span>${esc(roll.formula)}</span></div>
+  <div class="foe-card damage ${crit ? "crit-success" : ""}">
+    <div class="fc-tag"><span>PIPBUCK // ${crit ? "KRYTYK" : "OBRAŻENIA"}</span><span>${esc(roll.formula)}</span></div>
     <h3>${esc(item.name)}</h3>
     <div class="fc-main">
-      <div class="fc-roll">${roll.total}<small>OBR.</small></div>
-      <div class="fc-outcome">Obrażenia</div>
-      <div class="fc-sum">${dice ? `<div class="fc-dice">${dice}</div>` : esc(roll.formula)}</div>
+      <div class="fc-roll">${total}<small>OBR.</small></div>
+      <div class="fc-outcome">${crit ? "Krytyczne" : "Obrażenia"}</div>
+      <div class="fc-sum">${dice ? `<div class="fc-dice">${dice}</div>` : esc(roll.formula)}${c.multiplier ? `<div>${roll.total} × ${String(c.multiplier).replace(".", ",")} = ${total}</div>` : ""}</div>
     </div>
+    ${crit ? `<div class="fc-crit">Krytyk: ${esc(c.note)}</div>` : ""}
     <div class="fc-meta">Odejmij DT celu, potem licz rany: 1 rana / ${actor.system.dmgPerWound} obrażeń (postać gracza).</div>
   </div>`;
 
@@ -158,6 +180,16 @@ export async function rollDamage(actor, item) {
 /** Obsługa przycisku przerzutu w czacie (Live by Luck). */
 export function registerChatListeners() {
   Hooks.on("renderChatMessageHTML", (message, html) => {
+    const dmg = html.querySelector("[data-action=foeDamage]");
+    dmg?.addEventListener("click", async ev => {
+      ev.preventDefault();
+      const test = message.getFlag("foe-rpg", "test");
+      const item = test?.itemUuid ? await fromUuid(test.itemUuid) : null;
+      if (!item) return ui.notifications.warn("Nie znaleziono tej broni.");
+      if (!item.isOwner) return ui.notifications.warn("Nie jesteś właścicielem tej broni.");
+      await rollDamage(item.parent ?? item.actor, item, { crit: html.querySelector(".foe-card")?.classList.contains("crit-success") });
+    });
+
     const btn = html.querySelector("[data-action=foeLuckReroll]");
     if (!btn) return;
     btn.addEventListener("click", async ev => {
