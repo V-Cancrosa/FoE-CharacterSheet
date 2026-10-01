@@ -1,0 +1,19 @@
+<header class="foe-header">
+  <img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
+  <div class="identity">
+    <input class="name" type="text" name="name" value="{{actor.name}}" placeholder="Imię">
+    <div class="row">
+      <label>Rasa <input type="text" name="system.race" value="{{system.race}}"></label>
+      <label>Poziom <input type="number" name="system.level" value="{{system.level}}"></label>
+      <label>Karma <input type="number" name="system.karma" value="{{system.karma}}"></label>
+      <label>Kapsle <input type="number" name="system.caps" value="{{system.caps}}"></label>
+    </div>
+    <div class="row resources">
+      <label>SATS <input type="number" name="system.resources.sats.value" value="{{system.resources.sats.value}}"> / {{system.resources.sats.max}}</label>
+      <label>Karty szczęścia <input type="number" name="system.resources.luck.value" value="{{system.resources.luck.value}}"> / {{system.resources.luck.max}}</label>
+      <label>Strain <input type="number" name="system.resources.strain.value" value="{{system.resources.strain.value}}"> / <input type="number" name="system.resources.strain.max" value="{{system.resources.strain.max}}"></label>
+      <label>Rady <input type="number" name="system.resources.rads.value" value="{{system.resources.rads.value}}"></label>
+      <button type="button" data-action="newSession" title="Odnów karty szczęścia i SATS">Nowa sesja</button>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,79 @@
+/* Paleta: Stable-Tec — stalowy błękit, bursztyn ostrzegawczy, chłodny papier */
+.foe-rpg {
+  --foe-ink: #1e2830;
+  --foe-paper: #dde3e0;
+  --foe-panel: #eef1ef;
+  --foe-steel: #2f5d7c;
+  --foe-amber: #c98a1b;
+  --foe-danger: #9e3324;
+  --foe-ok: #3d6b3a;
+}
+.foe-rpg .window-content { background: var(--foe-paper); color: var(--foe-ink); padding: 0.5rem 0.75rem; }
+.foe-rpg h3 { font-family: "Modesto Condensed", var(--font-primary), sans-serif; font-size: 1.35rem;
+  color: var(--foe-steel); border-bottom: 2px solid var(--foe-steel); margin: 0.75rem 0 0.35rem; display: flex; gap: .5rem; align-items: baseline; }
+.foe-rpg h3 a { font-size: .9rem; color: var(--foe-amber); }
+.foe-rpg input, .foe-rpg select { color: var(--foe-ink); background: var(--foe-panel); border: 1px solid #9aa7ad; }
+.foe-rpg input[type=number] { width: 3.2rem; text-align: center; }
+
+.foe-rpg .foe-header { display: flex; gap: .75rem; align-items: flex-start; padding-bottom: .5rem; border-bottom: 3px solid var(--foe-amber); }
+.foe-rpg .foe-header .portrait { width: 96px; height: 96px; object-fit: cover; border: 2px solid var(--foe-steel); cursor: pointer; }
+.foe-rpg .foe-header.small .portrait { width: 56px; height: 56px; }
+.foe-rpg .identity { flex: 1; display: flex; flex-direction: column; gap: .35rem; }
+.foe-rpg .name { font-family: "Modesto Condensed", var(--font-primary), sans-serif; font-size: 2rem; height: auto; border: none; background: transparent; }
+.foe-rpg .row { display: flex; flex-wrap: wrap; gap: .4rem 1rem; align-items: center; }
+.foe-rpg .row label { display: flex; gap: .3rem; align-items: center; font-size: .85rem; }
+.foe-rpg .row input[type=text] { width: 9rem; }
+.foe-rpg .resources { background: var(--foe-steel); color: #f2f4f3; padding: .3rem .5rem; }
+.foe-rpg .resources button { margin-left: auto; width: auto; background: var(--foe-amber); color: var(--foe-ink); border: none; }
+
+.foe-rpg nav.tabs { margin: .5rem 0; border-bottom: 1px solid var(--foe-steel); }
+.foe-rpg nav.tabs a.active { color: var(--foe-steel); text-shadow: none; border-bottom: 3px solid var(--foe-amber); }
+
+.foe-rpg .cols { display: grid; grid-template-columns: minmax(220px, 1fr) 2fr; gap: 1rem; }
+.foe-rpg .foe-table { width: 100%; border-collapse: collapse; font-size: .85rem; background: var(--foe-panel); }
+.foe-rpg .foe-table th { background: var(--foe-ink); color: #f2f4f3; font-weight: 600; padding: .2rem .25rem; text-align: center; }
+.foe-rpg .foe-table td { padding: .1rem .25rem; text-align: center; border-bottom: 1px solid #c6cfcc; }
+.foe-rpg .foe-table td:first-child, .foe-rpg .foe-table td:nth-child(2) { text-align: left; }
+.foe-rpg .foe-table td.tn { font-weight: 700; color: var(--foe-steel); }
+.foe-rpg .foe-table tr.racial td:first-child { font-style: italic; }
+.foe-rpg .foe-table tr.lethal td { background: color-mix(in srgb, var(--foe-danger) 22%, transparent); }
+.foe-rpg .rollable { cursor: pointer; color: var(--foe-ink); }
+.foe-rpg .rollable:hover { color: var(--foe-amber); text-decoration: underline; }
+.foe-rpg .ctl { white-space: nowrap; }
+.foe-rpg .ctl a { color: var(--foe-steel); margin-left: .3rem; }
+.foe-rpg .empty { color: #5c6a70; font-style: italic; }
+.foe-rpg .hint { font-size: .78rem; color: #5c6a70; margin: .3rem 0; }
+
+.foe-rpg .derived { display: grid; grid-template-columns: auto 1fr; gap: .2rem .6rem; font-size: .85rem; margin-top: .6rem; }
+.foe-rpg .derived dt { font-weight: 600; }
+.foe-rpg .derived dd { margin: 0; }
+
+.foe-rpg .item-list { list-style: none; padding: 0; margin: 0; }
+.foe-rpg .item-list li { display: flex; align-items: center; gap: .5rem; padding: .2rem .3rem; border-bottom: 1px solid #c6cfcc; background: var(--foe-panel); }
+.foe-rpg .item-list .nm { flex: 1; font-weight: 600; }
+.foe-rpg .item-list .kind { color: var(--foe-steel); font-size: .8rem; }
+.foe-rpg prose-mirror { min-height: 180px; background: var(--foe-panel); }
+
+.foe-rpg .foe-item .fields { display: grid; grid-template-columns: 1fr; gap: .35rem; margin: .5rem 0; }
+.foe-rpg .foe-item .fields label { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.foe-rpg .foe-item .fields input[type=text], .foe-rpg .foe-item .fields select { width: 60%; }
+
+/* Okno rzutu */
+.foe-dialog { display: flex; flex-direction: column; gap: .5rem; }
+.foe-dialog label { display: flex; flex-direction: column; gap: .2rem; }
+
+/* Karta na czacie */
+.foe-card { border-left: 5px solid #8a969b; padding: .3rem .5rem; }
+.foe-card h3 { margin: 0 0 .2rem; font-size: 1.05rem; border: none; }
+.foe-card .foe-result { font-size: 2rem; font-weight: 700; text-align: center; line-height: 1.1; }
+.foe-card .foe-outcome { text-align: center; font-weight: 700; margin-bottom: .2rem; }
+.foe-card .foe-line.small { font-size: .78rem; opacity: .8; }
+.foe-card.success { border-color: #3d6b3a; }
+.foe-card.crit-success { border-color: #c98a1b; }
+.foe-card.crit-success .foe-outcome { color: #c98a1b; }
+.foe-card.fail { border-color: #6a7276; }
+.foe-card.crit-fail { border-color: #9e3324; }
+.foe-card.crit-fail .foe-outcome { color: #9e3324; }
+.foe-card .foe-luck { margin-top: .3rem; }
+
+@media (max-width: 700px) { .foe-rpg .cols { grid-template-columns: 1fr; } }

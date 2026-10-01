@@ -1,0 +1,11 @@
+<section class="tab {{tab.cssClass}}" data-group="primary" data-tab="notes">
+  <h3>Cechy, przypadłości, perki, zaklęcia <a data-action="createItem" data-type="feature"><i class="fa-solid fa-plus"></i></a></h3>
+  <ul class="item-list">
+  {{#each features}}
+    <li data-item-id="{{id}}"><span class="nm">{{name}}</span> <span class="kind">{{system.kind}}</span>
+      <span class="ctl"><a data-action="editItem"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem"><i class="fa-solid fa-trash"></i></a></span></li>
+  {{else}}<li class="empty">Brak — dodaj trait, hindrance albo perk.</li>{{/each}}
+  </ul>
+  <h3>Notatki</h3>
+  <prose-mirror name="system.notes" toggled value="{{system.notes}}">{{{notesHTML}}}</prose-mirror>
+</section>
