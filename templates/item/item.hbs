@@ -10,7 +10,8 @@
     <label>Koszt SATS <input type="number" name="system.satsCost" value="{{system.satsCost}}"></label>
     <label>Amunicja <input type="number" name="system.ammo.value" value="{{system.ammo.value}}"> / <input type="number" name="system.ammo.max" value="{{system.ammo.max}}"></label>
     <label>Zasięg <input type="text" name="system.range" value="{{system.range}}"></label>
-    <label>Krytyk <input type="text" name="system.crit" value="{{system.crit}}"></label>
+    <label title="Puste lub „max” = maksymalne obrażenia z kości · „x2” = mnożnik · „+1d6” = dodatkowe obrażenia · inny tekst = efekt">Krytyk <input type="text" name="system.crit" value="{{system.crit}}" placeholder="max / x2 / +1d6"></label>
+    <p class="hint">Krytyk: puste lub „max” = maks. obrażenia z kości, „x2” = mnożnik, „+1d6” = dodatkowe obrażenia, inny tekst = sam opis efektu.</p>
     <label>Waga <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
   {{/if}}
   {{#if isArmor}}

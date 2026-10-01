@@ -32,6 +32,9 @@ body[data-foe-pip="white"] :is(.foe-rpg, .foe-card) { --pip: #e4f2e8; --pip-aler
   border: 1px solid var(--pip-dim);
   box-shadow: 0 0 0 1px #000, 0 0 24px var(--pip-faint), 0 8px 30px rgba(0, 0, 0, .7);
   min-width: 380px;
+  /* Bez rozmycia tła i trybów mieszania — w Foundry (Electron) potrafiły rysować czarne prostokąty */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 .foe-rpg.application .window-header {
   background: var(--pip-bg);
@@ -44,8 +47,8 @@ body[data-foe-pip="white"] :is(.foe-rpg, .foe-card) { --pip: #e4f2e8; --pip-aler
   text-shadow: 0 0 6px var(--pip-glow);
 }
 .foe-rpg.application .window-header button,
-.foe-rpg.application .window-header a { color: var(--pip-mid); }
-.foe-rpg.application .window-header button:hover { color: var(--pip-bright); }
+.foe-rpg.application .window-header a { color: var(--pip-mid); background: none; border: 0; box-shadow: none; }
+.foe-rpg.application .window-header button:hover { color: var(--pip-bright); background: none; }
 
 /* ---------- Ekran CRT ---------- */
 .foe-rpg .window-content {
@@ -125,7 +128,7 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
 }
 .foe-rpg input[type=checkbox]::before, .foe-rpg input[type=checkbox]::after { display: none; }
 .foe-rpg input[type=checkbox]:checked { background: var(--pip); box-shadow: 0 0 6px var(--pip-glow), inset 0 0 0 2px #000; }
-.foe-rpg button {
+.foe-rpg .window-content button {
   font-family: var(--foe-crt);
   font-size: 1.05rem;
   letter-spacing: .05em;
@@ -137,7 +140,7 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
   box-shadow: none;
   text-shadow: 0 0 4px var(--pip-glow);
 }
-.foe-rpg button:hover { color: #000; background: var(--pip); text-shadow: none; box-shadow: 0 0 8px var(--pip-glow); }
+.foe-rpg .window-content button:hover { color: #000; background: var(--pip); text-shadow: none; box-shadow: 0 0 8px var(--pip-glow); }
 
 /* ---------- Typografia ---------- */
 .foe-rpg h3 {
@@ -180,10 +183,9 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
   border: 1px solid var(--pip-mid);
   cursor: pointer;
   filter: grayscale(1) sepia(1) contrast(1.1);
-  mix-blend-mode: screen;
   opacity: .9;
 }
-.foe-rpg .portrait:hover { filter: none; mix-blend-mode: normal; opacity: 1; }
+.foe-rpg .portrait:hover { filter: none; opacity: 1; }
 .foe-rpg .identity { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .35rem; }
 .foe-rpg input.name {
   width: 100%;
@@ -325,7 +327,7 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
 .foe-rpg .item-list li:hover { background: var(--pip-faint); }
 .foe-rpg .item-list .nm { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
 .foe-rpg .item-list .kind { color: var(--pip-mid); text-transform: uppercase; font-size: 12px; }
-.foe-rpg img.icon { width: 24px; height: 24px; border: 1px solid var(--pip-line); filter: grayscale(1) sepia(1); mix-blend-mode: screen; }
+.foe-rpg img.icon { width: 24px; height: 24px; border: 1px solid var(--pip-line); filter: grayscale(1) sepia(1); }
 
 /* ---------- Edytor tekstu ---------- */
 .foe-rpg prose-mirror {
@@ -369,7 +371,17 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
 .foe-rpg .foe-dialog .mfd-pick label:has(input:checked) .d { color: #000; }
 .foe-rpg .foe-dialog .mod-row { display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; font-size: 12px; }
 .foe-rpg .foe-dialog .mod-row input { width: 4.5em; }
-.foe-rpg.foe-roll-dialog .form-footer button { flex: 1; }
+.foe-rpg.foe-roll-dialog .form-footer button {
+  flex: 1;
+  color: var(--pip);
+  background: transparent;
+  border: 1px solid var(--pip-mid);
+  border-radius: 0;
+  font-family: var(--foe-crt);
+  font-size: 1.15rem;
+  text-transform: uppercase;
+}
+.foe-rpg.foe-roll-dialog .form-footer button:hover { color: #000; background: var(--pip); }
 
 /* ==========================================================================
    Karty na czacie
@@ -440,14 +452,38 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
   letter-spacing: .08em;
   text-transform: uppercase;
 }
-.foe-card .fc-sum { color: var(--pip-mid); }
+.foe-card .fc-sum { color: var(--pip-mid); font-size: 13px; }
 .foe-card .fc-sum b { color: var(--pip-bright); }
+
+/* Cel / wynik MFD */
+.foe-card .fc-mfd {
+  display: grid; grid-template-columns: auto 1fr; gap: .15rem .5rem;
+  margin: .45rem 0 0; padding: .3rem .4rem;
+  border: 1px solid var(--pip-line);
+}
+.foe-card .fc-mfd dt {
+  align-self: start;
+  margin: 0;
+  color: var(--pip-mid);
+  font-family: var(--foe-crt);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.foe-card .fc-mfd dd { margin: 0; display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 .45rem; }
+.foe-card .fc-mfd dd b { color: var(--pip-bright); white-space: nowrap; }
+.foe-card .fc-mfd dd .t { color: var(--pip); font-weight: 700; white-space: nowrap; }
+.foe-card .fc-mfd dd .d { grid-column: 1 / -1; color: var(--pip-mid); font-size: 11px; line-height: 1.2; }
+.foe-card .fc-mfd dt + dd + dt { margin-top: .15rem; }
+.foe-card .fc-crit { margin-top: .35rem; padding: .1rem .35rem; color: #000; background: var(--pip); text-shadow: none; font-weight: 700; }
 
 /* Drabinka MFD */
 .foe-card .fc-ladder { width: 100%; margin: .45rem 0 .25rem; border-collapse: collapse; background: none; border: 0; font-size: 12px; }
 .foe-card .fc-ladder tr { background: none; }
 .foe-card .fc-ladder td { padding: .05rem .3rem; border: 0; border-bottom: 1px dotted var(--pip-line); text-align: left; color: var(--pip-dim); text-shadow: none; }
-.foe-card .fc-ladder td.k { width: 2.6em; font-weight: 700; }
+.foe-card .fc-ladder td.k { width: 3.2em; font-weight: 700; white-space: nowrap; }
 .foe-card .fc-ladder td.t { white-space: nowrap; }
 .foe-card .fc-ladder td.m { width: 1.2em; text-align: center; }
 .foe-card .fc-ladder td.tg { width: 1%; white-space: nowrap; text-align: right; }
