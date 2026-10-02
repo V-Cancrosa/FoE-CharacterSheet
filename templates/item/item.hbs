@@ -8,7 +8,7 @@
     <label>Umiejętność <select name="system.skill">{{selectOptions skillOptions selected=system.skill}}</select></label>
     <label>Obrażenia (formuła) <input type="text" name="system.damage" value="{{system.damage}}"></label>
     <label>Koszt SATS <input type="number" name="system.satsCost" value="{{system.satsCost}}"></label>
-    <label>Amunicja <input type="number" name="system.ammo.value" value="{{system.ammo.value}}"> / <input type="number" name="system.ammo.max" value="{{system.ammo.max}}"></label>
+    <label>Amunicja <span class="pair"><input type="number" name="system.ammo.value" value="{{system.ammo.value}}"> / <input type="number" name="system.ammo.max" value="{{system.ammo.max}}"></span></label>
     <label>Zasięg <input type="text" name="system.range" value="{{system.range}}"></label>
     <label title="Puste lub „max” = maksymalne obrażenia z kości · „x2” = mnożnik · „+1d6” = dodatkowe obrażenia · inny tekst = efekt">Krytyk <input type="text" name="system.crit" value="{{system.crit}}" placeholder="max / x2 / +1d6"></label>
     <p class="hint">Krytyk: puste lub „max” = maks. obrażenia z kości, „x2” = mnożnik, „+1d6” = dodatkowe obrażenia, inny tekst = sam opis efektu.</p>

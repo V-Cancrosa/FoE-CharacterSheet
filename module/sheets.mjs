@@ -1,5 +1,6 @@
 import { ATTRS, SKILLS, LOCATIONS } from "./data.mjs";
 import { promptMfd, rollTest, rollDamage } from "./rolls.mjs";
+import { openCreator } from "./creator.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -19,7 +20,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       createItem: FoeActorSheet.#onCreateItem,
       editItem: FoeActorSheet.#onEditItem,
       deleteItem: FoeActorSheet.#onDeleteItem,
-      newSession: FoeActorSheet.#onNewSession
+      newSession: FoeActorSheet.#onNewSession,
+      openCreator: FoeActorSheet.#onOpenCreator
     }
   };
 
@@ -63,7 +65,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const a = sys.attributes[k];
       return { key: k, label, letter: label[0], rest: label.slice(1), ...a, q3: Math.floor(a.tn * .75), q2: Math.floor(a.tn / 2), q1: Math.floor(a.tn / 4) };
     });
-    ctx.skills = Object.entries(SKILLS).map(([k, def]) => {
+    ctx.skills = Object.entries(SKILLS).filter(([k]) => sys.skills[k].known !== false).map(([k, def]) => {
       const s = sys.skills[k];
       const tn = s.tn + s.mod;
       return {
@@ -143,6 +145,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       window: { title: "Usuń przedmiot" }, content: `<p>Usunąć <b>${foundry.utils.escapeHTML(item.name)}</b>?</p>`
     });
     if (ok) item.delete();
+  }
+
+  static #onOpenCreator() {
+    openCreator(this.document);
   }
 
   static async #onNewSession() {

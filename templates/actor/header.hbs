@@ -1,5 +1,5 @@
 <header class="foe-header">
-  <div class="pip-bar"><span>PIPBUCK 3000 · STABLE-TEC</span><span>{{#if isNpc}}NPC{{else}}POZ. {{system.level}}{{/if}}</span></div>
+  <div class="pip-bar"><span>PIPBUCK 3000 · STABLE-TEC</span><span><a class="pip-creator" data-action="openCreator" title="Uruchom kreator {{#if isNpc}}NPC{{else}}postaci{{/if}}"><i class="fa-solid fa-user-gear"></i> KREATOR</a> · {{#if isNpc}}NPC{{else}}POZ. {{system.level}}{{/if}}</span></div>
   <div class="foe-id">
     <img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
     <div class="identity">

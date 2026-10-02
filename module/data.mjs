@@ -61,7 +61,8 @@ function skillSchema() {
     points: num(0),          // punkty z awansów
     bonus: num(0),           // rasa/cechy/perki
     mod: num(0),             // stały modyfikator do rzutu (+ ułatwia)
-    attr: new F.StringField({ initial: s.attr })
+    attr: new F.StringField({ initial: s.attr }),
+    known: new F.BooleanField({ initial: true })   // umiejętność rasowa dostępna dla tej rasy
   });
   return new F.SchemaField(o);
 }
@@ -84,6 +85,8 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       locations: locationSchema(),
       level: num(1, { min: 1 }),
       woundBonus: num(0),
+      carryBonus: num(0),      // np. Strong Back, Large, Young
+      speedBonus: num(0),      // np. High Ho Silver, Away!
       resources: new F.SchemaField({
         sats: new F.SchemaField({ value: num(65), max: num(65) }),
         luck: new F.SchemaField({ value: num(5), max: num(5) }),
@@ -108,14 +111,15 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
     for (const [k, sk] of Object.entries(this.skills)) {
       const att = a[sk.attr] ?? a[SKILLS[k].attr];
       sk.base = Math.max(5, 2 * att.total + Math.floor(luck / 2) + 2);
-      sk.rank = sk.base + (sk.tag ? 15 : 0) + sk.points + sk.bonus;
+      // Premie rasy/cech nie zbijają rangi poniżej 5; potem tag i punkty z awansów; maks. 100 (s. 63)
+      sk.rank = Math.min(100, Math.max(5, sk.base + sk.bonus) + (sk.tag ? 15 : 0) + sk.points);
       sk.tn = sk.rank + Math.floor(att.tn / 2);   // MFD 1 = ranga + ½ MFD atrybutu
     }
     const agi = a.agi.total;
     this.resources.sats.max = 40 + agi * 5;
     this.resources.luck.max = Math.max(3, Math.ceil(luck / 2) + 2);
-    this.carry = 100 + 10 * a.str.total;
-    this.speed = Math.floor((2.5 * agi) / 5) * 5;
+    this.carry = 100 + 10 * a.str.total + (this.carryBonus ?? 0);
+    this.speed = Math.floor((2.5 * agi) / 5) * 5 + (this.speedBonus ?? 0);
     this.flySpeed = 5 * agi;
     this.dmgPerWound = Math.min(20, 10 + Math.floor(this.level / 3)) + this.woundBonus;
     this.initMod = Math.floor(a.agi.tn / 4);

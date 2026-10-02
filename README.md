@@ -10,6 +10,12 @@ inicjatywa d100 − ¼ progu AGI, niższa działa pierwsza.
 Czego NIE ma (świadomie): automatyczne liczenie ran z obrażeń, efekty okaleczeń, kompendia (rasy, perki, bronie), magia/alchemia,
 wybór „dodaj/odejmij” do inicjatywy (domyślnie odejmuje).
 
+Kreator postaci: po utworzeniu nowej postaci otwiera się kreator (można go też uruchomić przyciskiem KREATOR na karcie).
+- Postać gracza, 5 kroków według rozdziału 2 podręcznika: rasa (premie do atrybutów i umiejętności, umiejętności rasowe),
+  wady i cechy (punkty tworzenia), S.P.E.C.I.A.L. (28 punktów, limity 9/10/12), umiejętności z tagiem, podsumowanie.
+- NPC: archetyp + rasa + poziom („Rapid NPC Generation”); punkty z awansów rozdzielane automatycznie (10 + INT/2 na poziom).
+- W ustawieniach świata: włączanie kreatora przy nowej postaci i pula punktów (32 / 35 / 37).
+
 Wygląd: ekran PipBucka. W Ustawieniach gry → Fallout: Equestria RPG każdy gracz wybiera kolor ekranu
 (zielony / bursztynowy / niebieski / biały) i może wyłączyć linie skanowania. Rzuty na czacie pokazują
 drabinkę MFD: wymagany poziom (CEL), osiągnięty poziom (WYNIK) i progi wszystkich poziomów.
