@@ -25,8 +25,8 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
   constructor(actor, options = {}) {
     super(options);
     this.actor = actor;
-    this.state = { ...defaultPcState(actor.name), ...readFlag(actor, "creation") };
-    this.state.step = 0;
+    this.wiz = { ...defaultPcState(actor.name), ...readFlag(actor, "creation") };
+    this.wiz.step = 0;
   }
 
   static DEFAULT_OPTIONS = {
@@ -51,14 +51,14 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
 
   static PARTS = { body: { template: `${P}/pc.hbs`, scrollable: [".cr-scroll"] } };
 
-  get title() { return `Kreator postaci: ${this.state.name || this.actor.name}`; }
+  get title() { return `Kreator postaci: ${this.wiz.name || this.actor.name}`; }
 
   get pool() {
     try { return Number(game.settings.get("foe-rpg", "creationPool")) || CREATION.pool; } catch { return CREATION.pool; }
   }
 
   async _prepareContext() {
-    const st = this.state;
+    const st = this.wiz;
     const r = computePc(st, this.pool);
     this.result = r;
     const race = r.race;
@@ -148,7 +148,7 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
     this.element.addEventListener("change", ev => this.#onChange(ev));
     this.element.addEventListener("input", ev => {
       if (ev.target.name !== "filter") return;
-      this.state.filter = ev.target.value;
+      this.wiz.filter = ev.target.value;
       this.#applyFilter();
     });
   }
@@ -159,7 +159,7 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
   }
 
   #applyFilter() {
-    const q = (this.state.filter || "").trim().toLowerCase();
+    const q = (this.wiz.filter || "").trim().toLowerCase();
     for (const row of this.element.querySelectorAll("[data-search]")) row.hidden = !!q && !row.dataset.search.includes(q);
   }
 
@@ -167,7 +167,7 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
     const t = ev.target;
     const name = t.name;
     if (!name || name === "filter") return;
-    const st = this.state;
+    const st = this.wiz;
     const v = t.type === "checkbox" ? t.checked : t.value;
     if (name.startsWith("adj.")) st.adj[name.slice(4)] = Number(v) || 0;
     else if (name.startsWith("extra.")) st.extra[name.slice(6)] = Number(v) || 0;
@@ -178,19 +178,19 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
   }
 
   // ---- akcje ----
-  static #goStep(ev, target) { this.state.step = Number(target.dataset.step); this.render(); }
-  static #next() { this.state.step = Math.min(STEPS.length - 1, this.state.step + 1); this.render(); }
-  static #prev() { this.state.step = Math.max(0, this.state.step - 1); this.render(); }
+  static #goStep(ev, target) { this.wiz.step = Number(target.dataset.step); this.render(); }
+  static #next() { this.wiz.step = Math.min(STEPS.length - 1, this.wiz.step + 1); this.render(); }
+  static #prev() { this.wiz.step = Math.max(0, this.wiz.step - 1); this.render(); }
 
   static #toggleRaceAttr(ev, target) {
-    const k = target.dataset.key, st = this.state, n = RACES[st.race].attrs.pick;
+    const k = target.dataset.key, st = this.wiz, n = RACES[st.race].attrs.pick;
     if (st.raceAttrs.includes(k)) st.raceAttrs = st.raceAttrs.filter(x => x !== k);
     else st.raceAttrs = [...st.raceAttrs, k].slice(-n);
     this.render();
   }
 
   static #toggleRaceSkill(ev, target) {
-    const key = target.dataset.key, st = this.state;
+    const key = target.dataset.key, st = this.wiz;
     const g = Number(key.split(":")[0]);
     const n = RACES[st.race].skills.picks[g].n;
     if (st.raceSkills.includes(key)) st.raceSkills = st.raceSkills.filter(x => x !== key);
@@ -203,19 +203,19 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
   }
 
   static #toggleZebraSplit(ev, target) {
-    const k = target.dataset.key, st = this.state;
+    const k = target.dataset.key, st = this.wiz;
     st.zebraSplit = st.zebraSplit.includes(k) ? st.zebraSplit.filter(x => x !== k) : [...st.zebraSplit, k].slice(-2);
     this.render();
   }
 
   static #toggleHindrance(ev, target) {
-    const k = target.dataset.key, st = this.state;
+    const k = target.dataset.key, st = this.wiz;
     st.hindrances = st.hindrances.includes(k) ? st.hindrances.filter(x => x !== k) : [...st.hindrances, k];
     this.render();
   }
 
   static #toggleTrait(ev, target) {
-    const k = target.dataset.key, st = this.state;
+    const k = target.dataset.key, st = this.wiz;
     if (k in st.traits) delete st.traits[k];
     else st.traits[k] = TRAITS[k].cost[0];
     this.render();
@@ -223,25 +223,25 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
 
   static #attrPlus(ev, target) {
     const a = this.result.attrs[target.dataset.key];
-    if (a.spent < a.maxSpent && this.result.remaining > 0) this.state.spent[a.key] = a.spent + 1;
+    if (a.spent < a.maxSpent && this.result.remaining > 0) this.wiz.spent[a.key] = a.spent + 1;
     this.render();
   }
 
   static #attrMinus(ev, target) {
     const k = target.dataset.key;
-    this.state.spent[k] = Math.max(0, (this.state.spent[k] ?? 0) - 1);
+    this.wiz.spent[k] = Math.max(0, (this.wiz.spent[k] ?? 0) - 1);
     this.render();
   }
 
   static #toggleTag(ev, target) {
-    const k = target.dataset.key, st = this.state, r = this.result;
+    const k = target.dataset.key, st = this.wiz, r = this.result;
     if (st.tags.includes(k)) st.tags = st.tags.filter(x => x !== k);
     else if (r.tags.length < r.tagLimit && r.skills[k]?.known) st.tags = [...r.tags, k];
     this.render();
   }
 
   static async #finish() {
-    const r = computePc(this.state, this.pool);
+    const r = computePc(this.wiz, this.pool);
     if (r.errors.length) return ui.notifications.warn(r.errors[0]);
     if (this.actor.getFlag("foe-rpg", "created")) {
       const ok = await DialogV2.confirm({
@@ -250,7 +250,7 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
       });
       if (!ok) return;
     }
-    const { update, items } = buildPcUpdate(this.state, r);
+    const { update, items } = buildPcUpdate(this.wiz, r);
     await applyToActor(this.actor, update, items);
     ui.notifications.info(`${this.actor.name}: postać gotowa.`);
     this.close();
@@ -265,7 +265,7 @@ export class NpcCreator extends HandlebarsApplicationMixin(ApplicationV2) {
   constructor(actor, options = {}) {
     super(options);
     this.actor = actor;
-    this.state = { name: actor.name, race: "earth", archetype: "raider", level: 1, ...readFlag(actor, "npcCreation") };
+    this.wiz = { name: actor.name, race: "earth", archetype: "raider", level: 1, ...readFlag(actor, "npcCreation") };
   }
 
   static DEFAULT_OPTIONS = {
@@ -277,10 +277,10 @@ export class NpcCreator extends HandlebarsApplicationMixin(ApplicationV2) {
 
   static PARTS = { body: { template: `${P}/npc.hbs`, scrollable: [".cr-scroll"] } };
 
-  get title() { return `Kreator NPC: ${this.state.name || this.actor.name}`; }
+  get title() { return `Kreator NPC: ${this.wiz.name || this.actor.name}`; }
 
   async _prepareContext() {
-    const st = this.state;
+    const st = this.wiz;
     const r = computeNpc(st);
     return {
       st, r,
@@ -297,13 +297,13 @@ export class NpcCreator extends HandlebarsApplicationMixin(ApplicationV2) {
     this.element.addEventListener("change", ev => {
       const { name, value } = ev.target;
       if (!name) return;
-      this.state[name] = name === "level" ? Math.max(1, Math.min(30, Number(value) || 1)) : value;
+      this.wiz[name] = name === "level" ? Math.max(1, Math.min(30, Number(value) || 1)) : value;
       this.render();
     });
   }
 
   static async #finish() {
-    const r = computeNpc(this.state);
+    const r = computeNpc(this.wiz);
     if (this.actor.getFlag("foe-rpg", "created")) {
       const ok = await DialogV2.confirm({
         window: { title: "Nadpisać NPC?" },
@@ -311,7 +311,7 @@ export class NpcCreator extends HandlebarsApplicationMixin(ApplicationV2) {
       });
       if (!ok) return;
     }
-    const { update, items } = buildNpcUpdate(this.state, r);
+    const { update, items } = buildNpcUpdate(this.wiz, r);
     await applyToActor(this.actor, update, items);
     ui.notifications.info(`${this.actor.name}: NPC gotowy.`);
     this.close();
@@ -322,7 +322,14 @@ export class NpcCreator extends HandlebarsApplicationMixin(ApplicationV2) {
 /** Otwiera właściwy kreator dla aktora. */
 export function openCreator(actor) {
   const App = actor.type === "npc" ? NpcCreator : CharacterCreator;
-  const existing = foundry.applications.instances?.get(`foe-creator-${actor.id}`);
-  if (existing) return existing.bringToFront?.() ?? existing.render(true);
-  return new App(actor, { id: `foe-creator-${actor.id}` }).render(true);
+  const fail = err => {
+    console.error("foe-rpg | kreator", err);
+    ui.notifications.error(`Kreator nie mógł się otworzyć: ${err.message}`);
+  };
+  try {
+    const app = foundry.applications.instances?.get(`foe-creator-${actor.id}`) ?? new App(actor, { id: `foe-creator-${actor.id}` });
+    return app.render({ force: true }).catch(fail);
+  } catch (err) {
+    fail(err);
+  }
 }
