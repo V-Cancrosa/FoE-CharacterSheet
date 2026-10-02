@@ -1,52 +1,99 @@
 import { MFD_STEPS } from "./data.mjs";
+import { actorEffects } from "./effects.mjs";
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
 const threshold = (baseTn, step, mod) => Math.floor(baseTn * step.f) + mod;
 const elementOf = x => (x instanceof HTMLElement ? x : x?.element instanceof HTMLElement ? x.element : null);
 
+const stepIndex = key => Math.max(0, MFD_STEPS.findIndex(s => s.key === key));
+// steps > 0 ułatwia (bliżej MFD 2), steps < 0 utrudnia (bliżej 1/10)
+const shiftStep = (i, steps) => Math.max(0, Math.min(MFD_STEPS.length - 1, i - steps));
+const stepsLabel = v => `${signed(v)} ${Math.abs(v) === 1 ? "krok" : "kroki"} MFD`;
+
 /**
- * Okno wyboru MFD i modyfikatora. Zwraca {step, mod} albo null.
- * fixedMod — stały modyfikator (np. z karty umiejętności), wliczany do pokazywanych progów.
+ * Okno wyboru MFD i modyfikatora.
+ * rc — wynik rollContext(): stałe modyfikatory z cech (mods/steps) i sytuacyjne (situational).
+ * Zwraca { step, chosen, mod, notes, crit } albo null.
  */
-export async function promptMfd(title, baseTn, fixedMod = 0) {
-  const rows = MFD_STEPS.map(s => `
+export async function promptMfd(title, baseTn, rc = {}) {
+  const mods = rc.mods ?? [], steps = rc.steps ?? [], situational = rc.situational ?? [];
+  const fixedMod = rc.fixedMod ?? 0, fixedSteps = rc.fixedSteps ?? 0;
+
+  const rows = MFD_STEPS.map((s, i) => `
     <label>
       <input type="radio" name="mfd" value="${s.key}" ${s.key === "1" ? "checked" : ""}>
       <span class="k">${s.name}</span><span class="d">${s.desc}</span>
-      <span class="t" data-f="${s.f}">≤ ${threshold(baseTn, s, fixedMod)}</span>
+      <span class="t" data-i="${i}"></span>
+    </label>`).join("");
+  const fixedList = [
+    ...mods.map(m => `<li>${esc(m.label)} <b>${signed(m.value)}</b></li>`),
+    ...steps.map(m => `<li>${esc(m.label)} <b>${stepsLabel(m.value)}</b></li>`)
+  ].join("");
+  const sitList = situational.map(g => `
+    <label class="sit"><input type="checkbox" name="sit" value="${g.id}">
+      <span>${esc(g.label)} <small>${esc(g.source)}</small></span>
+      <b>${[g.mod ? signed(g.mod) : "", g.steps ? stepsLabel(g.steps) : ""].filter(Boolean).join(", ")}</b>
     </label>`).join("");
   const content = `
     <div class="foe-dialog">
-      <div class="dlg-base">Próg bazowy (MFD 1): <b>${baseTn + fixedMod}</b>${fixedMod ? ` · w tym stały mod ${signed(fixedMod)}` : ""}</div>
+      <div class="dlg-base">Próg bazowy (MFD 1): <b>${baseTn}</b></div>
+      ${fixedList ? `<div class="dlg-fixed"><span>Stałe modyfikatory (już wliczone)</span><ul>${fixedList}</ul></div>` : ""}
+      ${sitList ? `<div class="dlg-sit"><span>Sytuacyjne — zaznacz, jeśli dotyczą tego rzutu</span>${sitList}</div>` : ""}
       <div class="mfd-pick">${rows}</div>
-      <label class="mod-row">Modyfikator (+ ułatwia, − utrudnia) <input type="number" name="mod" value="0" step="1"></label>
+      <label class="mod-row">Dodatkowy modyfikator (+ ułatwia, − utrudnia) <input type="number" name="mod" value="0" step="1"></label>
     </div>`;
 
-  // Progi przeliczają się na żywo po wpisaniu modyfikatora
+  const read = form => {
+    const on = new Set([...form.querySelectorAll("input[name=sit]:checked")].map(i => i.value));
+    const picked = situational.filter(g => on.has(g.id));
+    const extra = Number(form.querySelector("input[name=mod]")?.value) || 0;
+    return {
+      picked, extra,
+      mod: fixedMod + extra + picked.reduce((t, g) => t + g.mod, 0),
+      steps: fixedSteps + picked.reduce((t, g) => t + g.steps, 0)
+    };
+  };
+
+  // Progi przeliczają się na żywo przy zmianie modyfikatora i pól sytuacyjnych
   const render = (event, dialog) => {
     const root = elementOf(dialog) ?? elementOf(event?.target);
-    const input = root?.querySelector("input[name=mod]");
-    if (!input) return;
-    input.addEventListener("input", () => {
-      const mod = fixedMod + (Number(input.value) || 0);
-      for (const t of root.querySelectorAll(".mfd-pick .t")) t.textContent = `≤ ${Math.floor(baseTn * Number(t.dataset.f)) + mod}`;
-    });
+    const form = root?.querySelector("form") ?? root;
+    if (!form) return;
+    const update = () => {
+      const r = read(form);
+      for (const t of form.querySelectorAll(".mfd-pick .t")) {
+        const j = shiftStep(Number(t.dataset.i), r.steps);
+        t.textContent = `${j !== Number(t.dataset.i) ? `→ ${MFD_STEPS[j].name} ` : ""}≤ ${threshold(baseTn, MFD_STEPS[j], r.mod)}`;
+      }
+    };
+    form.addEventListener("input", update);
+    form.addEventListener("change", update);
+    update();
   };
 
   return foundry.applications.api.DialogV2.wait({
     window: { title },
     classes: ["foe-rpg", "foe-roll-dialog"],
-    position: { width: 380 },
+    position: { width: 420 },
     content,
     render,
     rejectClose: false,
     buttons: [{
       action: "roll", label: "Rzuć d100", icon: "fa-solid fa-dice-d20", default: true,
-      callback: (event, button) => ({
-        step: button.form.elements.mfd.value,
-        mod: Number(button.form.elements.mod.value) || 0
-      })
+      callback: (event, button) => {
+        const form = button.form;
+        const r = read(form);
+        const chosen = form.elements.mfd.value;
+        const step = MFD_STEPS[shiftStep(stepIndex(chosen), r.steps)].key;
+        const notes = [
+          ...mods.map(m => `${m.label} ${signed(m.value)}`),
+          ...steps.map(m => `${m.label} ${stepsLabel(m.value)}`),
+          ...r.picked.map(g => `${g.label} ${[g.mod ? signed(g.mod) : "", g.steps ? stepsLabel(g.steps) : ""].filter(Boolean).join(", ")}`),
+          ...(r.extra ? [`Dodatkowy ${signed(r.extra)}`] : [])
+        ];
+        return { step, chosen, mod: r.mod, notes, crit: rc.crit ?? { success: 0, fail: 0 } };
+      }
     }]
   });
 }
@@ -60,12 +107,15 @@ function achievedStep(total, baseTn, mod) {
 
 /**
  * Wykonuje rzut d100 i tworzy kartę na czacie.
- * data: {label, baseTn, step, mod, rerolls, itemUuid?} — itemUuid: broń, dla której karta pokaże przycisk obrażeń
+ * data: {label, baseTn, step, chosen?, mod, notes?, crit?, rerolls, itemUuid?}
+ *   mod — suma wszystkich modyfikatorów; notes — ich opisy; crit — poszerzenie zakresów krytyków z cech;
+ *   itemUuid — broń, dla której karta pokaże przycisk obrażeń
  */
 export async function rollTest(actor, data) {
   const rerolls = data.rerolls ?? 0;
-  const critS = Math.min(50, 5 + 5 * rerolls);
-  const critF = 101 - critS;                 // 96 przy braku przerzutów
+  const crit = data.crit ?? {};
+  const critS = Math.min(50, 5 + 5 * rerolls + (crit.success ?? 0));
+  const critF = 101 - Math.min(50, 5 + 5 * rerolls + (crit.fail ?? 0));   // 96 przy braku przerzutów
   const step = MFD_STEPS.find(s => s.key === data.step) ?? MFD_STEPS[2];
   const tn = threshold(data.baseTn, step, data.mod);
 
@@ -91,8 +141,9 @@ export async function rollTest(actor, data) {
     return `<tr class="${classes}"><td class="k" title="${s.desc}">${s.name}</td><td class="t">≤ ${t}</td><td class="m">${pass ? "✓" : "×"}</td><td class="tg">${tags}</td></tr>`;
   }).join("");
 
+  const chosenStep = data.chosen && data.chosen !== step.key ? MFD_STEPS.find(s => s.key === data.chosen) : null;
   const meta = [
-    data.mod ? `Modyfikator ${signed(data.mod)}` : "",
+    chosenStep ? `Wybrano MFD ${chosenStep.name}, po krokach z cech: MFD ${step.name}` : "",
     `Krytyki: 1–${critS} / ${critF}–100`,
     rerolls ? `Przerzut nr ${rerolls}` : ""
   ].filter(Boolean).join(" · ");
@@ -112,6 +163,7 @@ export async function rollTest(actor, data) {
     </dl>
     <table class="fc-ladder"><tbody>${ladder}</tbody></table>
     <div class="fc-meta">
+      ${data.notes?.length ? `<div>Modyfikatory: ${data.notes.map(esc).join(" · ")}${data.mod ? ` (razem ${signed(data.mod)})` : ""}</div>` : data.mod ? `<div>Modyfikator ${signed(data.mod)}</div>` : ""}
       <div>${meta}</div>
       ${cls === "crit-fail" ? `<div>Kartą szczęścia + rzutem na Luck×10 można zamienić krytyczną porażkę w zwykłą.</div>` : ""}
     </div>
@@ -150,6 +202,10 @@ export async function rollDamage(actor, item, { crit = false } = {}) {
   let formula = item.system.damage || "0";
   // Energy Weapons: bonus do obrażeń = ranga /10
   if (item.system.skill === "energy") formula += ` + ${Math.floor(actor.system.skills.energy.rank / 10)}`;
+  const fxDamage = actor.system.fx?.damage ?? 0;
+  if (fxDamage) formula += ` + ${fxDamage}`;
+  const sitDamage = actorEffects(actor).filter(e => e.type === "damage" && e.when)
+    .map(e => `${e.source}: ${signed(Number(e.value) || 0)} (${e.when})`);
   const c = crit ? parseCrit(item.system.crit) : {};
   if (c.extra) formula = `${formula} + ${c.extra}`;
   const roll = await new Roll(formula, actor.getRollData()).evaluate({ maximize: !!c.maximize });
@@ -166,6 +222,8 @@ export async function rollDamage(actor, item, { crit = false } = {}) {
       <div class="fc-sum">${dice ? `<div class="fc-dice">${dice}</div>` : esc(roll.formula)}${c.multiplier ? `<div>${roll.total} × ${String(c.multiplier).replace(".", ",")} = ${total}</div>` : ""}</div>
     </div>
     ${crit ? `<div class="fc-crit">Krytyk: ${esc(c.note)}</div>` : ""}
+    ${fxDamage ? `<div class="fc-meta">W tym premia z cech: ${signed(fxDamage)}</div>` : ""}
+    ${sitDamage.length ? `<div class="fc-meta">Sytuacyjnie: ${sitDamage.map(esc).join(" · ")}</div>` : ""}
     <div class="fc-meta">Odejmij DT celu, potem licz rany: 1 rana / ${actor.system.dmgPerWound} obrażeń (postać gracza).</div>
   </div>`;
 

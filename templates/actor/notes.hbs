@@ -1,11 +1,18 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="notes">
-  <h3>Cechy, przypadłości, perki, zaklęcia <a data-action="createItem" data-type="feature"><i class="fa-solid fa-plus"></i></a></h3>
-  <ul class="item-list">
+  <h3>Cechy, wady, perki, zaklęcia <a data-action="createItem" data-type="feature" title="Dodaj"><i class="fa-solid fa-plus"></i></a></h3>
+  <ul class="item-list features">
   {{#each features}}
-    <li data-item-id="{{id}}"><span class="nm">{{name}}</span> <span class="kind">{{system.kind}}</span>
-      <span class="ctl"><a data-action="editItem"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem"><i class="fa-solid fa-trash"></i></a></span></li>
-  {{else}}<li class="empty">Brak — dodaj trait, hindrance albo perk.</li>{{/each}}
+    <li data-item-id="{{id}}" class="{{#unless active}}inactive{{/unless}}">
+      <div class="feat-row">
+        <a class="feat-toggle {{#if active}}on{{/if}}" data-action="toggleFeature" title="{{#if active}}Aktywna — kliknij, by wyłączyć efekty{{else}}Wyłączona — kliknij, by włączyć{{/if}}"></a>
+        <span class="nm">{{name}}</span> <span class="kind">{{kindLabel}}</span>
+        <span class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></span>
+      </div>
+      {{#if fx.length}}<ul class="feat-fx">{{#each fx}}<li class="{{#if when}}sit{{/if}}">{{text}}</li>{{/each}}</ul>{{/if}}
+    </li>
+  {{else}}<li class="empty">Brak — dodaj cechę, wadę albo perk.</li>{{/each}}
   </ul>
+  <p class="hint">Efekty aktywnych cech liczą się same. Sytuacyjne (z „gdy”) zaznaczasz w oknie rzutu. Kwadracik po lewej wyłącza całą cechę.</p>
   <h3>Notatki</h3>
   <prose-mirror name="system.notes" toggled value="{{system.notes}}">{{{notesHTML}}}</prose-mirror>
 </section>

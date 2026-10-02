@@ -65,7 +65,7 @@
   {{!-- ================= 2. WADY I CECHY ================= --}}
   {{#if step.flaws}}
     <p class="cr-desc">Każda wada (Hindrance) daje punkty tworzenia ({{hindRule}}, maks. {{r.maxHindrances}} wad). Cechy (Traits) kosztują punkty.
-      Podręcznik zaleca na początek najwyżej 3 wady i 2 cechy. Efekty liczone przez kreator są doliczane same; resztę (np. wybory „+1 INT lub CHA”) wpiszesz w kolumnach „Inne”.</p>
+      Podręcznik zaleca na początek najwyżej 3 wady i 2 cechy. Efekty każdej wady i cechy liczą się same — na karcie i w rzutach; sytuacyjne zaznaczasz w oknie rzutu. Pod zaznaczoną pozycją wybierasz jej warianty.</p>
     <div class="cr-row">
       <span class="cr-stat">Wady: <b>{{r.countedHindrances}}</b> → <b>+{{r.hindPts}}</b> pkt</span>
       <span class="cr-stat">Cechy: <b>{{r.rawTraitCost}}</b> pkt{{#if r.credit}} (− {{r.credit}} darmowe){{/if}} → <b>−{{r.traitCost}}</b></span>
@@ -80,6 +80,17 @@
           <li class="{{#if on}}on{{/if}} {{#if locked}}locked{{/if}}" data-search="{{search}}">
             <a {{#unless locked}}data-action="toggleHindrance"{{/unless}} data-key="{{k}}"><span class="box"></span><b>{{label}}</b> <span class="ty">{{type}}</span></a>
             <p>{{desc}}</p>
+            {{#if fxText.length}}<ul class="cr-fx">{{#each fxText}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
+            {{#each choices}}
+              <div class="cr-choice">
+                <span>{{label}}{{#if many}} ({{count}}/{{n}}){{/if}}</span>
+                {{#if many}}
+                  <div class="cr-chips">{{#each options}}<a class="chip {{#if sel}}on{{/if}}" data-action="toggleChoice" data-key="{{../key}}" data-id="{{../id}}" data-n="{{../n}}" data-v="{{v}}">{{label}}</a>{{/each}}</div>
+                {{else}}
+                  <select name="choice.{{key}}.{{id}}"><option value="">— wybierz —</option>{{#each options}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+                {{/if}}
+              </div>
+            {{/each}}
           </li>
         {{/each}}
         </ul>
@@ -89,9 +100,20 @@
         <ul class="cr-pick">
         {{#each traits}}
           <li class="{{#if on}}on{{/if}} {{#if locked}}locked{{/if}}" data-search="{{search}}">
-            <a {{#unless locked}}data-action="toggleTrait"{{/unless}} data-key="{{k}}"><span class="box"></span><b>{{label}}</b> <span class="ty">{{#if locked}}rasa{{else}}{{costLabel}} pkt{{/if}}</span></a>
+            <a {{#unless locked}}data-action="toggleTrait"{{/unless}} data-key="{{k}}"><span class="box"></span><b>{{label}}</b> <span class="ty">{{#if locked}}rasa{{else}}{{#if nowCost}}{{nowCost}}{{else}}{{costLabel}}{{/if}} pkt{{/if}}</span></a>
             {{#if range}}<label class="cost">Koszt <input type="number" name="traitCost.{{k}}" value="{{chosenCost}}" min="{{min}}" max="{{max}}"></label>{{/if}}
             <p>{{desc}}</p>
+            {{#if fxText.length}}<ul class="cr-fx">{{#each fxText}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
+            {{#each choices}}
+              <div class="cr-choice">
+                <span>{{label}}{{#if many}} ({{count}}/{{n}}){{/if}}</span>
+                {{#if many}}
+                  <div class="cr-chips">{{#each options}}<a class="chip {{#if sel}}on{{/if}}" data-action="toggleChoice" data-key="{{../key}}" data-id="{{../id}}" data-n="{{../n}}" data-v="{{v}}">{{label}}</a>{{/each}}</div>
+                {{else}}
+                  <select name="choice.{{key}}.{{id}}"><option value="">— wybierz —</option>{{#each options}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+                {{/if}}
+              </div>
+            {{/each}}
           </li>
         {{/each}}
         </ul>
@@ -101,7 +123,7 @@
 
   {{!-- ================= 3. S.P.E.C.I.A.L. ================= --}}
   {{#if step.special}}
-    <p class="cr-desc">Każdy atrybut zaczyna od 1. Punktami tworzenia podniesiesz go najwyżej o 8 (Luck o 9); limit po wszystkich premiach to 12. Wartość 5 to przeciętna.</p>
+    <p class="cr-desc">Każdy atrybut zaczyna od 1. Punktami tworzenia podniesiesz go najwyżej o 8 (Luck o 9); limit po wszystkich premiach to 12. Wartość 5 to przeciętna. Kolumna „Wady/cechy” pochodzi z efektów wybranych pozycji; „Inne” to ręczna korekta.</p>
     <table class="foe-table cr-attrs">
       <thead><tr><th class="l">Atrybut</th><th>Baza</th><th>Punkty</th><th>Rasa</th><th title="Z wad i cech">Wady/cechy</th><th title="Ręczne korekty (np. Elderly: +1 INT lub CHA)">Inne</th><th>Wynik</th><th>MFD 1</th></tr></thead>
       <tbody>
@@ -128,7 +150,7 @@
   {{!-- ================= 4. UMIEJĘTNOŚCI ================= --}}
   {{#if step.skills}}
     <p class="cr-desc">Ranga startowa = 2 × atrybut + Luck/2 + 2 (min. 5). Wybierz <b>{{r.tagLimit}}</b> umiejętności z tagiem (+15) — wybrano {{r.tags.length}}.
-      Kolumna „Inne” to premie rang z wad i cech, których kreator nie liczy sam (np. Demented, WSD, Studious).</p>
+      Kolumna „Wady/cechy” liczy się sama z efektów. „Inne” to dodatkowe rangi, np. wolne rangi ghula z Canterlotu.</p>
     <div class="scroll-x">
     <table class="foe-table skills cr-skills">
       <thead><tr><th>Tag</th><th class="l">Umiejętność</th><th>Atr</th><th>Baza</th><th>Rasa</th><th>Wady/cechy</th><th>Inne</th><th>Ranga</th><th>MFD 1</th></tr></thead>
@@ -166,6 +188,7 @@
       <dt>Obrażenia na ranę</dt><dd>{{summary.wound}}</dd>
       <dt>Udźwig</dt><dd>{{summary.carry}}</dd>
       <dt>Kapsle na start</dt><dd>{{r.caps}}</dd>
+      {{#if summary.karma}}<dt>Karma</dt><dd>{{summary.karma}}</dd>{{/if}}
     </dl>
     {{#if r.errors.length}}<h3>Do poprawy</h3><ul class="cr-msg bad">{{#each r.errors}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
     {{#if r.warnings.length}}<h3>Uwagi</h3><ul class="cr-msg warn">{{#each r.warnings}}<li>{{this}}</li>{{/each}}</ul>{{/if}}

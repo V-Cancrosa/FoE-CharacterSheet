@@ -657,3 +657,46 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
 .foe-rpg .pip-creator { color: #000; cursor: pointer; }
 .foe-rpg .pip-creator:hover { text-decoration: underline; }
 .foe-rpg .foe-item .fields .pair { display: flex; gap: .35rem; align-items: center; }
+
+/* ---------- Efekty cech ---------- */
+.foe-rpg .fxb {
+  display: inline-block;
+  margin-left: .2rem;
+  padding: 0 .2rem;
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--pip-bright);
+  border: 1px solid var(--pip-line);
+  vertical-align: middle;
+  cursor: help;
+  white-space: nowrap;
+}
+.foe-rpg td.nw { white-space: nowrap; }
+.foe-rpg .item-list.features li { display: block; }
+.foe-rpg .feat-row { display: flex; align-items: center; gap: .55rem; }
+.foe-rpg .feat-toggle { flex: 0 0 auto; width: 13px; height: 13px; border: 1px solid var(--pip-mid); cursor: pointer; }
+.foe-rpg .feat-toggle.on { background: var(--pip); box-shadow: 0 0 6px var(--pip-glow), inset 0 0 0 2px #000; }
+.foe-rpg .item-list li.inactive .nm, .foe-rpg .item-list li.inactive .feat-fx { opacity: .45; text-decoration: line-through; }
+.foe-rpg .feat-fx { list-style: none; margin: .15rem 0 .1rem 1.35rem; padding: 0; font-size: 11px; color: var(--pip-mid); text-shadow: none; }
+.foe-rpg .feat-fx li { padding: 0; border: 0; display: list-item; background: none; }
+.foe-rpg .feat-fx li::before { content: "› "; }
+.foe-rpg .feat-fx li.sit { font-style: italic; color: var(--pip-dim); }
+.foe-rpg .fx-edit select { width: 100%; }
+.foe-rpg .fx-edit input[type=text] { width: 100%; }
+.foe-rpg .fx-edit td { padding: .12rem .2rem; }
+
+/* okno rzutu: modyfikatory z cech */
+.foe-rpg .foe-dialog .dlg-fixed, .foe-rpg .foe-dialog .dlg-sit { border: 1px solid var(--pip-line); padding: .25rem .45rem; }
+.foe-rpg .foe-dialog .dlg-fixed > span, .foe-rpg .foe-dialog .dlg-sit > span { display: block; color: var(--pip-mid); text-transform: uppercase; font-size: 11px; margin-bottom: .15rem; }
+.foe-rpg .foe-dialog .dlg-fixed ul { margin: 0; padding-left: 1rem; }
+.foe-rpg .foe-dialog .dlg-fixed b { color: var(--pip-bright); }
+.foe-rpg .foe-dialog .sit { display: grid; grid-template-columns: auto 1fr auto; gap: .45rem; align-items: center; padding: .1rem 0; cursor: pointer; color: var(--pip); }
+.foe-rpg .foe-dialog .sit small { display: block; color: var(--pip-dim); font-size: 10px; }
+.foe-rpg .foe-dialog .sit b { color: var(--pip-bright); white-space: nowrap; }
+.foe-rpg .cr-fx { list-style: none; margin: .1rem 0 0 1.45rem; padding: 0; font-size: 11px; color: var(--pip); }
+.foe-rpg .cr-fx li::before { content: "› "; color: var(--pip-dim); }
+.foe-rpg .cr-choice { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .5rem; margin: .2rem 0 .1rem 1.45rem; font-size: 12px; }
+.foe-rpg .cr-choice > span { color: var(--pip-mid); text-transform: uppercase; font-size: 11px; }
+.foe-rpg .cr-choice select { max-width: 100%; }
+.foe-rpg .cr-choice .cr-chips { margin: 0; }
+.foe-rpg .cr-choice .chip { font-size: 11px; padding: 0 .4rem; }

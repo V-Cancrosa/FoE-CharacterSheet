@@ -7,8 +7,10 @@
         <tbody>
         {{#each attrs}}
           <tr>
-            <td class="l"><a class="rollable" data-action="rollAttr" data-key="{{key}}" title="Rzuć: {{label}} ×10"><span class="special-letter">{{letter}}</span>{{rest}}</a></td>
-            <td><input type="number" name="system.attributes.{{key}}.value" value="{{value}}"></td>
+            <td class="l"><a class="rollable" data-action="rollAttr" data-key="{{key}}" title="Rzuć: {{label}} ×10"><span class="special-letter">{{letter}}</span>{{rest}}</a>{{#if rollLabel}} <span class="fxb" title="Rzuty atrybutu:
+{{rollTip}}">{{rollLabel}}</span>{{/if}}</td>
+            <td class="nw"><input type="number" name="system.attributes.{{key}}.value" value="{{value}}">{{#if fxLabel}}<span class="fxb" title="Z cech:
+{{fxTip}}">{{fxLabel}}</span>{{/if}}</td>
             <td><input type="number" name="system.attributes.{{key}}.mod" value="{{mod}}"></td>
             <td class="tn">{{tn}}</td><td class="q">{{q3}}</td><td class="q">{{q2}}</td><td class="q">{{q1}}</td>
           </tr>
@@ -20,7 +22,10 @@
         <dt>Ruch</dt><dd>{{system.speed}} ft / akcję (lot/kopanie {{system.flySpeed}})</dd>
         <dt>Obrażenia na ranę</dt><dd>{{system.dmgPerWound}} <input type="number" name="system.woundBonus" value="{{system.woundBonus}}" title="Modyfikator (Large +2, Pipsqueak −2…)"></dd>
         <dt>Inicjatywa</dt><dd>d100 − {{system.initMod}} (niżej = szybciej)</dd>
-        <dt>Odp. na promieniowanie</dt><dd><input type="number" name="system.radResist" value="{{system.radResist}}"> %</dd>
+        <dt>Krytyki</dt><dd>sukces 1–{{extra.crit.success}} · porażka {{extra.critFailFrom}}–100</dd>
+        {{#if extra.dodge}}<dt>Uniki</dt><dd title="{{extra.dodgeTip}}">{{extra.dodge}} (do rzutu na unik)</dd>{{/if}}
+        {{#if extra.damage}}<dt>Obrażenia z cech</dt><dd>{{extra.damage}}</dd>{{/if}}
+        <dt>Odp. na promieniowanie</dt><dd><input type="number" name="system.radResist" value="{{system.radResist}}"> %{{#if system.fx.radResist}} <span class="fxb" title="Z cech">razem {{system.radResistTotal}}%</span>{{/if}}</dd>
       </dl>
     </div>
     <div class="col-skills">
@@ -37,15 +42,17 @@
             <td class="q hide-narrow">{{base}}</td>
             <td><input type="number" name="system.skills.{{key}}.points" value="{{points}}"></td>
             <td><input type="number" name="system.skills.{{key}}.bonus" value="{{bonus}}"></td>
-            <td><b>{{rank}}</b></td>
-            <td><input type="number" name="system.skills.{{key}}.mod" value="{{mod}}"></td>
+            <td class="nw"><b>{{rank}}</b>{{#if rankFx}}<span class="fxb" title="Ranga z cech:
+{{rankTip}}">{{rankFx}}</span>{{/if}}</td>
+            <td class="nw"><input type="number" name="system.skills.{{key}}.mod" value="{{mod}}">{{#if rollFx}}<span class="fxb" title="Rzuty z cech:
+{{rollTip}}">{{rollFx}}</span>{{/if}}</td>
             <td class="tn">{{tnShown}}</td><td class="q hide-narrow">{{q2}}</td>
           </tr>
         {{/each}}
         </tbody>
       </table>
       </div>
-      <p class="hint">Kursywą umiejętności rasowe. Kliknij nazwę (▸), by rzucić.</p>
+      <p class="hint">Kursywą umiejętności rasowe. Kliknij nazwę (▸), by rzucić. Małe liczby obok rangi i modyfikatora to efekty cech, wad i perków (najedź, by zobaczyć źródło); MFD 1 już je uwzględnia.</p>
     </div>
   </div>
 </section>
