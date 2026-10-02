@@ -2,7 +2,7 @@
   "id": "foe-rpg",
   "title": "Fallout: Equestria RPG (fan, v1.22)",
   "description": "Nieoficjalny, minimalny system do Fallout: Equestria RPG System v1.22 (rzut d100 pod próg, MFD, SPECIAL, karty szczęścia, rany na lokacje).",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "authors": [{ "name": "V_Cancrosa" }],
   "compatibility": { "minimum": "13", "verified": "13" },
   "esmodules": ["module/foe.mjs"],
@@ -21,5 +21,5 @@
   "secondaryTokenAttribute": "resources.luck",
   "url": "https://github.com/V-Cancrosa/FoE-CharacterSheet",
   "manifest": "https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json",
-  "download": "https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/download/v0.3.1/foe-rpg.zip"
+  "download": "https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/download/v0.4.0/foe-rpg.zip"
 }

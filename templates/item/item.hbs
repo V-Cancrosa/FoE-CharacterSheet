@@ -26,7 +26,30 @@
   {{/if}}
   {{#if isFeature}}
     <label>Rodzaj <select name="system.kind">{{selectOptions featureKinds selected=system.kind}}</select></label>
+    <label>Aktywna (efekty doliczane) <input type="checkbox" name="system.active" {{checked system.active}}></label>
   {{/if}}
   </div>
+  {{#if isFeature}}
+  <h3>Efekty <a data-action="addFx" title="Dodaj efekt"><i class="fa-solid fa-plus"></i></a></h3>
+  <p class="hint">Efekt bez warunku działa zawsze. Z warunkiem („gdy”) pojawia się w oknie rzutu jako pole do zaznaczenia. Wartość dodatnia ułatwia (premia), ujemna utrudnia.</p>
+  <table class="foe-table fx-edit">
+    <thead><tr><th class="l">Co zmienia</th><th class="l">Czego dotyczy</th><th>Wartość</th><th class="l">Gdy (sytuacja)</th><th></th></tr></thead>
+    <tbody>
+    {{#each fxRows}}
+      <tr>
+        <td class="l"><select data-fx-i="{{i}}" data-fx-field="type">{{#each types}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></td>
+        <td class="l"><select data-fx-i="{{i}}" data-fx-field="target">
+          {{#if custom}}<option value="{{custom.v}}" selected>{{custom.label}}</option>{{/if}}
+          {{#each groups}}<optgroup label="{{label}}">{{#each opts}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</optgroup>{{/each}}
+        </select></td>
+        <td><input type="number" data-fx-i="{{i}}" data-fx-field="value" value="{{value}}"></td>
+        <td class="l"><input type="text" data-fx-i="{{i}}" data-fx-field="when" value="{{when}}" placeholder="zawsze"></td>
+        <td class="ctl"><a data-action="removeFx" data-i="{{i}}" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+      </tr>
+    {{else}}<tr><td colspan="5" class="empty">Brak efektów — tylko opis.</td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
   <prose-mirror name="system.description" toggled value="{{system.description}}">{{{descHTML}}}</prose-mirror>
 </div>

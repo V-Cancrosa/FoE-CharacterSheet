@@ -29,7 +29,7 @@
       <tr class="{{#if lethal}}lethal{{/if}}">
         <td class="l">{{label}}</td>
         <td><input type="number" name="system.locations.{{key}}.wounds" value="{{wounds}}"></td>
-        <td><input type="number" name="system.locations.{{key}}.dt" value="{{dt}}"></td>
+        <td class="nw"><input type="number" name="system.locations.{{key}}.dt" value="{{dt}}">{{#if dtFx}}<span class="fxb" title="Z cech">= {{dtTotal}}</span>{{/if}}</td>
         <td><input type="checkbox" name="system.locations.{{key}}.crippled" {{checked crippled}}></td>
       </tr>
     {{/each}}

@@ -16,6 +16,13 @@ Kreator postaci: po utworzeniu nowej postaci otwiera się kreator (można go te�
 - NPC: archetyp + rasa + poziom („Rapid NPC Generation”); punkty z awansów rozdzielane automatycznie (10 + INT/2 na poziom).
 - W ustawieniach świata: włączanie kreatora przy nowej postaci i pula punktów (32 / 35 / 37).
 
+Efekty cech, wad i perków: każda cecha na karcie ma listę efektów, które karta dolicza sama
+(atrybuty, rangi, modyfikatory rzutów, celność, kroki MFD, krytyki, inicjatywa, karty szczęścia, obrażenia na ranę,
+udźwig, ruch, SATS, DT, odporność na promieniowanie, strain, uniki). Efekty sytuacyjne (np. „Fobia aktywna −10”)
+pojawiają się w oknie rzutu jako pola do zaznaczenia. Kreator nadaje efekty wszystkim wadom i cechom z podręcznika
+(s. 67–124) razem z wyborami gracza; własne cechy i perki można opisać edytorem efektów w karcie cechy.
+Kwadracik przy cesze na karcie wyłącza jej efekty.
+
 Wygląd: ekran PipBucka. W Ustawieniach gry → Fallout: Equestria RPG każdy gracz wybiera kolor ekranu
 (zielony / bursztynowy / niebieski / biały) i może wyłączyć linie skanowania. Rzuty na czacie pokazują
 drabinkę MFD: wymagany poziom (CEL), osiągnięty poziom (WYNIK) i progi wszystkich poziomów.

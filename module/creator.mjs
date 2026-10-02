@@ -1,9 +1,14 @@
-import { ATTRS, SKILLS } from "./data.mjs";
+import { ATTRS, SKILLS, LOCATIONS } from "./data.mjs";
 import { CREATION, RACES, HINDRANCES, TRAITS, EARTH_PERKS, NPC_ARCHETYPES } from "./creation-data.mjs";
 import { defaultPcState, computePc, buildPcUpdate, computeNpc, buildNpcUpdate } from "./creator-logic.mjs";
+import { FX_TYPES, describeFx } from "./effects.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2, DialogV2 } = foundry.applications.api;
 const P = "systems/foe-rpg/templates/creator";
+const FX_LABELS = {
+  all: "wszystko", ranged: "broń dystansowa", melee: "wręcz", attack: "ataki", ground: "ląd", fly: "lot",
+  ...ATTRS, ...Object.fromEntries(Object.entries(SKILLS).map(([k, v]) => [k, v.label])), ...LOCATIONS
+};
 const STEPS = ["Rasa", "Wady i cechy", "S.P.E.C.I.A.L.", "Umiejętności", "Podsumowanie"];
 const readFlag = (actor, key) => {
   try { return JSON.parse(actor.getFlag("foe-rpg", key) || "{}"); } catch { return {}; }
@@ -45,6 +50,7 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
       attrPlus: CharacterCreator.#attrPlus,
       attrMinus: CharacterCreator.#attrMinus,
       toggleTag: CharacterCreator.#toggleTag,
+      toggleChoice: CharacterCreator.#toggleChoice,
       finish: CharacterCreator.#finish
     }
   };
@@ -98,19 +104,34 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
       : race.hindrancePoints === "minus2" ? "punkty = liczba wad − 2" : "1 punkt za każdą wadę";
 
     // --- krok 2: wady i cechy ---
-    const autoH = new Set((race.hindrances ?? []).map(h => h.key));
-    ctx.hindrances = Object.entries(HINDRANCES).map(([k, h]) => ({
-      k, ...h, on: autoH.has(k) || st.hindrances.includes(k), locked: autoH.has(k),
-      search: `${h.label} ${h.desc}`.toLowerCase()
+    const resolved = new Map([...r.hindrances, ...r.traits].map(f => [`${f.kind === "hindrance" ? "h" : "t"}:${f.key}`, f]));
+    const choiceView = key => (resolved.get(key)?.visible ?? []).map(c => ({
+      key, id: c.id, label: c.label, many: c.type === "many", n: c.n,
+      count: Array.isArray(c.value) ? c.value.length : 0,
+      options: c.options.map(o => ({ v: o.v, label: o.label, sel: Array.isArray(c.value) ? c.value.includes(o.v) : o.v === c.value }))
     }));
+    const fxText = key => (resolved.get(key)?.fx ?? []).filter(e => FX_TYPES[e.type]).map(e => describeFx(e, FX_LABELS));
+    const autoH = new Set((race.hindrances ?? []).map(h => h.key));
+    ctx.hindrances = Object.entries(HINDRANCES).map(([k, h]) => {
+      const on = autoH.has(k) || st.hindrances.includes(k);
+      return {
+        k, ...h, on, locked: autoH.has(k),
+        choices: on ? choiceView(`h:${k}`) : [], fxText: on ? fxText(`h:${k}`) : [],
+        search: `${h.label} ${h.desc}`.toLowerCase()
+      };
+    });
     const autoT = new Set((race.traits ?? []).map(t => t.key));
     ctx.traits = Object.entries(TRAITS).map(([k, t]) => {
       const on = autoT.has(k) || k in st.traits;
+      const costByChoice = (t.choices ?? []).some(c => c.options.some(o => o.cost != null));
+      const res = resolved.get(`t:${k}`);
       return {
         k, ...t, on, locked: autoT.has(k),
         costLabel: t.cost[0] === t.cost[1] ? `${t.cost[0]}` : `${t.cost[0]}–${t.cost[1]}`,
-        range: t.cost[0] !== t.cost[1] && on && !autoT.has(k), min: t.cost[0], max: t.cost[1],
+        range: t.cost[0] !== t.cost[1] && on && !autoT.has(k) && !costByChoice, min: t.cost[0], max: t.cost[1],
         chosenCost: st.traits[k] ?? t.cost[0],
+        nowCost: on && !autoT.has(k) && costByChoice ? res?.cost : null,
+        choices: on ? choiceView(`t:${k}`) : [], fxText: on ? fxText(`t:${k}`) : [],
         search: `${t.label} ${t.desc}`.toLowerCase()
       };
     });
@@ -132,13 +153,14 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
       race: race.manual ? (st.raceName || "Inna rasa") : race.label,
       attrs: Object.values(r.attrs).map(a => `${a.label.slice(0, 3).toUpperCase()} ${a.total}`).join(" · "),
       tags: r.tags.map(skillLabel).join(", ") || "—",
-      hindrances: r.hindrances.map(h => HINDRANCES[h.key]?.label).join(", ") || "—",
-      traits: r.traits.map(t => (TRAITS[t.key]?.label ?? t.label) + (t.auto ? " (rasa)" : "")).join(", ") || "—",
+      hindrances: r.hindrances.map(h => h.label).join(", ") || "—",
+      traits: r.traits.map(t => t.label + (t.auto ? " (rasa)" : "")).join(", ") || "—",
       perk: race.earthPerk ? EARTH_PERKS[st.earthPerk]?.label : null,
-      sats: 40 + r.attrs.agi.total * 5,
-      luckCards: Math.max(3, Math.ceil(r.attrs.luck.total / 2) + 2),
-      wound: 10 + r.woundBonus,
-      carry: 100 + 10 * r.attrs.str.total + r.carryBonus
+      sats: r.preview.sats,
+      luckCards: r.preview.luckCards,
+      wound: r.preview.wound,
+      carry: r.preview.carry,
+      karma: r.karma
     };
     return ctx;
   }
@@ -172,6 +194,12 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
     if (name.startsWith("adj.")) st.adj[name.slice(4)] = Number(v) || 0;
     else if (name.startsWith("extra.")) st.extra[name.slice(6)] = Number(v) || 0;
     else if (name.startsWith("traitCost.")) st.traits[name.slice(10)] = Number(v) || 0;
+    else if (name.startsWith("choice.")) {
+      const rest = name.slice(7), dot = rest.lastIndexOf(".");
+      const key = rest.slice(0, dot), id = rest.slice(dot + 1);
+      st.choices ??= {};
+      st.choices[key] = { ...(st.choices[key] ?? {}), [id]: v };
+    }
     else if (name === "race") Object.assign(st, { race: v, raceAttrs: [], raceSkills: [], zebraSplit: [], zebraNoMagic: false });
     else st[name] = v;
     this.render();
@@ -218,6 +246,18 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
     const k = target.dataset.key, st = this.wiz;
     if (k in st.traits) delete st.traits[k];
     else st.traits[k] = TRAITS[k].cost[0];
+    this.render();
+  }
+
+  /** Wybór wielokrotny (np. Studious: trzy umiejętności) — nadmiarowe wypadają od najstarszych. */
+  static #toggleChoice(ev, target) {
+    const { key, id, v } = target.dataset;
+    const n = Number(target.dataset.n) || 1;
+    const st = this.wiz;
+    st.choices ??= {};
+    const cur = Array.isArray(st.choices[key]?.[id]) ? st.choices[key][id] : [];
+    const next = cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v].slice(-n);
+    st.choices[key] = { ...(st.choices[key] ?? {}), [id]: next };
     this.render();
   }
 

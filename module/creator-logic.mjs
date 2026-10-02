@@ -1,10 +1,12 @@
 import { ATTRS, SKILLS } from "./data.mjs";
 import { CREATION, RACES, HINDRANCES, TRAITS, EARTH_PERKS, NPC_ARCHETYPES } from "./creation-data.mjs";
+import { hits, CREATION_ONLY } from "./effects.mjs";
 
 const ATTR_KEYS = Object.keys(ATTRS);
 const RACIAL_SKILLS = Object.entries(SKILLS).filter(([, s]) => s.racial).map(([k]) => k);
 const zero = () => Object.fromEntries(ATTR_KEYS.map(k => [k, 0]));
 const baseRank = (att, luck) => Math.max(5, 2 * att + Math.floor(luck / 2) + 2);
+const num = v => Number(v) || 0;
 
 /** Początkowy stan kreatora postaci gracza. */
 export function defaultPcState(name = "") {
@@ -13,13 +15,14 @@ export function defaultPcState(name = "") {
     name,
     race: "earth",
     raceAttrs: [],
-    raceSkills: [],          // wybory z grup „wybierz n” (płaska lista kluczy)
+    raceSkills: [],          // wybory z grup „wybierz n” (płaska lista „indeks:klucz”)
     zebraNoMagic: false,
     zebraSplit: [],
     magicAttr: "int",
     earthPerk: "strongBack",
     hindrances: [],
-    traits: {},              // klucz → wybrany koszt
+    traits: {},              // klucz → wybrany koszt (dla cech z zakresem kosztu)
+    choices: {},             // „h:klucz” / „t:klucz” → { idWyboru: wartość | [wartości] }
     spent: Object.fromEntries(ATTR_KEYS.map(k => [k, 4])),   // 28 punktów: wszystko po 5
     adj: zero(),
     tags: [],
@@ -28,25 +31,43 @@ export function defaultPcState(name = "") {
   };
 }
 
-/** Sumuje efekty (eff) wybranych wad i cech. */
-function collectEffects(entries) {
-  const out = { attrs: zero(), skills: {}, allSkills: 0, wound: 0, carry: 0, tags: 0, karma: 0, racial: {}, caps: null, removeLockpickPenalty: false };
-  for (const e of entries) {
-    const f = e?.eff;
-    if (!f) continue;
-    for (const [k, v] of Object.entries(f.attrs ?? {})) out.attrs[k] += v;
-    for (const [k, v] of Object.entries(f.skills ?? {})) out.skills[k] = (out.skills[k] ?? 0) + v;
-    for (const [k, v] of Object.entries(f.racial ?? {})) out.racial[k] = (out.racial[k] ?? 0) + v;
-    out.allSkills += f.allSkills ?? 0;
-    out.wound += f.wound ?? 0;
-    out.carry += f.carry ?? 0;
-    out.tags += f.tags ?? 0;
-    out.karma += f.karma ?? 0;
-    if (f.caps != null) out.caps = Math.min(out.caps ?? Infinity, f.caps);
-    if (f.removeLockpickPenalty) out.removeLockpickPenalty = true;
+/** Widoczne wybory cechy/wady i ich poprawne wartości (niewidoczne i nieprawidłowe są pomijane). */
+export function choiceState(def, raw = {}) {
+  const ch = {}, visible = [], missing = [];
+  for (const c of def.choices ?? []) {
+    if (c.show && !c.show(ch)) continue;
+    const valid = new Set(c.options.map(o => o.v));
+    if (c.type === "many") {
+      const n = typeof c.pick === "function" ? c.pick(ch) : c.pick;
+      const value = (Array.isArray(raw[c.id]) ? raw[c.id] : []).filter(v => valid.has(v)).slice(0, n);
+      ch[c.id] = value;
+      visible.push({ ...c, n, value });
+      if (value.length < n) missing.push(c.label);
+    } else {
+      const value = valid.has(raw[c.id]) ? raw[c.id] : "";
+      ch[c.id] = value;
+      visible.push({ ...c, value });
+      if (!value) missing.push(c.label);
+    }
   }
-  return out;
+  return { ch, visible, missing };
 }
+
+/** Rozwiązuje cechę/wadę: efekty stałe + zależne od wyborów, koszt, braki. */
+export function resolveFeature(kind, key, def, raw = {}, { chosenCost, auto = false } = {}) {
+  const { ch, visible, missing } = choiceState(def, raw);
+  const fx = [...(def.fx ?? []), ...(def.resolve ? def.resolve(ch) : [])];
+  let cost = 0;
+  if (kind === "trait" && !auto) {
+    const optCost = visible.flatMap(c => c.options.filter(o => o.v === c.value && o.cost != null)).map(o => o.cost);
+    const [min, max] = def.cost ?? [1, 1];
+    cost = optCost.length ? optCost[0] : Math.min(max, Math.max(min, chosenCost ?? min));
+  }
+  return { kind, key, def, label: def.label, desc: def.desc, fx, ch, visible, missing, cost, auto };
+}
+
+/** Sumuje efekty danego typu trafiające w klucz (do podglądu w kreatorze). */
+const fxSum = (list, type, key = "all") => list.filter(e => e.type === type && !e.when && hits(e.target, key)).reduce((t, e) => t + num(e.value), 0);
 
 /**
  * Przelicza cały stan kreatora: budżet punktów, atrybuty, umiejętności, błędy.
@@ -55,14 +76,18 @@ function collectEffects(entries) {
 export function computePc(state, pool = CREATION.pool) {
   const race = RACES[state.race] ?? RACES.other;
   const errors = [], warnings = [];
+  const choices = state.choices ?? {};
 
   // --- wady: automatyczne z rasy + wybrane ---
-  const autoH = (race.hindrances ?? []).map(h => ({ ...h, auto: true }));
-  const chosenH = state.hindrances.filter(k => HINDRANCES[k] && !autoH.some(a => a.key === k)).map(k => ({ key: k, points: true }));
-  const allH = [...autoH, ...chosenH];
-  const counted = allH.filter(h => !h.uncounted);
+  const autoH = race.hindrances ?? [];
+  const hList = [
+    ...autoH.map(h => ({ ...resolveFeature("hindrance", h.key, HINDRANCES[h.key], choices[`h:${h.key}`] ?? h.choices, { auto: true }), points: h.points !== false, uncounted: !!h.uncounted })),
+    ...state.hindrances.filter(k => HINDRANCES[k] && !autoH.some(a => a.key === k))
+      .map(k => ({ ...resolveFeature("hindrance", k, HINDRANCES[k], choices[`h:${k}`]), points: true }))
+  ];
+  const counted = hList.filter(h => !h.uncounted);
   const maxH = race.maxHindrances ?? CREATION.maxHindrances;
-  const pointGiving = Math.min(counted.filter(h => h.points !== false).length, maxH);
+  const pointGiving = Math.min(counted.filter(h => h.points).length, maxH);
   let hindPts = pointGiving;
   if (race.hindrancePoints === "half") hindPts = Math.floor(pointGiving / 2);
   if (race.hindrancePoints === "minus2") hindPts = Math.max(0, pointGiving - 2);
@@ -70,28 +95,29 @@ export function computePc(state, pool = CREATION.pool) {
   else if (counted.length > 4 && !race.maxHindrances) warnings.push("Podręcznik zaleca na początek najwyżej 3 wady (powyżej 4 — raczej za cechy niż atrybuty).");
 
   // --- cechy: automatyczne (darmowe) + wybrane ---
-  const autoT = (race.traits ?? []).map(t => ({ ...t, auto: true }));
-  const chosenT = Object.entries(state.traits).filter(([k]) => TRAITS[k]).map(([k, c]) => {
-    const [min, max] = TRAITS[k].cost;
-    return { key: k, cost: Math.min(max, Math.max(min, Number(c) || min)) };
-  });
-  const rawTraitCost = chosenT.reduce((t, x) => t + x.cost, 0);
+  const autoT = race.traits ?? [];
+  const tList = [
+    ...autoT.map(t => TRAITS[t.key]
+      ? resolveFeature("trait", t.key, TRAITS[t.key], choices[`t:${t.key}`] ?? t.choices, { auto: true })
+      : { kind: "perk", key: t.key, label: t.label, desc: t.desc, fx: [], ch: {}, visible: [], missing: [], cost: 0, auto: true }),
+    ...Object.keys(state.traits).filter(k => TRAITS[k] && !autoT.some(a => a.key === k))
+      .map(k => resolveFeature("trait", k, TRAITS[k], choices[`t:${k}`], { chosenCost: state.traits[k] }))
+  ];
+  const rawTraitCost = tList.reduce((t, x) => t + x.cost, 0);
   const credit = Math.min(race.freeTraitPoints ?? 0, rawTraitCost);
   const traitCost = rawTraitCost - credit;
 
-  // --- efekty ---
-  const effSources = [
-    ...allH.map(h => HINDRANCES[h.key]),
-    ...autoT.map(t => TRAITS[t.key] ?? t),
-    ...chosenT.map(t => TRAITS[t.key])
-  ];
-  const eff = collectEffects(effSources);
-  if (race.earthPerk) eff.carry += EARTH_PERKS[state.earthPerk]?.carry ?? 0;
-  const speedBonus = race.earthPerk ? (EARTH_PERKS[state.earthPerk]?.speed ?? 0) : 0;
+  for (const f of [...hList, ...tList]) {
+    if (f.missing.length) errors.push(`${f.label}: wybierz ${f.missing.join(", ").toLowerCase()} (krok Wady i cechy).`);
+  }
+
+  // --- wszystkie efekty: wady, cechy, perk kucyka ziemskiego, rasa ---
+  const perk = race.earthPerk ? EARTH_PERKS[state.earthPerk] : null;
+  const allFx = [...hList, ...tList].flatMap(f => f.fx).concat(perk?.fx ?? [], race.fx ?? []);
 
   // --- budżet ---
-  const budget = (pool - ATTR_KEYS.length) + hindPts - traitCost;
-  const spentTotal = ATTR_KEYS.reduce((t, k) => t + (state.spent[k] ?? 0), 0);
+  const budget = (pool - ATTR_KEYS.length) + hindPts + fxSum(allFx, "creationPoints") - traitCost;
+  const spentTotal = ATTR_KEYS.reduce((t, k) => t + num(state.spent[k]), 0);
   const remaining = budget - spentTotal;
   if (remaining < 0) errors.push(`Wydano o ${-remaining} pkt za dużo — odejmij z atrybutów, dodaj wadę albo usuń cechę.`);
   else if (remaining > 0) warnings.push(`Zostało ${remaining} niewydanych punktów.`);
@@ -102,11 +128,14 @@ export function computePc(state, pool = CREATION.pool) {
 
   const attrs = {};
   for (const k of ATTR_KEYS) {
-    const spent = state.spent[k] ?? 0;
+    const spent = num(state.spent[k]);
     const racial = raceAttrs.includes(k) ? 1 : 0;
-    const total = CREATION.attrStart + spent + racial + eff.attrs[k] + (state.adj[k] ?? 0);
+    const eff = fxSum(allFx, "attr", k);
+    const adj = num(state.adj[k]);
+    const base = CREATION.attrStart + spent + racial + adj;    // zapisywane na karcie
+    const total = base + eff;                                   // z efektami cech
     const maxSpent = k === "luck" ? CREATION.maxRaiseLuck : CREATION.maxRaise;
-    attrs[k] = { key: k, label: ATTRS[k], spent, racial, eff: eff.attrs[k], adj: state.adj[k] ?? 0, total, maxSpent };
+    attrs[k] = { key: k, label: ATTRS[k], spent, racial, eff, adj, base, total, maxSpent };
     if (total > CREATION.hardCap) errors.push(`${ATTRS[k]} przekracza limit ${CREATION.hardCap}.`);
     if (total < 1) errors.push(`${ATTRS[k]} spada poniżej 1.`);
   }
@@ -120,7 +149,7 @@ export function computePc(state, pool = CREATION.pool) {
     if (chosen.length < g.n) errors.push(`Wybierz ${g.n} umiejętności z premią rasową +${g.value} (krok Rasa).`);
     return { ...g, index: i, chosen };
   });
-  if (eff.removeLockpickPenalty && (raceSkill.lockpick ?? 0) < 0) raceSkill.lockpick = 0;
+  if (tList.some(t => t.def?.removeLockpickPenalty) && (raceSkill.lockpick ?? 0) < 0) raceSkill.lockpick = 0;
 
   // umiejętności rasowe (Magic / Flight / Dig)
   const known = Object.fromEntries(Object.entries(SKILLS).map(([k, d]) => [k, !d.racial || !!race.manual]));
@@ -128,7 +157,7 @@ export function computePc(state, pool = CREATION.pool) {
   for (const [k, r] of Object.entries(race.racial ?? {})) {
     if (k === "magic" && race.zebraNoMagic && state.zebraNoMagic) continue;
     known[k] = true;
-    raceSkill[k] = (raceSkill[k] ?? 0) + r.bonus + (eff.racial[k] ?? 0);
+    raceSkill[k] = (raceSkill[k] ?? 0) + r.bonus;
     if (k === "magic") magicAttr = r.attrs.includes(state.magicAttr) ? state.magicAttr : r.attrs[0];
   }
   const zebraSplit = race.zebraNoMagic && state.zebraNoMagic
@@ -137,39 +166,72 @@ export function computePc(state, pool = CREATION.pool) {
   if (race.zebraNoMagic && state.zebraNoMagic && zebraSplit.length < 2) errors.push("Zebra bez magii: wybierz dwie umiejętności po +5 (krok Rasa).");
 
   // --- umiejętności ---
-  const tagLimit = CREATION.tags + eff.tags;
-  const tags = state.tags.filter(k => SKILLS[k] && (!SKILLS[k].racial || known[k])).slice(0, tagLimit);
+  const tagLimit = CREATION.tags + fxSum(allFx, "tags");
+  const tags = state.tags.filter(k => SKILLS[k] && known[k]).slice(0, tagLimit);
   const skills = {};
   for (const [k, def] of Object.entries(SKILLS)) {
     const attr = k === "magic" ? magicAttr : def.attr;
     const base = baseRank(attrs[attr].total, attrs.luck.total);
     const fromRace = raceSkill[k] ?? 0;
-    const fromEff = (eff.skills[k] ?? 0) + (known[k] ? eff.allSkills : 0);
-    const extra = Number(state.extra[k]) || 0;
-    const bonus = fromRace + fromEff + extra;
+    const fromEff = fxSum(allFx, "skillRank", k);
+    const extra = num(state.extra[k]);
+    const bonus = fromRace + extra;                    // zapisywane na karcie (efekty liczy karta)
     const tag = tags.includes(k);
-    const rank = Math.min(100, Math.max(5, base + bonus) + (tag ? CREATION.tagBonus : 0));
+    const rank = Math.min(100, Math.max(5, base + bonus + fromEff) + (tag ? CREATION.tagBonus : 0));
     const tn = rank + Math.floor(attrs[attr].total * 10 / 2);
     skills[k] = { key: k, label: def.label, attr, attrLabel: attr.toUpperCase(), racial: !!def.racial, known: known[k], base, fromRace, fromEff, extra, bonus, tag, rank, tn };
   }
   if (tags.length < tagLimit) warnings.push(`Wybrano ${tags.length} z ${tagLimit} umiejętności z tagiem.`);
 
-  const caps = eff.caps ?? CREATION.caps;
-  const woundBonus = eff.wound;
+  const caps = CREATION.caps + fxSum(allFx, "caps");
+  const karma = fxSum(allFx, "karma");
+
+  // --- cechy do zapisania na karcie (z efektami) ---
+  const features = [];
+  if (!race.manual) features.push({ kind: "other", key: "race", label: `Rasa: ${race.label}`, desc: [race.desc, ...(race.notes ?? [])].join(" "), notes: race.notes, fx: race.fx ?? [], auto: true });
+  if (perk) features.push({ kind: "perk", key: "earthPerk", label: perk.label, desc: `Darmowy perk kucyka ziemskiego. ${perk.desc}`, fx: perk.fx ?? [], auto: true });
+  features.push(...hList, ...tList);
 
   return {
     race, raceKey: state.race, groups, raceAttrs, magicAttr, zebraSplit,
-    hindrances: allH, traits: [...autoT.map(t => ({ ...t, cost: 0 })), ...chosenT],
+    hindrances: hList, traits: tList, features, allFx,
     hindPts, rawTraitCost, credit, traitCost, budget, spentTotal, remaining, pool,
     maxHindrances: maxH, countedHindrances: counted.length,
-    attrs, skills, tags, tagLimit,
-    caps, woundBonus, carryBonus: eff.carry, speedBonus, karma: eff.karma,
+    attrs, skills, tags, tagLimit, caps, karma,
+    preview: {
+      wound: 10 + fxSum(allFx, "wound"),
+      carry: 100 + 10 * attrs.str.total + fxSum(allFx, "carry"),
+      sats: 40 + 5 * attrs.agi.total + fxSum(allFx, "sats"),
+      luckCards: Math.max(0, Math.max(3, Math.ceil(attrs.luck.total / 2) + 2) + fxSum(allFx, "luckCards"))
+    },
     errors, warnings
   };
 }
 
-const SATS = agi => 40 + agi * 5;
-const LUCK_CARDS = luck => Math.max(3, Math.ceil(luck / 2) + 2);
+/** Przedmiot-cecha do zapisania na karcie. */
+function featureItem(f) {
+  const kind = f.kind === "hindrance" ? "hindrance" : f.kind === "trait" ? "trait" : f.kind;
+  const picked = (f.visible ?? []).map(c => {
+    const vals = Array.isArray(c.value) ? c.value : [c.value];
+    return `${c.label}: ${vals.map(v => c.options.find(o => o.v === v)?.label ?? v).join(", ")}`;
+  });
+  const lines = [f.desc, ...picked, f.auto && f.kind !== "other" && f.key !== "earthPerk" ? "<i>Z rasy.</i>" : "",
+    f.kind === "trait" && !f.auto ? `<i>Koszt: ${f.cost} pkt.</i>` : ""].filter(Boolean);
+  const label = f.label + (picked.length && f.visible.length === 1 && !Array.isArray(f.visible[0].value)
+    ? ` (${f.visible[0].options.find(o => o.v === f.visible[0].value)?.label ?? ""})` : "");
+  return {
+    name: label,
+    type: "feature",
+    system: {
+      kind, active: true, description: lines.map(t => `<p>${t}</p>`).join(""),
+      effects: f.fx.filter(e => !CREATION_ONLY.has(e.type)).map(e => ({ type: e.type, target: e.target, value: e.value, when: e.when ?? "" }))
+    },
+    flags: { "foe-rpg": { creator: true, source: `${f.kind}:${f.key}` } }
+  };
+}
+
+const SATS = (agi, bonus = 0) => 40 + agi * 5 + bonus;
+const LUCK_CARDS = (luck, bonus = 0) => Math.max(0, Math.max(3, Math.ceil(luck / 2) + 2) + bonus);
 
 /** Zmiany dla aktora i lista przedmiotów-cech na podstawie wyniku computePc. */
 export function buildPcUpdate(state, r) {
@@ -178,18 +240,19 @@ export function buildPcUpdate(state, r) {
     "system.level": 1,
     "system.caps": r.caps,
     "system.karma": r.karma,
-    "system.woundBonus": r.woundBonus,
-    "system.carryBonus": r.carryBonus,
-    "system.speedBonus": r.speedBonus,
-    "system.resources.sats.value": SATS(r.attrs.agi.total),
-    "system.resources.luck.value": LUCK_CARDS(r.attrs.luck.total),
+    // premie z cech (Large, Young…) liczą teraz efekty cech, więc pola ręczne zerujemy
+    "system.woundBonus": 0,
+    "system.carryBonus": 0,
+    "system.speedBonus": 0,
+    "system.resources.sats.value": r.preview.sats,
+    "system.resources.luck.value": r.preview.luckCards,
     "flags.foe-rpg.created": true,
     // jako tekst JSON — zwykły zapis obiektu scalałby się ze starym i nie usuwał odznaczonych cech
     "flags.foe-rpg.creation": JSON.stringify({ ...state, step: 0, filter: "" })
   };
   if (state.name) update.name = state.name;
   for (const [k, a] of Object.entries(r.attrs)) {
-    update[`system.attributes.${k}.value`] = Math.max(0, Math.min(12, a.total));
+    update[`system.attributes.${k}.value`] = Math.max(0, Math.min(12, a.base));
     update[`system.attributes.${k}.mod`] = 0;
   }
   for (const [k, s] of Object.entries(r.skills)) {
@@ -200,28 +263,7 @@ export function buildPcUpdate(state, r) {
     update[`system.skills.${k}.attr`] = s.attr;
     update[`system.skills.${k}.known`] = s.known;
   }
-
-  const items = [];
-  const feature = (name, kind, description) => ({ name, type: "feature", system: { kind, description }, flags: { "foe-rpg": { creator: true } } });
-  const race = r.race;
-  if (!race.manual) {
-    const lines = [race.desc, ...(race.notes ?? [])].map(t => `<p>${t}</p>`).join("");
-    items.push(feature(`Rasa: ${race.label}`, "other", lines));
-  }
-  if (race.earthPerk) {
-    const p = EARTH_PERKS[state.earthPerk];
-    if (p) items.push(feature(p.label, "perk", `<p>Darmowy perk kucyka ziemskiego. ${p.desc}</p>`));
-  }
-  for (const h of r.hindrances) {
-    const d = HINDRANCES[h.key];
-    if (d) items.push(feature(d.label, "hindrance", `<p>${d.desc}</p>${h.auto ? "<p><i>Wada rasowa.</i></p>" : ""}`));
-  }
-  for (const t of r.traits) {
-    const d = TRAITS[t.key] ?? t;
-    const cost = t.auto ? "darmowa (rasa)" : `${t.cost} pkt`;
-    items.push(feature(d.label + (d.cost && d.cost[0] !== d.cost[1] && !t.auto ? ` (${t.cost})` : ""), t.key === "hindLegStance" ? "perk" : "trait", `<p>${d.desc ?? ""}</p><p><i>Koszt: ${cost}.</i></p>`));
-  }
-  return { update, items };
+  return { update, items: r.features.map(featureItem) };
 }
 
 // ---------------------------------------------------------------------------
@@ -297,8 +339,7 @@ export function computeNpc({ race: raceKey = "earth", archetype = "raider", leve
     return [k, { key: k, label: def.label, attr, attrLabel: attr.toUpperCase(), known: known[k], tag: tags.includes(k), bonus: bonus[k] ?? 0, points: points[k] ?? 0, rank, tn: rank + Math.floor(attrs[attr] * 5) }];
   }));
 
-  const wound = (race.traits ?? []).some(t => t.key === "large") ? 2 : 0;
-  return { race, arch, level: lvl, attrs, raceAttrs, skills, tags, magicAttr, perLevel, woundBonus: wound, unspent: pool };
+  return { race, arch, level: lvl, attrs, raceAttrs, skills, tags, magicAttr, perLevel, unspent: pool };
 }
 
 /** Zmiany dla aktora NPC. */
@@ -306,8 +347,8 @@ export function buildNpcUpdate(opts, r) {
   const update = {
     "system.race": r.race.manual ? "" : r.race.label,
     "system.level": r.level,
-    "system.woundBonus": r.woundBonus,
-    "system.carryBonus": r.woundBonus ? 20 : 0,
+    "system.woundBonus": 0,
+    "system.carryBonus": 0,
     "system.speedBonus": 0,
     "system.resources.sats.value": SATS(r.attrs.agi),
     "system.resources.luck.value": LUCK_CARDS(r.attrs.luck),
@@ -327,11 +368,14 @@ export function buildNpcUpdate(opts, r) {
     update[`system.skills.${k}.attr`] = s.attr;
     update[`system.skills.${k}.known`] = s.known;
   }
-  const items = [];
-  if (!r.race.manual) {
-    const lines = [r.race.desc, ...(r.race.notes ?? [])].map(t => `<p>${t}</p>`).join("");
-    items.push({ name: `Rasa: ${r.race.label}`, type: "feature", system: { kind: "other", description: lines }, flags: { "foe-rpg": { creator: true } } });
+  // rasa i jej darmowe cechy (np. Large) jako przedmioty z efektami
+  const feats = [];
+  if (!r.race.manual) feats.push({ kind: "other", key: "race", label: `Rasa: ${r.race.label}`, desc: [r.race.desc, ...(r.race.notes ?? [])].join(" "), fx: r.race.fx ?? [], auto: true });
+  for (const t of r.race.traits ?? []) {
+    if (TRAITS[t.key]) feats.push(resolveFeature("trait", t.key, TRAITS[t.key], t.choices, { auto: true }));
   }
-  items.push({ name: `Archetyp: ${r.arch.label}`, type: "feature", system: { kind: "other", description: `<p>NPC poziomu ${r.level} wygenerowany kreatorem.</p>` }, flags: { "foe-rpg": { creator: true } } });
+  for (const h of r.race.hindrances ?? []) feats.push(resolveFeature("hindrance", h.key, HINDRANCES[h.key], h.choices, { auto: true }));
+  const items = feats.map(featureItem);
+  items.push({ name: `Archetyp: ${r.arch.label}`, type: "feature", system: { kind: "other", active: true, effects: [], description: `<p>NPC poziomu ${r.level} wygenerowany kreatorem.</p>` }, flags: { "foe-rpg": { creator: true } } });
   return { update, items };
 }
