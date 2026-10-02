@@ -1,0 +1,185 @@
+<div class="cr">
+  <nav class="cr-steps">
+    {{#each steps}}<a class="{{#if active}}active{{/if}} {{#if done}}done{{/if}}" data-action="goStep" data-step="{{i}}"><span>{{n}}</span> {{label}}</a>{{/each}}
+  </nav>
+
+  <div class="cr-budget">
+    <span>PUNKTY TWORZENIA</span>
+    <span>{{r.pool}} − 7 bazowe{{#if r.hindPts}} + {{r.hindPts}} za wady{{/if}}{{#if r.traitCost}} − {{r.traitCost}} za cechy{{/if}} = <b>{{r.budget}}</b></span>
+    <span>wydane <b>{{r.spentTotal}}</b></span>
+    <span class="cr-left {{remainingCls}}">zostało <b>{{r.remaining}}</b></span>
+  </div>
+
+  <div class="cr-scroll">
+  {{!-- ================= 1. RASA ================= --}}
+  {{#if step.race}}
+    <h3>Imię i rasa</h3>
+    <div class="cr-row">
+      <label>Imię <input type="text" name="name" value="{{st.name}}"></label>
+      <label>Rasa <select name="race">{{#each races}}<option value="{{k}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+    </div>
+    <p class="cr-desc">{{r.race.desc}}</p>
+    {{#if r.race.manual}}
+      <label class="cr-line">Nazwa rasy <input type="text" name="raceName" value="{{st.raceName}}"></label>
+      <p class="hint">Premie rasy wpisz ręcznie: atrybuty w kolumnie „Inne” (krok S.P.E.C.I.A.L.), umiejętności w kolumnie „Inne” (krok Umiejętności). Umiejętności rasowe są odblokowane.</p>
+    {{else}}
+      <h3>Premia rasowa do atrybutów <small>wybierz {{r.race.attrs.pick}}</small></h3>
+      <div class="cr-chips">{{#each raceAttrChips}}<a class="chip {{#if on}}on{{/if}}" data-action="toggleRaceAttr" data-key="{{k}}">{{label}} +1</a>{{/each}}</div>
+
+      <h3>Premie rasowe do umiejętności</h3>
+      {{#if raceFixed}}<p class="cr-fixed">Stałe: {{raceFixed}} <span class="hint">(ranga nie spada poniżej 5)</span></p>{{/if}}
+      {{#each raceGroups}}
+        <p class="cr-sub">Wybierz {{n}} × +{{value}} <span class="hint">({{chosenCount}}/{{n}})</span></p>
+        <div class="cr-chips">{{#each chips}}<a class="chip {{#if on}}on{{/if}}" data-action="toggleRaceSkill" data-key="{{key}}">{{label}}</a>{{/each}}</div>
+      {{/each}}
+      {{#unless raceFixed}}{{#unless raceGroups.length}}<p class="hint">Brak.</p>{{/unless}}{{/unless}}
+
+      {{#if racialSkills.length}}
+        <h3>Umiejętności rasowe</h3>
+        <ul class="cr-list">
+        {{#each racialSkills}}
+          <li><b>{{label}}</b> +{{bonus}} ({{attrs}})
+            {{#if choice}} — oparta na <select name="magicAttr">{{#each choice}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select>{{/if}}
+          </li>
+        {{/each}}
+        </ul>
+      {{/if}}
+
+      {{#if zebra}}
+        <label class="cr-line"><input type="checkbox" name="zebraNoMagic" {{#if zebra.on}}checked{{/if}}> Bez magii zebr: zamiast Magic +10 dwie różne umiejętności po +5 (bez receptur na start)</label>
+        {{#if zebra.on}}<div class="cr-chips">{{#each zebra.chips}}<a class="chip {{#if on}}on{{/if}}" data-action="toggleZebraSplit" data-key="{{k}}">{{label}}</a>{{/each}}</div>{{/if}}
+      {{/if}}
+
+      {{#if earthPerks}}
+        <h3>Darmowy perk kucyka ziemskiego</h3>
+        <div class="cr-row">{{#each earthPerks}}<label class="cr-radio"><input type="radio" name="earthPerk" value="{{k}}" {{#if sel}}checked{{/if}}> <b>{{label}}</b> — {{desc}}</label>{{/each}}</div>
+      {{/if}}
+
+      {{#if autoTraits}}<p class="cr-fixed">Cechy rasowe za darmo: {{autoTraits}}</p>{{/if}}
+      {{#if autoHindrances}}<p class="cr-fixed">Wady rasowe (obowiązkowe): {{autoHindrances}}</p>{{/if}}
+      {{#if r.race.freeTraitPoints}}<p class="cr-fixed">Darmowa cecha: {{r.race.freeTraitPoints}} pkt odliczony od kosztu cech.</p>{{/if}}
+      {{#if r.race.notes.length}}<ul class="cr-notes">{{#each r.race.notes}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
+    {{/if}}
+  {{/if}}
+
+  {{!-- ================= 2. WADY I CECHY ================= --}}
+  {{#if step.flaws}}
+    <p class="cr-desc">Każda wada (Hindrance) daje punkty tworzenia ({{hindRule}}, maks. {{r.maxHindrances}} wad). Cechy (Traits) kosztują punkty.
+      Podręcznik zaleca na początek najwyżej 3 wady i 2 cechy. Efekty liczone przez kreator są doliczane same; resztę (np. wybory „+1 INT lub CHA”) wpiszesz w kolumnach „Inne”.</p>
+    <div class="cr-row">
+      <span class="cr-stat">Wady: <b>{{r.countedHindrances}}</b> → <b>+{{r.hindPts}}</b> pkt</span>
+      <span class="cr-stat">Cechy: <b>{{r.rawTraitCost}}</b> pkt{{#if r.credit}} (− {{r.credit}} darmowe){{/if}} → <b>−{{r.traitCost}}</b></span>
+      <label class="cr-filter"><i class="fa-solid fa-magnifying-glass"></i> <input type="text" name="filter" value="{{st.filter}}" placeholder="Szukaj…"></label>
+    </div>
+    <p class="cr-fixed">Wybrane wady: <b>{{summary.hindrances}}</b><br>Wybrane cechy: <b>{{summary.traits}}</b></p>
+    <div class="cr-cols">
+      <div>
+        <h3>Wady (Hindrances)</h3>
+        <ul class="cr-pick">
+        {{#each hindrances}}
+          <li class="{{#if on}}on{{/if}} {{#if locked}}locked{{/if}}" data-search="{{search}}">
+            <a {{#unless locked}}data-action="toggleHindrance"{{/unless}} data-key="{{k}}"><span class="box"></span><b>{{label}}</b> <span class="ty">{{type}}</span></a>
+            <p>{{desc}}</p>
+          </li>
+        {{/each}}
+        </ul>
+      </div>
+      <div>
+        <h3>Cechy (Traits)</h3>
+        <ul class="cr-pick">
+        {{#each traits}}
+          <li class="{{#if on}}on{{/if}} {{#if locked}}locked{{/if}}" data-search="{{search}}">
+            <a {{#unless locked}}data-action="toggleTrait"{{/unless}} data-key="{{k}}"><span class="box"></span><b>{{label}}</b> <span class="ty">{{#if locked}}rasa{{else}}{{costLabel}} pkt{{/if}}</span></a>
+            {{#if range}}<label class="cost">Koszt <input type="number" name="traitCost.{{k}}" value="{{chosenCost}}" min="{{min}}" max="{{max}}"></label>{{/if}}
+            <p>{{desc}}</p>
+          </li>
+        {{/each}}
+        </ul>
+      </div>
+    </div>
+  {{/if}}
+
+  {{!-- ================= 3. S.P.E.C.I.A.L. ================= --}}
+  {{#if step.special}}
+    <p class="cr-desc">Każdy atrybut zaczyna od 1. Punktami tworzenia podniesiesz go najwyżej o 8 (Luck o 9); limit po wszystkich premiach to 12. Wartość 5 to przeciętna.</p>
+    <table class="foe-table cr-attrs">
+      <thead><tr><th class="l">Atrybut</th><th>Baza</th><th>Punkty</th><th>Rasa</th><th title="Z wad i cech">Wady/cechy</th><th title="Ręczne korekty (np. Elderly: +1 INT lub CHA)">Inne</th><th>Wynik</th><th>MFD 1</th></tr></thead>
+      <tbody>
+      {{#each attrs}}
+        <tr class="{{#if bad}}lethal{{/if}}">
+          <td class="l">{{label}}</td>
+          <td class="q">1</td>
+          <td class="pm">
+            <button type="button" data-action="attrMinus" data-key="{{key}}" {{#unless canMinus}}disabled{{/unless}}>−</button>
+            <b>{{spent}}</b><span class="q">/{{maxSpent}}</span>
+            <button type="button" data-action="attrPlus" data-key="{{key}}" {{#unless canPlus}}disabled{{/unless}}>+</button>
+          </td>
+          <td>{{racialLabel}}</td>
+          <td>{{effLabel}}</td>
+          <td><input type="number" name="adj.{{key}}" value="{{adj}}"></td>
+          <td class="tn big">{{total}}</td>
+          <td class="q">{{mfd}}</td>
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+  {{/if}}
+
+  {{!-- ================= 4. UMIEJĘTNOŚCI ================= --}}
+  {{#if step.skills}}
+    <p class="cr-desc">Ranga startowa = 2 × atrybut + Luck/2 + 2 (min. 5). Wybierz <b>{{r.tagLimit}}</b> umiejętności z tagiem (+15) — wybrano {{r.tags.length}}.
+      Kolumna „Inne” to premie rang z wad i cech, których kreator nie liczy sam (np. Demented, WSD, Studious).</p>
+    <div class="scroll-x">
+    <table class="foe-table skills cr-skills">
+      <thead><tr><th>Tag</th><th class="l">Umiejętność</th><th>Atr</th><th>Baza</th><th>Rasa</th><th>Wady/cechy</th><th>Inne</th><th>Ranga</th><th>MFD 1</th></tr></thead>
+      <tbody>
+      {{#each skills}}
+        <tr class="{{#if racial}}racial{{/if}} {{#unless known}}unknown{{/unless}} {{#if tag}}tagged{{/if}}">
+          <td>{{#if known}}<a class="tagbox {{#if tag}}on{{/if}} {{#unless canTag}}off{{/unless}}" data-action="toggleTag" data-key="{{key}}"></a>{{/if}}</td>
+          <td class="l">{{label}}</td>
+          <td>{{attrLabel}}</td>
+          {{#if known}}
+            <td class="q">{{base}}</td><td>{{raceLabel}}</td><td>{{effLabel}}</td>
+            <td><input type="number" name="extra.{{key}}" value="{{extra}}"></td>
+            <td><b>{{rank}}</b></td><td class="tn">{{tn}}</td>
+          {{else}}
+            <td colspan="6" class="q">niedostępna dla tej rasy</td>
+          {{/if}}
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+    </div>
+  {{/if}}
+
+  {{!-- ================= 5. PODSUMOWANIE ================= --}}
+  {{#if step.summary}}
+    <dl class="derived cr-sum">
+      <dt>Imię</dt><dd>{{st.name}}</dd>
+      <dt>Rasa</dt><dd>{{summary.race}}</dd>
+      <dt>S.P.E.C.I.A.L.</dt><dd>{{summary.attrs}}</dd>
+      <dt>Tagi</dt><dd>{{summary.tags}}</dd>
+      <dt>Wady</dt><dd>{{summary.hindrances}}</dd>
+      <dt>Cechy</dt><dd>{{summary.traits}}</dd>
+      {{#if summary.perk}}<dt>Perk</dt><dd>{{summary.perk}}</dd>{{/if}}
+      <dt>SATS / karty szczęścia</dt><dd>{{summary.sats}} / {{summary.luckCards}}</dd>
+      <dt>Obrażenia na ranę</dt><dd>{{summary.wound}}</dd>
+      <dt>Udźwig</dt><dd>{{summary.carry}}</dd>
+      <dt>Kapsle na start</dt><dd>{{r.caps}}</dd>
+    </dl>
+    {{#if r.errors.length}}<h3>Do poprawy</h3><ul class="cr-msg bad">{{#each r.errors}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
+    {{#if r.warnings.length}}<h3>Uwagi</h3><ul class="cr-msg warn">{{#each r.warnings}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
+    {{#if overwrite}}<p class="hint">Ta postać była już tworzona kreatorem — zatwierdzenie nadpisze atrybuty, umiejętności i cechy z kreatora.</p>{{/if}}
+    <p class="hint">Po utworzeniu: wybierz znaczek, zaklęcia lub receptury (jeśli rasa je ma) i ekwipunek za {{r.caps}} kapsli. Rasowe kary sytuacyjne (np. Speechcraft wobec kucyków) są w opisie cechy „Rasa”.</p>
+  {{/if}}
+  </div>
+
+  <footer class="cr-foot">
+    <button type="button" data-action="prev" {{#if isFirst}}disabled{{/if}}><i class="fa-solid fa-chevron-left"></i> Wstecz</button>
+    {{#if isLast}}
+      <button type="button" class="primary" data-action="finish" {{#unless canFinish}}disabled{{/unless}}><i class="fa-solid fa-check"></i> Utwórz postać</button>
+    {{else}}
+      <button type="button" class="primary" data-action="next">Dalej <i class="fa-solid fa-chevron-right"></i></button>
+    {{/if}}
+  </footer>
+</div>

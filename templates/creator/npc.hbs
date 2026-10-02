@@ -1,0 +1,37 @@
+<div class="cr">
+  <div class="cr-scroll">
+    <p class="cr-desc">Szybki NPC według podręcznika („Rapid NPC Generation”): wybierz archetyp, rasę i poziom. Kreator ustawi S.P.E.C.I.A.L., premie rasowe, 3 tagi
+      i rozdzieli punkty umiejętności z awansów (10 + INT/2 na poziom). Wszystko możesz potem zmienić na karcie.</p>
+    <div class="cr-row">
+      <label>Imię <input type="text" name="name" value="{{st.name}}"></label>
+      <label>Poziom <input type="number" name="level" value="{{r.level}}" min="1" max="30"></label>
+    </div>
+    <div class="cr-row">
+      <label>Archetyp <select name="archetype">{{#each archetypes}}<option value="{{k}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+      <label>Rasa <select name="race">{{#each races}}<option value="{{k}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+    </div>
+
+    <h3>S.P.E.C.I.A.L.</h3>
+    <div class="cr-special">
+      {{#each attrs}}<div class="{{#if racial}}racial{{/if}}" title="{{label}}{{#if racial}} (z premią rasową){{/if}}"><span>{{short}}</span><b>{{v}}</b><small>{{mfd}}</small></div>{{/each}}
+    </div>
+
+    <h3>Umiejętności <small>{{levelPoints}} pkt z awansów</small></h3>
+    <table class="foe-table skills">
+      <thead><tr><th class="l">Umiejętność</th><th>Atr</th><th>Tag</th><th>Rasa</th><th>Awanse</th><th>Ranga</th><th>MFD 1</th></tr></thead>
+      <tbody>
+      {{#each skills}}
+        <tr class="{{#if tag}}tagged{{/if}}">
+          <td class="l">{{label}}</td><td>{{attrLabel}}</td><td>{{#if tag}}✓{{/if}}</td>
+          <td>{{#if bonus}}{{bonus}}{{/if}}</td><td>{{#if points}}{{points}}{{/if}}</td>
+          <td><b>{{rank}}</b></td><td class="tn">{{tn}}</td>
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+  </div>
+  <footer class="cr-foot">
+    <span></span>
+    <button type="button" class="primary" data-action="finish"><i class="fa-solid fa-check"></i> Utwórz NPC</button>
+  </footer>
+</div>
