@@ -2,6 +2,7 @@ import { ATTRS, SKILLS, LOCATIONS } from "./data.mjs";
 import { CREATION, RACES, HINDRANCES, TRAITS, EARTH_PERKS, NPC_ARCHETYPES } from "./creation-data.mjs";
 import { defaultPcState, computePc, buildPcUpdate, computeNpc, buildNpcUpdate } from "./creator-logic.mjs";
 import { FX_TYPES, describeFx } from "./effects.mjs";
+import { grantStartingSpells } from "./magic.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2, DialogV2 } = foundry.applications.api;
 const P = "systems/foe-rpg/templates/creator";
@@ -16,11 +17,12 @@ const readFlag = (actor, key) => {
 const signed = n => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "");
 
 /** Usuwa przedmioty utworzone wcześniej przez kreator, zapisuje zmiany i dodaje nowe cechy. */
-async function applyToActor(actor, update, items) {
+async function applyToActor(actor, update, items, raceKey = "") {
   const old = actor.items.filter(i => i.getFlag("foe-rpg", "creator")).map(i => i.id);
   if (old.length) await actor.deleteEmbeddedDocuments("Item", old);
   await actor.update(update);
   if (items.length) await actor.createEmbeddedDocuments("Item", items);
+  await grantStartingSpells(actor, raceKey);
 }
 
 // ===========================================================================
@@ -291,7 +293,7 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
       if (!ok) return;
     }
     const { update, items } = buildPcUpdate(this.wiz, r);
-    await applyToActor(this.actor, update, items);
+    await applyToActor(this.actor, update, items, this.wiz.race);
     ui.notifications.info(`${this.actor.name}: postać gotowa.`);
     this.close();
     this.actor.sheet?.render(true);
@@ -352,7 +354,7 @@ export class NpcCreator extends HandlebarsApplicationMixin(ApplicationV2) {
       if (!ok) return;
     }
     const { update, items } = buildNpcUpdate(this.wiz, r);
-    await applyToActor(this.actor, update, items);
+    await applyToActor(this.actor, update, items, this.wiz.race);
     ui.notifications.info(`${this.actor.name}: NPC gotowy.`);
     this.close();
     this.actor.sheet?.render(true);

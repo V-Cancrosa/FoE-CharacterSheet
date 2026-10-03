@@ -164,6 +164,16 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
     this.resources.sats.max = 40 + agi * 5 + this.fx.sats;
     this.resources.luck.max = Math.max(0, Math.max(3, Math.ceil(a.luck.total / 2) + 2) + this.fx.luckCards);
     this.strainBonus = this.fx.strain;
+    // Magia jednorożców (s. 242): pula strain = END + INT + 2 (alikorny + 5) + cechy; zebry używają składników
+    const race = String(this.race ?? "");
+    this.caster = this.skills.magic?.known !== false && !/zebr/i.test(race);
+    this.alicorn = /alikorn|alicorn/i.test(race);
+    this.strainMax = this.caster
+      ? Math.max(0, a.end.total + a.int.total + (this.alicorn ? 5 : 2) + this.fx.strain)
+      : Math.max(0, this.resources.strain.max + this.fx.strain);
+    const mflags = this.parent?.flags?.["foe-rpg"] ?? {};
+    this.burnout = !!mflags.burnout;
+    this.maintained = Array.isArray(mflags.maintained) ? mflags.maintained : [];
     this.dmgPerWound = Math.min(20, 10 + Math.floor(this.level / 3)) + this.woundBonus + this.fx.wound;
     // Inicjatywa: d100 ± próg AGI ¼ (gracz wybiera po rzucie) − premie z cech (s. 436)
     this.initAgi = Math.floor(a.agi.tn / 4);
@@ -246,6 +256,12 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
     const otherCrippled = Object.keys(L).filter(k => k !== "horn" && L[k].isCrippled).length;
     add("mfdStep", "magic", -(L.horn.isCrippled ? 2 : 0) - otherCrippled, "Okaleczenia (zaklęcia)");
     add("skillRoll", "sneak", -this.sneakPenalty, `Obciążenie ${this.weight} lb`);
+    // Podtrzymywane zaklęcia: −1 krok celności i rzutów INT/AGI za każde (s. 244)
+    const held = this.maintained.length;
+    if (held) {
+      add("basedStep", "int,agi", -held, `Podtrzymywane zaklęcia (${held})`);
+      add("mfdStep", "attack", -held, `Podtrzymywane zaklęcia (${held}) — celność`);
+    }
     this.stateFx = st;
     // kary do rzutów umiejętności ze stanu widać od razu na karcie (próg MFD 1)
     for (const e of st.filter(x => x.type === "skillRoll")) {
@@ -376,6 +392,29 @@ export class GearData extends FoeItemData {
     };
   }
 }
+/** Zaklęcie jednorożca / alikorna (rozdz. 5). Koszt strain: 1 niski, 2 średni, 3 wysoki, 4 bardzo wysoki. */
+export class SpellData extends FoeItemData {
+  static defineSchema() {
+    return {
+      level: num(1, { min: 0, max: 4 }),
+      cost: num(1, { min: 0 }),
+      costText: str(""),
+      satsCost: num(0, { min: 0 }),           // 0 = nie da się w SATS
+      targeted: bool(false),                  // drugi rzut Magic na trafienie (przedział zasięgu 20 ft)
+      maintained: bool(false),                // koszt co rundę
+      damage: str(""),                        // np. „1d12”, „3d8 + INT”, „4d4 + 2*INT”
+      crit: str("x1"),
+      ignoreDT: num(0, { min: 0 }),
+      levelReq: num(0, { min: 0 }),
+      requirements: str(""),
+      precursors: str(""),
+      precursorFor: str(""),
+      learn: num(0, { min: 0, max: 95 }),     // procent nauki (zasada zalecana, s. 246)
+      description: desc()
+    };
+  }
+}
+
 export class FeatureData extends FoeItemData {
   static defineSchema() {
     return {

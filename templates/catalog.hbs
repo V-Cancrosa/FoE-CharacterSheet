@@ -26,7 +26,7 @@
           <td class="buy">
             {{#if qty}}<input type="number" name="qty" value="{{qty}}" min="1" title="Ilość">{{/if}}
             <button type="button" data-action="add" title="Dodaj za darmo"><i class="fa-solid fa-plus"></i> Dodaj</button>
-            {{#if ../actor}}<button type="button" data-action="buy" title="Kup — cena × ilość zostanie odjęta od kapsli"><i class="fa-solid fa-coins"></i> Kup</button>{{/if}}
+            {{#if ../actor}}{{#unless noBuy}}<button type="button" data-action="buy" title="Kup — cena × ilość zostanie odjęta od kapsli"><i class="fa-solid fa-coins"></i> Kup</button>{{/unless}}{{/if}}
           </td>
         </tr>
       {{/each}}

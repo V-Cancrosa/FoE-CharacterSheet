@@ -1,14 +1,16 @@
 import { WEAPON_KINDS, ARMOR_KINDS, GEAR_KINDS, catalogItem, priceOf } from "./catalog-data.mjs";
 import { SKILLS, LOCATIONS } from "./data.mjs";
 import { shortFx } from "./effects.mjs";
+import { spellItemData, spellLimits, COST_LABELS } from "./magic.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 let cache = null;
 /** Katalog z podręcznika (data/catalog.json), wczytywany raz. */
 export function loadCatalog() {
-  cache ??= fetch(`systems/${game.system.id}/data/catalog.json`)
-    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+  const get = name => fetch(`systems/${game.system.id}/data/${name}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
+  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => [])])
+    .then(([cat, spells]) => ({ ...cat, spells }))
     .catch(err => { cache = null; throw err; });
   return cache;
 }
@@ -16,7 +18,9 @@ export function loadCatalog() {
 const TABS = {
   weapons: { label: "Broń", icon: "fa-solid fa-gun", kinds: WEAPON_KINDS, head: ["Rodzaj", "Obrażenia", "Kryt.", "SATS", "Zasięg", "Amunicja", "Lb", "Cena"] },
   armor: { label: "Pancerze i ubrania", icon: "fa-solid fa-shield-halved", kinds: ARMOR_KINDS, head: ["Rodzaj", "DT", "Osłania", "Efekty", "Lb", "Cena"] },
-  gear: { label: "Ekwipunek", icon: "fa-solid fa-suitcase", kinds: GEAR_KINDS, head: ["Rodzaj", "Opis", "Lb", "Cena"] }
+  gear: { label: "Ekwipunek", icon: "fa-solid fa-suitcase", kinds: GEAR_KINDS, head: ["Rodzaj", "Opis", "Lb", "Cena"] },
+  spells: { label: "Zaklęcia", icon: "fa-solid fa-hat-wizard", kinds: { L0: "Poziom 0", L1: "Poziom 1", L2: "Poziom 2", L3: "Poziom 3", L4: "Poziom 4" },
+    head: ["Poziom", "Strain", "SATS", "Od poz.", "Wymagania"] }
 };
 
 const SHORT_ATTR = { str: "STR", per: "PER", end: "END", cha: "CHA", int: "INT", agi: "AGI", luck: "LCK" };
@@ -42,6 +46,13 @@ function coverText(list = []) {
 }
 
 function rowOf(tab, e, i) {
+  if (tab === "spells") {
+    const req = e.requirements || "—";
+    return {
+      i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `L${e.level}`, img: "systems/foe-rpg/icons/spell.svg", qty: 0, noBuy: true,
+      cols: [e.level, COST_LABELS[e.cost] ?? e.costText, e.sats ? `${e.sats} AP` : "—", e.levelReq || "—", req.length > 70 ? `${req.slice(0, 68)}…` : req]
+    };
+  }
   const base = { i, name: e.name, notes: e.notes ?? "", search: e.name.toLowerCase(), price: e.value ?? 0 };
   if (tab === "weapons") {
     const d = catalogItem("weapons", e);
@@ -165,13 +176,27 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
   static #onAdd(event, target) { return this.#acquire(target, false); }
   static #onBuy(event, target) { return this.#acquire(target, true); }
 
+  /** Zaklęcie do postaci: ostrzega o braku magii, wymaganym poziomie i limicie zaklęć (s. 246), ale decyzja należy do MG. */
+  async #learnSpell(entry, itemData) {
+    const a = this.actor;
+    if (a.items.some(i => i.type === "spell" && i.name === entry.name)) return ui.notifications.info(`${a.name} zna już ${entry.name}.`);
+    const warns = [];
+    if (!a.system.caster) warns.push("postać nie rzuca zaklęć jednorożców");
+    if (entry.levelReq && a.system.level < entry.levelReq) warns.push(`wymaga poziomu ${entry.levelReq}`);
+    const lim = spellLimits(a)[entry.level];
+    const have = a.items.filter(i => i.type === "spell" && i.system.level === entry.level).length;
+    if (lim !== undefined && have >= lim) warns.push(`limit zaklęć poziomu ${entry.level}: ${lim}`);
+    await a.createEmbeddedDocuments("Item", [itemData]);
+    ui.notifications[warns.length ? "warn" : "info"](`${a.name}: dodano zaklęcie ${entry.name}${warns.length ? ` (uwaga: ${warns.join("; ")})` : ""}.`);
+  }
+
   async #acquire(target, buy) {
     const row = target.closest("[data-i]");
     const data = await loadCatalog();
     const entry = data[this.tab]?.[Number(row?.dataset.i)];
     if (!entry) return;
     const qty = Math.max(1, Math.floor(Number(row.querySelector("input[name=qty]")?.value) || 1));
-    const itemData = catalogItem(this.tab, entry, qty);
+    const itemData = this.tab === "spells" ? spellItemData(entry) : catalogItem(this.tab, entry, qty);
     const what = qty > 1 ? `${entry.name} ×${qty}` : entry.name;
 
     if (!this.actor) {
@@ -180,6 +205,7 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
       return ui.notifications.info(`Dodano do przedmiotów świata: ${item?.name ?? entry.name}.`);
     }
     if (!this.actor.isOwner) return ui.notifications.warn("Nie jesteś właścicielem tej postaci.");
+    if (this.tab === "spells") return this.#learnSpell(entry, itemData);
 
     if (buy) {
       const price = priceOf(entry, qty);

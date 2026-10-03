@@ -47,6 +47,20 @@ Efekty specjalne broni (s. 200–202) — broń z katalogu ma je ustawione z prz
 - Przewracanie (np. karabin Gaussa); znaczniki: ukrywalna, luneta, tłumik, zapalnik, mina.
 Stany widać w zakładce Walka (z przyciskami) i jako ikony na tokenie; w walce działają same przy zmianie rundy.
 
+Magia jednorożców i alikornów (rozdz. 5): katalog 235 zaklęć z podręcznika (poziomy 0–4; koszt strain, koszt SATS, wymagany
+poziom, prekursory, obrażenia) w zakładce „Zaklęcia” katalogu, zakładka „Magia” na karcie postaci.
+- Pula strain liczy się sama: END + INT + 2 (alikorny +5) + cechy (np. Channeler); „+1 strain” to godzina odpoczynku (Shift — do pełna).
+- Rzucanie: rzut Magic, overglow 0–3 (każda warstwa ×2 efekty i koszt; 1 warstwa = SATS ×3, więcej = 2 akcje i bez SATS),
+  krytyk daje darmową warstwę, porażka — zaklęcie nie wychodzi (krytyczna porażka zabiera strain).
+- Za mało strain: każdy brakujący punkt = krok MFD trudniej; porażka oznacza wypalenie (bez magii 1d4 tygodnie).
+- Podtrzymywane zaklęcia (tarcze, niewidzialność…): koszt na początku każdej rundy, każde dolicza warstwę kosztu do nowych zaklęć
+  i −1 krok do celności, INT i AGI; brak strain — zaklęcie gaśnie.
+- Zaklęcia z obrażeniami: przycisk „Wyceluj (Magic)” (przedział zasięgu 20 ft, lokacje, strzały celowane) i zwykła karta obrażeń
+  z „Nanieś obrażenia”; INT i ranga Magic/10 w formułach liczą się same, overglow podwaja obrażenia.
+- Procent nauki: +1% za każde rzucenie; rzut ≤ procent podpowiada, że można nauczyć się zaklęcia, dla którego to jest prekursor.
+- Limity znanych zaklęć (poziom 2 — INT, 3 — INT/3, 4 — jedno; Magical Savant / Arcane Devotion podwajają) — ostrzeżenie przy dodawaniu.
+- Kreator: jednorożce dostają Telekinezę, alikorny z Unity — swoją listę startową; zaklęcie poziomu 1 wybierasz z katalogu.
+
 Pancerz: założony (kwadracik w zakładce Ekwipunek) sam daje DT na lokacjach, które osłania — liczy się najwyższe DT,
 a naturalne DT z cech się dodaje — oraz swoje premie (tymczasowe atrybuty, umiejętności, odporność na promieniowanie, SATS).
 Z każdej kategorii (ubranie, lekki, średni, ciężki) nosi się jedną warstwę; każda kolejna to −1 AGI, a od trzeciej −1 STR.
@@ -59,7 +73,8 @@ w kończynie — jej utrata, 4×END ran łącznie — utrata przytomności.
 Obciążenie: waga broni, pancerzy i ekwipunku (amunicja i kapsle nic nie ważą); przeciążenie −5 ft ruchu za każde
 rozpoczęte 10 lb ponad udźwig, skradanie −5 za każde rozpoczęte 10 lb ponad 50.
 
-Czego NIE ma (jeszcze): kompendia ras i perków poza kreatorem, magia i alchemia, unikalne zdolności pojedynczych broni
+Czego NIE ma (jeszcze): kompendia ras i perków poza kreatorem, magia zebr (alchemia, talizmany), automatyczne efekty
+zaklęć bez obrażeń (tarcze, leczenie — opis w zaklęciu, rozliczasz ręcznie), unikalne zdolności pojedynczych broni
 (są w opisie broni z katalogu), spadek obrażeń z odległością od wybuchu (licz ręcznie).
 
 Kreator postaci: po utworzeniu nowej postaci otwiera się kreator (można go też uruchomić przyciskiem KREATOR na karcie).

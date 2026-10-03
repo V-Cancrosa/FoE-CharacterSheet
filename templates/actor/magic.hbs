@@ -1,0 +1,47 @@
+<section class="tab {{tab.cssClass}}" data-group="primary" data-tab="magic">
+  {{#if magic.caster}}
+  <div class="status-bar">
+    <span class="cs" title="END + INT + {{#if magic.alicorn}}5{{else}}2{{/if}} + cechy; odnawia się 1 na godzinę">Strain <b>{{magic.strain}}/{{magic.strainMax}}</b></span>
+    <a class="cs act" data-action="strainRest" title="Godzina odpoczynku: +1 strain (Shift: do pełna)"><i class="fa-solid fa-bed"></i> +1 strain</a>
+    <span class="cs">Magic: ranga <b>{{magic.rank}}</b> · MFD 1 <b>{{magic.tn}}</b></span>
+    {{#if magic.burnout}}<span class="cs alert">WYPALENIE — bez zaklęć 1d4 tygodnie</span> <a class="cs act" data-action="clearBurnout" title="Wypalenie minęło"><i class="fa-solid fa-xmark"></i> koniec wypalenia</a>{{/if}}
+  </div>
+
+  {{#if magic.maintained.length}}
+  <h3>Podtrzymywane zaklęcia</h3>
+  <ul class="item-list conditions">
+    {{#each magic.maintained}}
+    <li><span class="nm">{{name}}</span><span class="cdesc">{{perRound}} strain na początku rundy{{#if layers}} (overglow {{layers}}){{/if}}; nowe zaklęcia kosztują ×2, −1 krok do celności, INT i AGI</span>
+      <span class="ctl"><a data-action="endMaintain" data-id="{{id}}" title="Przestań podtrzymywać"><i class="fa-solid fa-xmark"></i></a></span></li>
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  <h3>Zaklęcia
+    <a data-action="openCatalog" data-tab="spells" title="Zaklęcia jednorożców i alikornów z podręcznika"><i class="fa-solid fa-book"></i> Katalog</a>
+  </h3>
+  {{#each magic.levels}}
+    <h4 class="gear-cat">Poziom {{level}} <small class="{{#if over}}warn{{/if}}">{{count}}{{#if limit}} / {{limit}}{{/if}}</small></h4>
+    <div class="scroll-x">
+    <table class="foe-table items spells">
+      <tbody>
+      {{#each spells}}
+        <tr data-item-id="{{id}}" class="{{#if held}}worn{{/if}}">
+          <td><img class="icon" src="{{img}}" alt=""></td>
+          <td class="l"><a class="rollable" data-action="castSpell" title="Rzuć zaklęcie (Magic, overglow, SATS)">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span>{{this}}</span>{{/each}}</div>{{/if}}</td>
+          <td title="Koszt strain">{{costLabel}}</td>
+          <td title="Koszt w SATS">{{#if satsCost}}{{satsCost}} AP{{else}}—{{/if}}</td>
+          <td title="Procent nauki (+1% za każde rzucenie)">{{learn}}%</td>
+          <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+        </tr>
+      {{else}}<tr><td class="empty" colspan="6">Brak zaklęć tego poziomu.</td></tr>
+      {{/each}}
+      </tbody>
+    </table>
+    </div>
+  {{/each}}
+  <p class="hint">Kliknij zaklęcie, by je rzucić: wybierasz overglow (każda warstwa podwaja efekt i koszt, maks. 3) i ewentualnie SATS. Gdy zabraknie strain, rzut jest trudniejszy o każdy brakujący punkt, a porażka kończy się wypaleniem. Zaklęcia z obrażeniami mają na karcie przycisk celowania (Magic, przedział zasięgu 20 ft) albo obrażeń. Limity: poziom 2 — INT, poziom 3 — INT/3, poziom 4 — jedno (alikorny bez limitu do poziomu 3).</p>
+  {{else}}
+  <p class="empty">Ta postać nie rzuca zaklęć jednorożców (nie ma umiejętności Magic albo jest zebrą — magia zebr to alchemia).</p>
+  {{/if}}
+</section>
