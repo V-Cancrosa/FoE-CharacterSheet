@@ -895,3 +895,15 @@ button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12p
 .foe-rpg a.mode-btn:hover, .foe-rpg a.use-btn:hover { background: var(--pip); color: #000; text-shadow: none; }
 .foe-rpg a.mode-btn.ritual { border-color: var(--pip); color: var(--pip-bright); }
 .foe-rpg .item-list.gear a.use-btn { margin-right: .4rem; }
+
+/* v0.10 — lot, manewry, pogoda */
+.foe-rpg table.maneuvers tr.unlearned td.l a { opacity: .75; font-style: italic; }
+.foe-rpg table.maneuvers .ok { color: var(--pip-bright); font-family: var(--foe-mono); font-size: 11px; }
+.foe-rpg table.maneuvers .warn { font-family: var(--foe-mono); font-size: 11px; }
+.foe-rpg table.maneuvers td:nth-child(3) { width: 5rem; white-space: nowrap; }
+.foe-rpg table.maneuvers td:nth-child(4) { width: 3.5rem; }
+.foe-rpg table.maneuvers td:nth-child(5) { width: 6.5rem; }
+.foe-rpg .status-bar label.cs.alt { display: inline-flex; align-items: center; gap: .3rem; }
+.foe-rpg .status-bar label.cs.alt input { width: 4.5rem; height: 1.4rem; padding: 0 .3rem; text-align: right; }
+.foe-weather { display: flex; align-items: center; gap: .4rem; padding: .25rem .5rem; font-size: 12px; }
+.foe-weather select { flex: 1; height: 1.6rem; }

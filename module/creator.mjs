@@ -3,6 +3,7 @@ import { CREATION, RACES, HINDRANCES, TRAITS, EARTH_PERKS, NPC_ARCHETYPES } from
 import { defaultPcState, computePc, buildPcUpdate, computeNpc, buildNpcUpdate } from "./creator-logic.mjs";
 import { FX_TYPES, describeFx } from "./effects.mjs";
 import { grantStartingSpells } from "./magic.mjs";
+import { grantStartingManeuvers } from "./flight.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2, DialogV2 } = foundry.applications.api;
 const P = "systems/foe-rpg/templates/creator";
@@ -23,6 +24,7 @@ async function applyToActor(actor, update, items, raceKey = "") {
   await actor.update(update);
   if (items.length) await actor.createEmbeddedDocuments("Item", items);
   await grantStartingSpells(actor, raceKey);
+  await grantStartingManeuvers(actor);
 }
 
 // ===========================================================================

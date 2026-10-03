@@ -20,7 +20,7 @@
       </table>
       <dl class="derived">
         <dt>Udźwig</dt><dd>{{system.carry}} lb (niesiesz {{weight}}){{#if system.overload}} <span class="warn">przeciążenie +{{system.overload}}</span>{{/if}}</dd>
-        <dt>Ruch</dt><dd>{{system.speed}} ft / akcję (lot/kopanie {{#if system.canFly}}{{system.flySpeed}}{{else}}— skrzydła okaleczone{{/if}}){{#each system.speedNotes}}<small class="sub warn">{{this}}</small>{{/each}}</dd>
+        <dt>Ruch</dt><dd>{{system.speed}} ft / akcję {{#if system.flier}}(lot {{#if system.canFly}}{{system.flySpeed}} ft{{else}}— {{system.flyNote}}{{/if}}){{else}}{{#if digSpeed}}(kopanie {{system.flySpeed}} ft){{/if}}{{/if}}{{#each system.speedNotes}}<small class="sub warn">{{this}}</small>{{/each}}</dd>
         <dt>Obrażenia na ranę</dt><dd>{{system.dmgPerWound}} <input type="number" name="system.woundBonus" value="{{system.woundBonus}}" title="Modyfikator (Large +2, Pipsqueak −2…)"></dd>
         <dt>Inicjatywa</dt><dd>d100 ± {{system.initAgi}}{{#if extra.initFx}} {{extra.initFx}}{{/if}} (niżej = szybciej; ± wybierasz po rzucie)</dd>
         <dt>Krytyki</dt><dd>sukces 1–{{extra.crit.success}} · porażka {{extra.critFailFrom}}–100</dd>

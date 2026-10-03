@@ -9,6 +9,8 @@
  *         dla ataków także „ranged” (broń dystansowa), „melee” (wręcz) i „attack” (każdy atak).
  */
 
+import { weatherSituational } from "./weather.mjs";
+
 export const FX_TYPES = {
   attr:        { label: "Atrybut na stałe", targets: "attr" },
   skillRank:   { label: "Ranga umiejętności", targets: "skill" },
@@ -161,6 +163,9 @@ export function rollContext(actor, ctx, { manualMod = 0, manualLabel = "Modyfika
     const dodge = sumFx(fx, "dodge");
     if (dodge) groups.set("dodge", { id: "dodge", label: "Rzut na unik", source: sourcesFx(fx, "dodge").join(", "), mod: dodge, steps: 0 });
   }
+
+  const weather = weatherSituational(ctx);
+  if (weather) groups.set("weather", weather);
 
   const situational = [...groups.values()].filter(g => g.mod || g.steps);
   return {

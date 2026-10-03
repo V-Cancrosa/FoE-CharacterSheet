@@ -45,7 +45,7 @@ export async function promptMfd(title, baseTn, rc = {}, opts = {}) {
     ...steps.map(m => `<li>${esc(m.label)} <b>${stepsLabel(m.value)}</b></li>`)
   ].join("");
   const sitList = situational.map(g => `
-    <label class="sit"><input type="checkbox" name="sit" value="${g.id}" data-label="${esc(g.label)}">
+    <label class="sit"><input type="checkbox" name="sit" value="${g.id}" data-label="${esc(g.label)}" ${g.on ? "checked" : ""}>
       <span>${esc(g.label)} <small>${esc(g.source)}</small></span>
       <b>${[g.mod ? signed(g.mod) : "", g.steps ? stepsLabel(g.steps) : ""].filter(Boolean).join(", ")}</b>
     </label>`).join("");

@@ -13,7 +13,7 @@ export const ICONS = {
     saddle: `${I}/saddle.svg`, misc: `${I}/misc.svg`, ingredient: `${I}/ingredient.svg`, potion: `${I}/potion.svg`, talisman: `${I}/talisman.svg`,
     default: `${I}/misc.svg` },
   feature: { default: `${I}/feature.svg` },
-  spell: { default: `${I}/spell.svg`, zebra: `${I}/recipe.svg` }
+  spell: { default: `${I}/spell.svg`, zebra: `${I}/recipe.svg`, flight: `${I}/wing.svg` }
 };
 
 /** Ikona dla przedmiotu danego typu (np. nowego, bez obrazka). */
@@ -22,7 +22,7 @@ export function iconFor(type, sys = {}) {
   if (type === "weapon") return set[sys.kind] ?? set[{ melee: "melee", unarmed: "unarmed", energy: "energy", bigGuns: "bigGuns", explosives: "explosive" }[sys.skill]] ?? set.default;
   if (type === "armor") return sys.powered ? set.powered : set[sys.category] ?? set.default;
   if (type === "gear") return set[sys.category] ?? set.default;
-  if (type === "spell") return sys.tradition === "zebra" ? set.zebra : set.default;
+  if (type === "spell") return sys.tradition === "zebra" ? set.zebra : sys.tradition === "flight" ? set.flight : set.default;
   return set.default;
 }
 

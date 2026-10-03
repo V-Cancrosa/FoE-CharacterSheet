@@ -9,6 +9,8 @@ import { LAYER_CATEGORIES, reloadInfo, rangeIncrement, overloadSpeed, SPECIALS, 
 import { conditionRows, clearCondition, extinguish, resistParalysis, endOfRound } from "./conditions.mjs";
 import { castSpell, endMaintained, spellLimits, COST_LABELS } from "./magic.mjs";
 import { RARITY, MODES, modesOf, ingredientStock, prepareRecipe, castRitual, useProduct, searchIngredients, startingRecipes } from "./zebra.mjs";
+import { performManeuver, rollFall, grantStartingManeuvers, maneuverLimits, maneuverCounts, isWeatherManeuver, MFD_LABEL, RANK_FOR_LEVEL } from "./flight.mjs";
+import { currentWeather, weatherSummary } from "./weather.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -72,6 +74,9 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       castRitual: FoeActorSheet.#onCastRitual,
       useProduct: FoeActorSheet.#onUseProduct,
       searchIngredients: FoeActorSheet.#onSearchIngredients,
+      performManeuver: FoeActorSheet.#onPerformManeuver,
+      rollFall: FoeActorSheet.#onRollFall,
+      startManeuvers: FoeActorSheet.#onStartManeuvers,
       qty: FoeActorSheet.#onQty
     }
   };
@@ -92,7 +97,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         { id: "main", label: "Statystyki" },
         { id: "combat", label: "Walka" },
         { id: "gear", label: "Ekwipunek" },
-        { id: "magic", label: "Magia" },
+        { id: "magic", label: "Magia i lot" },
         { id: "notes", label: "Cechy i dane" }
       ],
       initial: "main"
@@ -106,6 +111,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.system = sys;
     ctx.tabs = this._prepareTabs("primary");
     ctx.isNpc = this.document.type === "npc";
+    ctx.digSpeed = sys.skills.dig?.known !== false;
     const pct = (v, m) => (m > 0 ? Math.max(0, Math.min(100, Math.round(100 * v / m))) : 0);
     const res = sys.resources;
     ctx.meters = {
@@ -146,7 +152,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.crippleAt = Math.max(1, Math.ceil(ctx.endT / 2));
     ctx.conditions = conditionRows(this.document);
     // Magia
-    const spells = this.document.items.filter(i => i.type === "spell" && i.system.tradition !== "zebra");
+    const spells = this.document.items.filter(i => i.type === "spell" && (i.system.tradition ?? "unicorn") === "unicorn");
     const recipes = this.document.items.filter(i => i.type === "spell" && i.system.tradition === "zebra");
     const lim = spellLimits(this.document);
     const held = new Set((sys.maintained ?? []).map(m => m.id));
@@ -168,6 +174,35 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         };
       }).filter(g => g.count || g.level <= 1)
     };
+    // Lot i manewry (s. 379–394)
+    const w = currentWeather();
+    ctx.weather = { label: w.label, summary: weatherSummary(w) };
+    const mans = this.document.items.filter(i => i.type === "spell" && i.system.tradition === "flight");
+    const mlim = maneuverLimits(this.document);
+    const mcnt = maneuverCounts(this.document);
+    const TAG = { dodge: "unik powietrzny", block: "blok powietrzny" };
+    ctx.flight = {
+      flier: sys.flier, canFly: sys.canFly, note: sys.flyNote, speed: sys.flySpeed, altitude: sys.altitude,
+      rank: mlim.rank, tn: sys.skills.flight?.tn ?? 0, total: mlim.total, known: mcnt.total, over: mcnt.total > mlim.total,
+      load: sys.flightLoad, weather: ctx.weather,
+      levels: [0, 1, 2, 3, 4].map(l => {
+        const list = mans.filter(i => i.system.level === l).sort((a, b) => a.name.localeCompare(b.name));
+        const cap = mlim.byLevel[l];
+        return {
+          level: l, rankReq: RANK_FOR_LEVEL[l], locked: l > mlim.maxLevel, count: mcnt.per[l] ?? list.length, limit: cap ?? "",
+          over: cap !== undefined && (mcnt.per[l] ?? 0) > cap,
+          list: list.map(i => ({
+            id: i.id, name: i.name, img: i.img,
+            mfd: i.system.kind === "passive" ? "zawsze" : i.system.kind === "variable" ? "zmienne" : `MFD ${MFD_LABEL[i.system.mfd] ?? i.system.mfd}`,
+            actions: i.system.kind === "passive" ? "—" : i.system.actions ? `${i.system.actions} ak.` : "bez akcji", learned: i.system.learned || i.system.kind === "passive",
+            attempts: i.system.attempts, attemptsMax: sys.level,
+            tags: [i.system.kind === "passive" ? "pasywny" : i.system.kind === "variable" ? "zmienne MFD" : i.system.kind === "special" ? "specjalny" : "",
+              TAG[i.system.tag] ?? "", isWeatherManeuver(i.name) ? "pogoda" : "", i.system.requires ? i.system.requires.replace(/^Requires/i, "wymaga") : ""].filter(Boolean)
+          }))
+        };
+      }).filter(g => g.list.length)
+    };
+    ctx.flight.empty = !mans.length;
     const stock = ingredientStock(this.document);
     ctx.zebra = {
       mage: sys.zebraMage || recipes.length > 0,
@@ -392,6 +427,19 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (item) await useProduct(this.document, item);
   }
 
+  static async #onPerformManeuver(event, target) {
+    const item = this.#item(target);
+    if (item) await performManeuver(this.document, item);
+  }
+
+  static async #onRollFall() {
+    await rollFall(this.document);
+  }
+
+  static async #onStartManeuvers() {
+    await grantStartingManeuvers(this.document);
+  }
+
   static async #onSearchIngredients() {
     await searchIngredients(this.document);
   }
@@ -438,8 +486,12 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     ctx.isFeature = this.document.type === "feature";
     ctx.isSpell = this.document.type === "spell";
     ctx.isRecipe = ctx.isSpell && sys.tradition === "zebra";
-    ctx.isUnicorn = ctx.isSpell && !ctx.isRecipe;
-    ctx.traditions = { unicorn: "Jednorożce / alikorny", zebra: "Zebry (receptura)" };
+    ctx.isManeuver = ctx.isSpell && sys.tradition === "flight";
+    ctx.mfdSteps = MFD_LABEL;
+    ctx.maneuverKinds = { active: "Aktywny (rzut Flight)", passive: "Pasywny (zawsze działa)", variable: "Zmienne MFD", special: "Specjalny" };
+    ctx.maneuverTags = { "": "—", dodge: "Unik powietrzny", block: "Blok powietrzny" };
+    ctx.isUnicorn = ctx.isSpell && !ctx.isRecipe && !ctx.isManeuver;
+    ctx.traditions = { unicorn: "Jednorożce / alikorny", zebra: "Zebry (receptura)", flight: "Lot (manewr)" };
     ctx.rarities = RARITY;
     ctx.zebraGear = ctx.isGear && ["ingredient", "potion", "talisman"].includes(sys.category);
     ctx.gearRarities = { 0: "—", ...RARITY };
