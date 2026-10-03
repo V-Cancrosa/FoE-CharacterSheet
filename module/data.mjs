@@ -88,6 +88,7 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       skills: skillSchema(),
       locations: locationSchema(),
       level: num(1, { min: 1 }),
+      xp: num(0, { min: 0 }),              // punkty doświadczenia (tabela XII)
       woundBonus: num(0),
       carryBonus: num(0),      // np. Strong Back, Large, Young
       speedBonus: num(0),      // np. High Ho Silver, Away!
@@ -158,11 +159,13 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       initiative: sum("initiative"), luckCards: sum("luckCards"), wound: sum("wound"), carry: sum("carry"),
       speed: sum("speed"), sats: sum("sats"), radResist: sum("radResist"), strain: sum("strain"),
       dodge: sum("dodge"), damage: sum("damage"),
+      skillPoints: sum("skillPoints"), satsRegen: sum("satsRegen"), xpPct: sum("xpPct"),
       critSuccess: sum("critSuccess", e => hits(e.target, "all")), critFail: sum("critFail", e => hits(e.target, "all")),
       dtAll: sum("dt", e => hits(e.target, "all")),
       dodgeSources: src("dodge")
     };
     this.resources.sats.max = 40 + agi * 5 + this.fx.sats;
+    this.satsRegen = 5 + this.fx.satsRegen;   // AP na rundę walki (Cooler Under Fire +10)
     this.resources.luck.max = Math.max(0, Math.max(3, Math.ceil(a.luck.total / 2) + 2) + this.fx.luckCards);
     this.strainBonus = this.fx.strain;
     // Magia jednorożców (s. 242): pula strain = END + INT + 2 (alikorny + 5) + cechy; zebry używają składników

@@ -35,7 +35,10 @@ export const FX_TYPES = {
   dt:          { label: "DT", targets: "location" },
   radResist:   { label: "Odporność na promieniowanie (%)", targets: "none" },
   strain:      { label: "Maks. strain", targets: "none" },
-  dodge:       { label: "Uniki", targets: "none" }
+  dodge:       { label: "Uniki", targets: "none" },
+  skillPoints: { label: "Punkty umiejętności na poziom", targets: "none" },
+  satsRegen:   { label: "Odnawianie AP na rundę", targets: "none" },
+  xpPct:       { label: "Doświadczenie (%)", targets: "none" }
 };
 
 // Efekty liczone tylko w kreatorze (jednorazowo przy tworzeniu postaci)
@@ -180,7 +183,7 @@ export function describeFx(e, labels = {}) {
   const t = FX_TYPES[e.type];
   const v = n(e.value);
   const tgt = targets(e.target).map(k => (k === "all" ? "wszystkie" : labels[k] ?? k)).join(", ");
-  const unit = e.type === "speedPct" || e.type === "radResist" ? "%" : ["mfdStep", "basedStep"].includes(e.type) ? (Math.abs(v) === 1 ? " krok" : " kroki") : "";
+  const unit = ["speedPct", "radResist", "xpPct"].includes(e.type) ? "%" : ["mfdStep", "basedStep"].includes(e.type) ? (Math.abs(v) === 1 ? " krok" : " kroki") : "";
   const what = t ? t.label : e.type;
   const showTarget = t && t.targets !== "none" && tgt;
   return `${what}${showTarget ? ` (${tgt})` : ""}: ${signed(v)}${unit}${e.when ? ` — gdy: ${e.when}` : ""}`;
@@ -199,7 +202,8 @@ export function shortFx(e, labels = {}) {
     damage: `${signed(v)} obrażeń (${tgt})`, critSuccess: `kryt. sukces ${signed(v)}`, critFail: `kryt. porażka ${signed(v)}`,
     radResist: `${signed(v)}% odp. na prom.`, sats: `${signed(v)} SATS`, dt: `${signed(v)} DT (${tgt})`,
     speed: `${signed(v)} ft ruchu`, carry: `${signed(v)} lb udźwigu`, initiative: `${signed(v)} inicjatywa`,
-    wound: `${signed(v)} obr. na ranę`, strain: `${signed(v)} strain`, dodge: `${signed(v)} uniki`, luckCards: `${signed(v)} karty szczęścia`
+    wound: `${signed(v)} obr. na ranę`, strain: `${signed(v)} strain`, dodge: `${signed(v)} uniki`, luckCards: `${signed(v)} karty szczęścia`,
+    skillPoints: `${signed(v)} pkt umiejętności/poziom`, satsRegen: `${signed(v)} AP/rundę`, xpPct: `${signed(v)}% PD`
   }[e.type] ?? describeFx(e, labels);
   return e.when ? `${txt} (gdy: ${e.when})` : txt;
 }

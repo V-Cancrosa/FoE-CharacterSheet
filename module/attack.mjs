@@ -570,7 +570,7 @@ export function registerCombatHooks() {
       try { await endOfRound(actor); } catch (err) { console.error("foe-rpg | koniec rundy", err); }
       const s = actor.system.resources?.sats;
       if (!s || s.value >= s.max) continue;
-      await actor.update({ "system.resources.sats.value": Math.min(s.max, s.value + 5) });
+      await actor.update({ "system.resources.sats.value": Math.min(s.max, s.value + (actor.system.satsRegen ?? 5)) });
     }
   });
 }
