@@ -10,6 +10,7 @@
  */
 
 import { weatherSituational } from "./weather.mjs";
+import { bodyEffects } from "./body.mjs";
 
 export const FX_TYPES = {
   attr:        { label: "Atrybut na stałe", targets: "attr" },
@@ -70,6 +71,8 @@ export function actorEffects(actor, { state = true } = {}) {
       if (e?.type && !CREATION_ONLY.has(e.type)) out.push({ ...e, source: item.name, id: `${item.id}.${i}` });
     });
   }
+  // chemikalia, odstawienie, choroba popromienna (body.mjs) — działają jak cechy
+  for (const e of bodyEffects(actor)) if (!CREATION_ONLY.has(e.type)) out.push(e);
   if (state) for (const e of actor?.system?.stateFx ?? []) out.push(e);
   return out;
 }

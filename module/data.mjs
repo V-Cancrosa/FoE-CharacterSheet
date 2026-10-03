@@ -386,7 +386,7 @@ export class ArmorData extends FoeItemData {
 }
 
 export const GEAR_CATEGORIES = {
-  misc: "Różne", ammo: "Amunicja", food: "Jedzenie i picie", drug: "Leki i używki", book: "Książki i magazyny",
+  misc: "Różne", ammo: "Amunicja", food: "Jedzenie i picie", medical: "Leczenie", drug: "Leki i używki", book: "Książki i magazyny",
   pipbuck: "PipBuck", saddle: "Siodło bojowe i dodatki",
   ingredient: "Składniki zebr", potion: "Mikstury i wywary zebr", talisman: "Talizmany i fetysze"
 };
@@ -402,6 +402,8 @@ export class GearData extends FoeItemData {
       rarity: num(0, { min: 0, max: 4 }),     // składniki zebr
       usage: str(""),                         // wyrób zebr: Drink / Throw / Apply / Worn
       damage: str(""),                        // wyrób rzucany
+      heal: str(""),                          // leczenie: bandage | potion | rejuv | restore | talisman | rejuvTalisman | restoreTalisman
+      charges: num(0, { min: 0 }),            // ładunki talizmanu
       description: desc()
     };
   }

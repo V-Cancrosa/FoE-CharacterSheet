@@ -12,6 +12,9 @@ import { RARITY, MODES, modesOf, ingredientStock, prepareRecipe, castRitual, use
 import { performManeuver, rollFall, grantStartingManeuvers, maneuverLimits, maneuverCounts, isWeatherManeuver, MFD_LABEL, RANK_FOR_LEVEL } from "./flight.mjs";
 import { currentWeather, weatherSummary } from "./weather.mjs";
 import { levelUp, undoLevelUp, promptAwardXp, xpFor, xpProgression } from "./perks.mjs";
+import { useChem, endChem, cureAddiction, chemRows } from "./chems.mjs";
+import { useHealItem, rest, setLimb, HEAL_KINDS } from "./healing.mjs";
+import { radLevel } from "./body.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -81,6 +84,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       levelUp: FoeActorSheet.#onLevelUp,
       undoLevel: FoeActorSheet.#onUndoLevel,
       awardXp: FoeActorSheet.#onAwardXp,
+      endChem: FoeActorSheet.#onEndChem,
+      cureAddiction: FoeActorSheet.#onCureAddiction,
+      rest: FoeActorSheet.#onRest,
+      setLimb: FoeActorSheet.#onSetLimb,
       qty: FoeActorSheet.#onQty
     }
   };
@@ -161,6 +168,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.endT = sys.attributes.end.total;
     ctx.crippleAt = Math.max(1, Math.ceil(ctx.endT / 2));
     ctx.conditions = conditionRows(this.document);
+    const rads = sys.resources.rads.value || 0;
+    const rl = radLevel(rads);
+    ctx.body = { ...chemRows(this.document), rad: rl ? rl.label : "", radFx: rl ? Object.entries(rl.fx).map(([k, v]) => `${v} ${k.toUpperCase()}`).join(", ") : "" };
+    ctx.body.any = ctx.body.active.length || ctx.body.addictions.length || ctx.body.rad;
     // Magia
     const spells = this.document.items.filter(i => i.type === "spell" && (i.system.tradition ?? "unicorn") === "unicorn");
     const recipes = this.document.items.filter(i => i.type === "spell" && i.system.tradition === "zebra");
@@ -270,7 +281,9 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const w = Number(i.system.weight) || 0;
       groups.get(cat).push({
         id: i.id, name: i.name, img: i.img, qty: i.system.qty, ammoType: i.system.ammoType,
-        usable: ["potion", "talisman"].includes(cat), useLabel: MODES[i.system.usage]?.label ?? "Użyj",
+        usable: ["potion", "talisman", "drug", "medical"].includes(cat),
+        useLabel: cat === "medical" ? `${HEAL_KINDS[i.system.heal]?.label ?? "Leczenie"} — na siebie albo namierzony cel` : cat === "drug" ? "Zażyj (efekt, czas działania, rzut na uzależnienie)" : MODES[i.system.usage]?.label ?? "Użyj",
+        charges: /talisman/i.test(i.system.heal ?? "") ? i.system.charges : null,
         weightLabel: cat === "ammo" ? "—" : w ? `${Math.round(w * (i.system.qty || 0) * 10) / 10} lb` : "",
         notes: String(i.system.description ?? "").replace(/<[^>]+>/g, "").slice(0, 300)
       });
@@ -434,7 +447,26 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onUseProduct(event, target) {
     const item = this.#item(target);
-    if (item) await useProduct(this.document, item);
+    if (!item) return;
+    if (item.system.category === "drug") return useChem(this.document, item);
+    if (item.system.category === "medical") return useHealItem(this.document, item);
+    await useProduct(this.document, item);
+  }
+
+  static async #onEndChem(event, target) {
+    await endChem(this.document, target.closest("[data-chem]").dataset.chem);
+  }
+
+  static async #onCureAddiction(event, target) {
+    await cureAddiction(this.document, target.closest("[data-group]").dataset.group);
+  }
+
+  static async #onRest() {
+    await rest(this.document);
+  }
+
+  static async #onSetLimb() {
+    await setLimb(this.document);
   }
 
   static async #onPerformManeuver(event, target) {
@@ -516,6 +548,8 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     ctx.traditions = { unicorn: "Jednorożce / alikorny", zebra: "Zebry (receptura)", flight: "Lot (manewr)" };
     ctx.rarities = RARITY;
     ctx.zebraGear = ctx.isGear && ["ingredient", "potion", "talisman"].includes(sys.category);
+    ctx.medGear = ctx.isGear && sys.category === "medical";
+    ctx.healKinds = { "": "—", ...Object.fromEntries(Object.entries(HEAL_KINDS).map(([k, v]) => [k, v.label])) };
     ctx.gearRarities = { 0: "—", ...RARITY };
     ctx.usages = { "": "—", ...Object.fromEntries(["Drink", "Throw", "Apply", "Worn"].map(k => [k, MODES[k].label])) };
     ctx.spellLevels = { 0: "0", 1: "1", 2: "2", 3: "3", 4: "4" };

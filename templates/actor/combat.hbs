@@ -55,6 +55,25 @@
   </ul>
   {{/if}}
 
+  <h3>Zdrowie, chemia i promieniowanie
+    <a data-action="rest" title="Naturalne leczenie: 1 rana na lokację za 8 h (MG przesuwa czas gry)"><i class="fa-solid fa-bed"></i> Odpoczynek</a>
+    <a data-action="setLimb" title="Nastawienie okaleczonej kończyny: Medicine ¾"><i class="fa-solid fa-bone"></i> Nastaw</a>
+  </h3>
+  {{#if body.any}}
+  <ul class="item-list conditions body">
+    {{#if body.rad}}<li><span class="nm">Promieniowanie</span><span class="cdesc">{{body.rad}}: {{body.radFx}}</span></li>{{/if}}
+    {{#each body.active}}
+    <li data-chem="{{id}}"><span class="nm">{{name}}</span><span class="cdesc">{{fx}}{{#if note}} · {{note}}{{/if}}{{#if left}} · zostało {{left}}{{/if}}</span>
+      <span class="ctl"><a data-action="endChem" title="Zakończ działanie"><i class="fa-solid fa-xmark"></i></a></span></li>
+    {{/each}}
+    {{#each body.addictions}}
+    <li data-group="{{group}}" class="{{#if on}}alert{{/if}}"><span class="nm">Uzależnienie: {{group}}</span>
+      <span class="cdesc">{{#if on}}ODSTAWIENIE: {{withdrawal}}{{else}}złagodzone (działa środek z grupy albo Fixer){{/if}}{{#if long}} · ponad miesiąc — tylko detoks{{/if}}</span>
+      <span class="ctl"><a data-action="cureAddiction" title="Wylecz (Cleanse Poison, wywar zebr, talizman, detoks)"><i class="fa-solid fa-xmark"></i></a></span></li>
+    {{/each}}
+  </ul>
+  {{else}}<p class="hint">Bez działających środków, uzależnień i choroby popromiennej. Leki i chemię zażywasz przyciskiem „Użyj” w Ekwipunku.</p>{{/if}}
+
   <h3>Rany, okaleczenia i DT</h3>
   <div class="scroll-x">
   <table class="foe-table locs">

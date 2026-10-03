@@ -95,6 +95,21 @@ przycisk „Awans” w nagłówku karty i w zakładce „Cechy i dane”.
 - PD: pole w nagłówku z progiem następnego poziomu (tabela XII — wolna albo szybka, albo bez PD w ustawieniach),
   przycisk „PD” dodaje doświadczenie (Horse Sense +10%), a „Awans” podświetla się, gdy próg jest osiągnięty.
 
+Leczenie, chemikalia i uzależnienia (s. 179–186, tabele XVII–XVIII): sekcja „Zdrowie, chemia i promieniowanie” w zakładce Walka,
+przycisk „Użyj” przy lekach i chemii w Ekwipunku (nowa kategoria „Leczenie” w katalogu).
+- Mikstury: rany według rangi Medicine podającego (0: 1, 1–24: 1d4 … 100: 4+1d12), odmładzająca ×2, przywracająca ×4;
+  rany rozdzielasz w oknie (okaleczonych lokacji mikstury nie leczą bez nastawienia — „Nastaw”, Medicine ¾).
+  Leczy siebie albo namierzony cel; w walce maks. 5 ran na lokację na rundę.
+- Bandaż (Medicine ¾, 1 rana na lokację co 30 min do 3 h), talizmany z ładunkami (rzut Medicine/Magic, rany i rady na ładunek),
+  talizman przywracający — pełne zdrowie. „Odpoczynek”: 1 rana na lokację za 8 h (maks. 3 na dobę, z medykiem ×2, okaleczenia 1 na dobę).
+- Chemia i alkohol (55 środków): efekty działają przez czas z tabeli (runda = 6 s czasu gry) i znikają same; ponowna dawka odnawia czas.
+  Rzut na uzależnienie: END i INT MFD 1 z karą = szansa uzależnienia, +10 za każdy inny działający środek
+  (opcjonalnie × dawki z 72 h); Addictive Personality i D.A.R.E.ing Do liczą się same.
+- Uzależnienie od grupy (Alcohol, Dash, Mint-als…): odstawienie działa, gdy nic z grupy nie działa; Fixer je znosi,
+  Mint-als zaostrzają je po każdym użyciu. Dash + alkohol = rzut END ½ („krew ghula”). Leczenie uzależnienia — przycisk przy wpisie.
+- Radaway/Rad Purge (2× Medicine radów, 50–200), Rad-X, Med-X i Slasher (DT = Medicine/5), antidotum i antywenom (usuwają truciznę).
+- Choroba popromienna: od 200 radów kary do END, AGI i STR (Rad Tolerance znosi lekką, ghule bez kar; można wyłączyć w ustawieniach).
+
 Pancerz: założony (kwadracik w zakładce Ekwipunek) sam daje DT na lokacjach, które osłania — liczy się najwyższe DT,
 a naturalne DT z cech się dodaje — oraz swoje premie (tymczasowe atrybuty, umiejętności, odporność na promieniowanie, SATS).
 Z każdej kategorii (ubranie, lekki, średni, ciężki) nosi się jedną warstwę; każda kolejna to −1 AGI, a od trzeciej −1 STR.
