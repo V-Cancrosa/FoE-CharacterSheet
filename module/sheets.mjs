@@ -8,6 +8,7 @@ import { WEAPON_KINDS } from "./catalog-data.mjs";
 import { LAYER_CATEGORIES, reloadInfo, rangeIncrement, overloadSpeed, SPECIALS, POISONS, specialList } from "./combat.mjs";
 import { conditionRows, clearCondition, extinguish, resistParalysis, endOfRound } from "./conditions.mjs";
 import { castSpell, endMaintained, spellLimits, COST_LABELS } from "./magic.mjs";
+import { RARITY, MODES, modesOf, ingredientStock, prepareRecipe, castRitual, useProduct, searchIngredients, startingRecipes } from "./zebra.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -67,6 +68,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       endMaintain: FoeActorSheet.#onEndMaintain,
       clearBurnout: FoeActorSheet.#onClearBurnout,
       strainRest: FoeActorSheet.#onStrainRest,
+      prepareRecipe: FoeActorSheet.#onPrepareRecipe,
+      castRitual: FoeActorSheet.#onCastRitual,
+      useProduct: FoeActorSheet.#onUseProduct,
+      searchIngredients: FoeActorSheet.#onSearchIngredients,
       qty: FoeActorSheet.#onQty
     }
   };
@@ -141,7 +146,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.crippleAt = Math.max(1, Math.ceil(ctx.endT / 2));
     ctx.conditions = conditionRows(this.document);
     // Magia
-    const spells = this.document.items.filter(i => i.type === "spell");
+    const spells = this.document.items.filter(i => i.type === "spell" && i.system.tradition !== "zebra");
+    const recipes = this.document.items.filter(i => i.type === "spell" && i.system.tradition === "zebra");
     const lim = spellLimits(this.document);
     const held = new Set((sys.maintained ?? []).map(m => m.id));
     ctx.magic = {
@@ -161,6 +167,19 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           }))
         };
       }).filter(g => g.count || g.level <= 1)
+    };
+    const stock = ingredientStock(this.document);
+    ctx.zebra = {
+      mage: sys.zebraMage || recipes.length > 0,
+      tn: sys.skills.magic?.tn ?? 0, rank: sys.skills.magic?.rank ?? 0,
+      perPrep: `1d4+1${Math.floor((sys.skills.magic?.rank ?? 0) / 25) ? ` − ${Math.floor((sys.skills.magic?.rank ?? 0) / 25)}` : ""}`,
+      start: startingRecipes(this.document),
+      stock: Object.entries(RARITY).map(([k, label]) => ({ label, n: stock[k] })),
+      recipes: recipes.sort((a, b) => (a.system.level - b.system.level) || a.name.localeCompare(b.name)).map(i => ({
+        id: i.id, name: i.name, img: i.img, level: i.system.level, school: i.system.school, special: i.system.special,
+        rarityLabel: RARITY[i.system.rarity] ?? "—", damage: i.system.damage,
+        modes: modesOf(i.system.usage).map(m => ({ key: m, label: MODES[m].short, tip: MODES[m].label, ritual: m === "Cast" }))
+      }))
     };
     ctx.stateFx = (sys.stateFx ?? []).map(e => `${e.source} — ${shortFx(e, shortLabels())}`);
 
@@ -206,6 +225,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const w = Number(i.system.weight) || 0;
       groups.get(cat).push({
         id: i.id, name: i.name, img: i.img, qty: i.system.qty, ammoType: i.system.ammoType,
+        usable: ["potion", "talisman"].includes(cat), useLabel: MODES[i.system.usage]?.label ?? "Użyj",
         weightLabel: cat === "ammo" ? "—" : w ? `${Math.round(w * (i.system.qty || 0) * 10) / 10} lb` : "",
         notes: String(i.system.description ?? "").replace(/<[^>]+>/g, "").slice(0, 300)
       });
@@ -357,6 +377,25 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     await this.document.update({ "system.resources.strain.value": v });
   }
 
+  static async #onPrepareRecipe(event, target) {
+    const item = this.#item(target);
+    if (item) await prepareRecipe(this.document, item, target.dataset.mode);
+  }
+
+  static async #onCastRitual(event, target) {
+    const item = this.#item(target);
+    if (item) await castRitual(this.document, item);
+  }
+
+  static async #onUseProduct(event, target) {
+    const item = this.#item(target);
+    if (item) await useProduct(this.document, item);
+  }
+
+  static async #onSearchIngredients() {
+    await searchIngredients(this.document);
+  }
+
   static #onOpenCreator() {
     openCreator(this.document);
   }
@@ -398,6 +437,13 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     ctx.isGear = this.document.type === "gear";
     ctx.isFeature = this.document.type === "feature";
     ctx.isSpell = this.document.type === "spell";
+    ctx.isRecipe = ctx.isSpell && sys.tradition === "zebra";
+    ctx.isUnicorn = ctx.isSpell && !ctx.isRecipe;
+    ctx.traditions = { unicorn: "Jednorożce / alikorny", zebra: "Zebry (receptura)" };
+    ctx.rarities = RARITY;
+    ctx.zebraGear = ctx.isGear && ["ingredient", "potion", "talisman"].includes(sys.category);
+    ctx.gearRarities = { 0: "—", ...RARITY };
+    ctx.usages = { "": "—", ...Object.fromEntries(["Drink", "Throw", "Apply", "Worn"].map(k => [k, MODES[k].label])) };
     ctx.spellLevels = { 0: "0", 1: "1", 2: "2", 3: "3", 4: "4" };
     ctx.spellCosts = COST_LABELS;
     ctx.hasFx = ctx.isFeature || ctx.isArmor;

@@ -272,6 +272,13 @@ export function parseCrit(text) {
   return { note: `efekt: ${raw}` };
 }
 
+/** Rzucana mikstura zebr jako „broń” (obrażenia z receptury, bez krytyków i premii za STR). */
+export function potionWeapon(s, actor) {
+  const sk = actor.system.skills ?? {};
+  const skill = sk.magic && sk.magic.known !== false && (sk.magic.tn ?? 0) >= (sk.explosives?.tn ?? 0) ? "magic" : "explosives";
+  return { skill, damage: spellWeapon(s, actor).damage, crit: "x1", ignoreDT: 0, weight: 0, specials: {}, aoe: { enabled: false } };
+}
+
 /**
  * Rzut na obrażenia broni z kartą w stylu PipBucka.
  * crit — krytyczne trafienie; attack — dane z karty ataku (lokacja, SATS, niepełna seria, cele).
@@ -279,7 +286,8 @@ export function parseCrit(text) {
  * DT i rany liczy dopiero przycisk „Nanieś obrażenia”.
  */
 export async function rollDamage(actor, item, { crit = false, attack = null } = {}) {
-  const w = item.type === "spell" ? spellWeapon(item.system, actor, attack?.overglow ?? 0) : item.system;
+  const w = item.type === "spell" ? spellWeapon(item.system, actor, attack?.overglow ?? 0)
+    : item.type === "gear" ? potionWeapon(item.system, actor) : item.system;
   const sys = actor.system;
   const rank = sys.skills?.[w.skill]?.rank ?? 0;
   const str = sys.attributes?.str?.total ?? 0;

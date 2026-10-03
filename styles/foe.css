@@ -883,3 +883,15 @@ button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12p
 .foe-rpg table.spells td:nth-child(4) { width: 4.5rem; }
 .foe-rpg table.spells td:nth-child(5) { width: 3.5rem; }
 .foe-rpg table.spells td:nth-child(6) { width: 3.5rem; }
+
+/* v0.9 — magia zebr */
+.foe-rpg table.recipes { table-layout: auto; }
+.foe-rpg table.recipes td:nth-child(3), .foe-rpg table.recipes td:nth-child(4) { width: auto; white-space: nowrap; }
+.foe-rpg table.recipes td.modes { display: flex; flex-wrap: wrap; gap: .25rem; }
+.foe-rpg a.mode-btn, .foe-rpg a.use-btn {
+  display: inline-block; padding: 1px .45rem; border: 1px solid var(--pip-dim); border-radius: 3px;
+  font-family: var(--foe-mono); font-size: 11px; color: var(--pip); cursor: pointer; white-space: nowrap;
+}
+.foe-rpg a.mode-btn:hover, .foe-rpg a.use-btn:hover { background: var(--pip); color: #000; text-shadow: none; }
+.foe-rpg a.mode-btn.ritual { border-color: var(--pip); color: var(--pip-bright); }
+.foe-rpg .item-list.gear a.use-btn { margin-right: .4rem; }

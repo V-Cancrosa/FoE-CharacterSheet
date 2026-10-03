@@ -167,6 +167,7 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
     // Magia jednorożców (s. 242): pula strain = END + INT + 2 (alikorny + 5) + cechy; zebry używają składników
     const race = String(this.race ?? "");
     this.caster = this.skills.magic?.known !== false && !/zebr/i.test(race);
+    this.zebraMage = this.skills.magic?.known !== false && /zebr|shaman|szaman/i.test(race);
     this.alicorn = /alikorn|alicorn/i.test(race);
     this.strainMax = this.caster
       ? Math.max(0, a.end.total + a.int.total + (this.alicorn ? 5 : 2) + this.fx.strain)
@@ -377,7 +378,8 @@ export class ArmorData extends FoeItemData {
 
 export const GEAR_CATEGORIES = {
   misc: "Różne", ammo: "Amunicja", food: "Jedzenie i picie", drug: "Leki i używki", book: "Książki i magazyny",
-  pipbuck: "PipBuck", saddle: "Siodło bojowe i dodatki"
+  pipbuck: "PipBuck", saddle: "Siodło bojowe i dodatki",
+  ingredient: "Składniki zebr", potion: "Mikstury i wywary zebr", talisman: "Talizmany i fetysze"
 };
 
 export class GearData extends FoeItemData {
@@ -388,6 +390,9 @@ export class GearData extends FoeItemData {
       weight: new F.NumberField({ initial: 0 }),
       value: num(0, { min: 0 }),
       ammoType: str(""),
+      rarity: num(0, { min: 0, max: 4 }),     // składniki zebr
+      usage: str(""),                         // wyrób zebr: Drink / Throw / Apply / Worn
+      damage: str(""),                        // wyrób rzucany
       description: desc()
     };
   }
@@ -410,6 +415,12 @@ export class SpellData extends FoeItemData {
       precursors: str(""),
       precursorFor: str(""),
       learn: num(0, { min: 0, max: 95 }),     // procent nauki (zasada zalecana, s. 246)
+      // magia zebr (s. 327–332): receptura zamiast zaklęcia
+      tradition: str("unicorn"),              // unicorn | zebra
+      usage: str(""),                         // Drink, Throw, Apply, Worn, Cast…
+      rarity: num(1, { min: 1, max: 4 }),     // rzadkość składników: 1 niska … 4 bardzo wysoka
+      special: str(""),                       // składnik specjalny
+      school: str(""),                        // Alchemy, Ritual, Talisman
       description: desc()
     };
   }

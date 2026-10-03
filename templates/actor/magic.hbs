@@ -41,7 +41,38 @@
     </div>
   {{/each}}
   <p class="hint">Kliknij zaklęcie, by je rzucić: wybierasz overglow (każda warstwa podwaja efekt i koszt, maks. 3) i ewentualnie SATS. Gdy zabraknie strain, rzut jest trudniejszy o każdy brakujący punkt, a porażka kończy się wypaleniem. Zaklęcia z obrażeniami mają na karcie przycisk celowania (Magic, przedział zasięgu 20 ft) albo obrażeń. Limity: poziom 2 — INT, poziom 3 — INT/3, poziom 4 — jedno (alikorny bez limitu do poziomu 3).</p>
-  {{else}}
-  <p class="empty">Ta postać nie rzuca zaklęć jednorożców (nie ma umiejętności Magic albo jest zebrą — magia zebr to alchemia).</p>
+  {{else}}{{#unless zebra.mage}}
+  <p class="empty">Ta postać nie zna magii (nie ma umiejętności Magic).</p>
+  {{/unless}}{{/if}}
+
+  {{#if zebra.mage}}
+  <div class="status-bar">
+    <span class="cs">Magia zebr: ranga <b>{{zebra.rank}}</b> · MFD 1 <b>{{zebra.tn}}</b></span>
+    <span class="cs" title="Każde przygotowanie zużywa tyle składników (−1 za każde 25 rang Magic, min. 1)">Na wyrób: <b>{{zebra.perPrep}}</b> skł.</span>
+    {{#each zebra.stock}}<span class="cs" title="Składniki tej rzadkości">{{label}} <b>{{n}}</b></span>{{/each}}
+    <a class="cs act" data-action="searchIngredients" title="Survival albo Magic, MFD zależy od terenu"><i class="fa-solid fa-magnifying-glass"></i> Szukaj składników</a>
+  </div>
+  <h3>Receptury zebr
+    <a data-action="openCatalog" data-tab="recipes" title="Receptury z podręcznika"><i class="fa-solid fa-book"></i> Katalog</a>
+  </h3>
+  <div class="scroll-x">
+  <table class="foe-table items spells recipes">
+    <thead><tr><th></th><th class="l">Receptura</th><th>Poz.</th><th>Składniki</th><th class="l">Przygotuj / rzuć</th><th></th></tr></thead>
+    <tbody>
+    {{#each zebra.recipes}}
+      <tr data-item-id="{{id}}">
+        <td><img class="icon" src="{{img}}" alt=""></td>
+        <td class="l nm">{{name}}<div class="wtags">{{#if school}}<span>{{school}}</span>{{/if}}{{#if special}}<span title="Składnik specjalny">+ {{special}}</span>{{/if}}{{#if damage}}<span>obr. {{damage}}</span>{{/if}}</div></td>
+        <td>{{level}}</td>
+        <td>{{rarityLabel}}</td>
+        <td class="l modes">{{#each modes}}{{#if ritual}}<a class="mode-btn ritual" data-action="castRitual" title="Rytuał w walce: składniki + rzut Magic, 1 akcja / 40 AP"><i class="fa-solid fa-hand-sparkles"></i> Rytuał</a>{{else}}<a class="mode-btn" data-action="prepareRecipe" data-mode="{{key}}" title="{{tip}}: zużywa składniki i dodaje wyrób do Ekwipunku"><i class="fa-solid fa-mortar-pestle"></i> {{label}}</a>{{/if}}{{/each}}</td>
+        <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+      </tr>
+    {{else}}<tr><td class="empty" colspan="6">Brak receptur — wybierz {{#if zebra.start}}{{zebra.start}} {{/if}}z katalogu (na start: poziom 0–1, ranga Magic / 10, maks. 5).</td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+  </div>
+  <p class="hint">Zebry nie mają strain — każde przygotowanie zużywa 1d4+1 składników o rzadkości receptury. Brakujące zastępują składniki rzadsze (1:1) albo cztery o stopień pospolitsze. Mikstury i talizmany trafiają do Ekwipunku (przycisk „Użyj”: wypicie 15 AP, posmarowanie 25 AP, rzut 35 AP — przedział zasięgu 10 ft). Rytuały rzuca się od razu w walce (1 akcja / 40 AP).</p>
   {{/if}}
 </section>

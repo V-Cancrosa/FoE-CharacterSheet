@@ -54,10 +54,26 @@
     <label>Ilość <input type="number" name="system.qty" value="{{system.qty}}"></label>
     <label>Waga (szt.) <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
     <label>Cena (szt.) <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
+    {{#if zebraGear}}
+    <label>Rzadkość <select name="system.rarity" data-dtype="Number">{{selectOptions gearRarities selected=system.rarity}}</select></label>
+    <label title="Drink, Throw, Apply albo Worn">Sposób użycia <select name="system.usage">{{selectOptions usages selected=system.usage}}</select></label>
+    <label title="Mikstury rzucane">Obrażenia <input type="text" name="system.damage" value="{{system.damage}}"></label>
+    {{/if}}
     <label title="Broń z takim samym typem amunicji ładuje się z tego przedmiotu">Typ amunicji <input type="text" name="system.ammoType" value="{{system.ammoType}}" placeholder="np. 10mm"></label>
   {{/if}}
   {{#if isSpell}}
-    <label>Poziom zaklęcia <select name="system.level" data-dtype="Number">{{selectOptions spellLevels selected=system.level}}</select></label>
+    <label title="Jednorożce/alikorny płacą strain, zebry — składnikami">Tradycja <select name="system.tradition">{{selectOptions traditions selected=system.tradition}}</select></label>
+    <label>Poziom {{#if isRecipe}}receptury{{else}}zaklęcia{{/if}} <select name="system.level" data-dtype="Number">{{selectOptions spellLevels selected=system.level}}</select></label>
+  {{/if}}
+  {{#if isRecipe}}
+    <label title="Drink, Throw, Apply, Worn, Cast — oddzielone przecinkami">Sposób użycia <input type="text" name="system.usage" value="{{system.usage}}" placeholder="np. Drink, Throw"></label>
+    <label>Rzadkość składników <select name="system.rarity" data-dtype="Number">{{selectOptions rarities selected=system.rarity}}</select></label>
+    <label>Składnik specjalny <input type="text" name="system.special" value="{{system.special}}"></label>
+    <label>Szkoła <input type="text" name="system.school" value="{{system.school}}"></label>
+    <label title="Dla mikstur rzucanych i rytuałów z obrażeniami">Obrażenia (formuła) <input type="text" name="system.damage" value="{{system.damage}}"></label>
+    <label>Wymagany poziom postaci <input type="number" name="system.levelReq" value="{{system.levelReq}}" min="0"></label>
+  {{/if}}
+  {{#if isUnicorn}}
     <label title="Low 1, Medium 2, High 3, Very High 4">Koszt strain <select name="system.cost" data-dtype="Number">{{selectOptions spellCosts selected=system.cost}}</select></label>
     <label title="0 = nie da się rzucić w SATS">Koszt SATS (AP) <input type="number" name="system.satsCost" value="{{system.satsCost}}" min="0"></label>
     <label title="Drugi rzut Magic na trafienie (przedział zasięgu 20 ft)">Celowane <input type="checkbox" name="system.targeted" {{checked system.targeted}}></label>
