@@ -46,6 +46,7 @@
         <img class="icon" src="{{img}}" alt="">
         <span class="nm" {{#if notes}}title="{{notes}}"{{/if}}>{{name}}</span>
         <span class="qty"><a data-action="qty" data-d="-1" title="−1 (Shift: −10)"><i class="fa-solid fa-minus"></i></a><b>×{{qty}}</b><a data-action="qty" data-d="1" title="+1 (Shift: +10)"><i class="fa-solid fa-plus"></i></a></span>
+        {{#if usable}}<a class="use-btn" data-action="useProduct" title="{{useLabel}}"><i class="fa-solid fa-flask"></i> Użyj</a>{{/if}}
         <span class="wt">{{weightLabel}}</span>
         <span class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></span>
       </li>

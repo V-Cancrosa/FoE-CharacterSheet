@@ -61,6 +61,16 @@ poziom, prekursory, obrażenia) w zakładce „Zaklęcia” katalogu, zakładka 
 - Limity znanych zaklęć (poziom 2 — INT, 3 — INT/3, 4 — jedno; Magical Savant / Arcane Devotion podwajają) — ostrzeżenie przy dodawaniu.
 - Kreator: jednorożce dostają Telekinezę, alikorny z Unity — swoją listę startową; zaklęcie poziomu 1 wybierasz z katalogu.
 
+Magia zebr i alchemia (s. 327–332): katalog 128 receptur w zakładce „Receptury zebr”, sekcja zebr w zakładce „Magia”.
+- Zamiast strain — składniki czterech rzadkości (niska, średnia, wysoka, bardzo wysoka) jako przedmioty w Ekwipunku.
+- Przygotowanie zużywa 1d4+1 składników (−1 za każde 25 rang Magic, min. 1); brakujące zastępują rzadsze (1:1)
+  albo cztery o stopień pospolitsze. Czas: mikstury 5d12 min, talizmany 15 × (poziom)k4 min, zadania rytualne 15d20 min.
+- Wyroby (wywary, mikstury, talizmany) trafiają do Ekwipunku z przyciskiem „Użyj”: wypicie 15 AP, posmarowanie 25 AP,
+  rzut 35 AP jak granat (Magic albo Explosives, przedział zasięgu 10 ft, obrażenia z receptury).
+- Rytuały („Cast”) odprawia się od razu w walce: składniki + rzut Magic, 1 akcja albo 40 AP w SATS; z obrażeniami — przycisk na karcie.
+- „Szukaj składników”: Survival albo Magic, MFD zależy od terenu (tabela XXV), każdy stopień rzadkości o krok trudniej, sukces = 1d4 składników.
+- Kreator przypomina, ile receptur poziomu 0–1 zebra wybiera na start (ranga Magic / 10, maks. 5).
+
 Pancerz: założony (kwadracik w zakładce Ekwipunek) sam daje DT na lokacjach, które osłania — liczy się najwyższe DT,
 a naturalne DT z cech się dodaje — oraz swoje premie (tymczasowe atrybuty, umiejętności, odporność na promieniowanie, SATS).
 Z każdej kategorii (ubranie, lekki, średni, ciężki) nosi się jedną warstwę; każda kolejna to −1 AGI, a od trzeciej −1 STR.

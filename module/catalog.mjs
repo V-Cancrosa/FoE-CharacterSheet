@@ -2,6 +2,7 @@ import { WEAPON_KINDS, ARMOR_KINDS, GEAR_KINDS, catalogItem, priceOf } from "./c
 import { SKILLS, LOCATIONS } from "./data.mjs";
 import { shortFx } from "./effects.mjs";
 import { spellItemData, spellLimits, COST_LABELS } from "./magic.mjs";
+import { recipeItemData, RARITY } from "./zebra.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -9,8 +10,8 @@ let cache = null;
 /** Katalog z podręcznika (data/catalog.json), wczytywany raz. */
 export function loadCatalog() {
   const get = name => fetch(`systems/${game.system.id}/data/${name}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
-  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => [])])
-    .then(([cat, spells]) => ({ ...cat, spells }))
+  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => [])])
+    .then(([cat, spells, recipes]) => ({ ...cat, spells, recipes }))
     .catch(err => { cache = null; throw err; });
   return cache;
 }
@@ -20,7 +21,9 @@ const TABS = {
   armor: { label: "Pancerze i ubrania", icon: "fa-solid fa-shield-halved", kinds: ARMOR_KINDS, head: ["Rodzaj", "DT", "Osłania", "Efekty", "Lb", "Cena"] },
   gear: { label: "Ekwipunek", icon: "fa-solid fa-suitcase", kinds: GEAR_KINDS, head: ["Rodzaj", "Opis", "Lb", "Cena"] },
   spells: { label: "Zaklęcia", icon: "fa-solid fa-hat-wizard", kinds: { L0: "Poziom 0", L1: "Poziom 1", L2: "Poziom 2", L3: "Poziom 3", L4: "Poziom 4" },
-    head: ["Poziom", "Strain", "SATS", "Od poz.", "Wymagania"] }
+    head: ["Poziom", "Strain", "SATS", "Od poz.", "Wymagania"] },
+  recipes: { label: "Receptury zebr", icon: "fa-solid fa-flask", kinds: { L0: "Poziom 0", L1: "Poziom 1", L2: "Poziom 2", L3: "Poziom 3", L4: "Poziom 4" },
+    head: ["Poziom", "Użycie", "Składniki", "Specjalny", "Szkoła"] }
 };
 
 const SHORT_ATTR = { str: "STR", per: "PER", end: "END", cha: "CHA", int: "INT", agi: "AGI", luck: "LCK" };
@@ -51,6 +54,12 @@ function rowOf(tab, e, i) {
     return {
       i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `L${e.level}`, img: "systems/foe-rpg/icons/spell.svg", qty: 0, noBuy: true,
       cols: [e.level, COST_LABELS[e.cost] ?? e.costText, e.sats ? `${e.sats} AP` : "—", e.levelReq || "—", req.length > 70 ? `${req.slice(0, 68)}…` : req]
+    };
+  }
+  if (tab === "recipes") {
+    return {
+      i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `L${e.level}`, img: "systems/foe-rpg/icons/recipe.svg", qty: 0, noBuy: true,
+      cols: [e.level, e.usage || "—", RARITY[e.rarity] ?? e.rarityText ?? "—", e.special || "—", e.school || "—"]
     };
   }
   const base = { i, name: e.name, notes: e.notes ?? "", search: e.name.toLowerCase(), price: e.value ?? 0 };
@@ -184,10 +193,21 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!a.system.caster) warns.push("postać nie rzuca zaklęć jednorożców");
     if (entry.levelReq && a.system.level < entry.levelReq) warns.push(`wymaga poziomu ${entry.levelReq}`);
     const lim = spellLimits(a)[entry.level];
-    const have = a.items.filter(i => i.type === "spell" && i.system.level === entry.level).length;
+    const have = a.items.filter(i => i.type === "spell" && i.system.tradition !== "zebra" && i.system.level === entry.level).length;
     if (lim !== undefined && have >= lim) warns.push(`limit zaklęć poziomu ${entry.level}: ${lim}`);
     await a.createEmbeddedDocuments("Item", [itemData]);
     ui.notifications[warns.length ? "warn" : "info"](`${a.name}: dodano zaklęcie ${entry.name}${warns.length ? ` (uwaga: ${warns.join("; ")})` : ""}.`);
+  }
+
+  /** Receptura zebr: ostrzega, gdy postać nie jest zebrą-szamanem albo nie ma wymaganego poziomu. */
+  async #learnRecipe(entry, itemData) {
+    const a = this.actor;
+    if (a.items.some(i => i.type === "spell" && i.name === entry.name)) return ui.notifications.info(`${a.name} zna już ${entry.name}.`);
+    const warns = [];
+    if (!a.system.zebraMage) warns.push("postać nie jest zebrą znającą magię");
+    if (entry.levelReq && a.system.level < entry.levelReq) warns.push(`wymaga poziomu ${entry.levelReq}`);
+    await a.createEmbeddedDocuments("Item", [itemData]);
+    ui.notifications[warns.length ? "warn" : "info"](`${a.name}: dodano recepturę ${entry.name}${warns.length ? ` (uwaga: ${warns.join("; ")})` : ""}.`);
   }
 
   async #acquire(target, buy) {
@@ -196,7 +216,7 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     const entry = data[this.tab]?.[Number(row?.dataset.i)];
     if (!entry) return;
     const qty = Math.max(1, Math.floor(Number(row.querySelector("input[name=qty]")?.value) || 1));
-    const itemData = this.tab === "spells" ? spellItemData(entry) : catalogItem(this.tab, entry, qty);
+    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : catalogItem(this.tab, entry, qty);
     const what = qty > 1 ? `${entry.name} ×${qty}` : entry.name;
 
     if (!this.actor) {
@@ -206,6 +226,7 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     if (!this.actor.isOwner) return ui.notifications.warn("Nie jesteś właścicielem tej postaci.");
     if (this.tab === "spells") return this.#learnSpell(entry, itemData);
+    if (this.tab === "recipes") return this.#learnRecipe(entry, itemData);
 
     if (buy) {
       const price = priceOf(entry, qty);
