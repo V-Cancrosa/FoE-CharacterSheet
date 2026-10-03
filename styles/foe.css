@@ -674,7 +674,7 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
 .foe-rpg td.nw { white-space: nowrap; }
 .foe-rpg .item-list.features li { display: block; }
 .foe-rpg .feat-row { display: flex; align-items: center; gap: .55rem; }
-.foe-rpg .feat-toggle { flex: 0 0 auto; width: 13px; height: 13px; border: 1px solid var(--pip-mid); cursor: pointer; }
+.foe-rpg .feat-toggle { flex: 0 0 auto; display: inline-block; vertical-align: middle; width: 13px; height: 13px; border: 1px solid var(--pip-mid); cursor: pointer; }
 .foe-rpg .feat-toggle.on { background: var(--pip); box-shadow: 0 0 6px var(--pip-glow), inset 0 0 0 2px #000; }
 .foe-rpg .item-list li.inactive .nm, .foe-rpg .item-list li.inactive .feat-fx { opacity: .45; text-decoration: line-through; }
 .foe-rpg .feat-fx { list-style: none; margin: .15rem 0 .1rem 1.35rem; padding: 0; font-size: 11px; color: var(--pip-mid); text-shadow: none; }
@@ -700,3 +700,144 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
 .foe-rpg .cr-choice select { max-width: 100%; }
 .foe-rpg .cr-choice .cr-chips { margin: 0; }
 .foe-rpg .cr-choice .chip { font-size: 11px; padding: 0 .4rem; }
+
+/* ==========================================================================
+   v0.5 — walka, pancerze, ekwipunek, katalog
+   ========================================================================== */
+.foe-rpg .sub { display: block; color: var(--pip-dim); font-size: 10px; line-height: 1.15; text-shadow: none; white-space: nowrap; }
+.foe-rpg td .sub { display: inline-block; margin-left: .25rem; vertical-align: middle; }
+.foe-rpg .warn, .foe-card .warn { color: var(--pip-alert); text-shadow: 0 0 6px color-mix(in srgb, var(--pip-alert) 50%, transparent); }
+.foe-rpg .hint.warn { color: var(--pip-alert); }
+.foe-rpg .fxb.temp { border-style: dashed; }
+.foe-rpg h3 a.plus { margin-left: .2rem; }
+.foe-rpg h3 a + a.plus { margin-left: .5rem; }
+
+/* pasek stanu na górze zakładki */
+.foe-rpg .status-bar { display: flex; flex-wrap: wrap; gap: .3rem .5rem; margin: .1rem 0 .2rem; }
+.foe-rpg .status-bar .cs {
+  padding: .05rem .5rem;
+  border: 1px solid var(--pip-line);
+  background: var(--pip-faint);
+  color: var(--pip-mid);
+  font-size: 12px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.foe-rpg .status-bar .cs b { color: var(--pip-bright); font-size: 13px; }
+.foe-rpg .status-bar .cs.alert {
+  color: #000; background: var(--pip-alert); border-color: var(--pip-alert); text-shadow: none; font-weight: 700;
+  animation: foe-blink 1s steps(2, start) 3;
+}
+
+/* broń */
+.foe-rpg table.weapons td.ammo b { color: var(--pip-bright); }
+.foe-rpg table.weapons a.reload { color: var(--pip-mid); margin-left: .15rem; }
+.foe-rpg table.weapons a.reload:hover { color: var(--pip-bright); text-shadow: 0 0 8px var(--pip-glow); }
+
+/* lokacje */
+.foe-rpg table.locs td.status { font-size: 11px; letter-spacing: .04em; }
+.foe-rpg table.locs tr.st-wounded td.status { color: var(--pip-mid); }
+.foe-rpg table.locs tr.st-crippled td { color: var(--pip-bright); background: color-mix(in srgb, var(--pip-alert) 8%, transparent); }
+.foe-rpg table.locs tr.st-crippled td.status { color: var(--pip-alert); font-weight: 700; }
+.foe-rpg table.locs tr:is(.st-maimed, .st-dead) td { color: var(--pip-alert); background: color-mix(in srgb, var(--pip-alert) 16%, transparent); font-weight: 700; }
+.foe-rpg table.locs tr:is(.st-maimed, .st-dead) input { color: var(--pip-alert); border-color: var(--pip-alert); }
+.foe-rpg .state-fx { margin: .45rem 0 0; padding: .25rem .5rem; border: 1px solid color-mix(in srgb, var(--pip-alert) 55%, transparent); }
+.foe-rpg .state-fx > span { display: block; color: var(--pip-alert); text-transform: uppercase; font-size: 11px; }
+.foe-rpg .state-fx ul { margin: .1rem 0 0; padding-left: 1rem; font-size: 12px; }
+
+/* pancerze i ekwipunek */
+.foe-rpg table.armor tr.worn td { color: var(--pip-bright); }
+.foe-rpg table.armor tr.worn td.nm { text-shadow: 0 0 8px var(--pip-glow); }
+.foe-rpg table.armor td.fx { font-size: 11px; color: var(--pip-mid); max-width: 16rem; }
+.foe-rpg table.armor tr:not(.worn) td:not(:first-child) { opacity: .75; }
+.foe-rpg h4.gear-cat {
+  margin: .5rem 0 .1rem; padding: 0;
+  color: var(--pip-mid); border: 0;
+  font-family: var(--foe-crt); font-size: 1.1rem; font-weight: 400; letter-spacing: .06em; text-transform: uppercase;
+}
+.foe-rpg .item-list.gear .qty { display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; }
+.foe-rpg .item-list.gear .qty a { color: var(--pip-dim); font-size: 10px; cursor: pointer; }
+.foe-rpg .item-list.gear .qty a:hover { color: var(--pip-bright); }
+.foe-rpg .item-list.gear .qty b { min-width: 2.4em; text-align: center; color: var(--pip-bright); }
+.foe-rpg .item-list.gear .wt { min-width: 3.5em; text-align: right; color: var(--pip-mid); font-size: 12px; }
+
+/* ikony PipBucka: kolor zgodny z wybranym ekranem */
+.foe-rpg img[src*="foe-rpg/icons/"], .foe-card img[src*="foe-rpg/icons/"] { filter: none; }
+body[data-foe-pip="amber"] :is(.foe-rpg, .foe-card) img[src*="foe-rpg/icons/"] { filter: hue-rotate(-112deg) saturate(1.3); }
+body[data-foe-pip="blue"] :is(.foe-rpg, .foe-card) img[src*="foe-rpg/icons/"] { filter: hue-rotate(52deg); }
+body[data-foe-pip="white"] :is(.foe-rpg, .foe-card) img[src*="foe-rpg/icons/"] { filter: grayscale(1) brightness(1.5); }
+
+/* arkusz przedmiotu */
+.foe-rpg .cover-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: .25rem .8rem; margin: .3rem 0; }
+.foe-rpg .cover-grid label.cover { display: flex; gap: .4rem; align-items: center; color: var(--pip); cursor: pointer; }
+.foe-rpg .wear-row { display: flex; flex-wrap: wrap; gap: .3rem .8rem; align-items: center; margin: .3rem 0; font-size: 12px; }
+.foe-rpg .wear-row > span { color: var(--pip-mid); text-transform: uppercase; }
+.foe-rpg .wear-row label { display: flex; gap: .3rem; align-items: center; }
+
+/* okna ataku, przeładowania i obrażeń */
+.foe-rpg .foe-dialog [hidden] { display: none !important; }
+.foe-rpg .foe-dialog .dlg-attack { display: flex; flex-direction: column; gap: .3rem; padding: .3rem .45rem; border: 1px solid var(--pip-mid); background: var(--pip-faint); }
+.foe-rpg .foe-dialog .atk-info { color: var(--pip-mid); font-size: 12px; }
+.foe-rpg .foe-dialog .atk-info b { color: var(--pip-bright); }
+.foe-rpg .foe-dialog .atk-row { display: flex; justify-content: space-between; align-items: center; gap: .5rem; text-transform: uppercase; font-size: 12px; }
+.foe-rpg .foe-dialog .atk-row select { max-width: 70%; text-transform: none; }
+.foe-rpg .foe-dialog .atk-row select:disabled { opacity: .35; }
+.foe-rpg .foe-dialog .atk-check { justify-content: flex-start; flex-wrap: wrap; gap: .1rem .45rem; cursor: pointer; }
+.foe-rpg .foe-dialog .atk-check span { color: var(--pip); }
+.foe-rpg .foe-dialog .atk-check small { flex: 1 0 100%; padding-left: calc(14px + .45rem); color: var(--pip-mid); font-size: 11px; text-transform: none; text-shadow: none; }
+.foe-rpg .foe-dialog .atk-check:has(input:disabled) { opacity: .5; cursor: not-allowed; }
+.foe-rpg .foe-dialog .rl-opts { margin: 0; padding-left: 1.1rem; }
+.foe-rpg .foe-dialog .rl-opts b { color: var(--pip-bright); }
+.foe-rpg .dmg-apply fieldset.dmg-target {
+  display: grid; grid-template-columns: 1fr 1fr; gap: .25rem .8rem;
+  margin: 0; padding: .3rem .5rem .4rem;
+  border: 1px solid var(--pip-mid);
+}
+.foe-rpg .dmg-apply legend { padding: 0 .3rem; color: var(--pip-bright); font-family: var(--foe-crt); font-size: 1.2rem; letter-spacing: .05em; text-transform: uppercase; }
+.foe-rpg .dmg-apply legend small { font-family: var(--foe-mono); font-size: 11px; color: var(--pip-mid); text-transform: none; letter-spacing: 0; text-shadow: none; }
+.foe-rpg .dmg-apply fieldset label { display: flex; justify-content: space-between; align-items: center; gap: .4rem; font-size: 12px; text-transform: uppercase; }
+.foe-rpg .dmg-apply fieldset label:first-of-type { grid-column: 1 / -1; }
+.foe-rpg .dmg-apply fieldset select { max-width: 70%; text-transform: none; }
+.foe-rpg .dmg-apply .dmg-out { grid-column: 1 / -1; padding: .2rem .35rem; border-top: 1px dotted var(--pip-line); font-size: 12px; }
+.foe-rpg .dmg-apply .dmg-out b { color: var(--pip-bright); }
+
+/* karty na czacie: trafienie, wyliczenie obrażeń, rany */
+.foe-card .fc-hit { margin-top: .35rem; padding: .15rem .4rem; border: 1px solid var(--pip-line); background: var(--pip-faint); }
+.foe-card .fc-hit b { color: var(--pip-bright); }
+.foe-card .fc-calc { margin-top: .3rem; color: var(--pip-mid); font-size: 12px; }
+.foe-card .fc-calc b { color: var(--pip-bright); }
+.foe-card.wounds .dmg-res + .dmg-res { margin-top: .4rem; padding-top: .3rem; border-top: 1px dotted var(--pip-line); }
+.foe-card.wounds h4 {
+  margin: 0 0 .15rem; padding: 0; border: 0;
+  color: var(--pip-bright); font-family: var(--foe-crt); font-size: 1.3rem; font-weight: 400; letter-spacing: .04em; text-transform: uppercase;
+}
+.foe-card.wounds b { color: var(--pip-bright); }
+.foe-card.wounds .warn { font-weight: 700; }
+
+/* katalog */
+.foe-rpg.foe-catalog .window-content { display: flex; flex-direction: column; overflow: hidden; padding: .5rem .7rem; }
+.foe-rpg .foe-cat { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: .4rem; }
+.foe-rpg .cat-tabs { display: flex; flex-wrap: wrap; gap: .3rem; border-bottom: 1px solid var(--pip-mid); padding-bottom: .3rem; }
+.foe-rpg .cat-tabs button { flex: 0 0 auto; width: auto; padding: 0 .7rem; }
+.foe-rpg .cat-tabs button small { color: var(--pip-dim); font-family: var(--foe-mono); font-size: 11px; }
+.foe-rpg .cat-tabs button.active { color: #000; background: var(--pip); text-shadow: none; box-shadow: 0 0 8px var(--pip-glow); }
+.foe-rpg .cat-tabs button.active small { color: #000; }
+.foe-rpg .cat-tools { display: flex; flex-wrap: wrap; gap: .4rem .8rem; align-items: center; }
+.foe-rpg .cat-tools input[type=search] {
+  flex: 1 1 12rem; height: 1.7em; padding: 0 .4rem;
+  color: var(--pip); background: var(--pip-faint); border: 1px solid var(--pip-line); border-radius: 0;
+  font-family: var(--foe-mono); font-size: 13px;
+}
+.foe-rpg .cat-tools input[type=search]:focus { outline: none; border-color: var(--pip); box-shadow: 0 0 6px var(--pip-glow); }
+.foe-rpg .cat-count { color: var(--pip-dim); font-size: 12px; }
+.foe-rpg .cat-caps { margin-left: auto; color: var(--pip-mid); text-transform: uppercase; font-size: 12px; }
+.foe-rpg .cat-caps b { color: var(--pip-bright); font-size: 14px; }
+.foe-rpg .cat-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; border-top: 1px solid var(--pip-line); }
+.foe-rpg .cat-table thead th { position: sticky; top: 0; z-index: 2; background: #050a07; }
+.foe-rpg .cat-table td { font-size: 12px; }
+.foe-rpg .cat-table td.nm { font-weight: 700; min-width: 11rem; }
+.foe-rpg .cat-table td.nm i { color: var(--pip-dim); font-size: 10px; cursor: help; }
+.foe-rpg .cat-table td.buy { white-space: nowrap; text-align: right; }
+.foe-rpg .cat-table td.buy button { width: auto; height: auto; padding: 0 .4rem; font-size: .95rem; line-height: 1.4; }
+.foe-rpg .cat-table td.buy input[type=number] { width: 3.2em; }
+.foe-rpg .cat-error { color: var(--pip-alert); }

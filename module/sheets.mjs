@@ -1,11 +1,41 @@
-import { ATTRS, SKILLS, LOCATIONS } from "./data.mjs";
+import { ATTRS, SKILLS, LOCATIONS, ARMOR_CATEGORIES, GEAR_CATEGORIES } from "./data.mjs";
 import { promptMfd, rollTest, rollDamage } from "./rolls.mjs";
-import { rollContext, describeFx, FX_TYPES, signed } from "./effects.mjs";
+import { attackWithWeapon, reloadWeapon } from "./attack.mjs";
+import { rollContext, describeFx, shortFx, FX_TYPES, signed } from "./effects.mjs";
 import { openCreator } from "./creator.mjs";
+import { openCatalog } from "./catalog.mjs";
+import { WEAPON_KINDS } from "./catalog-data.mjs";
+import { LAYER_CATEGORIES, reloadInfo, rangeIncrement, overloadSpeed } from "./combat.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
 const P = "systems/foe-rpg/templates";
+
+const STATUS = { ok: "", wounded: "ranna", crippled: "OKALECZONA", maimed: "UTRACONA", dead: "ŚMIERĆ" };
+const SHORT = { head: "głowa", torso: "tułów", flLeg: "PL", frLeg: "PP", rlLeg: "TL", rrLeg: "TP", wings: "skrzydła", horn: "róg" };
+const SHORT_ATTR = { str: "STR", per: "PER", end: "END", cha: "CHA", int: "INT", agi: "AGI", luck: "LCK" };
+const shortLabels = () => ({
+  ...SHORT_ATTR, ...Object.fromEntries(Object.entries(SKILLS).map(([k, v]) => [k, v.label.split(" / ").pop()])), ...LOCATIONS,
+  all: "wszystko", attack: "ataki", melee: "wręcz", ranged: "dystans", ground: "ląd", fly: "lot"
+});
+const fxLabels = () => ({
+  all: "wszystko", ...ATTRS, ...Object.fromEntries(Object.entries(SKILLS).map(([k, v]) => [k, v.label])), ...LOCATIONS,
+  ranged: "broń dystansowa", melee: "wręcz", attack: "ataki", ground: "ląd", fly: "lot"
+});
+
+/** Krótki opis osłony pancerza, np. „tułów, 4 nogi”. */
+export function coverText(cover = {}) {
+  const has = k => !!cover[k];
+  const legs = ["flLeg", "frLeg", "rlLeg", "rrLeg"].filter(has);
+  const parts = [];
+  if (has("head")) parts.push("głowa");
+  if (has("torso")) parts.push("tułów");
+  if (legs.length === 4) parts.push("4 nogi");
+  else if (legs.length) parts.push(legs.map(k => SHORT[k]).join("+"));
+  if (has("wings")) parts.push("skrzydła");
+  if (has("horn")) parts.push("róg");
+  return parts.join(", ") || "—";
+}
 
 export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static DEFAULT_OPTIONS = {
@@ -18,12 +48,16 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       rollSkill: FoeActorSheet.#onRollSkill,
       rollWeapon: FoeActorSheet.#onRollWeapon,
       rollDamage: FoeActorSheet.#onRollDamage,
+      reload: FoeActorSheet.#onReload,
       createItem: FoeActorSheet.#onCreateItem,
       editItem: FoeActorSheet.#onEditItem,
       deleteItem: FoeActorSheet.#onDeleteItem,
       newSession: FoeActorSheet.#onNewSession,
       openCreator: FoeActorSheet.#onOpenCreator,
-      toggleFeature: FoeActorSheet.#onToggleFeature
+      openCatalog: FoeActorSheet.#onOpenCatalog,
+      toggleFeature: FoeActorSheet.#onToggleFeature,
+      toggleEquip: FoeActorSheet.#onToggleEquip,
+      qty: FoeActorSheet.#onQty
     }
   };
 
@@ -70,6 +104,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         key: k, label, letter: label[0], rest: label.slice(1), ...a,
         q3: Math.floor(a.tn * .75), q2: Math.floor(a.tn / 2), q1: Math.floor(a.tn / 4),
         fxLabel: a.fx ? signed(a.fx) : "", fxTip: tip(a.fxSources),
+        tempLabel: a.temp ? signed(a.temp) : "", tempTip: tip(a.tempSources),
         rollLabel: a.fxRoll ? signed(a.fxRoll) : "", rollTip: tip(a.fxRollSources)
       };
     });
@@ -82,19 +117,63 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         attrChoices: def.choice ? def.choice.map(c => ({ v: c, upper: c.toUpperCase(), sel: c === s.attr })) : null,
         tnShown: s.tn + m, q3: Math.floor(s.tn * .75) + m, q2: Math.floor(s.tn / 2) + m, q1: Math.floor(s.tn / 4) + m,
         rankFx: s.fxRank ? signed(s.fxRank) : "", rankTip: tip(s.fxRankSources),
-        rollFx: s.fxRoll ? signed(s.fxRoll) : "", rollTip: tip(s.fxRollSources)
+        rollFx: s.fxRoll ? signed(s.fxRoll) : "", rollTip: tip(s.fxRollSources),
+        tempFx: s.temp ? signed(s.temp) : ""
       };
     });
-    ctx.locations = Object.entries(LOCATIONS).map(([k, label]) => ({ key: k, label, ...sys.locations[k] }));
+    ctx.locations = Object.entries(LOCATIONS).map(([k, label]) => {
+      const l = sys.locations[k];
+      return { key: k, label, ...l, statusLabel: STATUS[l.status] ?? "", dtFxLabel: l.dtFx ? signed(l.dtFx) : "" };
+    });
+    ctx.endT = sys.attributes.end.total;
+    ctx.crippleAt = Math.max(1, Math.ceil(ctx.endT / 2));
+    ctx.stateFx = (sys.stateFx ?? []).map(e => `${e.source} — ${shortFx(e, shortLabels())}`);
+
     const items = this.document.items;
-    ctx.weapons = items.filter(i => i.type === "weapon").map(i => ({
-      id: i.id, name: i.name, img: i.img, ...i.system,
-      skillLabel: SKILLS[i.system.skill]?.label ?? i.system.skill
-    }));
-    ctx.armor = items.filter(i => i.type === "armor");
-    ctx.gearItems = items.filter(i => i.type === "gear");
-    const labels = { all: "wszystko", ...ATTRS, ...Object.fromEntries(Object.entries(SKILLS).map(([k, v]) => [k, v.label])), ...LOCATIONS,
-      ranged: "broń dystansowa", melee: "wręcz", attack: "ataki", ground: "ląd", fly: "lot" };
+    const str = sys.attributes.str.total;
+    ctx.weapons = items.filter(i => i.type === "weapon").map(i => {
+      const w = i.system;
+      const inc = rangeIncrement(w, str);
+      return {
+        id: i.id, name: i.name, img: i.img, ...w,
+        skillLabel: SKILLS[w.skill]?.label ?? w.skill,
+        burst: w.shots > 1 ? w.shots : 0,
+        reloadLabel: w.reload ? `${w.reload}: ${reloadInfo(w.reload, { energy: w.skill === "energy" }).ap} AP w SATS` : "przeładuj",
+        rangeLabel: inc ? `${inc} ft` : w.range || "wręcz",
+        rangeTip: inc && !w.rangeInc ? `${w.range} przy STR ${str}` : ""
+      };
+    });
+
+    const labels = fxLabels();
+    const short = shortLabels();
+    ctx.armor = items.filter(i => i.type === "armor").map(i => {
+      const a = i.system;
+      const wear = Object.values(a.wear ?? {}).reduce((t, v) => t + (v || 0), 0);
+      return {
+        id: i.id, name: i.name, img: i.img, ...a,
+        categoryLabel: ARMOR_CATEGORIES[a.category] ?? a.category,
+        coverText: coverText(a.cover),
+        wearText: wear ? Object.entries(a.wear).filter(([, v]) => v).map(([k, v]) => `${SHORT[k]} −${v}`).join(", ") : "",
+        fxText: (a.effects ?? []).filter(e => FX_TYPES[e.type]).map(e => shortFx(e, short)).join(", ")
+      };
+    });
+    const layers = sys.armorLayers ?? { count: 0 };
+    ctx.layers = { ...layers, names: (layers.names ?? []).join(", "), warn: layers.count > 1 };
+
+    const groups = new Map();
+    for (const i of items.filter(x => x.type === "gear")) {
+      const cat = GEAR_CATEGORIES[i.system.category] ? i.system.category : "misc";
+      if (!groups.has(cat)) groups.set(cat, []);
+      const w = Number(i.system.weight) || 0;
+      groups.get(cat).push({
+        id: i.id, name: i.name, img: i.img, qty: i.system.qty, ammoType: i.system.ammoType,
+        weightLabel: cat === "ammo" ? "—" : w ? `${Math.round(w * (i.system.qty || 0) * 10) / 10} lb` : "",
+        notes: String(i.system.description ?? "").replace(/<[^>]+>/g, "").slice(0, 300)
+      });
+    }
+    ctx.gearGroups = Object.entries(GEAR_CATEGORIES).filter(([k]) => groups.has(k)).map(([k, label]) => ({ key: k, label, items: groups.get(k) }));
+    ctx.overSpeed = overloadSpeed(sys.weight, sys.carry);
+
     const kinds = { trait: "Cecha", hindrance: "Wada", perk: "Perk", spell: "Zaklęcie", other: "Inne" };
     ctx.features = items.filter(i => i.type === "feature").map(i => ({
       id: i.id, name: i.name, system: i.system, kindLabel: kinds[i.system.kind] ?? i.system.kind,
@@ -109,7 +188,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       strainBonus: sys.strainBonus ? signed(sys.strainBonus) : "",
       damage: fx.damage ? signed(fx.damage) : ""
     };
-    ctx.weight = items.reduce((t, i) => t + (Number(i.system.weight) || 0) * (i.system.qty ?? 1), 0);
+    ctx.weight = sys.weight;
     ctx.notesHTML = await foundry.applications.ux.TextEditor.implementation.enrichHTML(sys.notes, { relativeTo: this.document });
     return ctx;
   }
@@ -117,6 +196,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   async _preparePartContext(partId, ctx) {
     ctx.tab = ctx.tabs?.[partId];
     return ctx;
+  }
+
+  #item(target) {
+    return this.document.items.get(target.closest("[data-item-id]")?.dataset.itemId);
   }
 
   // ---- akcje ----
@@ -137,23 +220,18 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   static async #onRollWeapon(event, target) {
-    const item = this.document.items.get(target.closest("[data-item-id]").dataset.itemId);
-    const s = this.document.system.skills[item.system.skill];
-    if (!s) return ui.notifications.warn("Broń nie ma przypisanej umiejętności.");
-    const rc = rollContext(this.document, { kind: "attack", skill: item.system.skill, skillAttr: s.attr }, { manualMod: s.mod });
-    const r = await promptMfd(`Atak: ${item.name}`, s.tn, rc);
-    if (!r) return;
-    const { ammo } = item.system;
-    if (ammo.max > 0) {
-      if (ammo.value <= 0) return ui.notifications.warn(`${item.name}: brak amunicji — przeładuj.`);
-      await item.update({ "system.ammo.value": ammo.value - 1 });
-    }
-    rollTest(this.document, { label: `Atak: ${item.name} (${SKILLS[item.system.skill].label})`, baseTn: s.tn, ...r, itemUuid: item.uuid });
+    const item = this.#item(target);
+    if (item) await attackWithWeapon(this.document, item);
   }
 
   static async #onRollDamage(event, target) {
-    const item = this.document.items.get(target.closest("[data-item-id]").dataset.itemId);
+    const item = this.#item(target);
     if (item) rollDamage(this.document, item, { crit: event.shiftKey });   // Shift+klik = krytyk
+  }
+
+  static async #onReload(event, target) {
+    const item = this.#item(target);
+    if (item) await reloadWeapon(this.document, item);
   }
 
   static async #onCreateItem(event, target) {
@@ -164,11 +242,12 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   static #onEditItem(event, target) {
-    this.document.items.get(target.closest("[data-item-id]").dataset.itemId)?.sheet.render(true);
+    this.#item(target)?.sheet.render(true);
   }
 
   static async #onDeleteItem(event, target) {
-    const item = this.document.items.get(target.closest("[data-item-id]").dataset.itemId);
+    const item = this.#item(target);
+    if (!item) return;
     const ok = await foundry.applications.api.DialogV2.confirm({
       window: { title: "Usuń przedmiot" }, content: `<p>Usunąć <b>${foundry.utils.escapeHTML(item.name)}</b>?</p>`
     });
@@ -176,12 +255,38 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   static #onToggleFeature(event, target) {
-    const item = this.document.items.get(target.closest("[data-item-id]").dataset.itemId);
+    const item = this.#item(target);
     item?.update({ "system.active": item.system.active === false });
+  }
+
+  /** Zakładanie pancerza: jedna warstwa z kategorii i jeden hełm — poprzedni z tej kategorii zostaje zdjęty. */
+  static async #onToggleEquip(event, target) {
+    const item = this.#item(target);
+    if (!item) return;
+    const on = !item.system.equipped;
+    const updates = [{ _id: item.id, "system.equipped": on }];
+    const cat = item.system.category;
+    if (on && (LAYER_CATEGORIES.includes(cat) || cat === "helmet")) {
+      const off = this.document.items.filter(i => i.type === "armor" && i.id !== item.id && i.system.equipped && i.system.category === cat);
+      for (const i of off) updates.push({ _id: i.id, "system.equipped": false });
+      if (off.length) ui.notifications.info(`Zdjęto: ${off.map(i => i.name).join(", ")} — z jednej kategorii zakłada się jedną warstwę.`);
+    }
+    await this.document.updateEmbeddedDocuments("Item", updates);
+  }
+
+  static async #onQty(event, target) {
+    const item = this.#item(target);
+    if (!item) return;
+    const d = Number(target.dataset.d) || 0;
+    await item.update({ "system.qty": Math.max(0, (Number(item.system.qty) || 0) + (event.shiftKey ? d * 10 : d)) });
   }
 
   static #onOpenCreator() {
     openCreator(this.document);
+  }
+
+  static #onOpenCatalog(event, target) {
+    openCatalog(this.document, target.dataset.tab || "weapons");
   }
 
   static async #onNewSession() {
@@ -197,7 +302,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static DEFAULT_OPTIONS = {
     classes: ["foe-rpg", "item"],
-    position: { width: 560, height: 620 },
+    position: { width: 580, height: 680 },
     window: { resizable: true },
     form: { submitOnChange: true },
     actions: {
@@ -209,16 +314,24 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
+    const sys = this.document.system;
     ctx.item = this.document;
-    ctx.system = this.document.system;
+    ctx.system = sys;
     ctx.isWeapon = this.document.type === "weapon";
     ctx.isArmor = this.document.type === "armor";
     ctx.isGear = this.document.type === "gear";
     ctx.isFeature = this.document.type === "feature";
-    ctx.armorCats = { clothing: "Ubranie", light: "Lekki", medium: "Średni", heavy: "Ciężki" };
+    ctx.hasFx = ctx.isFeature || ctx.isArmor;
+    ctx.armorCats = ARMOR_CATEGORIES;
+    ctx.gearCats = GEAR_CATEGORIES;
+    ctx.weaponKinds = { "": "—", ...WEAPON_KINDS };
     ctx.featureKinds = { trait: "Trait", hindrance: "Hindrance", perk: "Perk", spell: "Zaklęcie", other: "Inne" };
     ctx.skillOptions = Object.fromEntries(Object.entries(SKILLS).map(([k, s]) => [k, s.label]));
-    if (ctx.isFeature) {
+    if (ctx.isArmor) {
+      ctx.coverRows = Object.entries(LOCATIONS).map(([k, label]) => ({ key: k, label, on: !!sys.cover?.[k], wear: sys.wear?.[k] ?? 0 }));
+      ctx.wearRows = ctx.coverRows.filter(r => r.on || r.wear);
+    }
+    if (ctx.hasFx) {
       const groups = [
         { label: "Ogólne", opts: [["all", "Wszystko"], ["attack", "Każdy atak"], ["ranged", "Ataki dystansowe"], ["melee", "Ataki wręcz"]] },
         { label: "Atrybuty", opts: Object.entries(ATTRS) },
@@ -227,7 +340,7 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         { label: "Ruch (%)", opts: [["ground", "Ruch po ziemi"], ["fly", "Lot"]] }
       ];
       const known = new Set(groups.flatMap(g => g.opts.map(o => o[0])));
-      ctx.fxRows = (this.document.system.effects ?? []).map((e, i) => ({
+      ctx.fxRows = (sys.effects ?? []).map((e, i) => ({
         i, value: e.value, when: e.when,
         types: Object.entries(FX_TYPES).map(([k, t]) => ({ v: k, label: t.label, sel: k === e.type })),
         custom: known.has(e.target) ? null : {
@@ -237,7 +350,7 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         groups: groups.map(g => ({ label: g.label, opts: g.opts.map(([v, label]) => ({ v, label, sel: v === e.target })) }))
       }));
     }
-    ctx.descHTML = await foundry.applications.ux.TextEditor.implementation.enrichHTML(this.document.system.description, { relativeTo: this.document });
+    ctx.descHTML = await foundry.applications.ux.TextEditor.implementation.enrichHTML(sys.description, { relativeTo: this.document });
     return ctx;
   }
 
@@ -257,7 +370,7 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   }
 
   static #onAddFx() {
-    const effects = [...(this.document.system.effects ?? []), { type: "skillRoll", target: "all", value: 0, when: "" }];
+    const effects = [...(this.document.system.effects ?? []), { type: this.document.type === "armor" ? "tempAttr" : "skillRoll", target: "all", value: 0, when: "" }];
     this.document.update({ "system.effects": effects });
   }
 
