@@ -41,7 +41,7 @@ jobs:
 
       - name: Spakuj system
         if: steps.check.outputs.exists != 'true'
-        run: zip -r foe-rpg.zip system.json README.md module templates styles lang fonts
+        run: zip -r foe-rpg.zip system.json README.md module templates styles lang fonts icons data
 
       - name: Utwórz wydanie
         if: steps.check.outputs.exists != 'true'

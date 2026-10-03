@@ -10,7 +10,8 @@
             <td class="l"><a class="rollable" data-action="rollAttr" data-key="{{key}}" title="Rzuć: {{label}} ×10"><span class="special-letter">{{letter}}</span>{{rest}}</a>{{#if rollLabel}} <span class="fxb" title="Rzuty atrybutu:
 {{rollTip}}">{{rollLabel}}</span>{{/if}}</td>
             <td class="nw"><input type="number" name="system.attributes.{{key}}.value" value="{{value}}">{{#if fxLabel}}<span class="fxb" title="Z cech:
-{{fxTip}}">{{fxLabel}}</span>{{/if}}</td>
+{{fxTip}}">{{fxLabel}}</span>{{/if}}{{#if tempLabel}}<span class="fxb temp" title="Zmiana tymczasowa (pancerz, warstwy) — liczy się do progu i wartości pochodnych, umiejętnościom daje ±5 za punkt:
+{{tempTip}}">{{tempLabel}}</span>{{/if}}</td>
             <td><input type="number" name="system.attributes.{{key}}.mod" value="{{mod}}"></td>
             <td class="tn">{{tn}}</td><td class="q">{{q3}}</td><td class="q">{{q2}}</td><td class="q">{{q1}}</td>
           </tr>
@@ -18,8 +19,8 @@
         </tbody>
       </table>
       <dl class="derived">
-        <dt>Udźwig</dt><dd>{{system.carry}} lb (niesiesz {{weight}})</dd>
-        <dt>Ruch</dt><dd>{{system.speed}} ft / akcję (lot/kopanie {{system.flySpeed}})</dd>
+        <dt>Udźwig</dt><dd>{{system.carry}} lb (niesiesz {{weight}}){{#if system.overload}} <span class="warn">przeciążenie +{{system.overload}}</span>{{/if}}</dd>
+        <dt>Ruch</dt><dd>{{system.speed}} ft / akcję (lot/kopanie {{#if system.canFly}}{{system.flySpeed}}{{else}}— skrzydła okaleczone{{/if}}){{#each system.speedNotes}}<small class="sub warn">{{this}}</small>{{/each}}</dd>
         <dt>Obrażenia na ranę</dt><dd>{{system.dmgPerWound}} <input type="number" name="system.woundBonus" value="{{system.woundBonus}}" title="Modyfikator (Large +2, Pipsqueak −2…)"></dd>
         <dt>Inicjatywa</dt><dd>d100 − {{system.initMod}} (niżej = szybciej)</dd>
         <dt>Krytyki</dt><dd>sukces 1–{{extra.crit.success}} · porażka {{extra.critFailFrom}}–100</dd>

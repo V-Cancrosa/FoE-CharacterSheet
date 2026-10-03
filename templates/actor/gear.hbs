@@ -1,16 +1,56 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="gear">
-  <h3>Pancerze i ubrania <a data-action="createItem" data-type="armor"><i class="fa-solid fa-plus"></i></a></h3>
-  <ul class="item-list">
-  {{#each armor}}
-    <li data-item-id="{{id}}"><img class="icon" src="{{img}}" alt=""> <span class="nm">{{name}}</span> <span>DT {{system.dt}}{{#if system.equipped}} · założony{{/if}}</span>
-      <span class="ctl"><a data-action="editItem"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem"><i class="fa-solid fa-trash"></i></a></span></li>
-  {{else}}<li class="empty">Brak pancerza.</li>{{/each}}
-  </ul>
-  <h3>Przedmioty <a data-action="createItem" data-type="gear"><i class="fa-solid fa-plus"></i></a></h3>
-  <ul class="item-list">
-  {{#each gearItems}}
-    <li data-item-id="{{id}}"><img class="icon" src="{{img}}" alt=""> <span class="nm">{{name}}</span> <span>×{{system.qty}}</span>
-      <span class="ctl"><a data-action="editItem"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem"><i class="fa-solid fa-trash"></i></a></span></li>
-  {{else}}<li class="empty">Pusto w jukach.</li>{{/each}}
-  </ul>
+  <div class="status-bar">
+    <span class="cs" title="Udźwig: 100 + 10×STR; amunicja i kapsle nic nie ważą">Niesiesz <b>{{system.weight}}</b>/{{system.carry}} lb</span>
+    {{#if system.overload}}<span class="cs alert">Przeciążenie +{{system.overload}} lb: ruch −{{overSpeed}} ft</span>{{/if}}
+    {{#if system.sneakPenalty}}<span class="cs" title="−5 za każde rozpoczęte 10 lb ponad 50">Skradanie −{{system.sneakPenalty}}</span>{{/if}}
+    <span class="cs"><i class="fa-solid fa-coins"></i> Kapsle <b>{{system.caps}}</b></span>
+  </div>
+
+  <h3>Pancerze i ubrania
+    <a data-action="openCatalog" data-tab="armor" title="Katalog pancerzy z podręcznika"><i class="fa-solid fa-boxes-stacked"></i> Katalog</a>
+    <a class="plus" data-action="createItem" data-type="armor" title="Pusty pancerz do uzupełnienia"><i class="fa-solid fa-plus"></i></a>
+  </h3>
+  <div class="scroll-x">
+  <table class="foe-table items armor">
+    <thead><tr><th title="Założony">Zał.</th><th></th><th class="l">Nazwa</th><th>Rodzaj</th><th>DT</th><th>Osłania</th><th class="l hide-narrow">Efekty</th><th>Lb</th><th></th></tr></thead>
+    <tbody>
+    {{#each armor}}
+      <tr data-item-id="{{id}}" class="{{#if equipped}}worn{{/if}}">
+        <td><a class="feat-toggle {{#if equipped}}on{{/if}}" data-action="toggleEquip" title="{{#if equipped}}Założony — kliknij, by zdjąć{{else}}Kliknij, by założyć{{/if}}"></a></td>
+        <td><img class="icon" src="{{img}}" alt=""></td>
+        <td class="l nm">{{name}}{{#if powered}} <small class="sub">wspomagany</small>{{/if}}</td>
+        <td>{{categoryLabel}}</td>
+        <td class="nw">{{dt}}{{#if wearText}}<small class="sub warn" title="Zużycie (degradacja)">{{wearText}}</small>{{/if}}</td>
+        <td>{{coverText}}</td>
+        <td class="l fx hide-narrow">{{fxText}}</td>
+        <td>{{weight}}</td>
+        <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+      </tr>
+    {{else}}<tr><td colspan="9" class="empty">Brak pancerza — wybierz go z katalogu.</td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+  </div>
+  {{#if layers.warn}}<p class="hint warn">Warstwy pancerza: {{layers.count}} ({{layers.names}}) → −{{layers.agi}} AGI{{#if layers.str}}, −{{layers.str}} STR{{/if}} (tymczasowo).</p>{{/if}}
+  <p class="hint">Założony pancerz sam daje DT na lokacjach, które osłania (liczy się najwyższe), i swoje premie. Z każdej kategorii (ubranie, lekki, średni, ciężki) można nosić jedną warstwę; każda kolejna warstwa to −1 AGI, a od trzeciej także −1 STR.</p>
+
+  <h3>Przedmioty
+    <a data-action="openCatalog" data-tab="gear" title="Katalog ekwipunku z podręcznika"><i class="fa-solid fa-boxes-stacked"></i> Katalog</a>
+    <a class="plus" data-action="createItem" data-type="gear" title="Pusty przedmiot"><i class="fa-solid fa-plus"></i></a>
+  </h3>
+  {{#each gearGroups}}
+    <h4 class="gear-cat">{{label}}</h4>
+    <ul class="item-list gear">
+    {{#each items}}
+      <li data-item-id="{{id}}">
+        <img class="icon" src="{{img}}" alt="">
+        <span class="nm" {{#if notes}}title="{{notes}}"{{/if}}>{{name}}</span>
+        <span class="qty"><a data-action="qty" data-d="-1" title="−1 (Shift: −10)"><i class="fa-solid fa-minus"></i></a><b>×{{qty}}</b><a data-action="qty" data-d="1" title="+1 (Shift: +10)"><i class="fa-solid fa-plus"></i></a></span>
+        <span class="wt">{{weightLabel}}</span>
+        <span class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></span>
+      </li>
+    {{/each}}
+    </ul>
+  {{else}}<p class="empty">Pusto w jukach — zajrzyj do katalogu.</p>
+  {{/each}}
 </section>

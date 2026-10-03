@@ -1,14 +1,48 @@
-# Fallout: Equestria RPG — minimalny system do Foundry VTT (v0.1, pod one-shot)
+# Fallout: Equestria RPG — system do Foundry VTT
 Nieoficjalny, fanowski. Zasady: Fallout: Equestria RPG System Core Rulebook v1.22.
 
 Co działa: S.P.E.C.I.A.L. z progami MFD, 17 umiejętności (baza = 2×ATR + Luck/2 + 2, min 5; tag +15; próg MFD 1 = ranga + ATR×5),
 rzut d100 pod próg z wyborem MFD (2 … 1/10) i modyfikatorem, krytyki 1–5 / 96–100, poziom osiągnięty do rzutów przeciwstawnych,
 przerzut za kartę szczęścia z czatu (+5% zakresu krytyków za każdy przerzut), SATS, karty szczęścia, strain, rady,
-rany i DT na lokacjach, bronie (atak + amunicja + obrażenia; Energy Weapons +ranga/10), pancerze, przedmioty, cechy/perki,
-inicjatywa d100 − ¼ progu AGI, niższa działa pierwsza.
+rany, okaleczenia i DT na lokacjach, bronie, pancerze, ekwipunek, cechy/perki, inicjatywa d100 − ¼ progu AGI (niższa działa pierwsza).
 
-Czego NIE ma (świadomie): automatyczne liczenie ran z obrażeń, efekty okaleczeń, kompendia (rasy, perki, bronie), magia/alchemia,
-wybór „dodaj/odejmij” do inicjatywy (domyślnie odejmuje).
+Katalog przedmiotów: 182 bronie, 288 ubrań, pancerzy, hełmów i akcesoriów oraz 722 przedmioty z podręcznika
+(amunicja, leki i używki, jedzenie, książki, PipBucki, siodła bojowe…). Przycisk KATALOG na karcie postaci (zakładki
+Walka i Ekwipunek) albo „Katalog FoE” w zakładce Przedmioty (dla MG): wyszukiwanie, filtr rodzaju, „Dodaj” za darmo
+albo „Kup” za kapsle postaci. Ten sam ekwipunek łączy się w stos; broń przychodzi naładowana.
+
+Walka:
+- Atak (kliknij nazwę broni): okno z SATS (koszt AP z broni; znosi kary otoczenia i pośpiechu), odległością (każdy przedział
+  zasięgu po pierwszym = 1 krok MFD trudniej), strzałem celowanym (głowa −2 kroki i ×1,5 obrażeń, nogi, skrzydła, róg, oko,
+  serce ×2) albo losową lokacją k20 według rasy celu i karą za zbyt ciężką broń (1 krok za każde 2 lb ponad 2×STR).
+  Broń obszarowa ma domyślnie MFD ¾. Atak sam odejmuje amunicję: seria „/N” zużywa N naboi, a gdy ich brakuje, broń traci kości;
+  granaty i miny zużywają sztuki.
+- Obrażenia: „STR” w formule broni wręcz rośnie z rangą Melee/Unarmed (×1 … ×5), Small Guns, Energy Weapons i Big Guns
+  dodają rangę/10, materiały wybuchowe zadają 25–100% rzutu według rangi. Mnożniki (krytyk z broni, w SATS wręcz ×2,
+  głowa ×1,5, serce ×2) się sumują.
+- „Nanieś obrażenia” na karcie obrażeń: cel z namierzonego tokena (klawisz T), lokacja z ataku, DT celu podstawia się samo
+  (broń magiczna ignoruje 5 DT), rany = obrażenia po DT / obrażenia na ranę celu. Wybuch trafia każdą lokację osobno.
+  Opcjonalnie degradacja pancerza (−1 DT na przebitej lokacji). Śmierć oznacza token.
+- Przeładowanie (ikonka przy amunicji): bierze naboje z ekwipunku o tym samym typie amunicji; akcją (pół magazynka
+  w Internal, 1d4+1 naboi w Breech) albo w SATS za AP (DTM 10, DTM+5 15, Revolver 20, Internal 20, Breech 25).
+- SATS odnawia się o 5 AP na rundę walki (liczy MG), „Nowa sesja” uzupełnia SATS i karty szczęścia.
+- W ustawieniach świata: losowe lokacje trafień i degradacja pancerza (zasady opcjonalne).
+
+Pancerz: założony (kwadracik w zakładce Ekwipunek) sam daje DT na lokacjach, które osłania — liczy się najwyższe DT,
+a naturalne DT z cech się dodaje — oraz swoje premie (tymczasowe atrybuty, umiejętności, odporność na promieniowanie, SATS).
+Z każdej kategorii (ubranie, lekki, średni, ciężki) nosi się jedną warstwę; każda kolejna to −1 AGI, a od trzeciej −1 STR.
+
+Rany: wpisane w tabeli lokacji albo naniesione z czatu. Połowa END ran okalecza lokację i nakłada kary na rzuty
+(głowa: −2 kroki INT/PER/CHA i −1 krok celności; tułów: −2 kroki END/STR/AGI; noga: −5 ft ruchu, −1 krok Sneak
+i siodła bojowego; skrzydła: bez lotu, −2 kroki Flight; zaklęcia trudniejsze), END ran w głowie albo tułowiu to śmierć,
+w kończynie — jej utrata, 4×END ran łącznie — utrata przytomności.
+
+Obciążenie: waga broni, pancerzy i ekwipunku (amunicja i kapsle nic nie ważą); przeciążenie −5 ft ruchu za każde
+rozpoczęte 10 lb ponad udźwig, skradanie −5 za każde rozpoczęte 10 lb ponad 50.
+
+Czego NIE ma (jeszcze): kompendia ras i perków poza kreatorem, magia i alchemia, specjalne efekty broni (ogień, trucizna,
+ogłuszenie — są w opisie broni z katalogu), spadek obrażeń z odległością od wybuchu (licz ręcznie), wybór „dodaj/odejmij”
+do inicjatywy (domyślnie odejmuje).
 
 Kreator postaci: po utworzeniu nowej postaci otwiera się kreator (można go też uruchomić przyciskiem KREATOR na karcie).
 - Postać gracza, 5 kroków według rozdziału 2 podręcznika: rasa (premie do atrybutów i umiejętności, umiejętności rasowe),

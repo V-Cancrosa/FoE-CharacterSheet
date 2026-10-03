@@ -1,39 +1,64 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="combat">
-  <h3>Broń <a data-action="createItem" data-type="weapon" title="Dodaj broń"><i class="fa-solid fa-plus"></i></a></h3>
+  <div class="status-bar">
+    <span class="cs" title="Action Points w SATS: 40 + 5×AGI; w walce +5 na rundę">SATS <b>{{system.resources.sats.value}}/{{system.resources.sats.max}}</b> AP</span>
+    <span class="cs" title="4×END ran łącznie = utrata przytomności">Rany <b>{{system.totalWounds}}</b>/{{system.unconsciousAt}}</span>
+    <span class="cs">Obrażenia na ranę <b>{{system.dmgPerWound}}</b></span>
+    <span class="cs">Ruch <b>{{system.speed}}</b> ft</span>
+    {{#if system.dead}}<span class="cs alert">MARTWY</span>{{else if system.unconsciousRisk}}<span class="cs alert">TRACI PRZYTOMNOŚĆ — rzut END ¾ przy każdej akcji</span>{{/if}}
+  </div>
+
+  <h3>Broń
+    <a data-action="openCatalog" data-tab="weapons" title="Katalog broni z podręcznika"><i class="fa-solid fa-boxes-stacked"></i> Katalog</a>
+    <a class="plus" data-action="createItem" data-type="weapon" title="Pusta broń do uzupełnienia"><i class="fa-solid fa-plus"></i></a>
+  </h3>
   <div class="scroll-x">
-  <table class="foe-table items">
-    <thead><tr><th></th><th class="l">Nazwa</th><th>Umiejętność</th><th>Obrażenia</th><th>SATS</th><th>Amunicja</th><th>Zasięg</th><th></th></tr></thead>
+  <table class="foe-table items weapons">
+    <thead><tr><th></th><th class="l">Nazwa</th><th class="hide-narrow">Umiejętność</th><th>Obrażenia</th><th title="Mnożnik krytyka">Kryt.</th><th title="Koszt ataku w SATS (AP)">SATS</th><th>Amunicja</th><th>Zasięg</th><th></th></tr></thead>
     <tbody>
     {{#each weapons}}
       <tr data-item-id="{{id}}">
         <td><img class="icon" src="{{img}}" alt=""></td>
-        <td class="l"><a class="rollable" data-action="rollWeapon" title="Rzut na atak">{{name}}</a></td>
-        <td>{{skillLabel}}</td>
-        <td><a class="rollable" data-action="rollDamage" title="Rzut na obrażenia (Shift+klik: krytyk)">{{damage}}</a></td>
+        <td class="l"><a class="rollable" data-action="rollWeapon" title="Atak: okno z SATS, odległością i celem">{{name}}</a></td>
+        <td class="hide-narrow">{{skillLabel}}</td>
+        <td class="nw"><a class="rollable" data-action="rollDamage" title="Same obrażenia (Shift+klik: krytyk)">{{damage}}</a>{{#if burst}}<small class="sub">/{{burst}}</small>{{/if}}</td>
+        <td>{{crit}}</td>
         <td>{{satsCost}}</td>
-        <td>{{#if ammo.max}}{{ammo.value}}/{{ammo.max}}{{else}}—{{/if}}</td>
-        <td>{{range}}</td>
-        <td class="ctl"><a data-action="editItem"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem"><i class="fa-solid fa-trash"></i></a></td>
+        <td class="nw ammo">
+          {{#if consumable}}<b>×{{qty}}</b>
+          {{else if ammo.max}}<b>{{ammo.value}}/{{ammo.max}}</b> <a class="reload" data-action="reload" title="Przeładuj ({{reloadLabel}})"><i class="fa-solid fa-rotate"></i></a>{{#if ammoType}}<small class="sub">{{ammoType}}</small>{{/if}}
+          {{else}}—{{/if}}
+        </td>
+        <td class="nw" {{#if rangeTip}}title="{{rangeTip}}"{{/if}}>{{rangeLabel}}</td>
+        <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
       </tr>
-    {{else}}<tr><td colspan="8" class="empty">Brak broni — dodaj ją plusem.</td></tr>
+    {{else}}<tr><td colspan="9" class="empty">Brak broni — wybierz ją z katalogu albo dodaj plusem.</td></tr>
     {{/each}}
     </tbody>
   </table>
   </div>
+  <p class="hint">Kliknij nazwę broni, by zaatakować: w oknie zaznaczysz SATS (zużywa AP i znosi kary otoczenia), odległość, strzał celowany albo losową lokację. Atak sam odejmie amunicję, a karta trafienia ma przyciski obrażeń i nanoszenia ran.</p>
 
-  <h3>Rany i DT na lokacjach</h3>
-  <table class="foe-table">
-    <thead><tr><th class="l">Lokacja</th><th>Rany</th><th>DT</th><th>Okaleczona</th></tr></thead>
+  <h3>Rany, okaleczenia i DT</h3>
+  <div class="scroll-x">
+  <table class="foe-table locs">
+    <thead><tr><th class="l">Lokacja</th><th title="Rany / Endurance">Rany</th><th>Stan</th><th title="Najwyższe DT założonego pancerza (warstwy się nie sumują)">Pancerz</th><th title="Naturalne DT, perki, cechy — dodaje się do pancerza">Inne DT</th><th title="DT razem">DT</th><th title="Okaleczenie ręczne (np. z wady albo decyzji MG)">Okal.</th></tr></thead>
     <tbody>
     {{#each locations}}
-      <tr class="{{#if lethal}}lethal{{/if}}">
+      <tr class="st-{{status}}">
         <td class="l">{{label}}</td>
-        <td><input type="number" name="system.locations.{{key}}.wounds" value="{{wounds}}"></td>
-        <td class="nw"><input type="number" name="system.locations.{{key}}.dt" value="{{dt}}">{{#if dtFx}}<span class="fxb" title="Z cech">= {{dtTotal}}</span>{{/if}}</td>
+        <td class="nw"><input type="number" name="system.locations.{{key}}.wounds" value="{{wounds}}" min="0"><small class="sub">/{{limit}}</small></td>
+        <td class="status">{{statusLabel}}</td>
+        <td {{#if armorName}}title="{{armorName}}"{{/if}}>{{#if armorName}}{{armorDt}}{{else}}—{{/if}}</td>
+        <td class="nw"><input type="number" name="system.locations.{{key}}.dt" value="{{dt}}">{{#if dtFxLabel}}<span class="fxb" title="Z cech">{{dtFxLabel}}</span>{{/if}}</td>
+        <td class="tn">{{dtTotal}}</td>
         <td><input type="checkbox" name="system.locations.{{key}}.crippled" {{checked crippled}}></td>
       </tr>
     {{/each}}
     </tbody>
   </table>
-  <p class="hint">Czerwony wiersz: rany ≥ Endurance — śmierć (głowa/tułów) albo utrata kończyny. Okaleczenie: −25 do powiązanych rzutów.</p>
+  </div>
+  {{#if stateFx.length}}
+  <div class="state-fx"><span>Kary z ran i obciążenia (liczą się same w rzutach)</span><ul>{{#each stateFx}}<li>{{this}}</li>{{/each}}</ul></div>
+  {{/if}}
+  <p class="hint">Okaleczenie od {{crippleAt}} ran (połowa END), {{endT}} ran w głowie albo tułowiu to śmierć, w kończynie — jej utrata. DT pancerza bierze się z założonych pancerzy (zakładka Ekwipunek); „Inne DT” (naturalne, perki) się do niego dodaje.</p>
 </section>

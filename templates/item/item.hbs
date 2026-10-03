@@ -6,32 +6,64 @@
   <div class="fields">
   {{#if isWeapon}}
     <label>Umiejętność <select name="system.skill">{{selectOptions skillOptions selected=system.skill}}</select></label>
-    <label>Obrażenia (formuła) <input type="text" name="system.damage" value="{{system.damage}}"></label>
-    <label>Koszt SATS <input type="number" name="system.satsCost" value="{{system.satsCost}}"></label>
-    <label>Amunicja <span class="pair"><input type="number" name="system.ammo.value" value="{{system.ammo.value}}"> / <input type="number" name="system.ammo.max" value="{{system.ammo.max}}"></span></label>
-    <label>Zasięg <input type="text" name="system.range" value="{{system.range}}"></label>
-    <label title="Puste lub „max” = maksymalne obrażenia z kości · „x2” = mnożnik · „+1d6” = dodatkowe obrażenia · inny tekst = efekt">Krytyk <input type="text" name="system.crit" value="{{system.crit}}" placeholder="max / x2 / +1d6"></label>
-    <p class="hint">Krytyk: puste lub „max” = maks. obrażenia z kości, „x2” = mnożnik, „+1d6” = dodatkowe obrażenia, inny tekst = sam opis efektu.</p>
-    <label>Waga <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
+    <label>Rodzaj <select name="system.kind">{{selectOptions weaponKinds selected=system.kind}}</select></label>
+    <label title="„STR” w formule: wręcz = siła × mnożnik z rangi Melee/Unarmed, łuki i rzucane = sama siła">Obrażenia (formuła) <input type="text" name="system.damage" value="{{system.damage}}" placeholder="3d4 + STR"></label>
+    <label title="Broń z „/N” w tabeli: tyle naboi zużywa jeden strzał">Seria (naboje na strzał) <input type="number" name="system.shots" value="{{system.shots}}" min="1"></label>
+    <label title="Mnożnik z kolumny Crit, np. x1,5">Krytyk <input type="text" name="system.crit" value="{{system.crit}}" placeholder="x1 / x1.5 / x2"></label>
+    <label>Koszt SATS (AP) <input type="number" name="system.satsCost" value="{{system.satsCost}}"></label>
+    <label>Amunicja w magazynku <span class="pair"><input type="number" name="system.ammo.value" value="{{system.ammo.value}}"> / <input type="number" name="system.ammo.max" value="{{system.ammo.max}}"></span></label>
+    <label title="Musi się zgadzać z nazwą albo typem amunicji w ekwipunku — wtedy przeładowanie ją odejmuje">Typ amunicji <input type="text" name="system.ammoType" value="{{system.ammoType}}" placeholder="np. 10mm"></label>
+    <label title="DTM 10 AP, DTM+5 15, Revolver 20, Internal 20, Breech 25">Przeładowanie <input type="text" name="system.reload" value="{{system.reload}}" list="foe-reload-types" placeholder="DTM / Revolver / Internal / Breech">
+      <datalist id="foe-reload-types"><option value="DTM"><option value="DTM+5"><option value="Revolver"><option value="Internal"><option value="Breech"></datalist></label>
+    <label title="Przedział zasięgu w stopach; każdy kolejny przedział = 1 krok MFD trudniej. 0 = wręcz albo liczony z opisu (np. (STR/2)×5 ft)">Przedział zasięgu (ft) <input type="number" name="system.rangeInc" value="{{system.rangeInc}}" min="0"></label>
+    <label>Zasięg (opis) <input type="text" name="system.range" value="{{system.range}}" placeholder="np. (STR/2)×5 ft"></label>
+    <label title="Broń magiczna (MFC, ME-Cell, Gem Cell) ignoruje 5 DT">Ignoruje DT <input type="number" name="system.ignoreDT" value="{{system.ignoreDT}}" min="0"></label>
+    <label>Obszarowa (wybuch) <input type="checkbox" name="system.aoe.enabled" {{checked system.aoe.enabled}}></label>
+    {{#if system.aoe.enabled}}
+    <label>Obrażenia odłamków / promień <span class="pair"><input type="text" name="system.aoe.splash" value="{{system.aoe.splash}}" placeholder="6d12"> <input type="text" name="system.aoe.radius" value="{{system.aoe.radius}}" placeholder="15 ft"></span></label>
+    <label title="O ile kości mniej za każde kolejne 5 ft od epicentrum">Spadek co 5 ft <input type="text" name="system.aoe.inc" value="{{system.aoe.inc}}" placeholder="−2d12"></label>
+    {{/if}}
+    <label title="Granaty, miny: atak zużywa sztukę">Zużywalna (granat, mina) <input type="checkbox" name="system.consumable" {{checked system.consumable}}></label>
+    {{#if system.consumable}}<label>Ilość sztuk <input type="number" name="system.qty" value="{{system.qty}}" min="0"></label>{{/if}}
+    <label title="(mw) w tabeli — da się trzymać w pysku">Trzymana w pysku (mw) <input type="checkbox" name="system.mw" {{checked system.mw}}></label>
+    <label title="Maks. udźwig broni = 2×STR; każde rozpoczęte 2 lb ponad to −1 krok MFD">Waga <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
+    <label>Cena (kapsle) <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
   {{/if}}
   {{#if isArmor}}
-    <label>DT <input type="number" name="system.dt" value="{{system.dt}}"></label>
     <label>Kategoria <select name="system.category">{{selectOptions armorCats selected=system.category}}</select></label>
+    <label>DT <input type="number" name="system.dt" value="{{system.dt}}" min="0"></label>
     <label>Założony <input type="checkbox" name="system.equipped" {{checked system.equipped}}></label>
+    <label>Pancerz wspomagany (power armor) <input type="checkbox" name="system.powered" {{checked system.powered}}></label>
     <label>Waga <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
+    <label>Cena (kapsle) <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
   {{/if}}
   {{#if isGear}}
+    <label>Kategoria <select name="system.category">{{selectOptions gearCats selected=system.category}}</select></label>
     <label>Ilość <input type="number" name="system.qty" value="{{system.qty}}"></label>
     <label>Waga (szt.) <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
+    <label>Cena (szt.) <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
+    <label title="Broń z takim samym typem amunicji ładuje się z tego przedmiotu">Typ amunicji <input type="text" name="system.ammoType" value="{{system.ammoType}}" placeholder="np. 10mm"></label>
   {{/if}}
   {{#if isFeature}}
     <label>Rodzaj <select name="system.kind">{{selectOptions featureKinds selected=system.kind}}</select></label>
     <label>Aktywna (efekty doliczane) <input type="checkbox" name="system.active" {{checked system.active}}></label>
   {{/if}}
   </div>
-  {{#if isFeature}}
+  {{#if isArmor}}
+  <h3>Osłania</h3>
+  <div class="cover-grid">
+    {{#each coverRows}}<label class="cover"><input type="checkbox" name="system.cover.{{key}}" {{checked on}}> {{label}}</label>{{/each}}
+  </div>
+  {{#if wearRows.length}}
+  <div class="wear-row"><span title="Degradacja (zasada opcjonalna): o tyle DT mniej na lokacji. Wyzeruj po naprawie.">Zużycie DT:</span>
+    {{#each wearRows}}<label>{{label}} <input type="number" name="system.wear.{{key}}" value="{{wear}}" min="0"></label>{{/each}}
+  </div>
+  {{/if}}
+  <p class="hint">Bardingi zwykle osłaniają tułów i cztery nogi, hełmy głowę; skrzydła tylko z „Wing Covers”, róg prawie nigdy. Na karcie postaci liczy się najwyższe DT spośród założonych pancerzy na danej lokacji.</p>
+  {{/if}}
+  {{#if hasFx}}
   <h3>Efekty <a data-action="addFx" title="Dodaj efekt"><i class="fa-solid fa-plus"></i></a></h3>
-  <p class="hint">Efekt bez warunku działa zawsze. Z warunkiem („gdy”) pojawia się w oknie rzutu jako pole do zaznaczenia. Wartość dodatnia ułatwia (premia), ujemna utrudnia.</p>
+  <p class="hint">{{#if isArmor}}Działają, gdy pancerz jest założony. Premie do atrybutów z pancerza to „Tymczasowa zmiana atrybutu”. {{/if}}Efekt bez warunku działa zawsze. Z warunkiem („gdy”) pojawia się w oknie rzutu jako pole do zaznaczenia. Wartość dodatnia ułatwia (premia), ujemna utrudnia.</p>
   <table class="foe-table fx-edit">
     <thead><tr><th class="l">Co zmienia</th><th class="l">Czego dotyczy</th><th>Wartość</th><th class="l">Gdy (sytuacja)</th><th></th></tr></thead>
     <tbody>

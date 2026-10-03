@@ -1,0 +1,41 @@
+<div class="foe-cat">
+  {{#if error}}
+  <p class="cat-error">{{error}}</p>
+  {{else}}
+  <nav class="cat-tabs">
+    {{#each tabs}}<button type="button" class="{{#if active}}active{{/if}}" data-action="setTab" data-tab="{{id}}"><i class="{{icon}}"></i> {{label}} <small>{{count}}</small></button>{{/each}}
+  </nav>
+  <div class="cat-tools">
+    <select name="kind" title="Rodzaj">
+      <option value="">Wszystkie rodzaje</option>
+      {{#each kinds}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{label}} ({{n}})</option>{{/each}}
+    </select>
+    <input type="search" name="search" value="{{search}}" placeholder="Szukaj po nazwie…" autocomplete="off">
+    <span class="cat-count"></span>
+    {{#if actor}}<span class="cat-caps"><i class="fa-solid fa-coins"></i> Kapsle: <b>{{caps}}</b></span>{{/if}}
+  </div>
+  <div class="cat-scroll">
+    <table class="foe-table cat-table">
+      <thead><tr><th></th><th class="l">Nazwa</th>{{#each head}}<th>{{this}}</th>{{/each}}<th></th></tr></thead>
+      <tbody>
+      {{#each rows}}
+        <tr data-i="{{i}}" data-kind="{{kind}}" data-name="{{search}}">
+          <td><img class="icon" src="{{img}}" alt=""></td>
+          <td class="l nm" {{#if notes}}title="{{notes}}"{{/if}}>{{name}}{{#if notes}} <i class="fa-solid fa-circle-info"></i>{{/if}}</td>
+          {{#each cols}}<td>{{this}}</td>{{/each}}
+          <td class="buy">
+            {{#if qty}}<input type="number" name="qty" value="{{qty}}" min="1" title="Ilość">{{/if}}
+            <button type="button" data-action="add" title="Dodaj za darmo"><i class="fa-solid fa-plus"></i> Dodaj</button>
+            {{#if ../actor}}<button type="button" data-action="buy" title="Kup — cena × ilość zostanie odjęta od kapsli"><i class="fa-solid fa-coins"></i> Kup</button>{{/if}}
+          </td>
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+  </div>
+  <p class="hint">
+    {{#if actor}}„Dodaj” daje przedmiot za darmo, „Kup” odejmuje cenę (× ilość) od kapsli postaci. Ten sam ekwipunek łączy się w stos.{{else}}„Dodaj” tworzy przedmiot w zakładce Przedmioty — potem przeciągnij go na postać.{{/if}}
+    Najedź na <i class="fa-solid fa-circle-info"></i>, by przeczytać uwagi z podręcznika. Broń trafia od razu naładowana, pancerz — zdjęty (załóż go w zakładce Ekwipunek).
+  </p>
+  {{/if}}
+</div>

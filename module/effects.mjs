@@ -1,7 +1,8 @@
 /**
  * Efekty cech, wad i perków.
  *
- * Każdy przedmiot typu „feature” ma listę efektów { type, target, value, when }:
+ * Każda cecha („feature”) i każdy pancerz ma listę efektów { type, target, value, when }
+ * (pancerz działa tylko założony, cecha tylko aktywna):
  *   - when puste  → efekt stały, doliczany automatycznie na karcie i w rzutach,
  *   - when z tekstem → efekt sytuacyjny; w oknie rzutu pojawia się pole do zaznaczenia z tym opisem.
  * target: „all”, klucz atrybutu/umiejętności/lokacji albo lista po przecinku;
@@ -18,7 +19,8 @@ export const FX_TYPES = {
   tempAttr:    { label: "Tymczasowa zmiana atrybutu", targets: "attr" },
   accuracy:    { label: "Celność ataków", targets: "attack" },
   mfdStep:     { label: "Kroki MFD (+ łatwiej, − trudniej)", targets: "any" },
-  damage:      { label: "Obrażenia broni", targets: "none" },
+  basedStep:   { label: "Kroki MFD atrybutu i jego umiejętności", targets: "attr" },
+  damage:      { label: "Obrażenia broni", targets: "attack" },
   critSuccess: { label: "Zakres krytycznego sukcesu", targets: "any" },
   critFail:    { label: "Zakres krytycznej porażki", targets: "any" },
   initiative:  { label: "Inicjatywa (+ szybciej)", targets: "none" },
@@ -49,15 +51,21 @@ export const hitsAttack = (target, skill) => {
 };
 const n = v => Number(v) || 0;
 
-/** Wszystkie efekty z aktywnych cech aktora (z nazwą źródła). */
-export function actorEffects(actor) {
+/**
+ * Wszystkie efekty aktora (z nazwą źródła): aktywne cechy, założone pancerze
+ * i — gdy state — efekty stanu postaci liczone na karcie (okaleczenia, obciążenie; data.mjs → stateFx).
+ */
+export function actorEffects(actor, { state = true } = {}) {
   const out = [];
   for (const item of actor?.items ?? []) {
-    if (item.type !== "feature" || item.system?.active === false) continue;
+    const on = item.type === "feature" ? item.system?.active !== false
+      : item.type === "armor" ? !!item.system?.equipped : false;
+    if (!on) continue;
     (item.system?.effects ?? []).forEach((e, i) => {
       if (e?.type && !CREATION_ONLY.has(e.type)) out.push({ ...e, source: item.name, id: `${item.id}.${i}` });
     });
   }
+  if (state) for (const e of actor?.system?.stateFx ?? []) out.push(e);
   return out;
 }
 
@@ -90,18 +98,31 @@ export function effectOnRoll(e, ctx) {
       if ((isAttr && hits(e.target, ctx.attr)) || (sk && hits(e.target, ctx.skillAttr))) out.mod = v; break;
     case "skillsOf": if (sk && hits(e.target, ctx.skillAttr)) out.mod = v; break;
     case "tempAttr":
+      // stałe zmiany są już w wartości atrybutu na karcie (próg ×10, umiejętności ±5 za punkt)
+      if (!e.when) break;
       if (isAttr && hits(e.target, ctx.attr)) out.mod = 10 * v;
       else if (sk && hits(e.target, ctx.skillAttr)) out.mod = 5 * v;
       break;
     case "accuracy": if (ctx.kind === "attack" && hitsAttack(e.target, sk)) out.mod = v; break;
-    case "mfdStep":
+    case "basedStep":
+      if ((isAttr && hits(e.target, ctx.attr)) || (sk && hits(e.target, ctx.skillAttr))) out.steps = v;
+      break;
+    case "mfdStep": {
+      // atrybut jako cel = tylko rzut samego atrybutu (dla umiejętności: basedStep)
+      const l = targets(e.target);
+      const ok = ctx.kind === "attack" ? hitsAttack(e.target, sk)
+        : sk ? (l.includes("all") || l.includes(sk))
+        : (l.includes("all") || l.includes(ctx.attr));
+      if (ok) out.steps = v;
+      break;
+    }
     case "critSuccess":
     case "critFail": {
       const l = targets(e.target);
       const ok = ctx.kind === "attack" ? hitsAttack(e.target, sk)
         : sk ? (l.includes("all") || l.includes(sk) || l.includes(ctx.skillAttr))
         : (l.includes("all") || l.includes(ctx.attr));
-      if (ok) out[e.type === "mfdStep" ? "steps" : e.type] = v;
+      if (ok) out[e.type] = v;
       break;
     }
   }
@@ -154,8 +175,26 @@ export function describeFx(e, labels = {}) {
   const t = FX_TYPES[e.type];
   const v = n(e.value);
   const tgt = targets(e.target).map(k => (k === "all" ? "wszystkie" : labels[k] ?? k)).join(", ");
-  const unit = e.type === "speedPct" || e.type === "radResist" ? "%" : e.type === "mfdStep" ? (Math.abs(v) === 1 ? " krok" : " kroki") : "";
+  const unit = e.type === "speedPct" || e.type === "radResist" ? "%" : ["mfdStep", "basedStep"].includes(e.type) ? (Math.abs(v) === 1 ? " krok" : " kroki") : "";
   const what = t ? t.label : e.type;
   const showTarget = t && t.targets !== "none" && tgt;
   return `${what}${showTarget ? ` (${tgt})` : ""}: ${signed(v)}${unit}${e.when ? ` — gdy: ${e.when}` : ""}`;
+}
+
+/** Zwięzły opis efektu do tabel, np. „+1 CHA”, „Sneak: −2 kroki MFD”, „+15% odp. na prom.”. */
+export function shortFx(e, labels = {}) {
+  const v = n(e.value);
+  const tgt = targets(e.target).map(k => labels[k] ?? k).join("/");
+  const steps = `${signed(v)} ${Math.abs(v) === 1 ? "krok" : "kroki"} MFD`;
+  const txt = {
+    attr: `${signed(v)} ${tgt}`, tempAttr: `${signed(v)} ${tgt}`,
+    skillRank: `${signed(v)} ${tgt} (ranga)`, skillRoll: `${signed(v)} ${tgt}`, attrRoll: `${signed(v)} rzuty ${tgt}`,
+    basedRoll: `${signed(v)} ${tgt} i umiejętności`, skillsOf: `${signed(v)} umiejętności ${tgt}`,
+    mfdStep: `${tgt}: ${steps}`, basedStep: `${tgt} i umiejętności: ${steps}`, accuracy: `${signed(v)} celność (${tgt})`,
+    damage: `${signed(v)} obrażeń (${tgt})`, critSuccess: `kryt. sukces ${signed(v)}`, critFail: `kryt. porażka ${signed(v)}`,
+    radResist: `${signed(v)}% odp. na prom.`, sats: `${signed(v)} SATS`, dt: `${signed(v)} DT (${tgt})`,
+    speed: `${signed(v)} ft ruchu`, carry: `${signed(v)} lb udźwigu`, initiative: `${signed(v)} inicjatywa`,
+    wound: `${signed(v)} obr. na ranę`, strain: `${signed(v)} strain`, dodge: `${signed(v)} uniki`, luckCards: `${signed(v)} karty szczęścia`
+  }[e.type] ?? describeFx(e, labels);
+  return e.when ? `${txt} (gdy: ${e.when})` : txt;
 }

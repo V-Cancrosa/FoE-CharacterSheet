@@ -1,7 +1,8 @@
 import { CharacterData, NpcData, WeaponData, ArmorData, GearData, FeatureData } from "./data.mjs";
 import { FoeActorSheet, FoeItemSheet } from "./sheets.mjs";
-import { registerChatListeners } from "./rolls.mjs";
+import { registerCombatHooks } from "./attack.mjs";
 import { openCreator } from "./creator.mjs";
+import { openCatalog, registerCatalogButton } from "./catalog.mjs";
 
 /** W FoE RPG niższa inicjatywa działa pierwsza. */
 class FoeCombat extends Combat {
@@ -24,9 +25,12 @@ Hooks.once("init", () => {
   Actors.registerSheet("foe-rpg", FoeActorSheet, { makeDefault: true, label: "FoE: karta postaci" });
   Items.registerSheet("foe-rpg", FoeItemSheet, { makeDefault: true, label: "FoE: przedmiot" });
 
-  registerChatListeners();
+  registerCombatHooks();
+  registerCatalogButton();
   registerDisplaySettings();
   registerCreatorSettings();
+  registerCombatSettings();
+  game.foe = { openCatalog };
 });
 
 /** Nowa postać lub NPC → kreator (tylko u osoby, która ją utworzyła). */
@@ -54,6 +58,26 @@ function registerCreatorSettings() {
     type: Number,
     choices: { 32: "32 — słabsze postacie", 35: "35 — standard", 37: "37 — wielcy bohaterowie" },
     default: 35
+  });
+}
+
+/** Zasady opcjonalne z rozdziału o walce. */
+function registerCombatSettings() {
+  game.settings.register("foe-rpg", "randomHitLocations", {
+    name: "Losowe lokacje trafień",
+    hint: "Zasada opcjonalna (s. 449–450): w oknie ataku domyślnie wybrana jest lokacja losowana k20 wg rasy celu zamiast tułowia. Strzały celowane działają zawsze.",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+  game.settings.register("foe-rpg", "armorDegradation", {
+    name: "Degradacja pancerza",
+    hint: "Zasada opcjonalna (s. 460): gdy obrażenia przebiją pancerz, traci on 1 DT na tej lokacji. To domyślne zaznaczenie w oknie „Nanieś obrażenia”.",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
   });
 }
 
