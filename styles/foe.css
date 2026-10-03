@@ -841,3 +841,18 @@ body[data-foe-pip="white"] :is(.foe-rpg, .foe-card) img[src*="foe-rpg/icons/"] {
 .foe-rpg .cat-table td.buy button { width: auto; height: auto; padding: 0 .4rem; font-size: .95rem; line-height: 1.4; }
 .foe-rpg .cat-table td.buy input[type=number] { width: 3.2em; }
 .foe-rpg .cat-error { color: var(--pip-alert); }
+
+/* v0.6 — efekty specjalne broni i stany */
+.foe-rpg .wtags, .foe-card .fc-special { display: flex; flex-wrap: wrap; gap: .2rem; margin-top: .15rem; }
+.foe-rpg .wtags span, .foe-card .fc-special span {
+  padding: 0 .3rem; font-size: 10px; line-height: 1.4; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--pip-bright); border: 1px solid var(--pip-line); cursor: help; text-shadow: none;
+}
+.foe-card .fc-special { margin-top: .35rem; }
+.foe-card .fc-special span { font-size: 11px; cursor: default; color: var(--pip-alert); border-color: color-mix(in srgb, var(--pip-alert) 55%, transparent); }
+.foe-rpg .item-list.conditions li { flex-wrap: wrap; border-color: color-mix(in srgb, var(--pip-alert) 45%, transparent); }
+.foe-rpg .item-list.conditions .nm { flex: 0 0 auto; color: var(--pip-alert); }
+.foe-rpg .item-list.conditions .cdesc { flex: 1 1 12rem; color: var(--pip-mid); font-size: 12px; }
+.foe-rpg .item-list.conditions .ctl a { color: var(--pip-mid); }
+.foe-rpg .dmg-special .atk-info { text-transform: uppercase; }
+.foe-rpg .foe-item .fields .cover-grid label { justify-content: flex-start; text-transform: none; font-size: 13px; color: var(--pip); }

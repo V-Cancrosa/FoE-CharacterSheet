@@ -2,7 +2,7 @@ import { MFD_STEPS, LOCATIONS } from "./data.mjs";
 import { actorEffects, sumFx, hitsAttack } from "./effects.mjs";
 import {
   CALLED_SHOTS, BIPED_LABELS, HIT_TABLES, hitLocation, locationMultiplier, combineMultipliers,
-  damageFormula, isAoe, isClose, wieldPenalty
+  damageFormula, isAoe, isClose, wieldPenalty, SPECIALS, POISONS
 } from "./combat.mjs";
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -240,7 +240,7 @@ export async function rollTest(actor, data) {
     content,
     rolls: [roll, ...extraRolls],
     sound: CONFIG.sounds.dice,
-    flags: { "foe-rpg": { test: { ...data, attack: atk ?? undefined, actorUuid: actor.uuid, rerolls } } }
+    flags: { "foe-rpg": { test: { ...data, attack: atk ?? undefined, actorUuid: actor.uuid, rerolls, result: cls } } }
   });
 }
 
@@ -314,6 +314,23 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
     ? "broń obszarowa nie zadaje krytyków — idealne trafienie (opcjonalnie: ignoruje DT celów w pierwszym promieniu)"
     : `${c.note ?? ""}${satsDouble ? " · w SATS wręcz ×2" : ""}`;
   const targets = attack?.targets?.length ? attack.targets : [...(game.user?.targets ?? [])].map(t => t.document?.uuid).filter(Boolean);
+  // Specjalne efekty broni (s. 200–202): ogień/dezintegracja „crit” działają tylko przy krytyku
+  const sp = { ...(w.specials ?? {}) };
+  if (sp.fire === "crit" && !crit) sp.fire = "";
+  if (sp.disintegrate === "crit") sp.disintegrateCrit = !!crit;
+  let shockWounds = 0;
+  const extraRolls = [];
+  if (sp.shock && crit) {
+    const r = await new Roll("1d10").evaluate();
+    extraRolls.push(r);
+    shockWounds = r.total;
+  }
+  const active = ["fire", "electric", "rads", "disintegrate", "shock", "poison", "knockdown"].filter(k => sp[k]);
+  const spLine = active.map(k => {
+    if (k === "poison") return `${SPECIALS.poison.label}: ${POISONS[sp.poison] ?? sp.poison}`;
+    if (k === "shock" && shockWounds) return `${SPECIALS.shock.label}: krytyk +${shockWounds} ran`;
+    return SPECIALS[k].label;
+  });
   const locLine = hit?.loc ? `Lokacja: <b>${esc(hit.called ? CALLED_SHOTS[hit.called]?.label ?? locationName(hit.loc) : locationName(hit.loc, attack?.table))}</b>`
     : aoe ? "Wybuch: każda odsłonięta lokacja osobno (DT liczone dla każdej)" : "Lokacja: wybierz przy nanoszeniu (domyślnie tułów)";
 
@@ -329,6 +346,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
     <div class="fc-calc">${esc(calc)}</div>
     <div class="fc-hit"><div>${locLine}</div></div>
     ${crit ? `<div class="fc-crit">Krytyk: ${esc(critNote)}</div>` : ""}
+    ${spLine.length ? `<div class="fc-special">${spLine.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : ""}
     <div class="fc-meta">
       ${df.notes.length || fxDamage ? `<div>Premie: ${[...df.notes, fxDamage ? `z cech ${signed(fxDamage)}` : ""].filter(Boolean).map(esc).join(" · ")}</div>` : ""}
       ${sitDamage.length ? `<div>Sytuacyjnie (dolicz ręcznie): ${sitDamage.map(esc).join(" · ")}</div>` : ""}
@@ -340,11 +358,12 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content,
-    rolls: [roll],
+    rolls: [roll, ...extraRolls],
     sound: CONFIG.sounds.dice,
     flags: {
       "foe-rpg": {
         damage: {
+          specials: sp, shockWounds,
           actorUuid: actor.uuid, itemUuid: item.uuid ?? null, itemName: item.name, total, pre, critMult, crit: !!crit, aoe,
           loc: hit?.loc ?? null, called: hit?.called ?? null, table: attack?.table ?? null,
           ignoreDT: Number(w.ignoreDT) || 0, targets

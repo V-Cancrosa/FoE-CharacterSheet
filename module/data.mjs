@@ -303,6 +303,12 @@ export class WeaponData extends FoeItemData {
       crit: str("x1"),
       ignoreDT: num(0, { min: 0 }),
       aoe: new F.SchemaField({ enabled: bool(false), splash: str(""), inc: str(""), radius: str("") }),
+      // specjalne efekty (s. 200–202): ogień i dezintegracja: "" | "hit" (każde trafienie) | "crit" (tylko krytyk)
+      specials: new F.SchemaField({
+        fire: str(""), electric: bool(false), rads: bool(false), disintegrate: str(""), shock: bool(false),
+        poison: str(""), knockdown: bool(false), concealable: bool(false), scoped: bool(false),
+        silenced: bool(false), timed: bool(false), placed: bool(false)
+      }),
       consumable: bool(false),           // granaty, miny: atak zużywa sztukę
       qty: num(1, { min: 0 }),
       mw: bool(false),                   // da się trzymać w pysku

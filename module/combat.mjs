@@ -222,3 +222,51 @@ export function layerPenalties(count) {
 export const overloadSpeed = (weight, carry) => (weight > carry ? 5 * Math.ceil((weight - carry) / 10) : 0);
 /** Skradanie: −5 za każde rozpoczęte 10 lb ponad 50. */
 export const sneakWeightPenalty = weight => (weight > 50 ? 5 * Math.ceil((weight - 50) / 10) : 0);
+
+// ---------- Specjalne efekty broni (s. 200–202) ----------
+export const SPECIALS = {
+  fire: { label: "Ogień", desc: "3d12 na każdą lokację na koniec rundy przez 1d4 rundy; ignoruje pancerz niemetalowy" },
+  electric: { label: "Elektryczność", desc: "na koniec rundy 3d12 na każdą lokację (maszyny 6d12); +6d12 dla robotów; wyłącza PipBucki i pancerze wspomagane" },
+  rads: { label: "Promieniowanie", desc: "25 radów za każde 10 zadanych obrażeń" },
+  disintegrate: { label: "Dezintegracja", desc: "rany na okaleczenie lokacji albo zabójcze trafienie zamieniają cel w popiół" },
+  shock: { label: "Ogłuszenie (shock)", desc: "nie zabija — zamiast śmierci utrata przytomności; krytyk +1d10 ran" },
+  poison: { label: "Trucizna", desc: "rzut END przeciw truciźnie" },
+  knockdown: { label: "Przewraca", desc: "trafienie z co najmniej 1 raną przewraca cel" },
+  concealable: { label: "Ukrywalna", desc: "+10 do Sneak przy ukrywaniu broni" },
+  scoped: { label: "Luneta", desc: "większy przedział zasięgu (już wliczony w broń z katalogu)" },
+  silenced: { label: "Tłumik", desc: "wykrycie strzelca o krok trudniejsze (MFD ½)" },
+  timed: { label: "Zapalnik czasowy", desc: "wybucha po ustawionym czasie" },
+  placed: { label: "Mina", desc: "wybucha, gdy ktoś podejdzie na 5 ft; rozbrojenie Explosives MFD ¾" }
+};
+
+export const POISONS = {
+  "": "brak",
+  radscorpion: "Radskorpion (END ¾, 1 rana na rundę w głowę lub tułów)",
+  manticore: "Mantykora (END ½, paraliż)",
+  other: "Inna (opis broni / MG)"
+};
+
+/** Lista aktywnych efektów broni do znaczników. */
+export function specialList(sp = {}) {
+  return Object.keys(SPECIALS).filter(k => sp[k] && sp[k] !== "none");
+}
+
+/**
+ * Dezintegracja (s. 200): rany tego trafienia okaleczyłyby nietkniętą lokację, trafienie zabija albo urywa kończynę;
+ * broń „crit” zawsze dezintegruje przy krytyku.
+ */
+export function disintegrates({ mode, wounds, now, endT, crit = false }) {
+  if (!mode) return false;
+  if (mode === "crit" && crit) return true;
+  if (!(wounds > 0)) return false;
+  return wounds * 2 >= endT || now >= endT;
+}
+
+/** Promieniowanie: 25 radów za każde pełne 10 obrażeń, minus odporność (%). */
+export function radsFrom(damage, resist = 0) {
+  const raw = Math.floor(Math.max(0, damage) / 10) * 25;
+  return Math.max(0, Math.round(raw * (1 - Math.min(100, Math.max(0, resist)) / 100)));
+}
+
+/** Pancerz metalowy (średni, ciężki, wspomagany) — chroni przed ogniem, jeśli atak go nie przebił. */
+export const isMetalArmor = sys => !!sys && (sys.powered || sys.category === "medium" || sys.category === "heavy");

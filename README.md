@@ -28,6 +28,18 @@ Walka:
 - SATS odnawia się o 5 AP na rundę walki (liczy MG), „Nowa sesja” uzupełnia SATS i karty szczęścia.
 - W ustawieniach świata: losowe lokacje trafień i degradacja pancerza (zasady opcjonalne).
 
+Efekty specjalne broni (s. 200–202) — broń z katalogu ma je ustawione z przypisów podręcznika, własną broń zaznaczasz w jej karcie:
+- Ogień: podpala cel na 1d4 rundy, 3d12 na każdą lokację na koniec rundy (pancerz metalowy chroni, jeśli atak go nie przebił);
+  gaszenie przyciskiem „Ugaś” (AGI ½).
+- Elektryczność: na koniec rundy 3d12 na każdą lokację (pancerz metalowy nie chroni), przeciw robotom +6d12 od razu i 6d12 potem.
+- Promieniowanie: 25 radów za każde 10 obrażeń po DT, minus odporność celu.
+- Dezintegracja (broń energetyczna): rany, które okaleczyłyby lokację, albo trafienie zabójcze zamieniają cel w popiół;
+  pistolet dezintegrujący i Star Disintegrator — zawsze przy krytyku.
+- Ogłuszenie (shock): zamiast śmierci utrata przytomności, krytyk +1d10 ran.
+- Trucizna: radskorpion (END ¾, potem 1 rana na rundę w głowę lub tułów) albo mantykora (END ½, paraliż; „Rzut END” na karcie).
+- Przewracanie (np. karabin Gaussa); znaczniki: ukrywalna, luneta, tłumik, zapalnik, mina.
+Stany widać w zakładce Walka (z przyciskami) i jako ikony na tokenie; w walce działają same przy zmianie rundy.
+
 Pancerz: założony (kwadracik w zakładce Ekwipunek) sam daje DT na lokacjach, które osłania — liczy się najwyższe DT,
 a naturalne DT z cech się dodaje — oraz swoje premie (tymczasowe atrybuty, umiejętności, odporność na promieniowanie, SATS).
 Z każdej kategorii (ubranie, lekki, średni, ciężki) nosi się jedną warstwę; każda kolejna to −1 AGI, a od trzeciej −1 STR.
@@ -40,8 +52,8 @@ w kończynie — jej utrata, 4×END ran łącznie — utrata przytomności.
 Obciążenie: waga broni, pancerzy i ekwipunku (amunicja i kapsle nic nie ważą); przeciążenie −5 ft ruchu za każde
 rozpoczęte 10 lb ponad udźwig, skradanie −5 za każde rozpoczęte 10 lb ponad 50.
 
-Czego NIE ma (jeszcze): kompendia ras i perków poza kreatorem, magia i alchemia, specjalne efekty broni (ogień, trucizna,
-ogłuszenie — są w opisie broni z katalogu), spadek obrażeń z odległością od wybuchu (licz ręcznie), wybór „dodaj/odejmij”
+Czego NIE ma (jeszcze): kompendia ras i perków poza kreatorem, magia i alchemia, unikalne zdolności pojedynczych broni
+(są w opisie broni z katalogu), spadek obrażeń z odległością od wybuchu (licz ręcznie), wybór „dodaj/odejmij”
 do inicjatywy (domyślnie odejmuje).
 
 Kreator postaci: po utworzeniu nowej postaci otwiera się kreator (można go też uruchomić przyciskiem KREATOR na karcie).
