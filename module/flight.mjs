@@ -99,7 +99,8 @@ export async function performManeuver(actor, item) {
   const lim = maneuverLimits(actor);
   if (s.level > lim.maxLevel) ui.notifications.warn(`${item.name}: poziom ${s.level} wymaga rangi Flight ${RANK_FOR_LEVEL[s.level]} (masz ${lim.rank}).`);
   const learning = !s.learned;
-  const attemptsMax = sys.level;
+  // Stubborn Flyer: dwa razy więcej prób (s. 139)
+  const attemptsMax = sys.level * (actor.items.some(i => i.type === "feature" && /stubborn flyer/i.test(i.name)) ? 2 : 1);
   if (learning && s.attempts >= attemptsMax) return warn(`${item.name}: wykorzystano ${s.attempts}/${attemptsMax} prób nauki — kolejna po awansie (każdy poziom to jedna próba więcej).`);
 
   const extraHtml = `<div class="dlg-attack"><div class="atk-info">

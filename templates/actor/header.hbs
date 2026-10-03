@@ -7,6 +7,12 @@
       <div class="row">
         <label>Rasa <input type="text" name="system.race" value="{{system.race}}"></label>
         <label>Poziom <input type="number" name="system.level" value="{{system.level}}"></label>
+        {{#unless isNpc}}{{#if adv.useXp}}<label title="Punkty doświadczenia; następny poziom od {{adv.next}}">PD <input type="number" name="system.xp" value="{{adv.xp}}"><small class="xp-next">/ {{adv.next}}</small></label>{{/if}}
+        <span class="adv-btns">
+          <a class="adv {{#if adv.ready}}ready{{/if}}" data-action="levelUp" title="Awans: punkty umiejętności i perk"><i class="fa-solid fa-arrow-up"></i> Awans</a>
+          {{#if adv.useXp}}<a data-action="awardXp" title="Dodaj PD (Horse Sense +10% liczy się samo)"><i class="fa-solid fa-star"></i> PD</a>{{/if}}
+          {{#if adv.canUndo}}<a data-action="undoLevel" title="Cofnij ostatni awans"><i class="fa-solid fa-rotate-left"></i></a>{{/if}}
+        </span>{{/unless}}
         <label>Karma <input type="number" name="system.karma" value="{{system.karma}}"></label>
         <label>Kapsle <input type="number" name="system.caps" value="{{system.caps}}"></label>
       </div>

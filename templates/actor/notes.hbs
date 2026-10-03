@@ -1,5 +1,8 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="notes">
-  <h3>Cechy, wady, perki, zaklęcia <a data-action="createItem" data-type="feature" title="Dodaj"><i class="fa-solid fa-plus"></i></a></h3>
+  <h3>Cechy, wady, perki, zaklęcia
+    <a data-action="openCatalog" data-tab="perks" title="Perki z podręcznika (wymagania sprawdzają się same)"><i class="fa-solid fa-medal"></i> Perki</a>
+    <a data-action="levelUp" title="Awans: punkty umiejętności i perk"><i class="fa-solid fa-arrow-up"></i> Awans</a>
+    <a class="plus" data-action="createItem" data-type="feature" title="Dodaj"><i class="fa-solid fa-plus"></i></a></h3>
   <ul class="item-list features">
   {{#each features}}
     <li data-item-id="{{id}}" class="{{#unless active}}inactive{{/unless}}">

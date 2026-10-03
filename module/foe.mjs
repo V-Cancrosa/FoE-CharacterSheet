@@ -7,6 +7,7 @@ import { openCatalog, registerCatalogButton, loadCatalog } from "./catalog.mjs";
 import { specialsFrom } from "./catalog-data.mjs";
 import { FoeCombat, registerTrackerHooks, registerTrackerSettings } from "./tracker.mjs";
 import { registerWeatherSettings, registerWeatherHooks, setWeather } from "./weather.mjs";
+import { registerPerkSettings } from "./perks.mjs";
 
 Hooks.once("init", () => {
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData };
@@ -24,6 +25,7 @@ Hooks.once("init", () => {
   registerMagicHooks();
   registerTrackerSettings();
   registerWeatherSettings();
+  registerPerkSettings();
   registerWeatherHooks();
   registerCatalogButton();
   registerDisplaySettings();

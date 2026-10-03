@@ -83,6 +83,18 @@ sekcja „Lot i manewry” w zakładce „Magia i lot”.
 - Upadek (przycisk w zakładkach Walka i Magia): 1d20 na 10 ft (kontrolowany 1d10), ignoruje DT pancerza, lokacja k8 (ze skrzydłami)
   albo k6, powyżej 100 ft — każda lokacja; „Nanieś obrażenia” jak przy broni.
 
+Perki i awansowanie (rozdz. 3, s. 125–149): katalog 177 perków w zakładce „Perki” (filtr „Dostępne dla postaci”),
+przycisk „Awans” w nagłówku karty i w zakładce „Cechy i dane”.
+- Okno awansu: punkty umiejętności 10 + INT/2 (+3 Egghead, +1 kucyk ziemski, −1 Touched by the Sun) rozdajesz
+  przed wyborem perka — lista perków na bieżąco pokazuje, które wymagania spełniasz (✓), których nie (✗) i co ocenia MG (?).
+  Niewydane punkty przepadają, ranga nie przekracza 100; co 3 poziomy +1 obrażeń na ranę liczy się samo.
+- Perki z liczbami działają same (rangi, DT, udźwig, ruch, SATS, odnawianie AP, krytyki, premie sytuacyjne w oknie rzutu);
+  perki z wyborem pytają o atrybut lub umiejętności (Intense Training, Daddy’s/Momma’s Filly, Tag!, D.A.R.E.ing Do).
+  Perki wielokrotne (Intense Training ×3, Tough Hide ×3 — co raz +4 do poziomu, High Ho Silver ×2…) liczą rangi.
+- „Cofnij awans” (strzałka obok przycisku) zabiera punkty, perk i poziom z ostatniego awansu.
+- PD: pole w nagłówku z progiem następnego poziomu (tabela XII — wolna albo szybka, albo bez PD w ustawieniach),
+  przycisk „PD” dodaje doświadczenie (Horse Sense +10%), a „Awans” podświetla się, gdy próg jest osiągnięty.
+
 Pancerz: założony (kwadracik w zakładce Ekwipunek) sam daje DT na lokacjach, które osłania — liczy się najwyższe DT,
 a naturalne DT z cech się dodaje — oraz swoje premie (tymczasowe atrybuty, umiejętności, odporność na promieniowanie, SATS).
 Z każdej kategorii (ubranie, lekki, średni, ciężki) nosi się jedną warstwę; każda kolejna to −1 AGI, a od trzeciej −1 STR.

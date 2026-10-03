@@ -11,6 +11,7 @@ import { castSpell, endMaintained, spellLimits, COST_LABELS } from "./magic.mjs"
 import { RARITY, MODES, modesOf, ingredientStock, prepareRecipe, castRitual, useProduct, searchIngredients, startingRecipes } from "./zebra.mjs";
 import { performManeuver, rollFall, grantStartingManeuvers, maneuverLimits, maneuverCounts, isWeatherManeuver, MFD_LABEL, RANK_FOR_LEVEL } from "./flight.mjs";
 import { currentWeather, weatherSummary } from "./weather.mjs";
+import { levelUp, undoLevelUp, promptAwardXp, xpFor, xpProgression } from "./perks.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -77,6 +78,9 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       performManeuver: FoeActorSheet.#onPerformManeuver,
       rollFall: FoeActorSheet.#onRollFall,
       startManeuvers: FoeActorSheet.#onStartManeuvers,
+      levelUp: FoeActorSheet.#onLevelUp,
+      undoLevel: FoeActorSheet.#onUndoLevel,
+      awardXp: FoeActorSheet.#onAwardXp,
       qty: FoeActorSheet.#onQty
     }
   };
@@ -112,6 +116,12 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.tabs = this._prepareTabs("primary");
     ctx.isNpc = this.document.type === "npc";
     ctx.digSpeed = sys.skills.dig?.known !== false;
+    const prog = xpProgression();
+    const xpNext = prog === "none" ? null : xpFor(sys.level + 1, prog);
+    ctx.adv = {
+      useXp: prog !== "none", xp: sys.xp ?? 0, next: xpNext, ready: xpNext !== null && (sys.xp ?? 0) >= xpNext,
+      canUndo: (this.document.getFlag("foe-rpg", "levelLog") ?? []).length > 0
+    };
     const pct = (v, m) => (m > 0 ? Math.max(0, Math.min(100, Math.round(100 * v / m))) : 0);
     const res = sys.resources;
     ctx.meters = {
@@ -434,6 +444,18 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onRollFall() {
     await rollFall(this.document);
+  }
+
+  static async #onLevelUp() {
+    await levelUp(this.document);
+  }
+
+  static async #onUndoLevel() {
+    await undoLevelUp(this.document);
+  }
+
+  static async #onAwardXp() {
+    await promptAwardXp(this.document);
   }
 
   static async #onStartManeuvers() {

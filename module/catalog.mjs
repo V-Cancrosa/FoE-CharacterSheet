@@ -4,6 +4,7 @@ import { shortFx } from "./effects.mjs";
 import { spellItemData, spellLimits, COST_LABELS } from "./magic.mjs";
 import { recipeItemData, RARITY } from "./zebra.mjs";
 import { maneuverItemData, maneuverWarnings, isWeatherManeuver, MFD_LABEL } from "./flight.mjs";
+import { addPerk, perkStatus, reqView, autoSummary, perkItemData } from "./perks.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -11,8 +12,8 @@ let cache = null;
 /** Katalog z podręcznika (data/catalog.json), wczytywany raz. */
 export function loadCatalog() {
   const get = name => fetch(`systems/${game.system.id}/data/${name}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
-  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => []), get("maneuvers.json").catch(() => [])])
-    .then(([cat, spells, recipes, maneuvers]) => ({ ...cat, spells, recipes, maneuvers }))
+  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => []), get("maneuvers.json").catch(() => []), get("perks.json").catch(() => [])])
+    .then(([cat, spells, recipes, maneuvers, perks]) => ({ ...cat, spells, recipes, maneuvers, perks }))
     .catch(err => { cache = null; throw err; });
   return cache;
 }
@@ -26,8 +27,12 @@ const TABS = {
   recipes: { label: "Receptury zebr", icon: "fa-solid fa-flask", kinds: { L0: "Poziom 0", L1: "Poziom 1", L2: "Poziom 2", L3: "Poziom 3", L4: "Poziom 4" },
     head: ["Poziom", "Użycie", "Składniki", "Specjalny", "Szkoła"] },
   maneuvers: { label: "Manewry lotu", icon: "fa-solid fa-feather", kinds: { L0: "Poziom 0 (ranga < 25)", L1: "Poziom 1 (25)", L2: "Poziom 2 (50)", L3: "Poziom 3 (75)", L4: "Poziom 4 (100)", W: "Pogodowe" },
-    head: ["Poziom", "MFD", "Akcje", "Rodzaj"] }
+    head: ["Poziom", "MFD", "Akcje", "Rodzaj"] },
+  perks: { label: "Perki", icon: "fa-solid fa-medal",
+    kinds: { A: "Dostępne dla postaci", ...Object.fromEntries([2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30].map(l => [`L${l}`, `Poziom ${l}`])) },
+    head: ["Poziom", "Wymagania", "Automatycznie", "Status"] }
 };
+const PERK_STATUS = { ok: "✓ dostępny", unknown: "? sprawdź", fail: "✗", taken: "■ ma" };
 const KIND_LABEL = { active: "", passive: "pasywny", variable: "zmienne MFD", special: "specjalny" };
 
 const SHORT_ATTR = { str: "STR", per: "PER", end: "END", cha: "CHA", int: "INT", agi: "AGI", luck: "LCK" };
@@ -52,7 +57,7 @@ function coverText(list = []) {
   return parts.join(", ");
 }
 
-function rowOf(tab, e, i) {
+function rowOf(tab, e, i, actor = null) {
   if (tab === "spells") {
     const req = e.requirements || "—";
     return {
@@ -64,6 +69,17 @@ function rowOf(tab, e, i) {
     return {
       i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `L${e.level}`, img: "systems/foe-rpg/icons/recipe.svg", qty: 0, noBuy: true,
       cols: [e.level, e.usage || "—", RARITY[e.rarity] ?? e.rarityText ?? "—", e.special || "—", e.school || "—"]
+    };
+  }
+  if (tab === "perks") {
+    const st = actor ? perkStatus(actor, e, reqView(actor)) : null;
+    const req = e.requires || "—";
+    const auto = autoSummary(e.name, FX_LABELS);
+    return {
+      i, name: e.ranks > 1 ? `${e.name} (×${e.ranks})` : e.name, notes: e.desc, search: `${e.name} ${e.alt}`.toLowerCase(),
+      kind: `L${e.level}${st?.status === "ok" ? " A" : ""}`, img: "systems/foe-rpg/icons/perk.svg", qty: 0, noBuy: true,
+      cols: [e.level, req.length > 60 ? `${req.slice(0, 58)}…` : req, auto ? (auto.length > 60 ? `${auto.slice(0, 58)}…` : auto) : "—",
+        st ? `${PERK_STATUS[st.status]}${st.status === "fail" && st.missing.length ? ` ${st.missing.join(", ")}` : ""}` : "—"]
     };
   }
   if (tab === "maneuvers") {
@@ -152,7 +168,7 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     catch (err) { return { ...ctx, error: `Nie udało się wczytać katalogu (${err.message}).` }; }
     const def = TABS[this.tab];
     const list = data[this.tab] ?? [];
-    const rows = list.map((e, i) => rowOf(this.tab, e, i));
+    const rows = list.map((e, i) => rowOf(this.tab, e, i, this.actor));
     const count = k => rows.filter(r => String(r.kind).split(" ").includes(k)).length;
     return {
       ...ctx,
@@ -240,9 +256,15 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     const entry = data[this.tab]?.[Number(row?.dataset.i)];
     if (!entry) return;
     const qty = Math.max(1, Math.floor(Number(row.querySelector("input[name=qty]")?.value) || 1));
-    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : catalogItem(this.tab, entry, qty);
+    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : this.tab === "perks" ? perkItemData(entry) : catalogItem(this.tab, entry, qty);
     const what = qty > 1 ? `${entry.name} ×${qty}` : entry.name;
 
+    if (this.tab === "perks" && this.actor) {
+      if (!this.actor.isOwner) return ui.notifications.warn("Nie jesteś właścicielem tej postaci.");
+      const item = await addPerk(this.actor, entry);
+      if (item) this.render();
+      return;
+    }
     if (!this.actor) {
       if (!game.user.can("ITEM_CREATE")) return ui.notifications.warn("Nie masz uprawnień do tworzenia przedmiotów.");
       const item = await Item.implementation.create(itemData);
