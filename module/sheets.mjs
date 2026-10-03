@@ -5,7 +5,8 @@ import { rollContext, describeFx, shortFx, FX_TYPES, signed } from "./effects.mj
 import { openCreator } from "./creator.mjs";
 import { openCatalog } from "./catalog.mjs";
 import { WEAPON_KINDS } from "./catalog-data.mjs";
-import { LAYER_CATEGORIES, reloadInfo, rangeIncrement, overloadSpeed } from "./combat.mjs";
+import { LAYER_CATEGORIES, reloadInfo, rangeIncrement, overloadSpeed, SPECIALS, POISONS, specialList } from "./combat.mjs";
+import { conditionRows, clearCondition, extinguish, resistParalysis, endOfRound } from "./conditions.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -57,6 +58,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       openCatalog: FoeActorSheet.#onOpenCatalog,
       toggleFeature: FoeActorSheet.#onToggleFeature,
       toggleEquip: FoeActorSheet.#onToggleEquip,
+      clearCondition: FoeActorSheet.#onClearCondition,
+      extinguish: FoeActorSheet.#onExtinguish,
+      resistParalysis: FoeActorSheet.#onResistParalysis,
+      endRound: FoeActorSheet.#onEndRound,
       qty: FoeActorSheet.#onQty
     }
   };
@@ -127,6 +132,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     });
     ctx.endT = sys.attributes.end.total;
     ctx.crippleAt = Math.max(1, Math.ceil(ctx.endT / 2));
+    ctx.conditions = conditionRows(this.document);
     ctx.stateFx = (sys.stateFx ?? []).map(e => `${e.source} — ${shortFx(e, shortLabels())}`);
 
     const items = this.document.items;
@@ -140,6 +146,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         burst: w.shots > 1 ? w.shots : 0,
         reloadLabel: w.reload ? `${w.reload}: ${reloadInfo(w.reload, { energy: w.skill === "energy" }).ap} AP w SATS` : "przeładuj",
         rangeLabel: inc ? `${inc} ft` : w.range || "wręcz",
+        tags: specialList(w.specials).map(k => ({
+          label: k === "fire" && w.specials.fire === "crit" ? "Ogień (kryt.)" : k === "disintegrate" && w.specials.disintegrate === "crit" ? "Dezintegracja (kryt.)" : SPECIALS[k].label,
+          tip: k === "poison" ? POISONS[w.specials.poison] : SPECIALS[k].desc
+        })),
         rangeTip: inc && !w.rangeInc ? `${w.range} przy STR ${str}` : ""
       };
     });
@@ -281,6 +291,22 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     await item.update({ "system.qty": Math.max(0, (Number(item.system.qty) || 0) + (event.shiftKey ? d * 10 : d)) });
   }
 
+  static async #onClearCondition(event, target) {
+    await clearCondition(this.document, target.closest("[data-cond]").dataset.cond);
+  }
+
+  static async #onExtinguish() {
+    await extinguish(this.document);
+  }
+
+  static async #onResistParalysis() {
+    await resistParalysis(this.document);
+  }
+
+  static async #onEndRound() {
+    if (!(await endOfRound(this.document))) ui.notifications.info("Brak stanów działających na koniec rundy.");
+  }
+
   static #onOpenCreator() {
     openCreator(this.document);
   }
@@ -325,6 +351,10 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     ctx.armorCats = ARMOR_CATEGORIES;
     ctx.gearCats = GEAR_CATEGORIES;
     ctx.weaponKinds = { "": "—", ...WEAPON_KINDS };
+    ctx.hitModes = { "": "nie", hit: "przy każdym trafieniu", crit: "tylko przy krytyku" };
+    ctx.poisons = POISONS;
+    ctx.specialChecks = ["electric", "rads", "shock", "knockdown", "concealable", "scoped", "silenced", "timed", "placed"]
+      .map(k => ({ key: k, label: SPECIALS[k].label, desc: SPECIALS[k].desc, on: !!sys.specials?.[k] }));
     ctx.featureKinds = { trait: "Trait", hindrance: "Hindrance", perk: "Perk", spell: "Zaklęcie", other: "Inne" };
     ctx.skillOptions = Object.fromEntries(Object.entries(SKILLS).map(([k, s]) => [k, s.label]));
     if (ctx.isArmor) {

@@ -18,7 +18,7 @@
     {{#each weapons}}
       <tr data-item-id="{{id}}">
         <td><img class="icon" src="{{img}}" alt=""></td>
-        <td class="l"><a class="rollable" data-action="rollWeapon" title="Atak: okno z SATS, odległością i celem">{{name}}</a></td>
+        <td class="l"><a class="rollable" data-action="rollWeapon" title="Atak: okno z SATS, odległością i celem">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span title="{{tip}}">{{label}}</span>{{/each}}</div>{{/if}}</td>
         <td class="hide-narrow">{{skillLabel}}</td>
         <td class="nw"><a class="rollable" data-action="rollDamage" title="Same obrażenia (Shift+klik: krytyk)">{{damage}}</a>{{#if burst}}<small class="sub">/{{burst}}</small>{{/if}}</td>
         <td>{{crit}}</td>
@@ -37,6 +37,20 @@
   </table>
   </div>
   <p class="hint">Kliknij nazwę broni, by zaatakować: w oknie zaznaczysz SATS (zużywa AP i znosi kary otoczenia), odległość, strzał celowany albo losową lokację. Atak sam odejmie amunicję, a karta trafienia ma przyciski obrażeń i nanoszenia ran.</p>
+
+  {{#if conditions.length}}
+  <h3>Stany <a data-action="endRound" title="Zastosuj efekty końca rundy teraz (w walce dzieje się to samo przy zmianie rundy)"><i class="fa-solid fa-hourglass-end"></i> Koniec rundy</a></h3>
+  <ul class="item-list conditions">
+    {{#each conditions}}
+    <li data-cond="{{key}}"><span class="nm">{{label}}</span><span class="cdesc">{{detail}}</span>
+      <span class="ctl">
+        {{#if extinguish}}<a data-action="extinguish" title="Rzut AGI ½ (2 akcje)"><i class="fa-solid fa-fire-extinguisher"></i> Ugaś</a>{{/if}}
+        {{#if resist}}<a data-action="resistParalysis" title="Rzut END ½"><i class="fa-solid fa-dice-d20"></i> Rzut END</a>{{/if}}
+        <a data-action="clearCondition" title="Usuń (antidotum, leczenie, decyzja MG)"><i class="fa-solid fa-xmark"></i></a>
+      </span></li>
+    {{/each}}
+  </ul>
+  {{/if}}
 
   <h3>Rany, okaleczenia i DT</h3>
   <div class="scroll-x">

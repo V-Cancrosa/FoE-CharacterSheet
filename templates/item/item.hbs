@@ -23,6 +23,18 @@
     <label>Obrażenia odłamków / promień <span class="pair"><input type="text" name="system.aoe.splash" value="{{system.aoe.splash}}" placeholder="6d12"> <input type="text" name="system.aoe.radius" value="{{system.aoe.radius}}" placeholder="15 ft"></span></label>
     <label title="O ile kości mniej za każde kolejne 5 ft od epicentrum">Spadek co 5 ft <input type="text" name="system.aoe.inc" value="{{system.aoe.inc}}" placeholder="−2d12"></label>
     {{/if}}
+  </div>
+  <h3>Efekty specjalne</h3>
+  <div class="fields">
+    <label>Ogień <select name="system.specials.fire">{{selectOptions hitModes selected=system.specials.fire}}</select></label>
+    <label>Dezintegracja <select name="system.specials.disintegrate">{{selectOptions hitModes selected=system.specials.disintegrate}}</select></label>
+    <label>Trucizna <select name="system.specials.poison">{{selectOptions poisons selected=system.specials.poison}}</select></label>
+    <div class="cover-grid specials">
+      {{#each specialChecks}}<label class="cover" title="{{desc}}"><input type="checkbox" name="system.specials.{{key}}" {{checked on}}> {{label}}</label>{{/each}}
+    </div>
+    <p class="hint">Ogień, prąd, promieniowanie, dezintegracja, ogłuszenie, trucizna i przewracanie działają przy „Nanieś obrażenia” i na koniec rundy. Pozostałe to znaczniki z opisem (najedź myszą). Broń z katalogu ma je ustawione z przypisów podręcznika.</p>
+  </div>
+  <div class="fields">
     <label title="Granaty, miny: atak zużywa sztukę">Zużywalna (granat, mina) <input type="checkbox" name="system.consumable" {{checked system.consumable}}></label>
     {{#if system.consumable}}<label>Ilość sztuk <input type="number" name="system.qty" value="{{system.qty}}" min="0"></label>{{/if}}
     <label title="(mw) w tabeli — da się trzymać w pysku">Trzymana w pysku (mw) <input type="checkbox" name="system.mw" {{checked system.mw}}></label>

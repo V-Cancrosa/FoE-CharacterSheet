@@ -2,7 +2,8 @@ import { CharacterData, NpcData, WeaponData, ArmorData, GearData, FeatureData } 
 import { FoeActorSheet, FoeItemSheet } from "./sheets.mjs";
 import { registerCombatHooks } from "./attack.mjs";
 import { openCreator } from "./creator.mjs";
-import { openCatalog, registerCatalogButton } from "./catalog.mjs";
+import { openCatalog, registerCatalogButton, loadCatalog } from "./catalog.mjs";
+import { specialsFrom } from "./catalog-data.mjs";
 
 /** W FoE RPG niższa inicjatywa działa pierwsza. */
 class FoeCombat extends Combat {
@@ -61,8 +62,32 @@ function registerCreatorSettings() {
   });
 }
 
+/**
+ * Jednorazowo (MG): broń dodana z katalogu przed v0.6 dostaje efekty specjalne z przypisów podręcznika.
+ */
+Hooks.once("ready", async () => {
+  if (!game.user.isGM || game.settings.get("foe-rpg", "specialsMigrated")) return;
+  try {
+    const cat = await loadCatalog();
+    const byName = new Map(cat.weapons.map(e => [e.name, e]));
+    const fix = items => items.filter(i => i.type === "weapon" && byName.has(i.getFlag("foe-rpg", "catalog"))
+      && !Object.values(i.system.specials ?? {}).some(Boolean))
+      .map(i => ({ _id: i.id, "system.specials": specialsFrom(byName.get(i.getFlag("foe-rpg", "catalog"))) }));
+    for (const actor of game.actors) {
+      const updates = fix(actor.items);
+      if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
+    }
+    const world = fix(game.items);
+    if (world.length) await Item.implementation.updateDocuments(world);
+    await game.settings.set("foe-rpg", "specialsMigrated", true);
+  } catch (err) {
+    console.error("foe-rpg | uzupełnianie efektów broni", err);
+  }
+});
+
 /** Zasady opcjonalne z rozdziału o walce. */
 function registerCombatSettings() {
+  game.settings.register("foe-rpg", "specialsMigrated", { scope: "world", config: false, type: Boolean, default: false });
   game.settings.register("foe-rpg", "randomHitLocations", {
     name: "Losowe lokacje trafień",
     hint: "Zasada opcjonalna (s. 449–450): w oknie ataku domyślnie wybrana jest lokacja losowana k20 wg rasy celu zamiast tułowia. Strzały celowane działają zawsze.",

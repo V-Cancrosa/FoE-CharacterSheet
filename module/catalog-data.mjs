@@ -40,6 +40,34 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};
 const notesHtml = notes => (notes ? `<p>${esc(notes)}</p>` : "");
 const clean = v => (v && v !== "--" && v !== "None" ? String(v) : "");
 
+/** Specjalne efekty broni odczytane z przypisów podręcznika. */
+export function specialsFrom(e) {
+  const n = String(e.notes ?? "");
+  const has = re => re.test(n);
+  const sp = {
+    fire: has(/On critical hits, these weapons deal Fire/i) ? "crit"
+      : has(/\bFire \(see Special|lit on Fire/) ? "hit" : "",
+    electric: has(/\bElectric(ity|al) \(see Special/),
+    rads: has(/\bRads \(see Special/),
+    shock: has(/\bShock \(see Special/),
+    poison: has(/\bPoison \(see Special|Poison \(non-magical|Can be poisoned|Poison and Concealable/) ? "other" : "",
+    knockdown: has(/knock down the target|Knocks back/i),
+    concealable: has(/Concealable/),
+    scoped: has(/Scoped \(see Special/),
+    silenced: has(/Silenced \(see Special/),
+    timed: has(/Timed \(see Special/),
+    placed: /\(placed\)/i.test(e.name ?? "")
+  };
+  // „mogą zachować zaklęcia: ogień, trucizna albo elektryczność” — to wariant broni, nie stały efekt
+  if (has(/retain their enchantments/i)) { sp.fire = ""; sp.electric = false; sp.poison = ""; }
+  // Broń energetyczna bez ognia dezintegruje (przypis ** s. 192), wyjątki: „never disintegrate”, Shock
+  const never = has(/never disintegrate/i);
+  if (has(/always disintegrate an enemy on a critical hit/i)) sp.disintegrate = "crit";
+  else if (!never && (has(/disintegrat/i) || (e.skill === "energy" && !sp.fire && !sp.shock))) sp.disintegrate = "hit";
+  else sp.disintegrate = "";
+  return sp;
+}
+
 export function weaponItem(e) {
   const aoe = !!e.aoe || e.kind === "explosive" || e.kind === "bigGunsAoe";
   const system = {
@@ -48,7 +76,7 @@ export function weaponItem(e) {
     range: e.rangeInc ? `${e.rangeInc} ft` : e.range || "", rangeInc: e.rangeInc || 0,
     crit: e.crit || "x1", ignoreDT: e.ignoreDT || 0,
     aoe: { enabled: aoe, splash: clean(e.splash), inc: clean(e.aoeInc), radius: clean(e.radius) },
-    consumable: e.kind === "explosive", qty: 1,
+    specials: specialsFrom(e), consumable: e.kind === "explosive", qty: 1,
     mw: !!e.mw, weight: e.weight || 0, value: e.value || 0, description: notesHtml(e.notes)
   };
   return { name: e.name, type: "weapon", img: iconFor("weapon", system), system, flags: { "foe-rpg": { catalog: e.name } } };

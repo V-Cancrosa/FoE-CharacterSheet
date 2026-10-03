@@ -3,8 +3,10 @@ import { rollContext } from "./effects.mjs";
 import { promptMfd, rollTest, rollDamage, locationName } from "./rolls.mjs";
 import {
   CALLED_SHOTS, HIT_TABLES, hitTableFor, tableLocations, locationMultiplier, combineMultipliers,
-  rangeIncrement, rangeBands, wieldPenalty, burst, isAoe, isClose, reloadInfo, effectiveDT, woundsFrom
+  rangeIncrement, rangeBands, wieldPenalty, burst, isAoe, isClose, reloadInfo, effectiveDT, woundsFrom,
+  POISONS, disintegrates, radsFrom, isMetalArmor
 } from "./combat.mjs";
+import { setCondition, toggleStatus, poisonCheck, endOfRound } from "./conditions.mjs";
 
 const { DialogV2 } = foundry.applications.api;
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -56,7 +58,8 @@ export async function attackWithWeapon(actor, item) {
   const info = [
     targets.length ? `Cel: <b>${targets.map(t => esc(t.name)).join(", ")}</b>` : "Cel: <i>brak — namierz token (T), żeby obrażenia trafiły od razu do niego</i>",
     w.consumable ? `Sztuk: <b>${w.qty}</b>` : w.ammo.max > 0 ? `Amunicja: <b>${w.ammo.value}/${w.ammo.max}</b>${w.shots > 1 ? ` · seria ${w.shots}${b.lacking ? ` → brakuje ${b.lacking}: <b>${esc(b.formula)}</b>` : ""}` : ""}` : "",
-    aoe ? "Broń obszarowa: przeciw celom normalnej wielkości podstawowe MFD ¾ (s. 451)." : ""
+    aoe ? "Broń obszarowa: przeciw celom normalnej wielkości podstawowe MFD ¾ (s. 451)." : "",
+    w.specials?.silenced ? "Tłumik: wykrycie strzelca o krok trudniejsze (MFD ½)." : ""
   ].filter(Boolean).map(l => `<div>${l}</div>`).join("");
 
   const extraHtml = `
@@ -238,15 +241,16 @@ async function resolveTargets(uuids = []) {
 }
 
 /** Wynik trafienia jednego celu: obrażenia na lokację po DT i rany. */
-export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0, ignoreAll = false }) {
+export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0, ignoreAll = false, bonusWounds = 0 }) {
   const list = where === "all" ? locs : [locOf(where)];
   const dmg = Math.floor(pre * mult);
+  const bonus = where === "all" ? 0 : Math.max(0, bonusWounds);
   return list.filter(k => sys.locations[k]).map(k => {
     const L = sys.locations[k];
     const dtBase = where === "all" || dt === null || dt === "" ? L.dtTotal : Number(dt) || 0;
     const eff = ignoreAll ? 0 : effectiveDT(dtBase, ignore);
     const after = Math.max(0, dmg - eff);
-    const wounds = woundsFrom(after, sys.dmgPerWound);
+    const wounds = woundsFrom(after, sys.dmgPerWound) + bonus;
     return { loc: k, dmg, dt: dtBase, eff, after, wounds, armorDt: L.armorDt, before: L.wounds, now: L.wounds + wounds };
   });
 }
@@ -268,6 +272,7 @@ export async function applyDamage(message) {
   if (denied.length) ui.notifications.info(`Pominięto (brak uprawnień): ${denied.map(t => t.name).join(", ")}.`);
 
   const degradeDefault = !!game.settings.get("foe-rpg", "armorDegradation");
+  const sp = d.specials ?? {};
   const rows = allowed.map((t, i) => {
     const sys = t.actor.system;
     const table = d.table && HIT_TABLES[d.table] ? d.table : hitTableFor(sys.race);
@@ -294,6 +299,7 @@ export async function applyDamage(message) {
         <label class="atk-check"><input type="checkbox" name="all-${r.i}"> <span>Ignoruj całe DT</span></label>
         <div class="dmg-out" data-out="${r.i}"></div>
       </fieldset>`).join("")}
+      ${specialHtml(sp)}
       <label class="atk-row atk-check"><input type="checkbox" name="degrade" ${degradeDefault ? "checked" : ""}>
         <span>Degradacja pancerza</span><small>przebity pancerz traci 1 DT na tej lokacji (zasada opcjonalna)</small></label>
     </div>`;
@@ -306,7 +312,8 @@ export async function applyDamage(message) {
       mult: Math.max(0, Number(el[`mult-${r.i}`].value) || 0),
       dt: el[`dt-${r.i}`].value,
       ignore: Math.max(0, Number(el[`ign-${r.i}`].value) || 0),
-      ignoreAll: !!el[`all-${r.i}`].checked
+      ignoreAll: !!el[`all-${r.i}`].checked,
+      bonusWounds: d.shockWounds ?? 0
     };
   };
   const describe = (r, res) => res.map(x => {
@@ -350,11 +357,20 @@ export async function applyDamage(message) {
       action: "apply", label: "Nanieś", icon: "fa-solid fa-heart-crack", default: true,
       callback: (event, button) => ({
         degrade: !!button.form.elements.degrade?.checked,
+        special: readSpecial(button.form),
         hits: rows.map(r => ({ r, input: read(button.form, r) }))
       })
     }]
   });
   if (!result) return null;
+
+  // Elektryczność przeciw maszynom: +6d12 od razu (s. 200)
+  const special = result.special;
+  let robotRoll = null;
+  if (special.electric && special.robot) {
+    robotRoll = await new Roll("6d12").evaluate();
+    for (const h of result.hits) h.input.pre += robotRoll.total;
+  }
 
   const lines = [];
   for (const { r, input } of result.hits) {
@@ -385,25 +401,113 @@ export async function applyDamage(message) {
 
     const endT = sys.attributes.end.total;
     const total = actor.system.totalWounds;
-    const dead = actor.system.dead;
-    if (dead && !actor.statuses?.has("dead")) await actor.toggleStatusEffect?.("dead", { active: true, overlay: true });
+    const fx = await applySpecials(actor, res, special, d, endT);
+    armorNotes.push(...fx.armor);
+    const dead = fx.dead;
     lines.push(`
       <div class="dmg-res">
         <h4>${esc(r.t.name)}</h4>
         ${describe(r, res)}
         ${armorNotes.length ? `<div class="fc-meta">Pancerz: ${armorNotes.map(esc).join(" · ")}</div>` : ""}
-        <div class="fc-meta">Rany łącznie: ${total}/${4 * endT}${dead ? " · <b class=\"warn\">MARTWY</b>" : actor.system.unconsciousRisk ? " · <b class=\"warn\">traci przytomność: przy każdej akcji rzut END MFD ¾</b>" : ""}</div>
+        ${fx.notes.length ? `<div class="fc-special">${fx.notes.map(n => `<span>${esc(n)}</span>`).join("")}</div>` : ""}
+        <div class="fc-meta">Rany łącznie: ${total}/${4 * endT}${dead ? ` · <b class="warn">${esc(dead)}</b>` : actor.system.unconsciousRisk ? " · <b class=\"warn\">traci przytomność: przy każdej akcji rzut END MFD ¾</b>" : ""}</div>
       </div>`);
   }
 
   return ChatMessage.create({
     speaker: message.speaker,
+    rolls: robotRoll ? [robotRoll] : [],
     content: `
     <div class="foe-card wounds">
+      ${robotRoll ? `<div class="fc-meta">Elektryczność przeciw maszynie: +6d12 = ${robotRoll.total}</div>` : ""}
       <div class="fc-tag"><span>PIPBUCK // RANY</span><span>${esc(d.itemName)}</span></div>
       ${lines.join("")}
     </div>`
   });
+}
+
+// ======================================================================
+// Specjalne efekty broni przy nanoszeniu (s. 200–202)
+// ======================================================================
+
+function specialHtml(sp) {
+  const row = (name, label, desc, checked = true) =>
+    `<label class="atk-row atk-check"><input type="checkbox" name="${name}" ${checked ? "checked" : ""}><span>${label}</span><small>${desc}</small></label>`;
+  const parts = [];
+  if (sp.fire) parts.push(row("sp-fire", "Podpal cel (ogień)", "1d4 rundy po 3d12 na każdą lokację na koniec rundy; pancerz metalowy chroni, jeśli atak go nie przebił"));
+  if (sp.electric) {
+    parts.push(row("sp-electric", "Porażenie prądem", "na koniec rundy 3d12 na każdą lokację (pancerz metalowy nie chroni); wyłącza PipBucka i pancerz wspomagany"));
+    parts.push(row("sp-robot", "Cel to robot / maszyna", "+6d12 teraz i 6d12 na koniec rundy", false));
+  }
+  if (sp.rads) parts.push(row("sp-rads", "Promieniowanie", "25 radów za każde 10 obrażeń po DT (minus odporność celu)"));
+  if (sp.disintegrate) parts.push(row("sp-dis", "Dezintegracja", sp.disintegrate === "crit" ? "krytyk zawsze dezintegruje; inaczej: rany okaleczające lokację albo zabójcze" : "rany okaleczające nietkniętą lokację albo trafienie zabójcze zamieniają cel w popiół"));
+  if (sp.shock) parts.push(row("sp-shock", "Nie zabija (shock)", "zamiast śmierci — utrata przytomności"));
+  if (sp.knockdown) parts.push(row("sp-knock", "Przewraca", "co najmniej 1 rana przewraca cel"));
+  if (sp.poison) parts.push(`<label class="atk-row">Trucizna <select name="sp-poison">${Object.entries(POISONS).map(([k, v]) => `<option value="${k}" ${k === sp.poison ? "selected" : ""}>${v}</option>`).join("")}</select></label>`);
+  return parts.length ? `<div class="dlg-attack dmg-special"><div class="atk-info">Efekty specjalne broni</div>${parts.join("")}</div>` : "";
+}
+
+function readSpecial(form) {
+  const el = form.elements;
+  return {
+    fire: !!el["sp-fire"]?.checked, electric: !!el["sp-electric"]?.checked, robot: !!el["sp-robot"]?.checked,
+    rads: !!el["sp-rads"]?.checked, dis: !!el["sp-dis"]?.checked, shock: !!el["sp-shock"]?.checked,
+    knock: !!el["sp-knock"]?.checked, poison: el["sp-poison"]?.value ?? ""
+  };
+}
+
+/** Skutki specjalne po naniesieniu ran na jeden cel. Zwraca { notes, armor, dead } (dead = tekst stanu albo ""). */
+async function applySpecials(actor, res, special, d, endT) {
+  const notes = [], armor = [];
+  const sp = d.specials ?? {};
+  const hurt = res.some(x => x.after > 0 || x.wounds > 0);
+  const wounded = res.some(x => x.wounds > 0);
+  let dead = "";
+
+  if (special.dis && !special.shock && res.some(x => disintegrates({ mode: sp.disintegrate, wounds: x.wounds, now: x.now, endT, crit: !!d.crit }))) {
+    await toggleStatus(actor, "dead", true);
+    notes.push("DEZINTEGRACJA — cel zamienia się w popiół lub świecącą kałużę");
+    dead = "ZDEZINTEGROWANY";
+  } else if (actor.system.dead) {
+    if (special.shock) {
+      await toggleStatus(actor, "unconscious", true);
+      notes.push("rany zabójcze, ale broń nie zabija — nieprzytomny");
+      dead = "NIEPRZYTOMNY";
+    } else {
+      await toggleStatus(actor, "dead", true);
+      dead = "MARTWY";
+    }
+  }
+  if (special.rads) {
+    const dmg = d.aoe ? Math.max(0, ...res.map(x => x.after)) : res.reduce((t, x) => t + x.after, 0);
+    const rads = radsFrom(dmg, actor.system.radResistTotal ?? 0);
+    if (rads) {
+      await actor.update({ "system.resources.rads.value": (actor.system.resources.rads.value || 0) + rads });
+      notes.push(`+${rads} radów`);
+    }
+  }
+  if (dead && dead !== "NIEPRZYTOMNY") return { notes, armor, dead };
+
+  if (special.fire) {
+    // pancerz metalowy chroni przed podpaleniem, jeśli atak go nie przebił
+    const stopped = res.every(x => x.dmg <= x.armorDt && actor.items.some(i => i.type === "armor" && i.system.equipped && i.system.cover?.[x.loc] && isMetalArmor(i.system)));
+    if (stopped) armor.push("metalowy pancerz zatrzymał ogień");
+    else {
+      const r = await new Roll("1d4").evaluate();
+      await setCondition(actor, "burning", { rounds: r.total });
+      notes.push(`PŁONIE przez ${r.total} ${r.total === 1 ? "rundę" : "rundy"} (gaszenie: AGI ½, 2 akcje)`);
+    }
+  }
+  if (special.electric) {
+    await setCondition(actor, "shocked", { dice: special.robot ? "6d12" : "3d12" });
+    notes.push(`porażenie: ${special.robot ? "6d12" : "3d12"} na każdą lokację na koniec rundy`);
+  }
+  if (special.knock && wounded) {
+    await toggleStatus(actor, "prone", true);
+    notes.push("przewrócony (wstanie: AGI ¾)");
+  }
+  if (special.poison && hurt) notes.push(await poisonCheck(actor, special.poison));
+  return { notes, armor, dead };
 }
 
 // ======================================================================
@@ -451,6 +555,8 @@ export function registerCombatHooks() {
       const actor = c.actor;
       if (!actor || seen.has(actor.uuid)) continue;
       seen.add(actor.uuid);
+      // stany z efektów broni: ogień, prąd, trucizna (koniec poprzedniej rundy)
+      try { await endOfRound(actor); } catch (err) { console.error("foe-rpg | koniec rundy", err); }
       const s = actor.system.resources?.sats;
       if (!s || s.value >= s.max) continue;
       await actor.update({ "system.resources.sats.value": Math.min(s.max, s.value + 5) });
