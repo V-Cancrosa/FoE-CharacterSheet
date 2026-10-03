@@ -856,3 +856,15 @@ body[data-foe-pip="white"] :is(.foe-rpg, .foe-card) img[src*="foe-rpg/icons/"] {
 .foe-rpg .item-list.conditions .ctl a { color: var(--pip-mid); }
 .foe-rpg .dmg-special .atk-info { text-transform: uppercase; }
 .foe-rpg .foe-item .fields .cover-grid label { justify-content: flex-start; text-transform: none; font-size: 13px; color: var(--pip); }
+
+/* v0.7 — tracker walki (sidebar Foundry, poza oknami systemu) */
+.foe-ct { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; margin-top: 2px; font-size: 11px; }
+.foe-ct-pips { display: inline-flex; gap: 4px; }
+.foe-pip {
+  display: inline-block; width: 11px; height: 11px; cursor: pointer;
+  border: 1px solid #4dff8a; border-radius: 2px; background: #4dff8a; box-shadow: 0 0 4px rgba(77, 255, 138, .6);
+}
+.foe-pip.used { background: transparent; box-shadow: none; opacity: .55; }
+.foe-ct-tag { padding: 0 4px; border: 1px solid rgba(77, 255, 138, .5); color: #8dffb4; line-height: 1.4; white-space: nowrap; }
+.foe-ct-tag.surprised { border-color: #ff6a4d; color: #ff8a70; }
+button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12px; }
