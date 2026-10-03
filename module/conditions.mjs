@@ -1,5 +1,6 @@
 import { rollTest, locationName } from "./rolls.mjs";
 import { hitTableFor, tableLocations, effectiveDT, woundsFrom, isMetalArmor } from "./combat.mjs";
+import { spendActions } from "./tracker.mjs";
 
 /**
  * Stany z efektów specjalnych broni (s. 200–202), zapisane we flagach aktora `foe-rpg.conditions`:
@@ -131,6 +132,7 @@ const passed = r => r === "success" || r === "crit-success";
 
 /** Gaszenie się: AGI MFD ½ (dwie akcje), sukces gasi ogień. */
 export async function extinguish(actor) {
+  await spendActions(actor, 2, "gaszenie ognia");
   const res = await quickTest(actor, "Gaszenie ognia (AGI, 2 akcje)", actor.system.attributes.agi.tn, "1/2");
   if (passed(res)) { await clearCondition(actor, "burning"); ui.notifications.info(`${actor.name}: ogień ugaszony.`); }
 }

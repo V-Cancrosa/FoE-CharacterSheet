@@ -196,7 +196,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       crit: sys.critRange ?? { success: 5, fail: 5 },
       critFailFrom: 101 - (sys.critRange?.fail ?? 5),
       strainBonus: sys.strainBonus ? signed(sys.strainBonus) : "",
-      damage: fx.damage ? signed(fx.damage) : ""
+      damage: fx.damage ? signed(fx.damage) : "",
+      initFx: sys.initFx > 0 ? `− ${sys.initFx} (cechy)` : sys.initFx < 0 ? `+ ${-sys.initFx} (cechy)` : ""
     };
     ctx.weight = sys.weight;
     ctx.notesHTML = await foundry.applications.ux.TextEditor.implementation.enrichHTML(sys.notes, { relativeTo: this.document });
