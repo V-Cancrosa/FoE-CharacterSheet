@@ -165,7 +165,10 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
     this.resources.luck.max = Math.max(0, Math.max(3, Math.ceil(a.luck.total / 2) + 2) + this.fx.luckCards);
     this.strainBonus = this.fx.strain;
     this.dmgPerWound = Math.min(20, 10 + Math.floor(this.level / 3)) + this.woundBonus + this.fx.wound;
-    this.initMod = Math.floor(a.agi.tn / 4) + this.fx.initiative;
+    // Inicjatywa: d100 ± próg AGI ¼ (gracz wybiera po rzucie) − premie z cech (s. 436)
+    this.initAgi = Math.floor(a.agi.tn / 4);
+    this.initFx = this.fx.initiative;
+    this.initMod = this.initAgi + this.initFx;
     this.radResistTotal = this.radResist + this.fx.radResist;
     this.critRange = { success: 5 + this.fx.critSuccess, fail: 5 + this.fx.critFail };
 

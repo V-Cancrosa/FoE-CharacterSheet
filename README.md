@@ -4,7 +4,14 @@ Nieoficjalny, fanowski. Zasady: Fallout: Equestria RPG System Core Rulebook v1.2
 Co działa: S.P.E.C.I.A.L. z progami MFD, 17 umiejętności (baza = 2×ATR + Luck/2 + 2, min 5; tag +15; próg MFD 1 = ranga + ATR×5),
 rzut d100 pod próg z wyborem MFD (2 … 1/10) i modyfikatorem, krytyki 1–5 / 96–100, poziom osiągnięty do rzutów przeciwstawnych,
 przerzut za kartę szczęścia z czatu (+5% zakresu krytyków za każdy przerzut), SATS, karty szczęścia, strain, rady,
-rany, okaleczenia i DT na lokacjach, bronie, pancerze, ekwipunek, cechy/perki, inicjatywa d100 − ¼ progu AGI (niższa działa pierwsza).
+rany, okaleczenia i DT na lokacjach, bronie, pancerze, ekwipunek, cechy/perki.
+
+Inicjatywa i tracker walki (s. 436–437): d100, a po rzucie gracz wybiera, czy odjąć (szybciej), czy dodać (później)
+próg AGI ¼ albo własną wartość; premie i kary z cech liczą się same, niższa inicjatywa działa pierwsza, remis — wyższe AGI.
+MG rzucający za NPC i „rzuć wszystkim” odejmuje automatycznie. W trackerze każdy walczący ma 2 kropki akcji
+(atak, przeładowanie i gaszenie odhaczają je same, kliknięcie odhacza ręcznie, nowa runda je odnawia).
+Przycisk „Zaskoczenie” w trackerze: zaskoczeni nie działają, atakujący mają 1 akcję, po tej rundzie wszyscy rzucają od nowa.
+Zasada opcjonalna w ustawieniach: ten sam rząd dziesiątek inicjatywy = akcje jednoczesne (tracker je oznacza).
 
 Katalog przedmiotów: 182 bronie, 288 ubrań, pancerzy, hełmów i akcesoriów oraz 722 przedmioty z podręcznika
 (amunicja, leki i używki, jedzenie, książki, PipBucki, siodła bojowe…). Przycisk KATALOG na karcie postaci (zakładki
@@ -53,8 +60,7 @@ Obciążenie: waga broni, pancerzy i ekwipunku (amunicja i kapsle nic nie ważą
 rozpoczęte 10 lb ponad udźwig, skradanie −5 za każde rozpoczęte 10 lb ponad 50.
 
 Czego NIE ma (jeszcze): kompendia ras i perków poza kreatorem, magia i alchemia, unikalne zdolności pojedynczych broni
-(są w opisie broni z katalogu), spadek obrażeń z odległością od wybuchu (licz ręcznie), wybór „dodaj/odejmij”
-do inicjatywy (domyślnie odejmuje).
+(są w opisie broni z katalogu), spadek obrażeń z odległością od wybuchu (licz ręcznie).
 
 Kreator postaci: po utworzeniu nowej postaci otwiera się kreator (można go też uruchomić przyciskiem KREATOR na karcie).
 - Postać gracza, 5 kroków według rozdziału 2 podręcznika: rasa (premie do atrybutów i umiejętności, umiejętności rasowe),

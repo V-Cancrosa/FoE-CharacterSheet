@@ -7,6 +7,7 @@ import {
   POISONS, disintegrates, radsFrom, isMetalArmor
 } from "./combat.mjs";
 import { setCondition, toggleStatus, poisonCheck, endOfRound } from "./conditions.mjs";
+import { spendActions } from "./tracker.mjs";
 
 const { DialogV2 } = foundry.applications.api;
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -129,6 +130,7 @@ export async function attackWithWeapon(actor, item) {
     if (cur < cost) return warn(`Za mało AP w SATS (${cur}/${cost}).`);
     await actor.update({ "system.resources.sats.value": cur - cost });
   }
+  await spendActions(actor, 1, ex.sats ? "SATS" : "atak");
   if (w.consumable) await item.update({ "system.qty": Math.max(0, (Number(item.system.qty) || 0) - 1) });
   else if (w.ammo.max > 0) await item.update({ "system.ammo.value": Math.max(0, item.system.ammo.value - b.use) });
 
@@ -192,6 +194,11 @@ export async function reloadWeapon(actor, item) {
     const cur = actor.system.resources.sats.value;
     if (cur < ri.ap) return warn(`Za mało AP w SATS (${cur}/${ri.ap}).`);
     await actor.update({ "system.resources.sats.value": cur - ri.ap });
+  } else {
+    await spendActions(actor, 1, "przeładowanie");
+  }
+  if (choice === "sats") {
+    // pełny magazynek
   } else if (ri.action === "half") {
     amount = Math.min(missing, Math.ceil(w.ammo.max / 2));
   } else if (ri.action === "breech") {

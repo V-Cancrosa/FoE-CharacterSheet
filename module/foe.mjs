@@ -4,22 +4,13 @@ import { registerCombatHooks } from "./attack.mjs";
 import { openCreator } from "./creator.mjs";
 import { openCatalog, registerCatalogButton, loadCatalog } from "./catalog.mjs";
 import { specialsFrom } from "./catalog-data.mjs";
-
-/** W FoE RPG niższa inicjatywa działa pierwsza. */
-class FoeCombat extends Combat {
-  _sortCombatants(a, b) {
-    const ia = Number.isNumeric(a.initiative) ? a.initiative : Infinity;
-    const ib = Number.isNumeric(b.initiative) ? b.initiative : Infinity;
-    return (ia - ib) || (b.actor?.system.attributes?.agi.total ?? 0) - (a.actor?.system.attributes?.agi.total ?? 0)
-      || (a.id > b.id ? 1 : -1);
-  }
-}
+import { FoeCombat, registerTrackerHooks, registerTrackerSettings } from "./tracker.mjs";
 
 Hooks.once("init", () => {
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData };
   CONFIG.Item.dataModels = { weapon: WeaponData, armor: ArmorData, gear: GearData, feature: FeatureData };
   CONFIG.Combat.documentClass = FoeCombat;
-  // d100 minus ¼ progu Agility (gracz może zamiast tego dodać — wtedy popraw ręcznie)
+  // d100 − ¼ progu Agility; FoeCombat.rollInitiative pyta gracza: odjąć czy dodać (s. 436)
   CONFIG.Combat.initiative = { formula: "1d100 - @initMod", decimals: 0 };
 
   const { Actors, Items } = foundry.documents.collections;
@@ -27,6 +18,8 @@ Hooks.once("init", () => {
   Items.registerSheet("foe-rpg", FoeItemSheet, { makeDefault: true, label: "FoE: przedmiot" });
 
   registerCombatHooks();
+  registerTrackerHooks();
+  registerTrackerSettings();
   registerCatalogButton();
   registerDisplaySettings();
   registerCreatorSettings();
