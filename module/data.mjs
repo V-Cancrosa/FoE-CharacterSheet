@@ -101,6 +101,7 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       karma: num(0),
       caps: num(0),
       race: new F.StringField({ initial: "" }),
+      altitude: num(0, { min: 0 }),            // wysokość lotu w ft
       notes: new F.HTMLField({ initial: "" })
     };
   }
@@ -241,8 +242,12 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       overSpeed ? `przeciążenie: −${overSpeed} ft` : ""
     ].filter(Boolean);
     this.flySpeed = Math.floor((5 * agi * (100 + pct("fly")) / 100) / 5) * 5;
-    this.canFly = !L.wings.isCrippled;
-    if (this.overload > 0) this.flySpeed = Math.min(this.flySpeed, this.speed);
+    // Lot (s. 379, 444): wymaga rasowej umiejętności Flight; przeciążenie uziemia, okaleczone skrzydła nie niosą
+    const flightless = items.some(i => i.type === "feature" && i.system?.active !== false && /flightless|stubby little/i.test(i.name));
+    this.flier = this.skills.flight?.known !== false;
+    this.canFly = this.flier && !flightless && !L.wings.isCrippled && this.overload <= 0;
+    this.flyNote = !this.flier ? "" : flightless ? "nie lata (wada)" : L.wings.isCrippled ? "skrzydła okaleczone" : this.overload > 0 ? "przeciążenie — uziemiony" : "";
+    this.flightLoad = Math.max(0, Math.round(this.weight - 100));
 
     // Efekty stanu → rzuty (effects.mjs → actorEffects): okaleczenia (s. 443–446, 462) i ciężar przy skradaniu
     const st = [];
@@ -254,6 +259,7 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       add("mfdStep", "bigGuns", -badLegs, `Okaleczone nogi (${badLegs}) — siodło bojowe`);
     }
     if (L.wings.isCrippled) add("mfdStep", "flight", -2, "Okaleczone skrzydła");
+    add("skillRoll", "flight", -this.flightLoad, `Ciężar ponad 100 lb (${this.weight} lb)`);
     const otherCrippled = Object.keys(L).filter(k => k !== "horn" && L[k].isCrippled).length;
     add("mfdStep", "magic", -(L.horn.isCrippled ? 2 : 0) - otherCrippled, "Okaleczenia (zaklęcia)");
     add("skillRoll", "sneak", -this.sneakPenalty, `Obciążenie ${this.weight} lb`);
@@ -416,11 +422,19 @@ export class SpellData extends FoeItemData {
       precursorFor: str(""),
       learn: num(0, { min: 0, max: 95 }),     // procent nauki (zasada zalecana, s. 246)
       // magia zebr (s. 327–332): receptura zamiast zaklęcia
-      tradition: str("unicorn"),              // unicorn | zebra
+      tradition: str("unicorn"),              // unicorn | zebra | flight
       usage: str(""),                         // Drink, Throw, Apply, Worn, Cast…
       rarity: num(1, { min: 1, max: 4 }),     // rzadkość składników: 1 niska … 4 bardzo wysoka
       special: str(""),                       // składnik specjalny
       school: str(""),                        // Alchemy, Ritual, Talisman
+      // magia lotu (s. 379–394): manewr zamiast zaklęcia
+      mfd: str("1"),                          // MFD wykonania
+      kind: str("active"),                    // active | passive | variable | special
+      tag: str(""),                           // dodge (unik powietrzny) | block
+      actions: num(1, { min: 0 }),            // ile akcji zajmuje
+      requires: str(""),
+      learned: bool(false),                   // opanowany (udany rzut przy nauce z karą 3 kroków)
+      attempts: num(0, { min: 0 }),           // zużyte próby nauki (limit = poziom postaci)
       description: desc()
     };
   }

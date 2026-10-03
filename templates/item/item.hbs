@@ -63,7 +63,16 @@
   {{/if}}
   {{#if isSpell}}
     <label title="Jednorożce/alikorny płacą strain, zebry — składnikami">Tradycja <select name="system.tradition">{{selectOptions traditions selected=system.tradition}}</select></label>
-    <label>Poziom {{#if isRecipe}}receptury{{else}}zaklęcia{{/if}} <select name="system.level" data-dtype="Number">{{selectOptions spellLevels selected=system.level}}</select></label>
+    <label>Poziom {{#if isRecipe}}receptury{{else if isManeuver}}manewru{{else}}zaklęcia{{/if}} <select name="system.level" data-dtype="Number">{{selectOptions spellLevels selected=system.level}}</select></label>
+  {{/if}}
+  {{#if isManeuver}}
+    <label>MFD wykonania <select name="system.mfd">{{selectOptions mfdSteps selected=system.mfd}}</select></label>
+    <label>Rodzaj <select name="system.kind">{{selectOptions maneuverKinds selected=system.kind}}</select></label>
+    <label title="Unik powietrzny zastępuje zwykły unik">Obrona <select name="system.tag">{{selectOptions maneuverTags selected=system.tag}}</select></label>
+    <label title="0 = nie zajmuje akcji (np. Hover)">Akcje <input type="number" name="system.actions" value="{{system.actions}}" min="0"></label>
+    <label title="Opanowany: udany rzut przy nauce (z karą 3 kroków MFD)">Opanowany <input type="checkbox" name="system.learned" {{checked system.learned}}></label>
+    <label title="Limit prób nauki = poziom postaci">Zużyte próby nauki <input type="number" name="system.attempts" value="{{system.attempts}}" min="0"></label>
+    <label>Wymagania <input type="text" name="system.requires" value="{{system.requires}}"></label>
   {{/if}}
   {{#if isRecipe}}
     <label title="Drink, Throw, Apply, Worn, Cast — oddzielone przecinkami">Sposób użycia <input type="text" name="system.usage" value="{{system.usage}}" placeholder="np. Drink, Throw"></label>

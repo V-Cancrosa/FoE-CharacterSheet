@@ -249,13 +249,13 @@ async function resolveTargets(uuids = []) {
 }
 
 /** Wynik trafienia jednego celu: obrażenia na lokację po DT i rany. */
-export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0, ignoreAll = false, bonusWounds = 0 }) {
+export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0, ignoreAll = false, bonusWounds = 0, armorless = false }) {
   const list = where === "all" ? locs : [locOf(where)];
   const dmg = Math.floor(pre * mult);
   const bonus = where === "all" ? 0 : Math.max(0, bonusWounds);
   return list.filter(k => sys.locations[k]).map(k => {
     const L = sys.locations[k];
-    const dtBase = where === "all" || dt === null || dt === "" ? L.dtTotal : Number(dt) || 0;
+    const dtBase = where === "all" || dt === null || dt === "" ? (armorless ? L.naturalDt : L.dtTotal) : Number(dt) || 0;
     const eff = ignoreAll ? 0 : effectiveDT(dtBase, ignore);
     const after = Math.max(0, dmg - eff);
     const wounds = woundsFrom(after, sys.dmgPerWound) + bonus;
@@ -279,7 +279,9 @@ export async function applyDamage(message) {
   if (!allowed.length) return warn(`Nie możesz zmieniać ${tokens.map(t => t.name).join(", ")} — poproś MG, żeby kliknął „Nanieś obrażenia” na tej karcie.`);
   if (denied.length) ui.notifications.info(`Pominięto (brak uprawnień): ${denied.map(t => t.name).join(", ")}.`);
 
-  const degradeDefault = !!game.settings.get("foe-rpg", "armorDegradation");
+  const degradeDefault = !d.noDegrade && !!game.settings.get("foe-rpg", "armorDegradation");
+  // Upadek ignoruje DT pancerza — zostaje naturalne DT z cech (s. 579)
+  const dtOf = (sys, v) => (d.ignoreArmor ? sys.locations[locOf(v)]?.naturalDt : sys.locations[locOf(v)]?.dtTotal) ?? 0;
   const sp = d.specials ?? {};
   const rows = allowed.map((t, i) => {
     const sys = t.actor.system;
@@ -293,7 +295,7 @@ export async function applyDamage(message) {
     return { t, i, sys, table, locs, opts, sel };
   });
 
-  const defMult = v => (d.aoe || v === "all" ? 1 : combineMultipliers(d.critMult ?? 1, locationMultiplier(locOf(v), calledOf(v))));
+  const defMult = v => (d.aoe || d.flatMult || v === "all" ? 1 : combineMultipliers(d.critMult ?? 1, locationMultiplier(locOf(v), calledOf(v))));
   const content = `
     <div class="foe-dialog dmg-apply">
       <div class="atk-info"><div>${esc(d.itemName)}: <b>${d.pre}</b> obrażeń przed mnożnikami${d.crit ? " (krytyk)" : ""}${d.ignoreDT ? ` · ignoruje ${d.ignoreDT} DT` : ""}</div></div>
@@ -302,7 +304,7 @@ export async function applyDamage(message) {
         <legend>${esc(r.t.name)} <small>${r.sys.dmgPerWound} obr. = 1 rana · END ${r.sys.attributes.end.total}</small></legend>
         <label>Lokacja <select name="loc-${r.i}">${r.opts.map(o => `<option value="${o.v}" ${o.v === r.sel ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></label>
         <label>Mnożnik <input type="number" name="mult-${r.i}" value="${defMult(r.sel)}" step="0.5" min="0"></label>
-        <label class="dt-row">DT <input type="number" name="dt-${r.i}" value="${r.sel === "all" ? "" : r.sys.locations[locOf(r.sel)]?.dtTotal ?? 0}" ${r.sel === "all" ? "disabled placeholder=\"wg lokacji\"" : ""}></label>
+        <label class="dt-row">DT <input type="number" name="dt-${r.i}" value="${r.sel === "all" ? "" : dtOf(r.sys, r.sel)}" ${r.sel === "all" ? "disabled placeholder=\"wg lokacji\"" : ""}></label>
         <label>Ignoruje DT <input type="number" name="ign-${r.i}" value="${d.ignoreDT ?? 0}" min="0"></label>
         <label class="atk-check"><input type="checkbox" name="all-${r.i}"> <span>Ignoruj całe DT</span></label>
         <div class="dmg-out" data-out="${r.i}"></div>
@@ -321,7 +323,8 @@ export async function applyDamage(message) {
       dt: el[`dt-${r.i}`].value,
       ignore: Math.max(0, Number(el[`ign-${r.i}`].value) || 0),
       ignoreAll: !!el[`all-${r.i}`].checked,
-      bonusWounds: d.shockWounds ?? 0
+      bonusWounds: d.shockWounds ?? 0,
+      armorless: !!d.ignoreArmor
     };
   };
   const describe = (r, res) => res.map(x => {
@@ -342,7 +345,7 @@ export async function applyDamage(message) {
           el[`mult-${r.i}`].value = defMult(v);
           const dtIn = el[`dt-${r.i}`];
           dtIn.disabled = v === "all";
-          dtIn.value = v === "all" ? "" : r.sys.locations[locOf(v)]?.dtTotal ?? 0;
+          dtIn.value = v === "all" ? "" : dtOf(r.sys, v);
           dtIn.placeholder = v === "all" ? "wg lokacji" : "";
         }
         const out = form.querySelector(`[data-out="${r.i}"]`);

@@ -3,6 +3,7 @@ import { SKILLS, LOCATIONS } from "./data.mjs";
 import { shortFx } from "./effects.mjs";
 import { spellItemData, spellLimits, COST_LABELS } from "./magic.mjs";
 import { recipeItemData, RARITY } from "./zebra.mjs";
+import { maneuverItemData, maneuverWarnings, isWeatherManeuver, MFD_LABEL } from "./flight.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -10,8 +11,8 @@ let cache = null;
 /** Katalog z podręcznika (data/catalog.json), wczytywany raz. */
 export function loadCatalog() {
   const get = name => fetch(`systems/${game.system.id}/data/${name}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
-  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => [])])
-    .then(([cat, spells, recipes]) => ({ ...cat, spells, recipes }))
+  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => []), get("maneuvers.json").catch(() => [])])
+    .then(([cat, spells, recipes, maneuvers]) => ({ ...cat, spells, recipes, maneuvers }))
     .catch(err => { cache = null; throw err; });
   return cache;
 }
@@ -23,8 +24,11 @@ const TABS = {
   spells: { label: "Zaklęcia", icon: "fa-solid fa-hat-wizard", kinds: { L0: "Poziom 0", L1: "Poziom 1", L2: "Poziom 2", L3: "Poziom 3", L4: "Poziom 4" },
     head: ["Poziom", "Strain", "SATS", "Od poz.", "Wymagania"] },
   recipes: { label: "Receptury zebr", icon: "fa-solid fa-flask", kinds: { L0: "Poziom 0", L1: "Poziom 1", L2: "Poziom 2", L3: "Poziom 3", L4: "Poziom 4" },
-    head: ["Poziom", "Użycie", "Składniki", "Specjalny", "Szkoła"] }
+    head: ["Poziom", "Użycie", "Składniki", "Specjalny", "Szkoła"] },
+  maneuvers: { label: "Manewry lotu", icon: "fa-solid fa-feather", kinds: { L0: "Poziom 0 (ranga < 25)", L1: "Poziom 1 (25)", L2: "Poziom 2 (50)", L3: "Poziom 3 (75)", L4: "Poziom 4 (100)", W: "Pogodowe" },
+    head: ["Poziom", "MFD", "Akcje", "Rodzaj"] }
 };
+const KIND_LABEL = { active: "", passive: "pasywny", variable: "zmienne MFD", special: "specjalny" };
 
 const SHORT_ATTR = { str: "STR", per: "PER", end: "END", cha: "CHA", int: "INT", agi: "AGI", luck: "LCK" };
 const FX_LABELS = {
@@ -60,6 +64,15 @@ function rowOf(tab, e, i) {
     return {
       i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `L${e.level}`, img: "systems/foe-rpg/icons/recipe.svg", qty: 0, noBuy: true,
       cols: [e.level, e.usage || "—", RARITY[e.rarity] ?? e.rarityText ?? "—", e.special || "—", e.school || "—"]
+    };
+  }
+  if (tab === "maneuvers") {
+    const weather = isWeatherManeuver(e.name);
+    return {
+      i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: weather ? `L${e.level} W` : `L${e.level}`,
+      img: `systems/foe-rpg/icons/${weather ? "cloud" : "wing"}.svg`, qty: 0, noBuy: true,
+      cols: [e.level, e.mfd ? MFD_LABEL[e.mfd] ?? e.mfd : "—", e.kind === "passive" ? "—" : e.actions,
+        [KIND_LABEL[e.kind], e.tag === "dodge" ? "unik powietrzny" : e.tag === "block" ? "blok powietrzny" : "", weather ? "pogoda" : "", e.requires ? e.requires.replace(/^Requires/i, "wymaga") : ""].filter(Boolean).join(", ") || "—"]
     };
   }
   const base = { i, name: e.name, notes: e.notes ?? "", search: e.name.toLowerCase(), price: e.value ?? 0 };
@@ -139,13 +152,14 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     catch (err) { return { ...ctx, error: `Nie udało się wczytać katalogu (${err.message}).` }; }
     const def = TABS[this.tab];
     const list = data[this.tab] ?? [];
-    const count = k => list.filter(e => (e.kind ?? e.category) === k).length;
+    const rows = list.map((e, i) => rowOf(this.tab, e, i));
+    const count = k => rows.filter(r => String(r.kind).split(" ").includes(k)).length;
     return {
       ...ctx,
       tabs: Object.entries(TABS).map(([id, t]) => ({ id, label: t.label, icon: t.icon, count: data[id]?.length ?? 0, active: id === this.tab })),
       kinds: Object.entries(def.kinds).map(([v, l]) => ({ v, label: l, n: count(v), sel: v === this.kind })).filter(k => k.n),
       head: def.head,
-      rows: list.map((e, i) => rowOf(this.tab, e, i)),
+      rows,
       search: this.search,
       actor: this.actor,
       caps: this.actor?.system.caps ?? 0,
@@ -163,7 +177,7 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
       let shown = 0, all = 0;
       for (const tr of root.querySelectorAll("tr[data-i]")) {
         all++;
-        const ok = (!this.kind || tr.dataset.kind === this.kind) && (!q || tr.dataset.name.includes(q));
+        const ok = (!this.kind || tr.dataset.kind.split(" ").includes(this.kind)) && (!q || tr.dataset.name.includes(q));
         tr.hidden = !ok;
         if (ok) shown++;
       }
@@ -193,7 +207,7 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!a.system.caster) warns.push("postać nie rzuca zaklęć jednorożców");
     if (entry.levelReq && a.system.level < entry.levelReq) warns.push(`wymaga poziomu ${entry.levelReq}`);
     const lim = spellLimits(a)[entry.level];
-    const have = a.items.filter(i => i.type === "spell" && i.system.tradition !== "zebra" && i.system.level === entry.level).length;
+    const have = a.items.filter(i => i.type === "spell" && (i.system.tradition ?? "unicorn") === "unicorn" && i.system.level === entry.level).length;
     if (lim !== undefined && have >= lim) warns.push(`limit zaklęć poziomu ${entry.level}: ${lim}`);
     await a.createEmbeddedDocuments("Item", [itemData]);
     ui.notifications[warns.length ? "warn" : "info"](`${a.name}: dodano zaklęcie ${entry.name}${warns.length ? ` (uwaga: ${warns.join("; ")})` : ""}.`);
@@ -210,13 +224,23 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     ui.notifications[warns.length ? "warn" : "info"](`${a.name}: dodano recepturę ${entry.name}${warns.length ? ` (uwaga: ${warns.join("; ")})` : ""}.`);
   }
 
+  /** Manewr lotu: ostrzega o randze, limitach (ranga/10, AGI) i wymaganiach. */
+  async #learnManeuver(entry, itemData) {
+    const a = this.actor;
+    if (a.items.some(i => i.type === "spell" && i.name === entry.name)) return ui.notifications.info(`${a.name} zna już ${entry.name}.`);
+    const warns = maneuverWarnings(a, entry);
+    await a.createEmbeddedDocuments("Item", [itemData]);
+    const learn = itemData.system.learned ? "" : " Zanim go użyjesz bez kary, trzeba go opanować (rzut z karą 3 kroków).";
+    ui.notifications[warns.length ? "warn" : "info"](`${a.name}: dodano manewr ${entry.name}${warns.length ? ` (uwaga: ${warns.join("; ")})` : ""}.${learn}`);
+  }
+
   async #acquire(target, buy) {
     const row = target.closest("[data-i]");
     const data = await loadCatalog();
     const entry = data[this.tab]?.[Number(row?.dataset.i)];
     if (!entry) return;
     const qty = Math.max(1, Math.floor(Number(row.querySelector("input[name=qty]")?.value) || 1));
-    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : catalogItem(this.tab, entry, qty);
+    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : catalogItem(this.tab, entry, qty);
     const what = qty > 1 ? `${entry.name} ×${qty}` : entry.name;
 
     if (!this.actor) {
@@ -227,6 +251,7 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!this.actor.isOwner) return ui.notifications.warn("Nie jesteś właścicielem tej postaci.");
     if (this.tab === "spells") return this.#learnSpell(entry, itemData);
     if (this.tab === "recipes") return this.#learnRecipe(entry, itemData);
+    if (this.tab === "maneuvers") return this.#learnManeuver(entry, itemData);
 
     if (buy) {
       const price = priceOf(entry, qty);

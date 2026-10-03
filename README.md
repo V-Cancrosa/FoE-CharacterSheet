@@ -71,6 +71,18 @@ Magia zebr i alchemia (s. 327–332): katalog 128 receptur w zakładce „Recept
 - „Szukaj składników”: Survival albo Magic, MFD zależy od terenu (tabela XXV), każdy stopień rzadkości o krok trudniej, sukces = 1d4 składników.
 - Kreator przypomina, ile receptur poziomu 0–1 zebra wybiera na start (ranga Magic / 10, maks. 5).
 
+Pegazy, lot i magia pogody (s. 379–394, 579, 628): katalog 53 manewrów lotu w zakładce „Manewry lotu” (filtr „Pogodowe”),
+sekcja „Lot i manewry” w zakładce „Magia i lot”.
+- Lot: 5×AGI ft na akcję, pole wysokości; przeciążenie uziemia, okaleczone skrzydła nie niosą, każdy funt ponad 100 lb to −1 do Flight.
+- Manewry: kliknięcie = rzut Flight na MFD manewru (akcje liczą się w trackerze). Nowy manewr najpierw się opanowuje:
+  rzut z karą 3 kroków, liczba prób = poziom postaci. Pasywne działają zawsze; Second Wind od razu odnawia AP.
+- Limity (ostrzeżenia przy dodawaniu): ranga Flight / 10 manewrów, poziomy od rang 25/50/75/100, poziom 2 — AGI, 3 — AGI/3, 4 — jeden,
+  jeden pasywny na poziom; Flight School Dropout i Ace Flyer zmieniają limity. Kreator daje lotnikom manewry poziomu 0.
+- Pogoda: MG wybiera ją w zakładce walki (albo w ustawieniach). Modyfikatory z tabeli podręcznika same trafiają do okna rzutu
+  (celność, percepcja, skradanie, lot) jako zaznaczona pozycja — w budynku wystarczy ją odznaczyć.
+- Upadek (przycisk w zakładkach Walka i Magia): 1d20 na 10 ft (kontrolowany 1d10), ignoruje DT pancerza, lokacja k8 (ze skrzydłami)
+  albo k6, powyżej 100 ft — każda lokacja; „Nanieś obrażenia” jak przy broni.
+
 Pancerz: założony (kwadracik w zakładce Ekwipunek) sam daje DT na lokacjach, które osłania — liczy się najwyższe DT,
 a naturalne DT z cech się dodaje — oraz swoje premie (tymczasowe atrybuty, umiejętności, odporność na promieniowanie, SATS).
 Z każdej kategorii (ubranie, lekki, średni, ciężki) nosi się jedną warstwę; każda kolejna to −1 AGI, a od trzeciej −1 STR.

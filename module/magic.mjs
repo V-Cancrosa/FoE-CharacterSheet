@@ -58,6 +58,7 @@ export async function castSpell(actor, spell) {
   const sys = actor.system;
   const s = spell.system;
   if (s.tradition === "zebra") return warn(`${spell.name} to receptura zebr — przygotuj ją albo odprawiaj rytuał w zakładce Magia.`);
+  if (s.tradition === "flight") return warn(`${spell.name} to manewr lotu — wykonaj go w zakładce Magia (sekcja Lot).`);
   if (!sys.caster) return warn(`${actor.name} nie rzuca zaklęć jednorożców (brak umiejętności Magic).`);
   if (sys.burnout) return warn(`${actor.name}: magiczne wypalenie — bez zaklęć, nawet telekinezy (1d4 tygodnie).`);
   if (sys.locations.horn?.status === "maimed") return warn(`${actor.name}: bez rogu nie da się rzucać zaklęć.`);
@@ -215,11 +216,11 @@ export async function endMaintained(actor, id) {
 
 /** Startowe zaklęcia (s. 245): każdy jednorożec — Telekineza; alikorny z Unity — ich lista. */
 export async function grantStartingSpells(actor, raceKey = "") {
-  if (actor.system.zebraMage && !actor.items.some(i => i.type === "spell")) {
+  if (actor.system.zebraMage && !actor.items.some(i => i.type === "spell" && i.system.tradition === "zebra")) {
     const n = Math.min(5, Math.floor((actor.system.skills.magic?.rank ?? 0) / 10));
     if (n) ui.notifications.info(`${actor.name}: wybierz w katalogu (zakładka Magia → Receptury zebr) ${n} receptur poziomu 0–1.`);
   }
-  if (!actor.system.caster || actor.items.some(i => i.type === "spell")) return;
+  if (!actor.system.caster || actor.items.some(i => i.type === "spell" && (i.system.tradition ?? "unicorn") === "unicorn")) return;
   let list;
   try { list = await loadSpells(); } catch { return; }
   const names = ["Telekinesis"];

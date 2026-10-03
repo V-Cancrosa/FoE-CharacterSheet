@@ -6,6 +6,7 @@ import { openCreator } from "./creator.mjs";
 import { openCatalog, registerCatalogButton, loadCatalog } from "./catalog.mjs";
 import { specialsFrom } from "./catalog-data.mjs";
 import { FoeCombat, registerTrackerHooks, registerTrackerSettings } from "./tracker.mjs";
+import { registerWeatherSettings, registerWeatherHooks, setWeather } from "./weather.mjs";
 
 Hooks.once("init", () => {
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData };
@@ -22,11 +23,13 @@ Hooks.once("init", () => {
   registerTrackerHooks();
   registerMagicHooks();
   registerTrackerSettings();
+  registerWeatherSettings();
+  registerWeatherHooks();
   registerCatalogButton();
   registerDisplaySettings();
   registerCreatorSettings();
   registerCombatSettings();
-  game.foe = { openCatalog };
+  game.foe = { openCatalog, setWeather };
 });
 
 /** Nowa postać lub NPC → kreator (tylko u osoby, która ją utworzyła). */

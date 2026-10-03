@@ -1,4 +1,40 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="magic">
+  {{#if flight.flier}}
+  <div class="status-bar">
+    <span class="cs">Flight: ranga <b>{{flight.rank}}</b> · MFD 1 <b>{{flight.tn}}</b></span>
+    <span class="cs" title="5×AGI ft na akcję">Lot <b>{{#if flight.canFly}}{{flight.speed}} ft{{else}}{{flight.note}}{{/if}}</b></span>
+    <label class="cs alt" title="Aktualna wysokość nad ziemią">Wysokość <input type="number" name="system.altitude" value="{{flight.altitude}}" min="0" step="5"> ft</label>
+    <span class="cs {{#if flight.over}}alert{{/if}}" title="Manewry poziomu 1+ (ranga Flight / 10); poziom 0 jest za darmo">Manewry <b>{{flight.known}}/{{flight.total}}</b></span>
+    {{#if flight.load}}<span class="cs warn" title="Każdy funt ponad 100 to −1 do rzutów Flight">Ciężar −{{flight.load}}</span>{{/if}}
+    <span class="cs" title="{{flight.weather.summary}}"><i class="fa-solid fa-cloud-sun-rain"></i> {{flight.weather.label}}</span>
+    <a class="cs act" data-action="rollFall" title="1d20 na 10 ft (kontrolowany 1d10), ignoruje DT pancerza"><i class="fa-solid fa-person-falling"></i> Upadek</a>
+  </div>
+  <h3>Lot i manewry
+    <a data-action="openCatalog" data-tab="maneuvers" title="Manewry lotu z podręcznika (także pogodowe)"><i class="fa-solid fa-feather"></i> Katalog</a>
+  </h3>
+  {{#each flight.levels}}
+    <h4 class="gear-cat">Poziom {{level}} <small class="{{#if over}}warn{{/if}}">{{#if level}}ranga {{rankReq}}{{#if limit}} · {{count}} / {{limit}}{{/if}}{{else}}bez limitu{{/if}}{{#if locked}} · <span class="warn">za niska ranga</span>{{/if}}</small></h4>
+    <div class="scroll-x">
+    <table class="foe-table items spells maneuvers">
+      <tbody>
+      {{#each list}}
+        <tr data-item-id="{{id}}" class="{{#unless learned}}unlearned{{/unless}}">
+          <td><img class="icon" src="{{img}}" alt=""></td>
+          <td class="l"><a class="rollable" data-action="performManeuver" title="{{#if learned}}Wykonaj manewr (rzut Flight){{else}}Ćwicz manewr: rzut Flight z karą 3 kroków{{/if}}">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span>{{this}}</span>{{/each}}</div>{{/if}}</td>
+          <td title="MFD wykonania">{{mfd}}</td>
+          <td title="Akcje">{{actions}}</td>
+          <td title="Opanowanie (limit prób = poziom postaci)">{{#if learned}}<span class="ok">opanowany</span>{{else}}<span class="warn">nauka {{attempts}}/{{attemptsMax}}</span>{{/if}}</td>
+          <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+    </div>
+  {{/each}}
+  {{#if flight.empty}}<p class="empty">Brak manewrów. <a class="rollable" data-action="startManeuvers"><i class="fa-solid fa-feather"></i> Dodaj manewry poziomu 0</a> albo wybierz je z katalogu.</p>{{/if}}
+  <p class="hint">Kliknij manewr, by go wykonać (rzut Flight na jego MFD; pogoda i ciężar ponad 100 lb liczą się same). Nowy manewr trzeba najpierw opanować: rzut z karą 3 kroków, tyle prób, ile masz poziomów. Uniki powietrzne zastępują zwykły unik. Manewry pogodowe (Cloudbuck, Cloud Cover, Fog Bank…) zmieniają pogodę — MG ustawia ją w zakładce walki.</p>
+  {{/if}}
+
   {{#if magic.caster}}
   <div class="status-bar">
     <span class="cs" title="END + INT + {{#if magic.alicorn}}5{{else}}2{{/if}} + cechy; odnawia się 1 na godzinę">Strain <b>{{magic.strain}}/{{magic.strainMax}}</b></span>
@@ -41,9 +77,9 @@
     </div>
   {{/each}}
   <p class="hint">Kliknij zaklęcie, by je rzucić: wybierasz overglow (każda warstwa podwaja efekt i koszt, maks. 3) i ewentualnie SATS. Gdy zabraknie strain, rzut jest trudniejszy o każdy brakujący punkt, a porażka kończy się wypaleniem. Zaklęcia z obrażeniami mają na karcie przycisk celowania (Magic, przedział zasięgu 20 ft) albo obrażeń. Limity: poziom 2 — INT, poziom 3 — INT/3, poziom 4 — jedno (alikorny bez limitu do poziomu 3).</p>
-  {{else}}{{#unless zebra.mage}}
+  {{else}}{{#unless zebra.mage}}{{#unless flight.flier}}
   <p class="empty">Ta postać nie zna magii (nie ma umiejętności Magic).</p>
-  {{/unless}}{{/if}}
+  {{/unless}}{{/unless}}{{/if}}
 
   {{#if zebra.mage}}
   <div class="status-bar">

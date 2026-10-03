@@ -4,6 +4,9 @@
     <span class="cs" title="4×END ran łącznie = utrata przytomności">Rany <b>{{system.totalWounds}}</b>/{{system.unconsciousAt}}</span>
     <span class="cs">Obrażenia na ranę <b>{{system.dmgPerWound}}</b></span>
     <span class="cs">Ruch <b>{{system.speed}}</b> ft</span>
+    {{#if system.flier}}<span class="cs" title="Lot: 5×AGI ft na akcję">Lot <b>{{#if system.canFly}}{{system.flySpeed}} ft{{else}}{{system.flyNote}}{{/if}}</b>{{#if system.altitude}} · wys. {{system.altitude}} ft{{/if}}</span>{{/if}}
+    <span class="cs" title="Pogoda (ustawia MG w zakładce walki): {{weather.summary}}"><i class="fa-solid fa-cloud-sun-rain"></i> {{weather.label}}</span>
+    <a class="cs act" data-action="rollFall" title="Obrażenia od upadku: 1d20 na 10 ft, ignorują DT pancerza"><i class="fa-solid fa-person-falling"></i> Upadek</a>
     {{#if system.dead}}<span class="cs alert">MARTWY</span>{{else if system.unconsciousRisk}}<span class="cs alert">TRACI PRZYTOMNOŚĆ — rzut END ¾ przy każdej akcji</span>{{/if}}
   </div>
 
