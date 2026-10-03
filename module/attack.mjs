@@ -25,7 +25,7 @@ const elementOf = x => (x instanceof HTMLElement ? x : x?.element instanceof HTM
  * Atak: okno z SATS, warunkami, odległością, celem (strzał celowany / losowa lokacja), ciężarem broni;
  * zużywa amunicję (seria) albo sztukę granatu i AP w SATS, potem rzut d100 z kartą ataku.
  */
-export async function attackWithWeapon(actor, item) {
+export async function attackWithWeapon(actor, item, { spell = null } = {}) {
   const sys = actor.system;
   const w = item.system;
   const sk = sys.skills[w.skill];
@@ -66,8 +66,8 @@ export async function attackWithWeapon(actor, item) {
   const extraHtml = `
     <div class="dlg-attack">
       <div class="atk-info">${info}</div>
-      <label class="atk-row atk-check"><input type="checkbox" name="sats" ${canSats ? "" : "disabled"}>
-        <span>SATS</span><small>${canSats ? `−${cost} AP (zostanie ${sats.value - cost}) · bez kar otoczenia i pośpiechu` : `za mało AP: ${sats.value}/${cost}`}</small></label>
+      ${spell ? "" : `<label class="atk-row atk-check"><input type="checkbox" name="sats" ${canSats ? "" : "disabled"}>
+        <span>SATS</span><small>${canSats ? `−${cost} AP (zostanie ${sats.value - cost}) · bez kar otoczenia i pośpiechu` : `za mało AP: ${sats.value}/${cost}`}</small></label>`}
       <label class="atk-row">Otoczenie i pośpiech <select name="env">
         <option value="0">bez kar</option>
         <option value="-1">−1 krok (dym, mgła, mrok, strzał z bliska)</option>
@@ -130,15 +130,16 @@ export async function attackWithWeapon(actor, item) {
     if (cur < cost) return warn(`Za mało AP w SATS (${cur}/${cost}).`);
     await actor.update({ "system.resources.sats.value": cur - cost });
   }
-  await spendActions(actor, 1, ex.sats ? "SATS" : "atak");
+  if (!spell) await spendActions(actor, 1, ex.sats ? "SATS" : "atak");
   if (w.consumable) await item.update({ "system.qty": Math.max(0, (Number(item.system.qty) || 0) - 1) });
   else if (w.ammo.max > 0) await item.update({ "system.ammo.value": Math.max(0, item.system.ammo.value - b.use) });
 
   const attack = {
     sats: !!ex.sats, satsCost: cost, random: ex.loc === "random", called: ex.loc === "random" ? null : ex.loc ?? "torso",
     table: ex.table ?? table, melee: close, aoe, formula: b.formula, lacking: b.lacking, used: b.use, consumable: !!w.consumable,
-    targets: targets.map(t => t.document?.uuid).filter(Boolean)
+    targets: targets.map(t => t.document?.uuid).filter(Boolean), overglow: spell?.layers ?? 0
   };
+  if (spell) return rollTest(actor, { label: `Celowanie: ${item.name} (Magic)`, baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
   return rollTest(actor, { label: `Atak: ${item.name} (${SKILLS[w.skill]?.label ?? w.skill})`, baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
 }
 

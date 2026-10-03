@@ -11,7 +11,8 @@ export const ICONS = {
     helmet: `${I}/helmet.svg`, accessory: `${I}/accessory.svg`, powered: `${I}/power.svg`, default: `${I}/armor.svg` },
   gear: { ammo: `${I}/ammo.svg`, food: `${I}/food.svg`, drug: `${I}/drug.svg`, book: `${I}/book.svg`, pipbuck: `${I}/pipbuck.svg`,
     saddle: `${I}/saddle.svg`, misc: `${I}/misc.svg`, default: `${I}/misc.svg` },
-  feature: { default: `${I}/feature.svg` }
+  feature: { default: `${I}/feature.svg` },
+  spell: { default: `${I}/spell.svg` }
 };
 
 /** Ikona dla przedmiotu danego typu (np. nowego, bez obrazka). */

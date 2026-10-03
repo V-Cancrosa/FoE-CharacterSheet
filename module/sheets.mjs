@@ -7,6 +7,7 @@ import { openCatalog } from "./catalog.mjs";
 import { WEAPON_KINDS } from "./catalog-data.mjs";
 import { LAYER_CATEGORIES, reloadInfo, rangeIncrement, overloadSpeed, SPECIALS, POISONS, specialList } from "./combat.mjs";
 import { conditionRows, clearCondition, extinguish, resistParalysis, endOfRound } from "./conditions.mjs";
+import { castSpell, endMaintained, spellLimits, COST_LABELS } from "./magic.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -62,6 +63,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       extinguish: FoeActorSheet.#onExtinguish,
       resistParalysis: FoeActorSheet.#onResistParalysis,
       endRound: FoeActorSheet.#onEndRound,
+      castSpell: FoeActorSheet.#onCastSpell,
+      endMaintain: FoeActorSheet.#onEndMaintain,
+      clearBurnout: FoeActorSheet.#onClearBurnout,
+      strainRest: FoeActorSheet.#onStrainRest,
       qty: FoeActorSheet.#onQty
     }
   };
@@ -72,6 +77,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     main: { template: `${P}/actor/main.hbs`, scrollable: [""] },
     combat: { template: `${P}/actor/combat.hbs`, scrollable: [""] },
     gear: { template: `${P}/actor/gear.hbs`, scrollable: [""] },
+    magic: { template: `${P}/actor/magic.hbs`, scrollable: [""] },
     notes: { template: `${P}/actor/notes.hbs`, scrollable: [""] }
   };
 
@@ -81,6 +87,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         { id: "main", label: "Statystyki" },
         { id: "combat", label: "Walka" },
         { id: "gear", label: "Ekwipunek" },
+        { id: "magic", label: "Magia" },
         { id: "notes", label: "Cechy i dane" }
       ],
       initial: "main"
@@ -99,7 +106,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.meters = {
       sats: pct(res.sats.value, res.sats.max),
       luck: pct(res.luck.value, res.luck.max),
-      strain: pct(res.strain.value, res.strain.max + (sys.strainBonus ?? 0)),
+      strain: pct(res.strain.value, sys.strainMax ?? res.strain.max),
       rads: pct(res.rads.value, res.rads.max)
     };
     const tip = list => list?.length ? list.join("\n") : "";
@@ -133,6 +140,28 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.endT = sys.attributes.end.total;
     ctx.crippleAt = Math.max(1, Math.ceil(ctx.endT / 2));
     ctx.conditions = conditionRows(this.document);
+    // Magia
+    const spells = this.document.items.filter(i => i.type === "spell");
+    const lim = spellLimits(this.document);
+    const held = new Set((sys.maintained ?? []).map(m => m.id));
+    ctx.magic = {
+      caster: sys.caster, burnout: sys.burnout, alicorn: sys.alicorn,
+      strain: sys.resources.strain.value, strainMax: sys.strainMax,
+      tn: sys.skills.magic?.tn ?? 0, rank: sys.skills.magic?.rank ?? 0,
+      maintained: (sys.maintained ?? []).map(m => ({ ...m, perRound: (m.cost || 0) + (m.layers || 0) })),
+      levels: [0, 1, 2, 3, 4].map(l => {
+        const list = spells.filter(i => (i.system.level ?? 1) === l).sort((a, b) => a.name.localeCompare(b.name));
+        const max = lim[l];
+        return {
+          level: l, count: list.length, limit: max === undefined || max === Infinity ? "" : max, over: max !== undefined && list.length > max,
+          spells: list.map(i => ({
+            id: i.id, name: i.name, img: i.img, ...i.system, held: held.has(i.id),
+            costLabel: COST_LABELS[i.system.cost] ?? i.system.cost,
+            tags: [i.system.targeted ? "celowane" : "", i.system.maintained ? "podtrzymywane" : "", i.system.damage ? `obr. ${i.system.damage}` : ""].filter(Boolean)
+          }))
+        };
+      }).filter(g => g.count || g.level <= 1)
+    };
     ctx.stateFx = (sys.stateFx ?? []).map(e => `${e.source} — ${shortFx(e, shortLabels())}`);
 
     const items = this.document.items;
@@ -308,6 +337,26 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!(await endOfRound(this.document))) ui.notifications.info("Brak stanów działających na koniec rundy.");
   }
 
+  static async #onCastSpell(event, target) {
+    const item = this.#item(target);
+    if (item) await castSpell(this.document, item);
+  }
+
+  static async #onEndMaintain(event, target) {
+    await endMaintained(this.document, target.dataset.id);
+  }
+
+  static async #onClearBurnout() {
+    await this.document.unsetFlag("foe-rpg", "burnout");
+  }
+
+  /** Odpoczynek: +1 strain za każdą godzinę (Shift: do pełna). */
+  static async #onStrainRest(event) {
+    const sys = this.document.system;
+    const v = event.shiftKey ? sys.strainMax : Math.min(sys.strainMax, sys.resources.strain.value + 1);
+    await this.document.update({ "system.resources.strain.value": v });
+  }
+
   static #onOpenCreator() {
     openCreator(this.document);
   }
@@ -348,6 +397,9 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     ctx.isArmor = this.document.type === "armor";
     ctx.isGear = this.document.type === "gear";
     ctx.isFeature = this.document.type === "feature";
+    ctx.isSpell = this.document.type === "spell";
+    ctx.spellLevels = { 0: "0", 1: "1", 2: "2", 3: "3", 4: "4" };
+    ctx.spellCosts = COST_LABELS;
     ctx.hasFx = ctx.isFeature || ctx.isArmor;
     ctx.armorCats = ARMOR_CATEGORIES;
     ctx.gearCats = GEAR_CATEGORIES;

@@ -1,6 +1,15 @@
 {
   "TYPES": {
-    "Actor": { "character": "Postać", "npc": "NPC" },
-    "Item": { "weapon": "Broń", "armor": "Pancerz", "gear": "Przedmiot", "feature": "Cecha" }
+    "Actor": {
+      "character": "Postać",
+      "npc": "NPC"
+    },
+    "Item": {
+      "weapon": "Broń",
+      "armor": "Pancerz",
+      "gear": "Przedmiot",
+      "feature": "Cecha",
+      "spell": "Zaklęcie"
+    }
   }
 }

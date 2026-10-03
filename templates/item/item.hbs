@@ -56,6 +56,21 @@
     <label>Cena (szt.) <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
     <label title="Broń z takim samym typem amunicji ładuje się z tego przedmiotu">Typ amunicji <input type="text" name="system.ammoType" value="{{system.ammoType}}" placeholder="np. 10mm"></label>
   {{/if}}
+  {{#if isSpell}}
+    <label>Poziom zaklęcia <select name="system.level" data-dtype="Number">{{selectOptions spellLevels selected=system.level}}</select></label>
+    <label title="Low 1, Medium 2, High 3, Very High 4">Koszt strain <select name="system.cost" data-dtype="Number">{{selectOptions spellCosts selected=system.cost}}</select></label>
+    <label title="0 = nie da się rzucić w SATS">Koszt SATS (AP) <input type="number" name="system.satsCost" value="{{system.satsCost}}" min="0"></label>
+    <label title="Drugi rzut Magic na trafienie (przedział zasięgu 20 ft)">Celowane <input type="checkbox" name="system.targeted" {{checked system.targeted}}></label>
+    <label title="Koszt płacony na początku każdej rundy">Podtrzymywane <input type="checkbox" name="system.maintained" {{checked system.maintained}}></label>
+    <label title="INT = inteligencja, MAGIC10 = ranga Magic / 10">Obrażenia (formuła) <input type="text" name="system.damage" value="{{system.damage}}" placeholder="np. 1d12 albo 3d8 + INT"></label>
+    <label>Krytyk <input type="text" name="system.crit" value="{{system.crit}}" placeholder="x1"></label>
+    <label>Ignoruje DT <input type="number" name="system.ignoreDT" value="{{system.ignoreDT}}" min="0"></label>
+    <label>Procent nauki <input type="number" name="system.learn" value="{{system.learn}}" min="0" max="95"></label>
+    <label>Wymagany poziom postaci <input type="number" name="system.levelReq" value="{{system.levelReq}}" min="0"></label>
+    <label>Wymagania <input type="text" name="system.requirements" value="{{system.requirements}}"></label>
+    <label>Prekursory <input type="text" name="system.precursors" value="{{system.precursors}}"></label>
+    <label>Prekursor dla <input type="text" name="system.precursorFor" value="{{system.precursorFor}}"></label>
+  {{/if}}
   {{#if isFeature}}
     <label>Rodzaj <select name="system.kind">{{selectOptions featureKinds selected=system.kind}}</select></label>
     <label>Aktywna (efekty doliczane) <input type="checkbox" name="system.active" {{checked system.active}}></label>

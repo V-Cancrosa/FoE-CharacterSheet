@@ -1,4 +1,5 @@
-import { CharacterData, NpcData, WeaponData, ArmorData, GearData, FeatureData } from "./data.mjs";
+import { CharacterData, NpcData, WeaponData, ArmorData, GearData, FeatureData, SpellData } from "./data.mjs";
+import { registerMagicHooks } from "./magic.mjs";
 import { FoeActorSheet, FoeItemSheet } from "./sheets.mjs";
 import { registerCombatHooks } from "./attack.mjs";
 import { openCreator } from "./creator.mjs";
@@ -8,7 +9,7 @@ import { FoeCombat, registerTrackerHooks, registerTrackerSettings } from "./trac
 
 Hooks.once("init", () => {
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData };
-  CONFIG.Item.dataModels = { weapon: WeaponData, armor: ArmorData, gear: GearData, feature: FeatureData };
+  CONFIG.Item.dataModels = { weapon: WeaponData, armor: ArmorData, gear: GearData, feature: FeatureData, spell: SpellData };
   CONFIG.Combat.documentClass = FoeCombat;
   // d100 − ¼ progu Agility; FoeCombat.rollInitiative pyta gracza: odjąć czy dodać (s. 436)
   CONFIG.Combat.initiative = { formula: "1d100 - @initMod", decimals: 0 };
@@ -19,6 +20,7 @@ Hooks.once("init", () => {
 
   registerCombatHooks();
   registerTrackerHooks();
+  registerMagicHooks();
   registerTrackerSettings();
   registerCatalogButton();
   registerDisplaySettings();

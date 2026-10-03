@@ -25,7 +25,7 @@
     </div>
     <div class="res">
       <span class="res-lbl">Strain</span>
-      <span class="res-val"><input type="number" name="system.resources.strain.value" value="{{system.resources.strain.value}}"> / <input type="number" name="system.resources.strain.max" value="{{system.resources.strain.max}}">{{#if extra.strainBonus}}<span class="fxb" title="Z cech">{{extra.strainBonus}}</span>{{/if}}</span>
+      <span class="res-val"><input type="number" name="system.resources.strain.value" value="{{system.resources.strain.value}}"> / {{#if system.caster}}<span title="END + INT + {{#if system.alicorn}}5{{else}}2{{/if}} + cechy">{{system.strainMax}}</span>{{else}}<input type="number" name="system.resources.strain.max" value="{{system.resources.strain.max}}">{{#if extra.strainBonus}}<span class="fxb" title="Z cech">{{extra.strainBonus}}</span>{{/if}}{{/if}}</span>
       <div class="meter"><span style="width: {{meters.strain}}%"></span></div>
     </div>
     <div class="res">

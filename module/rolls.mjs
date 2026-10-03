@@ -8,12 +8,12 @@ import {
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
 const num = n => String(n).replace(".", ",");
-const threshold = (baseTn, step, mod) => Math.floor(baseTn * step.f) + mod;
+export const threshold = (baseTn, step, mod) => Math.floor(baseTn * step.f) + mod;
 const elementOf = x => (x instanceof HTMLElement ? x : x?.element instanceof HTMLElement ? x.element : null);
 
-const stepIndex = key => Math.max(0, MFD_STEPS.findIndex(s => s.key === key));
+export const stepIndex = key => Math.max(0, MFD_STEPS.findIndex(s => s.key === key));
 // steps > 0 ułatwia (bliżej MFD 2), steps < 0 utrudnia (bliżej 1/10)
-const shiftStep = (i, steps) => Math.max(0, Math.min(MFD_STEPS.length - 1, i - steps));
+export const shiftStep = (i, steps) => Math.max(0, Math.min(MFD_STEPS.length - 1, i - steps));
 const stepsLabel = v => `${signed(v)} ${Math.abs(v) === 1 ? "krok" : "kroki"} MFD`;
 
 /** Nazwa lokacji (u dwunożnych przednie nogi to ramiona). */
@@ -110,7 +110,7 @@ export async function promptMfd(title, baseTn, rc = {}, opts = {}) {
           ...(r.ex.notes ?? []),
           ...(r.extra ? [`Dodatkowy ${signed(r.extra)}`] : [])
         ];
-        const out = { step, chosen, mod: r.mod, notes, crit: rc.crit ?? { success: 0, fail: 0 } };
+        const out = { step, chosen, steps: r.steps, mod: r.mod, notes, crit: rc.crit ?? { success: 0, fail: 0 } };
         if (r.ex.data) out.extra = r.ex.data;
         return out;
       }
@@ -245,6 +245,17 @@ export async function rollTest(actor, data) {
 }
 
 /**
+ * Zaklęcie jako „broń” do rzutu obrażeń: INT i ranga Magic/10 w formule, overglow podwaja obrażenia za warstwę (s. 243).
+ */
+export function spellWeapon(s, actor, layers = 0) {
+  const int = actor.system.attributes?.int?.total ?? 0;
+  const m10 = Math.floor((actor.system.skills?.magic?.rank ?? 0) / 10);
+  let f = String(s.damage || "0").replace(/MAGIC10/g, String(m10)).replace(/\bINT\b/g, String(int));
+  if (layers > 0) f = `(${f}) * ${2 ** layers}`;
+  return { skill: "magic", damage: f, crit: s.crit || "x1", ignoreDT: s.ignoreDT || 0, weight: 0, specials: {}, aoe: { enabled: false } };
+}
+
+/**
  * Jak liczyć krytyk z pola „Krytyk” broni:
  *   „x2”, „×1.5”    → mnożnik obrażeń (tak jak w tabelach podręcznika)
  *   puste lub „max” → maksymalne obrażenia z kości (zasada domowa ze starszych wersji)
@@ -268,7 +279,7 @@ export function parseCrit(text) {
  * DT i rany liczy dopiero przycisk „Nanieś obrażenia”.
  */
 export async function rollDamage(actor, item, { crit = false, attack = null } = {}) {
-  const w = item.system;
+  const w = item.type === "spell" ? spellWeapon(item.system, actor, attack?.overglow ?? 0) : item.system;
   const sys = actor.system;
   const rank = sys.skills?.[w.skill]?.rank ?? 0;
   const str = sys.attributes?.str?.total ?? 0;

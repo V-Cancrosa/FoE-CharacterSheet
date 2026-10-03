@@ -868,3 +868,18 @@ body[data-foe-pip="white"] :is(.foe-rpg, .foe-card) img[src*="foe-rpg/icons/"] {
 .foe-ct-tag { padding: 0 4px; border: 1px solid rgba(77, 255, 138, .5); color: #8dffb4; line-height: 1.4; white-space: nowrap; }
 .foe-ct-tag.surprised { border-color: #ff6a4d; color: #ff8a70; }
 button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12px; }
+
+/* v0.8 — magia */
+.foe-rpg .status-bar a.cs.act { cursor: pointer; color: var(--pip); }
+.foe-rpg .status-bar a.cs.act:hover { color: #000; background: var(--pip); text-shadow: none; }
+.foe-rpg h4.gear-cat small { font-family: var(--foe-mono); font-size: 11px; color: var(--pip-dim); margin-left: .4rem; }
+.foe-rpg table.spells td { font-size: 12px; }
+.foe-rpg table.spells tr.worn td.l { text-shadow: 0 0 8px var(--pip-glow); }
+.foe-card.spell .fc-calc { font-family: var(--foe-crt); font-size: 1.35rem; letter-spacing: .05em; text-transform: uppercase; color: var(--pip-bright); }
+.foe-card.spell.fail .fc-calc { color: var(--pip-mid); }
+.foe-rpg table.spells { table-layout: fixed; }
+.foe-rpg table.spells td:nth-child(1) { width: 34px; }
+.foe-rpg table.spells td:nth-child(3) { width: 7.5rem; }
+.foe-rpg table.spells td:nth-child(4) { width: 4.5rem; }
+.foe-rpg table.spells td:nth-child(5) { width: 3.5rem; }
+.foe-rpg table.spells td:nth-child(6) { width: 3.5rem; }
