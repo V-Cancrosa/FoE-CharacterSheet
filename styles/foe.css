@@ -936,3 +936,26 @@ button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12p
 .foe-rpg .saddle-line { margin: .2rem 0; }
 .foe-rpg td.nm a.repair { margin-left: .3rem; cursor: pointer; }
 .foe-rpg .item-list.gear .feat-toggle { margin-right: .3rem; }
+
+/* v0.15 — pojazdy */
+.foe-rpg.vehicle .foe-id .row.veh-row label { display: inline-flex; align-items: center; gap: .3rem; }
+.foe-rpg.vehicle .foe-id .row.veh-row label.wide { flex: 1; }
+.foe-rpg.vehicle .foe-id .row.veh-row label.wide select { flex: 1; min-width: 0; }
+.foe-rpg .veh-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin: .35rem 0 .15rem; }
+.foe-rpg .veh-actions a { cursor: pointer; font-family: var(--foe-mono); font-size: 12px; text-transform: uppercase; color: var(--pip); padding: 2px .55rem; border: 1px solid var(--pip-dim); border-radius: 3px; }
+.foe-rpg .veh-actions a:hover { color: #000; background: var(--pip); text-shadow: none; }
+.foe-rpg table.veh-areas input { width: 3.6rem; height: 1.45rem; text-align: right; }
+.foe-rpg table.veh-areas tr.crippled td b { color: var(--pip-bright); }
+.foe-rpg table.veh-areas tr.dead td b, .foe-rpg table.veh-areas tr.dead td small { color: var(--pip-alert); }
+.foe-rpg table.veh-areas td small { opacity: .85; }
+.foe-rpg .item-list.veh-crew select { height: 1.5rem; max-width: 11rem; }
+.foe-rpg .item-list.veh-crew .nm, .foe-rpg .item-list.veh-cargo .nm { flex: 1; cursor: pointer; }
+.foe-rpg .item-list.veh-crew li.warn .nm { color: var(--pip-alert); }
+.foe-rpg .item-list li.empty { opacity: .75; font-size: 12px; }
+.foe-rpg .veh-params { display: flex; flex-wrap: wrap; gap: .3rem .8rem; margin: .2rem 0 .4rem; }
+.foe-rpg .veh-params label { display: inline-flex; align-items: center; gap: .3rem; font-size: 12px; white-space: nowrap; }
+.foe-rpg .veh-params input { width: 4rem; height: 1.45rem; text-align: right; }
+.foe-rpg .veh-params select { height: 1.5rem; max-width: 14rem; }
+.foe-rpg .veh-params.veh-attrs input { width: 3.2rem; }
+.foe-rpg h3 small { font-family: var(--foe-mono); font-size: 11px; opacity: .75; text-transform: none; margin-left: .3rem; }
+.foe-rpg .hint.warn { color: var(--pip-alert); }

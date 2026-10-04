@@ -8,6 +8,7 @@
  */
 import { SKILLS, LOCATIONS } from "./data.mjs";
 import { armorItem } from "./catalog-data.mjs";
+import { vehicleAreas } from "./vehicle-data.mjs";
 
 const F = "foe-rpg";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
@@ -37,7 +38,8 @@ export function areaLoc(label) {
 }
 
 /** Strefy aktora (flaga z importu): [{ label, loc, mfd, dt }]. */
-export const areasOf = actor => actor?.flags?.[F]?.areas ?? actor?.getFlag?.(F, "areas") ?? [];
+export const areasOf = actor => (actor?.type === "vehicle" ? vehicleAreas(actor.system?.vehicle?.kind)
+  : actor?.flags?.[F]?.areas ?? actor?.getFlag?.(F, "areas") ?? []);
 /** loc → „Szczypce L / Szczypce P” (kilka stref może trafiać w jedną lokację). */
 export function areaLabels(actor) {
   const out = {};

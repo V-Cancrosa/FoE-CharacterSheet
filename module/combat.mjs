@@ -18,7 +18,9 @@ export const HIT_TABLES = {
   pegasus: { label: "Pegazy, nietoperze, gryfy", rows: table({ head: span(1, 2), torso: [...span(3, 4), ...span(13, 16)], flLeg: span(5, 6), frLeg: span(7, 8), wings: span(9, 12), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
   alicorn: { label: "Alikorny", rows: table({ horn: [1], head: span(2, 3), torso: [4, ...span(13, 16)], flLeg: span(5, 6), frLeg: span(7, 8), wings: span(9, 12), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
   buffalo: { label: "Bizony", rows: table({ horn: [1], head: span(2, 3), torso: [...span(4, 6), ...span(11, 16)], flLeg: span(7, 8), frLeg: span(9, 10), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
-  biped: { label: "Dwunożni (minotaury, psy)", biped: true, rows: table({ head: span(1, 2), flLeg: span(3, 4), frLeg: span(5, 6), torso: span(7, 15), rlLeg: span(16, 17), rrLeg: span(18, 19) }) }
+  biped: { label: "Dwunożni (minotaury, psy)", biped: true, rows: table({ head: span(1, 2), flLeg: span(3, 4), frLeg: span(5, 6), torso: span(7, 15), rlLeg: span(16, 17), rrLeg: span(18, 19) }) },
+  // zasada domowa: kabina = głowa, kadłub = tułów, napęd = skrzydła, uzbrojenie = róg
+  vehicle: { label: "Pojazdy", rows: table({ head: span(1, 2), torso: span(3, 14), wings: span(15, 18), horn: span(19, 20) }) }
 };
 
 /** Nazwy kończyn dwunożnych (dla kart trafień). */
@@ -27,6 +29,7 @@ export const BIPED_LABELS = { flLeg: "Lewe ramię", frLeg: "Prawe ramię", rlLeg
 /** Tabela trafień na podstawie wpisanej rasy (po polsku lub angielsku). */
 export function hitTableFor(race) {
   const s = String(race ?? "").toLowerCase();
+  if (/pojazd|vehicle/.test(s)) return "vehicle";
   if (/alikorn|alicorn/.test(s)) return "alicorn";
   if (/pegaz|pegas|nietoperz|bat ?pon|gryf|griff/.test(s)) return "pegasus";
   if (/jednoro|unicorn/.test(s)) return "unicorn";

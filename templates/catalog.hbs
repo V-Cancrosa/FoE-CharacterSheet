@@ -36,6 +36,9 @@
   {{#if isBestiary}}
   <p class="hint">„Dodaj” tworzy aktora NPC w folderze „Bestiariusz FoE” (zakładka aktorów) i otwiera jego kartę — potem przeciągnij go na scenę.
     Statystyki, strefy trafień z DT i MFD celowania, broń, zdolności i łup są z podręcznika (s. 490–576); „tylko opis” — podręcznik v1.22 nie podaje statystyk.</p>
+  {{else if isVehicles}}
+  <p class="hint">„Dodaj” tworzy pojazd w folderze „Pojazdy FoE” (zakładka aktorów) razem z bronią pokładową z katalogu. Potem przeciągnij go na scenę i dodaj załogę (przeciągnij postacie na kartę pojazdu).
+    Rozmiar i obrażenia na ranę są z tabeli XLI podręcznika; DT, prędkości i załoga to propozycje do zmiany na karcie (podręcznik v1.22 nie ma statystyk pojazdów).</p>
   {{else}}
   <p class="hint">
     {{#if actor}}„Dodaj” daje przedmiot za darmo, „Kup” odejmuje cenę (× ilość) od kapsli postaci. Ten sam ekwipunek łączy się w stos.{{else}}„Dodaj” tworzy przedmiot w zakładce Przedmioty — potem przeciągnij go na postać.{{/if}}

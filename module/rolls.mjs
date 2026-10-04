@@ -20,6 +20,7 @@ const stepsLabel = v => `${signed(v)} ${Math.abs(v) === 1 ? "krok" : "kroki"} MF
 /** Nazwa lokacji (u dwunożnych przednie nogi to ramiona). */
 export function locationName(loc, table = null) {
   if (HIT_TABLES[table]?.biped && BIPED_LABELS[loc]) return BIPED_LABELS[loc];
+  if (table === "vehicle") return { head: "Kabina", torso: "Kadłub", wings: "Napęd", horn: "Uzbrojenie" }[loc] ?? loc;
   return LOCATIONS[loc] ?? loc;
 }
 
@@ -295,7 +296,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   const str = sys.attributes?.str?.total ?? 0;
   const aoe = isAoe(w);
   const close = isClose(w);
-  const overWield = wieldPenalty(w.weight, str, wieldLimit(actor, w)) > 0;
+  const overWield = !attack?.vehicle && wieldPenalty(w.weight, str, wieldLimit(actor, w)) > 0;
   const df = damageFormula({ ...w, damage: attack?.formula || w.damage }, { str, rank, overWield });
   let formula = df.formula;
 

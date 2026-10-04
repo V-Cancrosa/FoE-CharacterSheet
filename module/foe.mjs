@@ -1,4 +1,6 @@
-import { CharacterData, NpcData, WeaponData, ArmorData, GearData, FeatureData, SpellData } from "./data.mjs";
+import { CharacterData, NpcData, VehicleData, WeaponData, ArmorData, GearData, FeatureData, SpellData } from "./data.mjs";
+import { FoeVehicleSheet } from "./vehicle-sheet.mjs";
+import { registerVehicleHooks } from "./vehicle.mjs";
 import { registerMagicHooks } from "./magic.mjs";
 import { FoeActorSheet, FoeItemSheet } from "./sheets.mjs";
 import { registerCombatHooks } from "./attack.mjs";
@@ -11,14 +13,15 @@ import { registerPerkSettings } from "./perks.mjs";
 import { registerChemSettings, registerChemHooks } from "./chems.mjs";
 
 Hooks.once("init", () => {
-  CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData };
+  CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData, vehicle: VehicleData };
   CONFIG.Item.dataModels = { weapon: WeaponData, armor: ArmorData, gear: GearData, feature: FeatureData, spell: SpellData };
   CONFIG.Combat.documentClass = FoeCombat;
   // d100 − ¼ progu Agility; FoeCombat.rollInitiative pyta gracza: odjąć czy dodać (s. 436)
   CONFIG.Combat.initiative = { formula: "1d100 - @initMod", decimals: 0 };
 
   const { Actors, Items } = foundry.documents.collections;
-  Actors.registerSheet("foe-rpg", FoeActorSheet, { makeDefault: true, label: "FoE: karta postaci" });
+  Actors.registerSheet("foe-rpg", FoeActorSheet, { types: ["character", "npc"], makeDefault: true, label: "FoE: karta postaci" });
+  Actors.registerSheet("foe-rpg", FoeVehicleSheet, { types: ["vehicle"], makeDefault: true, label: "FoE: karta pojazdu" });
   Items.registerSheet("foe-rpg", FoeItemSheet, { makeDefault: true, label: "FoE: przedmiot" });
 
   registerCombatHooks();
@@ -29,6 +32,7 @@ Hooks.once("init", () => {
   registerPerkSettings();
   registerChemSettings();
   registerChemHooks();
+  registerVehicleHooks();
   // runda walki = 6 sekund czasu gry (s. 389: „30 sekund, czyli pięć rund”) — czas działania chemii płynie w walce
   CONFIG.time.roundTime = 6;
   registerWeatherHooks();
@@ -41,7 +45,7 @@ Hooks.once("init", () => {
 
 /** Nowa postać lub NPC → kreator (tylko u osoby, która ją utworzyła). */
 Hooks.on("createActor", (actor, options, userId) => {
-  if (userId !== game.user.id || !game.settings.get("foe-rpg", "autoCreator")) return;
+  if (userId !== game.user.id || actor.type === "vehicle" || !game.settings.get("foe-rpg", "autoCreator")) return;
   if (actor.getFlag("foe-rpg", "created") || actor.items.size || actor.pack) return;
   // po chwili, żeby kreator otworzył się nad kartą postaci
   setTimeout(() => openCreator(actor), 150);
