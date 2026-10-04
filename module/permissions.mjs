@@ -29,7 +29,7 @@ export function canLevelUp(actor) {
 }
 
 /** Zakładki katalogu, z których gracz dodaje za darmo tylko za zgodą MG. */
-export const FREE_ADD_TABS = ["weapons", "armor", "gear", "cyber", "perks"];
+export const FREE_ADD_TABS = ["weapons", "armor", "gear", "cyber", "perks", "ammo"];
 export const canFreeAdd = tab => isGM() || get("playerFreeItems") || !FREE_ADD_TABS.includes(tab);
 
 export function registerPermissionSettings() {

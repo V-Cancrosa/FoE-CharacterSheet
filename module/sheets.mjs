@@ -23,6 +23,8 @@ import { cyberItems, CYBER_KINDS } from "./cyber-data.mjs";
 import { feedCyber, selfRepair, chargeReservoir } from "./cyber.mjs";
 import { canAwardXp, canLevelUp, canEditAdvancement } from "./permissions.mjs";
 import { isBatPony, isChangeling, hasShadowflash, hasShadowForm, shadowState, loveState, disguiseOf, SHADOW_MODES } from "./shadow-data.mjs";
+import { nameItem, canName } from "./named.mjs";
+import { loadedVariant } from "./ammo-data.mjs";
 import { castShadow, addSonicScreech, shapeshift, endDisguise, feedOnLove, detectDisguise, promptLove } from "./shadow.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -105,6 +107,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       feedCyber: FoeActorSheet.#onFeedCyber,
       castShadow: FoeActorSheet.#onCastShadow,
       addScreech: FoeActorSheet.#onAddScreech,
+      nameItem: FoeActorSheet.#onNameItem,
       shapeshift: FoeActorSheet.#onShapeshift,
       endDisguise: FoeActorSheet.#onEndDisguise,
       feedLove: FoeActorSheet.#onFeedLove,
@@ -315,6 +318,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const inc = rangeIncrement(w, str);
       return {
         id: i.id, name: i.name, img: i.img, ...w, canMount: !!saddle || w.mounted,
+        named: !!i.getFlag?.("foe-rpg", "named"), canName: !w.consumable && !i.getFlag?.("foe-rpg", "named") && canName(this.document),
+        ammoVariant: loadedVariant(w)?.label.replace(/ \(.*\)$/, "") ?? "", ammoVariantTip: loadedVariant(w) ? `${loadedVariant(w).effect}; ${loadedVariant(w).downside}` : "",
         skillLabel: SKILLS[w.skill]?.label ?? w.skill,
         burst: w.shots > 1 ? w.shots : 0,
         reloadLabel: w.reload ? `${w.reload}: ${reloadInfo(w.reload, { energy: w.skill === "energy" }).ap} AP w SATS` : "przeładuj",
@@ -340,7 +345,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         wearText: wear ? Object.entries(a.wear).filter(([, v]) => v).map(([k, v]) => `${SHORT[k]} −${v}`).join(", ") : "",
         fxText: (a.effects ?? []).filter(e => FX_TYPES[e.type]).map(e => shortFx(e, short)).join(", "),
         builtInSaddle: a.powered ? { heavy: "ciężkie siodło", four: "czteroramienne siodło" }[builtInSaddle(i)?.kind] : "",
-        untrained: a.powered && a.equipped && !trained, canRepair: a.powered && wear > 0
+        untrained: a.powered && a.equipped && !trained, canRepair: a.powered && wear > 0,
+        named: !!i.getFlag?.("foe-rpg", "named"), canName: !i.getFlag?.("foe-rpg", "named") && canName(this.document)
       };
     });
     ctx.powerArmorWorn = items.some(i => i.type === "armor" && i.system.powered && i.system.equipped);
@@ -607,6 +613,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static async #onFeedCyber() { await feedCyber(this.document); }
   static async #onCastShadow(event, target) { await castShadow(this.document, target.dataset.mode); }
   static async #onAddScreech() { await addSonicScreech(this.document); }
+  static async #onNameItem(event, target) {
+    const item = this.#item(target);
+    if (item) await nameItem(this.document, item);
+  }
   static async #onShapeshift() { await shapeshift(this.document); }
   static async #onEndDisguise() { await endDisguise(this.document); }
   static async #onFeedLove() { await feedOnLove(this.document); }

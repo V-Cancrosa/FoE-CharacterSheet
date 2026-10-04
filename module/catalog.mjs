@@ -8,6 +8,7 @@ import { addPerk, perkStatus, reqView, autoSummary, perkItemData } from "./perks
 import { importCreature, BESTIARY_KINDS } from "./bestiary.mjs";
 import { VEHICLE_KINDS, VEHICLE_POWER, sizeRow } from "./vehicle-data.mjs";
 import { canFreeAdd } from "./permissions.mjs";
+import { SPECIAL_AMMO, AMMO_GROUPS, ammoGroup, isShotgunAmmo, variantName, specialAmmoOn } from "./ammo-data.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -16,7 +17,7 @@ let cache = null;
 export function loadCatalog() {
   const get = name => fetch(`systems/${game.system.id}/data/${name}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
   cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => []), get("maneuvers.json").catch(() => []), get("perks.json").catch(() => []), get("bestiary.json").catch(() => []), get("vehicles.json").catch(() => []), get("cyber.json").catch(() => [])])
-    .then(([cat, spells, recipes, maneuvers, perks, bestiary, vehicles, cyber]) => ({ ...cat, spells, recipes, maneuvers, perks, bestiary, vehicles, cyber }))
+    .then(([cat, spells, recipes, maneuvers, perks, bestiary, vehicles, cyber]) => ({ ...cat, spells, recipes, maneuvers, perks, bestiary, vehicles, cyber, ammo: Object.values(SPECIAL_AMMO) }))
     .catch(err => { cache = null; throw err; });
   return cache;
 }
@@ -37,6 +38,7 @@ const TABS = {
 };
 TABS.bestiary = { label: "Bestiariusz", icon: "fa-solid fa-dragon", kinds: { S: "Z pełnymi statystykami", ...BESTIARY_KINDS },
   head: ["Rodzaj", "Poziom", "Strefy (DT)", "Obr./ranę", "Statystyki"] };
+TABS.ammo = { label: "Amunicja specjalna", icon: "fa-solid fa-bullseye", kinds: AMMO_GROUPS, head: ["Rodzaj", "Działanie", "Wada", "Cena"] };
 TABS.cyber = { label: "Cybernetyka", icon: "fa-solid fa-microchip", kinds: { limb: "Protezy (cyber-kończyny)", implant: "Implanty (tabela IX)" },
   head: ["Rodzaj", "Efekty", "Energia", "Talizman"] };
 TABS.vehicles = { label: "Pojazdy", icon: "fa-solid fa-truck-pickup", kinds: { ...VEHICLE_KINDS, pulled: "Ciągnięte przez kucyki", motor: "Własny napęd" },
@@ -86,6 +88,12 @@ function rowOf(tab, e, i, actor = null) {
       i, name: e.name, notes: e.desc, search: `${e.name} ${e.group ?? ""}`.toLowerCase(), kind: `${e.kind}${e.a ? " S" : ""}`,
       img: "systems/foe-rpg/icons/creature.svg", qty: 0, noBuy: true,
       cols: [BESTIARY_KINDS[e.kind] ?? e.kind, e.lvl ?? "—", areas ? (areas.length > 60 ? `${areas.slice(0, 58)}…` : areas) : "—", e.dw ?? "—", e.a ? "✓" : "tylko opis"]
+    };
+  }
+  if (tab === "ammo") {
+    return {
+      i, name: e.label, notes: `${e.effect}. Wada: ${e.downside}.`, search: e.label.toLowerCase(), kind: e.group, img: "systems/foe-rpg/icons/ammo.svg", qty: 10,
+      cols: [AMMO_GROUPS[e.group] + (e.shotgun ? " (strzelby)" : ""), e.effect, e.downside, `×${String(e.cost).replace(".", ",")}`]
     };
   }
   if (tab === "cyber") {
@@ -216,6 +224,7 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
       isBestiary: this.tab === "bestiary",
       isVehicles: this.tab === "vehicles",
       isCyber: this.tab === "cyber",
+      isAmmo: this.tab === "ammo", ammoOff: this.tab === "ammo" && !specialAmmoOn(),
       // gracz: „Dodaj” za darmo tylko za zgodą MG (ustawienie świata); kupuje za kapsle
       lockAdd: !!this.actor && !canFreeAdd(this.tab)
     };
@@ -288,16 +297,55 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     ui.notifications[warns.length ? "warn" : "info"](`${a.name}: dodano manewr ${entry.name}${warns.length ? ` (uwaga: ${warns.join("; ")})` : ""}.${learn}`);
   }
 
+  /** Amunicja specjalna: wybór kalibru, cena = cena zwykłej × mnożnik (s. 202–203). */
+  async #acquireAmmo(entry, data, qty, buy) {
+    const calibers = data.gear.filter(g => g.category === "ammo" && ammoGroup(g.ammoType) === entry.group && (!entry.shotgun || isShotgunAmmo(g.ammoType)));
+    if (!calibers.length) return ui.notifications.warn("Brak pasującej amunicji w katalogu.");
+    const own = new Set((this.actor?.items ?? []).filter(i => i.type === "weapon").map(i => i.system.ammoType));
+    const def = calibers.find(g => own.has(g.ammoType)) ?? calibers[0];
+    const pick = await foundry.applications.api.DialogV2.wait({
+      window: { title: entry.label }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 420 }, rejectClose: false,
+      content: `<div class="foe-dialog"><label class="atk-row">Kaliber <select name="cal">${calibers.map(g => `<option value="${g.name}" ${g === def ? "selected" : ""}>${g.name}${own.has(g.ammoType) ? " ★" : ""} — ${Math.max(1, Math.round((g.value || 0) * entry.cost))} kapsli/szt.</option>`).join("")}</select></label>
+        <label class="atk-row">Ilość <input type="number" name="qty" value="${qty}" min="1"></label>
+        <p class="hint">★ — kaliber broni tej postaci. ${entry.effect}; wada: ${entry.downside}.</p></div>`,
+      buttons: [{ action: "ok", label: buy ? "Kup" : "Dodaj", icon: "fa-solid fa-check", default: true,
+        callback: (ev, btn) => ({ cal: btn.form.elements.cal.value, qty: Math.max(1, Math.floor(Number(btn.form.elements.qty.value) || 1)) }) }]
+    });
+    if (!pick) return;
+    const base = calibers.find(g => g.name === pick.cal);
+    const key = Object.keys(SPECIAL_AMMO).find(k => SPECIAL_AMMO[k] === entry);
+    const unit = Math.max(1, Math.round((base.value || 0) * entry.cost));
+    const itemData = { ...catalogItem("gear", base, pick.qty), name: variantName(base.name, entry) };
+    itemData.system = { ...itemData.system, variant: key, value: unit };
+    itemData.flags = { "foe-rpg": { catalog: base.name, variant: key } };
+    if (!this.actor) {
+      if (!game.user.can("ITEM_CREATE")) return ui.notifications.warn("Nie masz uprawnień do tworzenia przedmiotów.");
+      await Item.implementation.create(itemData);
+      return ui.notifications.info(`Dodano do przedmiotów świata: ${itemData.name}.`);
+    }
+    if (!this.actor.isOwner) return ui.notifications.warn("Nie jesteś właścicielem tej postaci.");
+    if (buy) {
+      const price = unit * pick.qty;
+      const caps = Number(this.actor.system.caps) || 0;
+      if (caps < price) return ui.notifications.warn(`Za mało kapsli: ${itemData.name} ×${pick.qty} kosztuje ${price}, a masz ${caps}.`);
+      await this.actor.update({ "system.caps": caps - price });
+    }
+    await addItemToActor(this.actor, itemData, pick.qty);
+    ui.notifications.info(`${this.actor.name}: ${buy ? "kupiono" : "dodano"} ${itemData.name} ×${pick.qty}${buy ? ` za ${unit * pick.qty} kapsli` : ""}.${specialAmmoOn() ? "" : " Uwaga: zasada „Amunicja specjalna” jest wyłączona w ustawieniach świata."}`);
+    this.render();
+  }
+
   async #acquire(target, buy) {
     const row = target.closest("[data-i]");
     const data = await loadCatalog();
     const entry = data[this.tab]?.[Number(row?.dataset.i)];
     if (!entry) return;
     const qty = Math.max(1, Math.floor(Number(row.querySelector("input[name=qty]")?.value) || 1));
-    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : this.tab === "perks" ? perkItemData(entry) : this.tab === "bestiary" || this.tab === "vehicles" || this.tab === "cyber" ? null : catalogItem(this.tab, entry, qty);
+    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : this.tab === "perks" ? perkItemData(entry) : ["bestiary", "vehicles", "cyber", "ammo"].includes(this.tab) ? null : catalogItem(this.tab, entry, qty);
     const what = qty > 1 ? `${entry.name} ×${qty}` : entry.name;
     if (!buy && this.actor && !canFreeAdd(this.tab)) return ui.notifications.warn("Za darmo dodaje tylko MG — kup za kapsle albo poproś MG.");
 
+    if (this.tab === "ammo") return this.#acquireAmmo(entry, data, qty, buy);
     if (this.tab === "cyber") {
       if (!this.actor) {
         if (!game.user.can("ITEM_CREATE")) return ui.notifications.warn("Nie masz uprawnień do tworzenia przedmiotów.");

@@ -5,6 +5,7 @@ import {
   damageFormula, isAoe, isClose, wieldPenalty, SPECIALS, POISONS
 } from "./combat.mjs";
 import { wieldLimit } from "./saddle.mjs";
+import { loadedVariant, ammoIgnoreDT, shiftDice, dieOf } from "./ammo-data.mjs";
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
@@ -297,8 +298,11 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   const aoe = isAoe(w);
   const close = isClose(w);
   const overWield = !attack?.vehicle && wieldPenalty(w.weight, str, wieldLimit(actor, w)) > 0;
-  const df = damageFormula({ ...w, damage: attack?.formula || w.damage }, { str, rank, overWield });
+  // amunicja specjalna (zasada opcjonalna, s. 202–203): ± kości, dodatkowe kości, maksymalne obrażenia, ogień
+  const ammoV = item.type === "weapon" ? loadedVariant(w) : null;
+  const df = damageFormula({ ...w, damage: shiftDice(attack?.formula || w.damage, ammoV?.dice ?? 0) }, { str, rank, overWield });
   let formula = df.formula;
+  if (ammoV?.addDice) formula += ` + ${ammoV.addDice}`;
 
   const fx = actorEffects(actor);
   const fxDamage = sumFx(fx, "damage", e => hitsAttack(e.target, w.skill));
@@ -311,12 +315,12 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   if (c.extra) formula = `${formula} + ${c.extra}`;
   let roll;
   try {
-    roll = await new Roll(formula, actor.getRollData?.() ?? {}).evaluate({ maximize: !!c.maximize });
+    roll = await new Roll(formula, actor.getRollData?.() ?? {}).evaluate({ maximize: !!c.maximize || !!ammoV?.maxDamage });
   } catch (err) {
     ui.notifications.error(`Nieprawidłowa formuła obrażeń „${formula}” — popraw ją w broni (${err.message}).`);
     return null;
   }
-  const rolled = roll.total;
+  const rolled = ammoV?.noDamage ? 0 : roll.total;
   const pre = aoe ? Math.floor(rolled * df.pct) + df.flat : rolled;
   const satsDouble = !!(crit && !aoe && attack?.sats && close);
   const critMult = crit && !aoe ? (c.multiplier ?? 1) * (satsDouble ? 2 : 1) : 1;
@@ -338,6 +342,16 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   const targets = attack?.targets?.length ? attack.targets : [...(game.user?.targets ?? [])].map(t => t.document?.uuid).filter(Boolean);
   // Specjalne efekty broni (s. 200–202): ogień/dezintegracja „crit” działają tylko przy krytyku
   const sp = { ...(w.specials ?? {}) };
+  if (ammoV?.fire) sp.fire = "hit";
+  if (ammoV?.nonlethal) sp.shock = true;
+  // Spark: dodatkowe kości przeciw maszynom — rzucone teraz, doliczane przy nanoszeniu, gdy cel jest maszyną
+  let machineBonus = 0;
+  const ammoRolls = [];
+  if (ammoV?.machineDice) {
+    const mr = await new Roll(`${ammoV.machineDice}d${dieOf(w.damage)}`).evaluate();
+    ammoRolls.push(mr);
+    machineBonus = mr.total;
+  }
   if (sp.fire === "crit" && !crit) sp.fire = "";
   if (sp.disintegrate === "crit") sp.disintegrateCrit = !!crit;
   let shockWounds = 0;
@@ -372,7 +386,8 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
     <div class="fc-meta">
       ${df.notes.length || fxDamage ? `<div>Premie: ${[...df.notes, fxDamage ? `z cech ${signed(fxDamage)}` : ""].filter(Boolean).map(esc).join(" · ")}</div>` : ""}
       ${sitDamage.length ? `<div>Sytuacyjnie (dolicz ręcznie): ${sitDamage.map(esc).join(" · ")}</div>` : ""}
-      ${w.ignoreDT ? `<div>Ignoruje ${w.ignoreDT} DT celu.</div>` : ""}
+      ${ammoV ? `<div>Amunicja ${esc(ammoV.label)}: ${esc(ammoV.effect)}${machineBonus ? ` (przeciw maszynom +${machineBonus})` : ""}</div>` : ""}
+      ${(item.type === "weapon" ? ammoIgnoreDT(w) : w.ignoreDT) ? `<div>Ignoruje ${item.type === "weapon" ? ammoIgnoreDT(w) : w.ignoreDT} DT celu.</div>` : ""}
     </div>
     <button type="button" class="foe-luck" data-action="foeApply"><i class="fa-solid fa-heart-crack"></i> Nanieś obrażenia</button>
   </div>`;
@@ -380,15 +395,16 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content,
-    rolls: [roll, ...extraRolls],
+    rolls: [roll, ...extraRolls, ...ammoRolls],
     sound: CONFIG.sounds.dice,
     flags: {
       "foe-rpg": {
         damage: {
+          ammo: ammoV ? { key: ammoV.key, machineBonus } : null,
           specials: sp, shockWounds,
           actorUuid: actor.uuid, itemUuid: item.uuid ?? null, itemName: item.name, total, pre, critMult, crit: !!crit, aoe,
           loc: hit?.loc ?? null, called: hit?.called ?? null, table: attack?.table ?? null,
-          ignoreDT: Number(w.ignoreDT) || 0, targets,
+          ignoreDT: item.type === "weapon" ? ammoIgnoreDT(w) : Number(w.ignoreDT) || 0, targets,
           ...(w.armorless ? { ignoreArmor: true, noDegrade: true } : {})
         }
       }

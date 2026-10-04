@@ -24,7 +24,7 @@
         <td>{{coverText}}</td>
         <td class="l fx hide-narrow">{{fxText}}</td>
         <td>{{weight}}</td>
-        <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+        <td class="ctl">{{#if canName}}<a data-action="nameItem" title="Pancerz nazwany (s. 206): 1+1d4 pkt na DT, wagę, atrybuty, umiejętności, AP"><i class="fa-solid fa-star"></i></a> {{/if}}{{#if named}}<i class="fa-solid fa-star named-mark" title="Pancerz nazwany"></i> {{/if}}<a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
       </tr>
     {{else}}<tr><td colspan="9" class="empty">Brak pancerza — wybierz go z katalogu.</td></tr>
     {{/each}}

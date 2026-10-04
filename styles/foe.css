@@ -967,3 +967,11 @@ button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12p
 
 /* v0.18 — magia cieni i podmieńcy */
 .foe-rpg .shadow-actions a { white-space: nowrap; }
+
+/* v0.19 — amunicja specjalna, broń nazwana */
+.foe-rpg .named-mark { color: var(--pip-bright); font-size: 10px; }
+.foe-roll-dialog .named-dlg table.named-opts td { padding: 1px .4rem; font-size: 12px; }
+.foe-roll-dialog .named-dlg table.named-opts input { width: 3.5rem; height: 1.4rem; text-align: right; }
+.foe-roll-dialog .named-dlg tr.drawback td { opacity: .8; font-style: italic; }
+.foe-roll-dialog .named-picks label { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; margin: .2rem 0; font-size: 12px; }
+.foe-roll-dialog .named-picks select, .foe-roll-dialog .named-picks input { max-width: 9rem; height: 1.5rem; }

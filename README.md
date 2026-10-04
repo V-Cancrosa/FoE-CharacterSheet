@@ -132,6 +132,26 @@ Siodła bojowe i pancerze wspomagane (s. 161–170, 460):
 - Pancerz wspomagany bez Power Armor Training: bez premii do atrybutów i umiejętności z pancerza (kary zostają);
   ze szkoleniem kary AGI z pancerza znikają. Talizman naprawczy (klucz przy pancerzu): 2 DT na lokację za jednostkę złomu.
 
+Amunicja specjalna (zasada opcjonalna, s. 202–203; włącz w ustawieniach świata „Amunicja specjalna”):
+- Zwykłe naboje i amunicja broni energetycznej (bez paliwa miotacza) ignorują 5 DT.
+- Katalog → „Amunicja specjalna”: naboje (AP, Explosive, Incendiary, Spark, Glue, Gel, Paint, Hollow Point/Flechette,
+  Slugs i Dragon's Breath do strzelb, Bulk), energia (Focused, Stun, Overcharged, Bulk, Home Made) i wybuchowa
+  (Incendiary, High Explosive, Gas, Smoke, Paint, Beanbag, Cryo, Spark, Glue). „Kup” pyta o kaliber; cena = zwykła × mnożnik.
+- Rodzaj amunicji wybiera się przy przeładowaniu; zmiana rodzaju wyjmuje resztę naboi do ekwipunku. Załadowany rodzaj
+  widać przy broni i w oknie ataku.
+- Liczy się samo: ignorowanie DT (AP 40, Focused 50, HE 30, Spark 10), ± kości, +2d10 i Ogień (Incendiary), maksymalne
+  obrażenia i −1 krok (Slugs); przy nanoszeniu: ½ obrażeń bez pancerza średniego/ciężkiego (AP, Focused), ×4 przeciw żywym
+  i DT ×3 (Hollow Point), +4 kości przeciw maszynom i ¼ przy niskim DT (Spark), bez skutku przy DT > 20 (Gel, Stun, Beanbag),
+  obrażenia niezabijające. Zużycie broni (szybsza degradacja) jest tylko w opisie.
+
+Broń i pancerz nazwany (s. 204–206): gwiazdka przy broni (zakładka Walka) albo pancerzu (Ekwipunek).
+- Punkty: 1 + 1d4 (cecha Named Weapon/Armor — 5), do 3 więcej za pogorszenia (−1 kość, mniejszy magazynek, SATS +5, waga +1).
+- Broń: +1 kość (maks. +2), magazynek o jeden strzał, zasięg +5 ft (raz), SATS −5 (min. 60%), waga −1, krytyk +0,5,
+  efekt specjalny (2 pkt, gdy broń żadnego nie ma), większa kość (2 pkt za stopień) — wg rodzaju broni (wręcz, dystans, obszarowa).
+- Pancerz: DT +1d6, waga −1, +1 tymczasowo do atrybutu (maks. dwa), +5 do umiejętności, +2 do dwóch umiejętności,
+  +5 AP (do +25), wyposażenie zintegrowane (opis).
+- Według podręcznika tworzy się je przy tworzeniu postaci: gracz — na poziomie 1, MG — zawsze.
+
 Magia cieni (s. 35, 574) — zakładka „Magia i lot”:
 - Cecha Shadowflash (kreator, 1 pkt; według podręcznika tylko kucyki nietoperzowe, nie z Young): pula strainu cieni AGI + PER + 2,
   koszt 2, odnawia się 1 na godzinę czasu gry. Unik — Flight MFD ½, sukces = unik udany (reakcja, bez akcji);

@@ -443,6 +443,7 @@ export class WeaponData extends FoeItemData {
       flat: bool(false),                 // obrażenia z bloku bestiariusza — bez dodatkowych premii STR/rangi
       mounted: bool(false),              // zamontowana na siodle bojowym
       armorless: bool(false),            // ignoruje pancerz noszony (Sonic Screech) — liczy się tylko naturalne DT
+      loaded: str(""),                   // załadowany wariant amunicji specjalnej (ammo-data.mjs), "" = zwykła
       aoe: new F.SchemaField({ enabled: bool(false), splash: str(""), inc: str(""), radius: str("") }),
       // specjalne efekty (s. 200–202): ogień i dezintegracja: "" | "hit" (każde trafienie) | "crit" (tylko krytyk)
       specials: new F.SchemaField({
@@ -511,6 +512,7 @@ export class GearData extends FoeItemData {
       weight: new F.NumberField({ initial: 0 }),
       value: num(0, { min: 0 }),
       ammoType: str(""),
+      variant: str(""),                       // amunicja specjalna (ammo-data.mjs): ap, incendiary, focused…
       rarity: num(0, { min: 0, max: 4 }),     // składniki zebr
       usage: str(""),                         // wyrób zebr: Drink / Throw / Apply / Worn
       damage: str(""),                        // wyrób rzucany

@@ -12,6 +12,7 @@ import {
 import { setCondition, toggleStatus, poisonCheck, endOfRound } from "./conditions.mjs";
 import { hitStepsAgainst, evasiveActive, AREA_STATUS } from "./vehicle-data.mjs";
 import { implantReserve } from "./cyber.mjs";
+import { loadedVariant, ammoOnHit, SPECIAL_AMMO, variantsFor, specialAmmoOn, variantName } from "./ammo-data.mjs";
 import { spendActions } from "./tracker.mjs";
 
 const { DialogV2 } = foundry.applications.api;
@@ -71,6 +72,7 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   const tVehicle = target?.system?.isVehicle ? target : null;
   const sizeSteps = tVehicle ? hitStepsAgainst(tVehicle.system.size, evasiveActive(tVehicle.getFlag?.("foe-rpg", "evasive"), game.combat)) : [];
   const vsys = vehicle?.system;
+  const ammoV = loadedVariant(w);   // amunicja specjalna (zasada opcjonalna, s. 202–203)
   const moving = !!vsys?.vehicle?.currentSpeed;
 
   const info = [
@@ -79,7 +81,8 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     vehicle ? `Broń pokładowa: <b>${esc(vehicle.name)}</b> · strzela ${esc(actor.name)}${actor === vehicle ? " (załoga pojazdu)" : ""}${vsys.gunSteps ? ` · uszkodzone uzbrojenie ${vsys.gunSteps} kr.` : ""}` : "",
     aoe ? (tVehicle ? "Broń obszarowa w pojazd: można celować wprost (s. 451) — podstawowe MFD 1." : "Broń obszarowa: przeciw celom normalnej wielkości podstawowe MFD ¾ (s. 451).") : "",
     ...sizeSteps.map(x => `${esc(x.label)}: ${stepsLabel(x.steps)}`),
-    w.specials?.silenced ? "Tłumik: wykrycie strzelca o krok trudniejsze (MFD ½)." : ""
+    w.specials?.silenced ? "Tłumik: wykrycie strzelca o krok trudniejsze (MFD ½)." : "",
+    ammoV ? `Amunicja: <b>${esc(ammoV.label)}</b> — ${esc(ammoV.effect)}; ${esc(ammoV.downside)}` : ""
   ].filter(Boolean).map(l => `<div>${l}</div>`).join("");
 
   const extraHtml = `
@@ -124,6 +127,7 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     const movingSteps = el.moving?.checked ? -1 : 0;
     const gunSteps = vehicle ? vsys.gunSteps || 0 : 0;
     const bigSteps = sizeSteps.reduce((t, x) => t + x.steps, 0);
+    const ammoSteps = ammoV?.steps ?? 0;
     const notes = [];
     if (satsOn) notes.push(followUp ? "SATS (salwa)" : `SATS −${cost} AP${envRaw ? " (kary otoczenia pominięte)" : ""}`);
     if (env) notes.push(`Otoczenie ${stepsLabel(env)}`);
@@ -134,7 +138,8 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     if (movingSteps) notes.push(`Strzał z pojazdu w ruchu ${stepsLabel(movingSteps)}`);
     if (gunSteps) notes.push(`Uszkodzone uzbrojenie ${stepsLabel(gunSteps)}`);
     for (const x of sizeSteps) notes.push(`${x.label} ${stepsLabel(x.steps)}`);
-    return { steps: env + rng + called + heavySteps + volleySteps + movingSteps + gunSteps + bigSteps, mod: 0, notes, data: { sats: satsOn, loc: raw === "random" ? "random" : loc, area: area?.label ?? null, table: el.table?.value ?? table } };
+    if (ammoSteps) notes.push(`Amunicja ${ammoV.label} ${stepsLabel(ammoSteps)}`);
+    return { steps: env + rng + called + heavySteps + volleySteps + movingSteps + gunSteps + bigSteps + ammoSteps, mod: 0, notes, data: { sats: satsOn, loc: raw === "random" ? "random" : loc, area: area?.label ?? null, table: el.table?.value ?? table } };
   };
 
   const onRender = (form, update) => {
@@ -186,23 +191,47 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
 export async function reloadWeapon(actor, item) {
   const w = item.system;
   if (!(w.ammo.max > 0)) return warn(`${item.name} nie ma magazynka do przeładowania.`);
-  const missing = w.ammo.max - w.ammo.value;
-  if (missing <= 0) return ui.notifications.info(`${item.name}: magazynek jest pełny.`);
   const ri = reloadInfo(w.reload, { energy: w.skill === "energy" });
   const sats = actor.system.resources.sats;
 
   // Amunicja z ekwipunku: przedmiot z tym samym typem amunicji albo nazwą
   const type = String(w.ammoType ?? "").trim().toLowerCase();
-  const stock = type ? actor.items.filter(i => i.type === "gear"
+  const allStock = type ? actor.items.filter(i => i.type === "gear"
     && [i.system.ammoType, i.name].some(v => String(v ?? "").trim().toLowerCase() === type)) : [];
+  // amunicja specjalna (s. 202–203): wybór wariantu; zmiana wariantu wyjmuje resztę naboi z magazynka do ekwipunku
+  const special = specialAmmoOn() && variantsFor(w.ammoType).length > 0;
+  const loadedNow = special ? (w.loaded || "") : "";
+  let variant = loadedNow;
+  if (special) {
+    const qtyOf = v => allStock.filter(i => (i.system.variant || "") === v).reduce((t, i) => t + Math.max(0, Number(i.system.qty) || 0), 0);
+    const opts = [{ v: "", label: "Zwykła" }, ...variantsFor(w.ammoType).map(x => ({ v: x.key, label: x.label }))]
+      .map(o => ({ ...o, n: qtyOf(o.v) })).filter(o => o.n > 0 || o.v === "" || o.v === loadedNow);
+    if (opts.length > 1) {
+      const pick = await DialogV2.wait({
+        window: { title: `Amunicja: ${item.name}` }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 420 }, rejectClose: false,
+        content: `<div class="foe-dialog"><div class="atk-info"><div>W magazynku: <b>${w.ammo.value}</b> × ${esc(loadedNow ? SPECIAL_AMMO[loadedNow].label : "zwykła")}</div></div>
+          <label class="atk-row">Ładuj <select name="v">${opts.map(o => `<option value="${o.v}" ${o.v === loadedNow ? "selected" : ""}>${esc(o.label)} (w ekwipunku: ${o.n})</option>`).join("")}</select></label>
+          <p class="hint">Zmiana rodzaju amunicji wyjmuje resztę naboi z magazynka z powrotem do ekwipunku.</p></div>`,
+        buttons: [{ action: "ok", label: "Dalej", icon: "fa-solid fa-check", default: true, callback: (ev, btn) => btn.form.elements.v.value }]
+      });
+      if (pick === null || pick === undefined) return null;
+      variant = pick;
+    }
+  }
+  const stock = special ? allStock.filter(i => (i.system.variant || "") === variant) : allStock;
   const fromStock = stock.reduce((t, i) => t + Math.max(0, Number(i.system.qty) || 0), 0);
+  if (special && variant && fromStock <= 0) return warn(`Brak amunicji ${SPECIAL_AMMO[variant].label} „${w.ammoType}” w ekwipunku.`);
+  const swap = special && variant !== loadedNow && w.ammo.value > 0;
+  const missing = swap ? w.ammo.max : w.ammo.max - w.ammo.value;
+  if (missing <= 0) return ui.notifications.info(`${item.name}: magazynek jest pełny.`);
 
   // Siodło bojowe (s. 168–170): rezerwa energii/paliwa jako dodatkowa amunicja, podajniki
   const saddle = w.mounted ? saddleState(actor) : null;
   const ePts = energyCost(w.ammoType);
-  const reserve = saddle?.energy && ePts ? { kind: "energy", item: saddle.energy.item, per: ePts, rounds: Math.floor(saddle.energy.pts / ePts), pts: saddle.energy.pts }
+  let reserve = saddle?.energy && ePts ? { kind: "energy", item: saddle.energy.item, per: ePts, rounds: Math.floor(saddle.energy.pts / ePts), pts: saddle.energy.pts }
     : saddle?.fuel && isFuel(w.ammoType) ? { kind: "fuel", item: saddle.fuel.item, per: 1, rounds: saddle.fuel.units, pts: saddle.fuel.units }
     : implantReserve(actor, w.ammoType);   // Internal Energy Reservoir: przewód do broni energetycznej
+  if (special && variant) reserve = null;  // rezerwy siodła i implantu dają tylko zwykłą amunicję
   const reserveName = { energy: "rezerwa energii", fuel: "rezerwa paliwa", implant: "magazyn implantu" }[reserve?.kind] ?? "";
   const reserveCap = reserve?.kind === "energy" ? saddle.energy.cap : reserve?.kind === "fuel" ? saddle.fuel.cap : reserve?.cap ?? 0;
   const available = fromStock + (reserve?.rounds ?? 0);
@@ -272,8 +301,19 @@ export async function reloadWeapon(actor, item) {
     await reserve.item.update({ [reserve.field ?? "system.charges"]: Math.max(0, reserve.pts - fromReserve * reserve.per) });
     left -= fromReserve;
   }
-  const before = w.ammo.value;
-  await item.update({ "system.ammo.value": before + amount });
+  // wyjęcie reszty naboi innego rodzaju do ekwipunku
+  let ejected = 0;
+  if (swap) {
+    ejected = w.ammo.value;
+    const back = allStock.find(i => (i.system.variant || "") === loadedNow);
+    if (back) await back.update({ "system.qty": (Number(back.system.qty) || 0) + ejected });
+    else await actor.createEmbeddedDocuments("Item", [{
+      name: loadedNow ? variantName(w.ammoType, SPECIAL_AMMO[loadedNow]) : w.ammoType, type: "gear",
+      system: { category: "ammo", qty: ejected, ammoType: w.ammoType, variant: loadedNow, weight: 0 }
+    }]);
+  }
+  const before = swap ? 0 : w.ammo.value;
+  await item.update({ "system.ammo.value": before + amount, ...(special ? { "system.loaded": variant } : {}) });
 
   const how = choice === "sats" ? `SATS −${ri.ap} AP` : choice === "auto" ? "podajnik, bez akcji" : `${1 + extraActions} ${1 + extraActions === 1 ? "akcja" : "akcje"}`;
   return ChatMessage.create({
@@ -282,7 +322,8 @@ export async function reloadWeapon(actor, item) {
     <div class="foe-card reload">
       <div class="fc-tag"><span>PIPBUCK // PRZEŁADOWANIE</span><span>${how}</span></div>
       <h3>${esc(item.name)}</h3>
-      <div class="fc-calc">Załadowano ${amount}${note}${w.ammoType ? ` × ${esc(w.ammoType)}` : ""} → <b>${before + amount}/${w.ammo.max}</b></div>
+      <div class="fc-calc">Załadowano ${amount}${note}${w.ammoType ? ` × ${esc(w.ammoType)}` : ""}${special && variant ? ` (${esc(SPECIAL_AMMO[variant].label)})` : ""} → <b>${before + amount}/${w.ammo.max}</b></div>
+      ${ejected ? `<div class="fc-meta">Wyjęto do ekwipunku: ${ejected} × ${esc(loadedNow ? SPECIAL_AMMO[loadedNow].label : "zwykła")}</div>` : ""}
       ${tracked ? `<div class="fc-meta">${stock.length ? `W ekwipunku zostało: ${fromStock - (amount - fromReserve)}` : ""}${reserve ? `${stock.length ? " · " : ""}${reserve.kind === "implant" ? "Z magazynu implantu" : "Z rezerwy siodła"}: ${fromReserve} (zostało ${reserve.pts - fromReserve * reserve.per}/${reserveCap})` : ""}</div>` : ""}
     </div>`
   });
@@ -352,17 +393,21 @@ async function resolveTargets(uuids = []) {
 }
 
 /** Wynik trafienia jednego celu: obrażenia na lokację po DT i rany. */
-export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0, ignoreAll = false, bonusWounds = 0, armorless = false, fire = false }) {
+export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0, ignoreAll = false, bonusWounds = 0, armorless = false, fire = false,
+  ammo = null, armored = null, living = true, machineBonus = 0 }) {
   const list = where === "all" ? locs : [locOf(where)];
-  const dmg = Math.floor(pre * mult);
+  const base = Math.floor((pre + (machineBonus || 0)) * mult);
   const bonus = where === "all" ? 0 : Math.max(0, bonusWounds);
   return list.filter(k => sys.locations[k]).map(k => {
     const L = sys.locations[k];
-    const dtBase = where === "all" || dt === null || dt === "" ? (armorless ? L.naturalDt : L.dtTotal) + (fire ? L.fireDt ?? 0 : 0) : Number(dt) || 0;
+    const dt0 = where === "all" || dt === null || dt === "" ? (armorless ? L.naturalDt : L.dtTotal) + (fire ? L.fireDt ?? 0 : 0) : Number(dt) || 0;
+    // amunicja specjalna: DT ×3, ×4 przeciw żywym, ½ bez pancerza średniego/ciężkiego, ¼ przy niskim DT… (s. 202–203)
+    const a = ammoOnHit(ammo, { dmg: base, dt: dt0, armoredLoc: !!armored?.has?.(k), living });
+    const dmg = a.dmg, dtBase = a.dt;
     const eff = ignoreAll ? 0 : effectiveDT(dtBase, ignore);
     const after = Math.max(0, dmg - eff);
-    const wounds = woundsFrom(after, sys.dmgPerWound) + bonus;
-    return { loc: k, dmg, dt: dtBase, eff, after, wounds, armorDt: L.armorDt, before: L.wounds, now: L.wounds + wounds };
+    const wounds = ammo?.noWound || ammo?.noDamage ? 0 : woundsFrom(after, sys.dmgPerWound) + bonus;
+    return { loc: k, dmg, dt: dtBase, eff, after, wounds, armorDt: L.armorDt, before: L.wounds, now: L.wounds + wounds, ammoNotes: a.notes };
   });
 }
 
@@ -393,8 +438,15 @@ export async function applyDamage(message) {
   const fireDt = (sys, v) => (d.specials?.fire ? sys.locations[locOf(v)]?.fireDt ?? 0 : 0);
   const dtOf = (sys, v) => ((d.ignoreArmor ? sys.locations[locOf(v)]?.naturalDt : sys.locations[locOf(v)]?.dtTotal) ?? 0) + fireDt(sys, v);
   const sp = d.specials ?? {};
+  // amunicja specjalna z karty obrażeń
+  const ammo = d.ammo?.key && SPECIAL_AMMO[d.ammo.key] ? { ...SPECIAL_AMMO[d.ammo.key], machineBonus: d.ammo.machineBonus ?? 0 } : null;
   const rows = allowed.map((t, i) => {
     const sys = t.actor.system;
+    const items = t.actor.items ?? [];
+    // lokacje chronione pancerzem średnim, ciężkim albo wspomaganym (AP i Focused: inaczej połowa obrażeń)
+    const armored = new Set(items.filter(a => a.type === "armor" && a.system.equipped && (a.system.powered || ["medium", "heavy"].includes(a.system.category)))
+      .flatMap(a => Object.entries(a.system.cover ?? {}).filter(([, on]) => on).map(([k]) => k)));
+    const machine = !!sys.isVehicle || /robot|sentry|turret|protectapony|sprite.?bot|maszyn/i.test(sys.race ?? "") || items.some(a => a.type === "armor" && a.system.equipped && a.system.powered);
     const table = d.table && HIT_TABLES[d.table] ? d.table : hitTableFor(sys.race);
     // potwory z bestiariusza: własne strefy (np. „Szczypce L”) zamiast lokacji kucyka
     const labels = areaLabels(t.actor);
@@ -405,13 +457,13 @@ export async function applyDamage(message) {
     if (d.called === "eye") opts.push({ v: "eye", label: "Oko (głowa, ×1,5)" });
     opts.push({ v: "all", label: "Cały cel — wybuch (każda lokacja)" });
     const sel = d.aoe ? "all" : calledOf(d.called) && locs.includes(calledOf(d.called)) ? calledOf(d.called) : d.loc && locs.includes(d.loc) ? d.loc : locs.includes("torso") ? "torso" : locs[0];
-    return { t, i, sys, table, locs, opts, sel, labels };
+    return { t, i, sys, table, locs, opts, sel, labels, armored, machine };
   });
 
   const defMult = v => (d.aoe || d.flatMult || v === "all" ? 1 : combineMultipliers(d.critMult ?? 1, locationMultiplier(locOf(v), calledOf(v))));
   const content = `
     <div class="foe-dialog dmg-apply">
-      <div class="atk-info"><div>${esc(d.itemName)}: <b>${d.pre}</b> obrażeń przed mnożnikami${d.crit ? " (krytyk)" : ""}${d.ignoreDT ? ` · ignoruje ${d.ignoreDT} DT` : ""}</div></div>
+      <div class="atk-info"><div>${esc(d.itemName)}: <b>${d.pre}</b> obrażeń przed mnożnikami${d.crit ? " (krytyk)" : ""}${d.ignoreDT ? ` · ignoruje ${d.ignoreDT} DT` : ""}</div>${ammo ? `<div>Amunicja <b>${esc(ammo.label)}</b>: ${esc(ammo.effect)}; ${esc(ammo.downside)}</div>` : ""}</div>
       ${rows.map(r => `
       <fieldset class="dmg-target" data-i="${r.i}">
         <legend>${esc(r.t.name)} <small>${r.sys.dmgPerWound} obr. = 1 rana · ${r.sys.isVehicle ? `wytrzymałość strefy ${r.sys.structure}` : `END ${r.sys.attributes.end.total}`}</small></legend>
@@ -420,6 +472,8 @@ export async function applyDamage(message) {
         <label class="dt-row">DT <input type="number" name="dt-${r.i}" value="${r.sel === "all" ? "" : dtOf(r.sys, r.sel)}" ${r.sel === "all" ? "disabled placeholder=\"wg lokacji\"" : ""}></label>
         <label>Ignoruje DT <input type="number" name="ign-${r.i}" value="${d.ignoreDT ?? 0}" min="0"></label>
         <label class="atk-check"><input type="checkbox" name="all-${r.i}"> <span>Ignoruj całe DT</span></label>
+        ${ammo?.machineBonus ? `<label class="atk-check"><input type="checkbox" name="mach-${r.i}" ${r.machine ? "checked" : ""}> <span>Maszyna / robot / pancerz wspomagany (+${ammo.machineBonus})</span></label>` : ""}
+        ${ammo?.living4 ? `<label class="atk-check"><input type="checkbox" name="live-${r.i}" ${r.machine ? "" : "checked"}> <span>Cel żywy albo ghul (×4)</span></label>` : ""}
         <div class="dmg-out" data-out="${r.i}"></div>
       </fieldset>`).join("")}
       ${specialHtml(sp, rows.some(r => r.sys.isVehicle))}
@@ -438,12 +492,15 @@ export async function applyDamage(message) {
       ignoreAll: !!el[`all-${r.i}`].checked,
       bonusWounds: d.shockWounds ?? 0,
       armorless: !!d.ignoreArmor,
-      fire: !!d.specials?.fire
+      fire: !!d.specials?.fire,
+      ammo, armored: r.armored,
+      living: ammo?.living4 ? !!el[`live-${r.i}`]?.checked : true,
+      machineBonus: ammo?.machineBonus && el[`mach-${r.i}`]?.checked ? ammo.machineBonus : 0
     };
   };
   const describe = (r, res) => res.map(x => {
     const st = statusText(x.loc, x.now, r.sys);
-    return `<div><b>${esc(r.labels[x.loc] ?? locationName(x.loc, r.table))}</b>: ${x.dmg} − DT ${x.eff} = ${x.after} → <b>${x.wounds} ${x.wounds === 1 ? "rana" : "ran"}</b> (${x.before}→${x.now}/${r.sys.locations[x.loc]?.limit ?? r.sys.attributes.end.total})${st ? ` <span class="warn">${st}</span>` : ""}</div>`;
+    return `<div><b>${esc(r.labels[x.loc] ?? locationName(x.loc, r.table))}</b>: ${x.dmg} − DT ${x.eff} = ${x.after} → <b>${x.wounds} ${x.wounds === 1 ? "rana" : "ran"}</b> (${x.before}→${x.now}/${r.sys.locations[x.loc]?.limit ?? r.sys.attributes.end.total})${x.ammoNotes?.length ? ` <small>[${esc(x.ammoNotes.join(", "))}]</small>` : ""}${st ? ` <span class="warn">${st}</span>` : ""}</div>`;
   }).join("");
 
   const render = (event, dialog) => {
