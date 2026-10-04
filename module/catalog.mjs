@@ -7,6 +7,7 @@ import { maneuverItemData, maneuverWarnings, isWeatherManeuver, MFD_LABEL } from
 import { addPerk, perkStatus, reqView, autoSummary, perkItemData } from "./perks.mjs";
 import { importCreature, BESTIARY_KINDS } from "./bestiary.mjs";
 import { VEHICLE_KINDS, VEHICLE_POWER, sizeRow } from "./vehicle-data.mjs";
+import { canFreeAdd } from "./permissions.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -214,7 +215,9 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
       isGear: this.tab === "gear",
       isBestiary: this.tab === "bestiary",
       isVehicles: this.tab === "vehicles",
-      isCyber: this.tab === "cyber"
+      isCyber: this.tab === "cyber",
+      // gracz: „Dodaj” za darmo tylko za zgodą MG (ustawienie świata); kupuje za kapsle
+      lockAdd: !!this.actor && !canFreeAdd(this.tab)
     };
   }
 
@@ -293,6 +296,7 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     const qty = Math.max(1, Math.floor(Number(row.querySelector("input[name=qty]")?.value) || 1));
     const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : this.tab === "perks" ? perkItemData(entry) : this.tab === "bestiary" || this.tab === "vehicles" || this.tab === "cyber" ? null : catalogItem(this.tab, entry, qty);
     const what = qty > 1 ? `${entry.name} ×${qty}` : entry.name;
+    if (!buy && this.actor && !canFreeAdd(this.tab)) return ui.notifications.warn("Za darmo dodaje tylko MG — kup za kapsle albo poproś MG.");
 
     if (this.tab === "cyber") {
       if (!this.actor) {

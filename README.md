@@ -132,6 +132,18 @@ Siodła bojowe i pancerze wspomagane (s. 161–170, 460):
 - Pancerz wspomagany bez Power Armor Training: bez premii do atrybutów i umiejętności z pancerza (kary zostają);
   ze szkoleniem kary AGI z pancerza znikają. Talizman naprawczy (klucz przy pancerzu): 2 DT na lokację za jednostkę złomu.
 
+MG i gracze (uprawnienia):
+- Gracz widzi i obsługuje tylko postacie, których jest właścicielem (uprawnienia aktora w Foundry); obrażenia na cudzy
+  token nanosi MG tym samym przyciskiem na karcie z czatu.
+- Karty na czacie (rzuty, obrażenia, awanse) respektują tryb rzutu wybrany nad czatem: publiczny, rzut MG, ślepy, tylko dla siebie.
+  Opcja świata „Ukryte rzuty MG za przeciwników”: rzuty MG za postacie bez gracza-właściciela idą zawsze jako rzut MG.
+- PD i poziom zmienia MG (przycisk „PD”, pola na karcie, cofanie awansu). Gracz klika „Awans” sam, gdy zbierze PD do progu;
+  przy awansie bez PD (kamienie milowe) awans klika MG na karcie gracza. Opcja świata „Gracze sami przyznają PD i awansują” oddaje to graczom.
+- Katalog: gracz kupuje broń, pancerze i ekwipunek za kapsle; „Dodaj” za darmo (także implanty i perki) ma tylko MG.
+  Zaklęcia, receptury i manewry gracz dodaje zawsze. Opcja świata „Gracze dodają z katalogu za darmo” to zmienia.
+- Tylko MG: bestiariusz, pojazdy, pogoda, runda zaskoczenia, ustawienia świata; efekty końca rundy, odnawianie AP,
+  koniec działania chemii i samonaprawę liczy komputer MG.
+
 Cybernetyka i implanty (s. 104–107, 135–143, 178):
 - Katalog → zakładka „Cybernetyka”: protezy (noga, skrzydło, oko, organ, tułów) i 14 implantów z tabeli IX oraz implant atrybutu.
   „Dodaj” montuje je w postaci (wybór nogi albo atrybutu, opcjonalnie nowa kończyna w miejsce utraconej — rany znikają)
