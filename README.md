@@ -132,6 +132,25 @@ Siodła bojowe i pancerze wspomagane (s. 161–170, 460):
 - Pancerz wspomagany bez Power Armor Training: bez premii do atrybutów i umiejętności z pancerza (kary zostają);
   ze szkoleniem kary AGI z pancerza znikają. Talizman naprawczy (klucz przy pancerzu): 2 DT na lokację za jednostkę złomu.
 
+Cybernetyka i implanty (s. 104–107, 135–143, 178):
+- Katalog → zakładka „Cybernetyka”: protezy (noga, skrzydło, oko, organ, tułów) i 14 implantów z tabeli IX oraz implant atrybutu.
+  „Dodaj” montuje je w postaci (wybór nogi albo atrybutu, opcjonalnie nowa kończyna w miejsce utraconej — rany znikają)
+  i ostrzega o przeciwwskazaniach: Zebra Augmented, Bone Strengthening Brew, alikorny, drugi implant tego samego atrybutu.
+- Efekty liczą się same: proteza +6 DT na swojej lokacji i 1 rana więcej do okaleczenia i utraty; Nemean +4 DT,
+  Basilisk +10 DT, −1 CHA, −10 umiejętności CHA (nie sumują się — liczy się mocniejszy); implant atrybutu najwyżej +1 na atrybut;
+  Homeostatic +10 przeciw truciznom; Small-target +10 obrażeń przeciw celom z D/W < 8.
+- Cecha Cyberpony: +10 DT od ognia (płonięcie i broń z efektem ognia), kończyny +1 rana do okaleczenia i utraty;
+  3 pkt: +3 DT wszędzie zamiast +6 z protez. Zebra Augmented też ma +10 DT od ognia.
+- Perki: Adamantium Bone Lacing i Bone Strengthening Brew — kończyny ×2 ran (przed premiami stałymi);
+  Robotics Expert — +5 obrażeń przeciw robotom i cyborgom.
+- Zasilanie (opcja świata „Zasilanie cybernetyki klejnotami”): przycisk „Zasilanie” je klejnot z ekwipunku
+  (Small 12 h, Medium 24 h, Large 4 dni, pył 2 h, Cyberpony Cakes 24 h — dla jednej kończyny; tułów liczy się podwójnie).
+  Bez zasilania implanty nie działają, a protezy są jak okaleczone.
+- Samonaprawa: talizman naprawczy protezy usuwa 1 ranę na 15 minut za 1 złom (Scrap Metal / Electronics),
+  Phoenix Monocyte Breeder 1 ranę na godzinę — dzieje się samo, gdy MG przesuwa czas gry, albo przyciskiem „Samonaprawa”.
+- Internal Energy Reservoir: 100 punktów energii (ogniwo 2, MFC 4, gem cell 1) — ładowany z ogniw, przy przeładowaniu broni
+  energetycznej działa jak rezerwa energii siodła.
+
 Pojazdy i walka pojazdów (nowy typ aktora „Pojazd”). Podręcznik v1.22 nie ma rozdziału o pojazdach — z książki są:
 tabela XLI (s. 608: rozmiar → obrażenia na ranę i łatwiejsze trafienie), zderzenia z Speed Lines (1d20 za każde 20 ft prędkości),
 prędkość zaprzęgu wg najwolniejszego kucyka i celowanie wybuchami wprost w pojazdy (s. 451). Reszta to zasady domowe:
