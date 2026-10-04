@@ -109,6 +109,11 @@ function registerCombatSettings() {
     hint: "Zasada domowa: dodatkowa kara do AGI dla postaci bez Power Armor Training. Podręcznik mówi tylko, że bez szkolenia nie ma premii z pancerza, a jego kary AGI zostają (0 = tylko to).",
     scope: "world", config: true, type: Number, default: 0, range: { min: 0, max: 5, step: 1 }
   });
+  game.settings.register("foe-rpg", "specialAmmo", {
+    name: "Amunicja specjalna",
+    hint: "Zasada opcjonalna (s. 202–203): zwykłe naboje i amunicja energetyczna ignorują 5 DT, a w katalogu jest amunicja specjalna (AP, Incendiary, Spark, Focused, High Explosive…) wybierana przy przeładowaniu.",
+    scope: "world", config: true, type: Boolean, default: false
+  });
   game.settings.register("foe-rpg", "specialsMigrated", { scope: "world", config: false, type: Boolean, default: false });
   game.settings.register("foe-rpg", "randomHitLocations", {
     name: "Losowe lokacje trafień",

@@ -32,11 +32,11 @@
         <td>{{satsCost}}</td>
         <td class="nw ammo">
           {{#if consumable}}<b>×{{qty}}</b>
-          {{else if ammo.max}}<b>{{ammo.value}}/{{ammo.max}}</b> <a class="reload" data-action="reload" title="Przeładuj ({{reloadLabel}})"><i class="fa-solid fa-rotate"></i></a>{{#if ammoType}}<small class="sub">{{ammoType}}</small>{{/if}}
+          {{else if ammo.max}}<b>{{ammo.value}}/{{ammo.max}}</b> <a class="reload" data-action="reload" title="Przeładuj ({{reloadLabel}})"><i class="fa-solid fa-rotate"></i></a>{{#if ammoType}}<small class="sub">{{ammoType}}{{#if ammoVariant}} · <b title="{{ammoVariantTip}}">{{ammoVariant}}</b>{{/if}}</small>{{/if}}
           {{else}}—{{/if}}
         </td>
         <td class="nw" {{#if rangeTip}}title="{{rangeTip}}"{{/if}}>{{rangeLabel}}</td>
-        <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+        <td class="ctl">{{#if canName}}<a data-action="nameItem" title="Broń nazwana (s. 204–206): 1+1d4 pkt na obrażenia, magazynek, SATS, efekty"><i class="fa-solid fa-star"></i></a> {{/if}}{{#if named}}<i class="fa-solid fa-star named-mark" title="Broń nazwana"></i> {{/if}}<a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
       </tr>
     {{else}}<tr><td colspan="9" class="empty">Brak broni — wybierz ją z katalogu albo dodaj plusem.</td></tr>
     {{/each}}
