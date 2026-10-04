@@ -15,6 +15,7 @@ import { levelUp, undoLevelUp, promptAwardXp, xpFor, xpProgression } from "./per
 import { useChem, endChem, cureAddiction, chemRows } from "./chems.mjs";
 import { useHealItem, rest, setLimb, HEAL_KINDS } from "./healing.mjs";
 import { rollActorInitiative } from "./tracker.mjs";
+import { areaLabels, areasOf } from "./bestiary.mjs";
 import { radLevel } from "./body.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -163,12 +164,18 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         tempFx: s.temp ? signed(s.temp) : ""
       };
     });
-    ctx.locations = Object.entries(LOCATIONS).map(([k, label]) => {
+    // potwory z bestiariusza: tylko ich strefy, z nazwami i MFD celowania z bloku
+    const areaNames = areaLabels(this.document);
+    const areaMfd = Object.fromEntries(areasOf(this.document).map(a => [a.loc, a.mfd]));
+    const monster = Object.keys(areaNames).length > 0;
+    ctx.locations = Object.entries(LOCATIONS).filter(([k]) => !monster || areaNames[k]).map(([k, label]) => {
       const l = sys.locations[k];
-      return { key: k, label, ...l, statusLabel: STATUS[l.status] ?? "", dtFxLabel: l.dtFx ? signed(l.dtFx) : "" };
+      return { key: k, label: areaNames[k] ?? label, ...l, statusLabel: STATUS[l.status] ?? "", dtFxLabel: l.dtFx ? signed(l.dtFx) : "",
+        mfdNote: areaMfd[k] ? `MFD celowania ${areaMfd[k]}` : "" };
     });
     ctx.endT = sys.attributes.end.total;
-    ctx.crippleAt = Math.max(1, Math.ceil(ctx.endT / 2));
+    ctx.crippleAt = sys.woundLimits?.cripple || Math.max(1, Math.ceil(ctx.endT / 2));
+    if (sys.woundLimits?.maim) ctx.endT = sys.woundLimits.maim;
     ctx.conditions = conditionRows(this.document);
     const rads = sys.resources.rads.value || 0;
     const rl = radLevel(rads);

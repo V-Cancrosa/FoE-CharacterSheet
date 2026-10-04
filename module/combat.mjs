@@ -155,6 +155,8 @@ export const aoeFlat = rank => (rank >= 100 ? 10 : 0);
  */
 export function damageFormula(w, { str = 0, rank = 0, overWield = false } = {}) {
   const notes = [];
+  // broń potworów z bestiariusza: obrażenia już zawierają premie
+  if (w?.flat) return { formula: String(w.damage || "0"), pct: 1, flat: 0, notes: ["obrażenia z bloku statystyk"] };
   const close = isClose(w);
   const aoe = isAoe(w);
   const strVal = close ? (overWield ? 0 : str * strFactor(rank)) : str;

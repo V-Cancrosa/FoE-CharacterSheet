@@ -175,7 +175,8 @@ export async function rollTest(actor, data) {
       atk.hit = { loc: h.loc, roll: h.roll, total: h.total, rerolls: h.rerolls, called: null };
     } else {
       const c = CALLED_SHOTS[atk.called] ?? CALLED_SHOTS.torso;
-      atk.hit = { loc: c.loc, called: atk.called ?? "torso" };
+      // strefa potwora z bestiariusza (np. „Szczypce L”) — lokacja systemu bez mnożników strzału celowanego
+      atk.hit = atk.area ? { loc: c.loc, called: null, area: atk.area } : { loc: c.loc, called: atk.called ?? "torso" };
     }
   }
 
@@ -200,9 +201,9 @@ export async function rollTest(actor, data) {
     const h = atk.hit;
     const m = locationMultiplier(h.loc, h.called);
     const mult = m !== 1 ? ` · obrażenia ×${num(m)}` : "";
-    atkLines.push(h.called
+    atkLines.push(h.area ? `Cel: <b>${esc(h.area)}</b>${mult}` : h.called
       ? `Cel: <b>${esc(CALLED_SHOTS[h.called]?.label ?? locationName(h.loc))}</b>`
-      : `Trafienie: <b>${esc(locationName(h.loc, atk.table))}</b> (k20: ${h.roll}${atk.melee ? " +1 wręcz" : ""}${h.rerolls ? `, przerzutów: ${h.rerolls}` : ""})${mult}`);
+      : `Trafienie: <b>${esc(atk.areaLabels?.[h.loc] ?? locationName(h.loc, atk.table))}</b> (k20: ${h.roll}${atk.melee ? " +1 wręcz" : ""}${h.rerolls ? `, przerzutów: ${h.rerolls}` : ""})${mult}`);
   }
   if (atk?.aoe && !failed) atkLines.push("Wybuch: obrażenia trafiają każdą odsłoniętą lokację (DT liczone osobno).");
   const atkMeta = atk ? [
@@ -350,7 +351,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
     if (k === "shock" && shockWounds) return `${SPECIALS.shock.label}: krytyk +${shockWounds} ran`;
     return SPECIALS[k].label;
   });
-  const locLine = hit?.loc ? `Lokacja: <b>${esc(hit.called ? CALLED_SHOTS[hit.called]?.label ?? locationName(hit.loc) : locationName(hit.loc, attack?.table))}</b>`
+  const locLine = hit?.loc ? `Lokacja: <b>${esc(hit.area ?? (hit.called ? CALLED_SHOTS[hit.called]?.label ?? locationName(hit.loc) : attack?.areaLabels?.[hit.loc] ?? locationName(hit.loc, attack?.table)))}</b>`
     : aoe ? "Wybuch: każda odsłonięta lokacja osobno (DT liczone dla każdej)" : "Lokacja: wybierz przy nanoszeniu (domyślnie tułów)";
 
   const content = `
