@@ -104,6 +104,28 @@
   {{/if}}
 
   <h3>Rany, okaleczenia i DT</h3>
+  {{#if bodyMap}}
+  <div class="body-map">
+    <svg class="pip-body" viewBox="{{bodyMap.viewBox}}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stan części ciała">
+      {{#each bodyMap.callouts}}<line class="lead {{cls}}" x1="{{lx1}}" y1="{{ly1}}" x2="{{lx2}}" y2="{{ly2}}"/>{{/each}}
+      <g transform="translate({{bodyMap.dx}},{{bodyMap.dy}})">
+        {{#each bodyMap.parts}}<path class="part {{cls}}{{#if far}} far{{/if}}" d="{{d}}" style="--fill: {{fill}}" data-action="woundStep" data-loc="{{key}}"><title>{{title}}</title></path>{{/each}}
+        {{#each bodyMap.decor}}<path class="decor" d="{{this}}"/>{{/each}}
+        {{#if bodyMap.eye}}<circle class="decor eye" cx="{{bodyMap.eye.cx}}" cy="{{bodyMap.eye.cy}}" r="6"/><circle class="decor eye-hl" cx="{{bodyMap.eye.cx}}" cy="{{bodyMap.eye.cy}}" r="2" transform="translate(-2,-2)"/>{{/if}}
+      </g>
+      {{#each bodyMap.callouts}}
+      <g class="callout {{cls}}" data-action="woundStep" data-loc="{{key}}">
+        <rect class="box" x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}" rx="3"/>
+        <text x="{{tx}}" y="{{y}}"><tspan class="nm" x="{{tx}}" dy="15">{{name}}</tspan><tspan x="{{tx}}" dy="15">{{line1}}</tspan><tspan x="{{tx}}" dy="14">{{line2}}</tspan><tspan class="dim" x="{{tx}}" dy="14">{{line3}}</tspan></text>
+        <rect class="bar-bg" x="{{tx}}" y="{{y}}" width="128" height="3" transform="translate(0,{{h}}) translate(0,-7)"/>
+        <rect class="bar" x="{{tx}}" y="{{y}}" width="{{bar}}" height="3" transform="translate(0,{{h}}) translate(0,-7)"/>
+      </g>
+      {{/each}}
+    </svg>
+    <p class="hint">Klik na część ciała albo jej opis: +1 rana · prawy przycisk (albo Shift+klik): −1. Pogrubiony, przerywany obrys — część osłania pancerz; ⚙ — proteza. Najedź, by zobaczyć progi i źródła DT.</p>
+  </div>
+  <details class="locs-details"><summary>Tabela lokacji (edycja ran, DT, okaleczeń)</summary>
+  {{/if}}
   <div class="scroll-x">
   <table class="foe-table locs">
     <thead><tr><th class="l">Lokacja</th><th title="Rany / Endurance">Rany</th><th>Stan</th><th title="Najwyższe DT założonego pancerza (warstwy się nie sumują)">Pancerz</th><th title="Naturalne DT, perki, cechy — dodaje się do pancerza">Inne DT</th><th title="DT razem">DT</th><th title="Okaleczenie ręczne (np. z wady albo decyzji MG)">Okal.</th></tr></thead>
@@ -122,6 +144,7 @@
     </tbody>
   </table>
   </div>
+  {{#if bodyMap}}</details>{{/if}}
   {{#if stateFx.length}}
   <div class="state-fx"><span>Kary z ran i obciążenia (liczą się same w rzutach)</span><ul>{{#each stateFx}}<li>{{this}}</li>{{/each}}</ul></div>
   {{/if}}
