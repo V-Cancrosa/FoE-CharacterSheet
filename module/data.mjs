@@ -52,7 +52,7 @@ const num = (initial = 0, opts = {}) =>
 function attrSchema() {
   const o = {};
   for (const k of Object.keys(ATTRS)) o[k] = new F.SchemaField({
-    value: num(k === "luck" ? 5 : 5, { min: 0, max: 12 }),
+    value: num(k === "luck" ? 5 : 5, { min: 0, max: 30 }),   // potwory z bestiariusza mają nawet 18
     mod: num(0)
   });
   return new F.SchemaField(o);
@@ -90,6 +90,8 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       level: num(1, { min: 1 }),
       xp: num(0, { min: 0 }),              // punkty doświadczenia (tabela XII)
       woundBonus: num(0),
+      // progi z bloku statystyk potwora (0 = jak u kucyków: okaleczenie od połowy END, utrata/śmierć od END)
+      woundLimits: new F.SchemaField({ cripple: num(0, { min: 0 }), maim: num(0, { min: 0 }) }),
       carryBonus: num(0),      // np. Strong Back, Large, Young
       speedBonus: num(0),      // np. High Ho Silver, Away!
       resources: new F.SchemaField({
@@ -218,13 +220,15 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       loc.naturalDt = loc.dt + loc.dtFx;
       loc.dtTotal = loc.armorDt + loc.naturalDt;
       // Połowa END ran okalecza, END ran w głowie/tułowiu zabija, w kończynie ją odrywa (s. 462)
-      loc.lethal = loc.wounds > 0 && loc.wounds >= endT;
-      loc.autoCrippled = loc.wounds > 0 && loc.wounds * 2 >= endT;
+      const maimAt = this.woundLimits?.maim || endT;
+      const crippleAt = this.woundLimits?.cripple || 0;
+      loc.lethal = loc.wounds > 0 && loc.wounds >= maimAt;
+      loc.autoCrippled = loc.wounds > 0 && (crippleAt ? loc.wounds >= crippleAt : loc.wounds * 2 >= endT);
       loc.isCrippled = loc.crippled || loc.autoCrippled || loc.lethal;
       const vital = k === "head" || k === "torso";
       loc.status = loc.lethal ? (vital ? "dead" : "maimed") : loc.isCrippled ? "crippled" : loc.wounds ? "wounded" : "ok";
-      loc.limit = endT;
-      loc.crippleAt = Math.max(1, Math.ceil(endT / 2));
+      loc.limit = maimAt;
+      loc.crippleAt = crippleAt || Math.max(1, Math.ceil(endT / 2));
     }
     const L = this.locations;
     this.totalWounds = totalWounds;
@@ -331,6 +335,7 @@ export class WeaponData extends FoeItemData {
       rangeInc: num(0, { min: 0 }),      // przedział zasięgu w ft (0 = wręcz albo liczony z „range”)
       crit: str("x1"),
       ignoreDT: num(0, { min: 0 }),
+      flat: bool(false),                 // obrażenia z bloku bestiariusza — bez dodatkowych premii STR/rangi
       aoe: new F.SchemaField({ enabled: bool(false), splash: str(""), inc: str(""), radius: str("") }),
       // specjalne efekty (s. 200–202): ogień i dezintegracja: "" | "hit" (każde trafienie) | "crit" (tylko krytyk)
       specials: new F.SchemaField({

@@ -33,9 +33,14 @@
       </tbody>
     </table>
   </div>
+  {{#if isBestiary}}
+  <p class="hint">„Dodaj” tworzy aktora NPC w folderze „Bestiariusz FoE” (zakładka aktorów) i otwiera jego kartę — potem przeciągnij go na scenę.
+    Statystyki, strefy trafień z DT i MFD celowania, broń, zdolności i łup są z podręcznika (s. 490–576); „tylko opis” — podręcznik v1.22 nie podaje statystyk.</p>
+  {{else}}
   <p class="hint">
     {{#if actor}}„Dodaj” daje przedmiot za darmo, „Kup” odejmuje cenę (× ilość) od kapsli postaci. Ten sam ekwipunek łączy się w stos.{{else}}„Dodaj” tworzy przedmiot w zakładce Przedmioty — potem przeciągnij go na postać.{{/if}}
     Najedź na <i class="fa-solid fa-circle-info"></i>, by przeczytać uwagi z podręcznika. Broń trafia od razu naładowana, pancerz — zdjęty (załóż go w zakładce Ekwipunek).
   </p>
+  {{/if}}
   {{/if}}
 </div>

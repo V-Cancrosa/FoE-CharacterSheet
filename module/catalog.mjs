@@ -5,6 +5,7 @@ import { spellItemData, spellLimits, COST_LABELS } from "./magic.mjs";
 import { recipeItemData, RARITY } from "./zebra.mjs";
 import { maneuverItemData, maneuverWarnings, isWeatherManeuver, MFD_LABEL } from "./flight.mjs";
 import { addPerk, perkStatus, reqView, autoSummary, perkItemData } from "./perks.mjs";
+import { importCreature, BESTIARY_KINDS } from "./bestiary.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -12,8 +13,8 @@ let cache = null;
 /** Katalog z podręcznika (data/catalog.json), wczytywany raz. */
 export function loadCatalog() {
   const get = name => fetch(`systems/${game.system.id}/data/${name}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
-  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => []), get("maneuvers.json").catch(() => []), get("perks.json").catch(() => [])])
-    .then(([cat, spells, recipes, maneuvers, perks]) => ({ ...cat, spells, recipes, maneuvers, perks }))
+  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => []), get("maneuvers.json").catch(() => []), get("perks.json").catch(() => []), get("bestiary.json").catch(() => [])])
+    .then(([cat, spells, recipes, maneuvers, perks, bestiary]) => ({ ...cat, spells, recipes, maneuvers, perks, bestiary }))
     .catch(err => { cache = null; throw err; });
   return cache;
 }
@@ -32,6 +33,8 @@ const TABS = {
     kinds: { A: "Dostępne dla postaci", ...Object.fromEntries([2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30].map(l => [`L${l}`, `Poziom ${l}`])) },
     head: ["Poziom", "Wymagania", "Automatycznie", "Status"] }
 };
+TABS.bestiary = { label: "Bestiariusz", icon: "fa-solid fa-dragon", kinds: { S: "Z pełnymi statystykami", ...BESTIARY_KINDS },
+  head: ["Rodzaj", "Poziom", "Strefy (DT)", "Obr./ranę", "Statystyki"] };
 const PERK_STATUS = { ok: "✓ dostępny", unknown: "? sprawdź", fail: "✗", taken: "■ ma" };
 const KIND_LABEL = { active: "", passive: "pasywny", variable: "zmienne MFD", special: "specjalny" };
 
@@ -69,6 +72,14 @@ function rowOf(tab, e, i, actor = null) {
     return {
       i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `L${e.level}`, img: "systems/foe-rpg/icons/recipe.svg", qty: 0, noBuy: true,
       cols: [e.level, e.usage || "—", RARITY[e.rarity] ?? e.rarityText ?? "—", e.special || "—", e.school || "—"]
+    };
+  }
+  if (tab === "bestiary") {
+    const areas = (e.ar ?? []).map(([l, dt]) => `${l} ${dt}`).join(", ");
+    return {
+      i, name: e.name, notes: e.desc, search: `${e.name} ${e.group ?? ""}`.toLowerCase(), kind: `${e.kind}${e.a ? " S" : ""}`,
+      img: "systems/foe-rpg/icons/creature.svg", qty: 0, noBuy: true,
+      cols: [BESTIARY_KINDS[e.kind] ?? e.kind, e.lvl ?? "—", areas ? (areas.length > 60 ? `${areas.slice(0, 58)}…` : areas) : "—", e.dw ?? "—", e.a ? "✓" : "tylko opis"]
     };
   }
   if (tab === "perks") {
@@ -179,7 +190,8 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
       search: this.search,
       actor: this.actor,
       caps: this.actor?.system.caps ?? 0,
-      isGear: this.tab === "gear"
+      isGear: this.tab === "gear",
+      isBestiary: this.tab === "bestiary"
     };
   }
 
@@ -256,9 +268,14 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     const entry = data[this.tab]?.[Number(row?.dataset.i)];
     if (!entry) return;
     const qty = Math.max(1, Math.floor(Number(row.querySelector("input[name=qty]")?.value) || 1));
-    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : this.tab === "perks" ? perkItemData(entry) : catalogItem(this.tab, entry, qty);
+    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : this.tab === "perks" ? perkItemData(entry) : this.tab === "bestiary" ? null : catalogItem(this.tab, entry, qty);
     const what = qty > 1 ? `${entry.name} ×${qty}` : entry.name;
 
+    if (this.tab === "bestiary") {
+      const { spellItemData } = await import("./magic.mjs");
+      const { maneuverItemData } = await import("./flight.mjs");
+      return importCreature(entry, { catalog: data, spells: data.spells ?? [], maneuvers: data.maneuvers ?? [], spellItemData, maneuverItemData });
+    }
     if (this.tab === "perks" && this.actor) {
       if (!this.actor.isOwner) return ui.notifications.warn("Nie jesteś właścicielem tej postaci.");
       const item = await addPerk(this.actor, entry);
@@ -310,6 +327,19 @@ export function registerCatalogButton() {
     btn.className = "foe-catalog-open";
     btn.innerHTML = `<i class="fa-solid fa-boxes-stacked"></i> Katalog FoE`;
     btn.addEventListener("click", () => openCatalog(null, "weapons"));
+    const bar = root.querySelector(".header-actions") ?? root.querySelector(".directory-header");
+    (bar ?? root).append(btn);
+  });
+  // Bestiariusz w zakładce aktorów (MG): potwory i NPC z podręcznika
+  Hooks.on("renderActorDirectory", (app, html) => {
+    if (!game.user.can("ACTOR_CREATE")) return;
+    const root = html instanceof HTMLElement ? html : html?.[0];
+    if (!root || root.querySelector(".foe-bestiary-open")) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "foe-catalog-open foe-bestiary-open";
+    btn.innerHTML = `<i class="fa-solid fa-dragon"></i> Bestiariusz FoE`;
+    btn.addEventListener("click", () => openCatalog(null, "bestiary"));
     const bar = root.querySelector(".header-actions") ?? root.querySelector(".directory-header");
     (bar ?? root).append(btn);
   });

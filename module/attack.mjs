@@ -1,6 +1,8 @@
 import { SKILLS } from "./data.mjs";
 import { rollContext } from "./effects.mjs";
-import { promptMfd, rollTest, rollDamage, locationName } from "./rolls.mjs";
+import { promptMfd, rollTest, rollDamage, locationName, stepIndex } from "./rolls.mjs";
+import { areasOf, areaLabels } from "./bestiary.mjs";
+import { MFD_STEPS } from "./data.mjs";
 import {
   CALLED_SHOTS, HIT_TABLES, hitTableFor, tableLocations, locationMultiplier, combineMultipliers,
   rangeIncrement, rangeBands, wieldPenalty, burst, isAoe, isClose, reloadInfo, effectiveDT, woundsFrom,
@@ -55,6 +57,9 @@ export async function attackWithWeapon(actor, item, { spell = null } = {}) {
   const target = targets[0]?.actor ?? null;
   const table = hitTableFor(target?.system?.race);
   const random = !!game.settings.get("foe-rpg", "randomHitLocations");
+  // strefy celu z bestiariusza: MFD celowania wprost z bloku (np. czułki ¼, odwłok 1)
+  const areas = target ? areasOf(target) : [];
+  const areaSteps = a => (MFD_STEPS.some(s => s.key === String(a.mfd)) ? stepIndex("1") - stepIndex(String(a.mfd)) : 0);
 
   const info = [
     targets.length ? `Cel: <b>${targets.map(t => esc(t.name)).join(", ")}</b>` : "Cel: <i>brak — namierz token (T), żeby obrażenia trafiły od razu do niego</i>",
@@ -75,7 +80,9 @@ export async function attackWithWeapon(actor, item, { spell = null } = {}) {
       </select></label>
       ${bands.length ? `<label class="atk-row">Odległość <select name="range">${bands.map(x => `<option value="${x.steps}">${x.label}${x.steps ? ` (${x.steps} kr.)` : ""}</option>`).join("")}</select></label>` : ""}
       ${aoe ? "" : `<label class="atk-row">Cel ataku <select name="loc">
-        ${Object.entries(CALLED_SHOTS).map(([k, c]) => `<option value="${k}" ${!random && k === "torso" ? "selected" : ""}>${c.label}${c.steps ? ` (${c.steps} kr.)` : ""}</option>`).join("")}
+        ${areas.length
+          ? areas.map((a, i) => `<option value="area:${i}" ${!random && a.loc === "torso" && !areas.slice(0, i).some(x => x.loc === "torso") ? "selected" : ""}>${esc(a.label)} (MFD ${esc(a.mfd)}${areaSteps(a) ? `, ${areaSteps(a)} kr.` : ""})</option>`).join("")
+          : Object.entries(CALLED_SHOTS).map(([k, c]) => `<option value="${k}" ${!random && k === "torso" ? "selected" : ""}>${c.label}${c.steps ? ` (${c.steps} kr.)` : ""}</option>`).join("")}
         <option value="random" ${random ? "selected" : ""}>Losowo (k20 wg rasy)</option>
       </select></label>
       <label class="atk-row atk-table">Tabela trafień <select name="table">
@@ -91,16 +98,18 @@ export async function attackWithWeapon(actor, item, { spell = null } = {}) {
     const envRaw = Number(el.env?.value) || 0;
     const env = satsOn ? 0 : envRaw;
     const rng = Number(el.range?.value) || 0;
-    const loc = el.loc?.value ?? "torso";
-    const called = loc === "random" ? 0 : CALLED_SHOTS[loc]?.steps ?? 0;
+    const raw = el.loc?.value ?? "torso";
+    const area = raw.startsWith("area:") ? areas[Number(raw.slice(5))] : null;
+    const loc = area ? area.loc : raw;
+    const called = raw === "random" ? 0 : area ? areaSteps(area) : CALLED_SHOTS[loc]?.steps ?? 0;
     const heavySteps = el.heavy?.checked ? -heavy : 0;
     const notes = [];
     if (satsOn) notes.push(`SATS −${cost} AP${envRaw ? " (kary otoczenia pominięte)" : ""}`);
     if (env) notes.push(`Otoczenie ${stepsLabel(env)}`);
     if (rng) notes.push(`Odległość ${el.range.selectedOptions[0]?.textContent.split(" (")[0]} ${stepsLabel(rng)}`);
-    if (called) notes.push(`Strzał celowany: ${CALLED_SHOTS[loc].label} ${stepsLabel(called)}`);
+    if (called) notes.push(`Strzał celowany: ${area ? area.label : CALLED_SHOTS[loc].label} ${stepsLabel(called)}`);
     if (heavySteps) notes.push(`Za ciężka broń ${stepsLabel(heavySteps)}`);
-    return { steps: env + rng + called + heavySteps, mod: 0, notes, data: { sats: satsOn, loc, table: el.table?.value ?? table } };
+    return { steps: env + rng + called + heavySteps, mod: 0, notes, data: { sats: satsOn, loc: raw === "random" ? "random" : loc, area: area?.label ?? null, table: el.table?.value ?? table } };
   };
 
   const onRender = (form, update) => {
@@ -136,7 +145,7 @@ export async function attackWithWeapon(actor, item, { spell = null } = {}) {
 
   const attack = {
     sats: !!ex.sats, satsCost: cost, random: ex.loc === "random", called: ex.loc === "random" ? null : ex.loc ?? "torso",
-    table: ex.table ?? table, melee: close, aoe, formula: b.formula, lacking: b.lacking, used: b.use, consumable: !!w.consumable,
+    table: ex.table ?? table, melee: close, aoe, area: ex.area ?? null, areaLabels: target ? areaLabels(target) : {}, formula: b.formula, lacking: b.lacking, used: b.use, consumable: !!w.consumable,
     targets: targets.map(t => t.document?.uuid).filter(Boolean), overglow: spell?.layers ?? 0
   };
   if (spell) return rollTest(actor, { label: `Celowanie: ${item.name} (Magic)`, baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
@@ -263,9 +272,13 @@ export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0,
   });
 }
 
-function statusText(loc, wounds, endT) {
-  if (wounds > 0 && wounds >= endT) return loc === "head" || loc === "torso" ? "ŚMIERĆ" : "KOŃCZYNA UTRACONA";
-  if (wounds > 0 && wounds * 2 >= endT) return "OKALECZONA";
+/** Stan lokacji po ranach — progi z danych postaci (u potworów z bestiariusza: z bloku statystyk). */
+function statusText(loc, wounds, sys) {
+  const L = sys.locations[loc] ?? {};
+  const maim = L.limit || sys.attributes.end.total;
+  const crip = L.crippleAt || Math.max(1, Math.ceil(maim / 2));
+  if (wounds > 0 && wounds >= maim) return loc === "head" || loc === "torso" ? "ŚMIERĆ" : "KOŃCZYNA UTRACONA";
+  if (wounds > 0 && wounds >= crip) return "OKALECZONA";
   return "";
 }
 
@@ -286,13 +299,16 @@ export async function applyDamage(message) {
   const rows = allowed.map((t, i) => {
     const sys = t.actor.system;
     const table = d.table && HIT_TABLES[d.table] ? d.table : hitTableFor(sys.race);
-    const locs = tableLocations(table);
-    const opts = locs.map(k => ({ v: k, label: locationName(k, table) }));
+    // potwory z bestiariusza: własne strefy (np. „Szczypce L”) zamiast lokacji kucyka
+    const labels = areaLabels(t.actor);
+    const areaLocs = Object.keys(labels);
+    const locs = areaLocs.length ? areaLocs : tableLocations(table);
+    const opts = locs.map(k => ({ v: k, label: labels[k] ?? locationName(k, table) }));
     if (d.called === "heart") opts.push({ v: "heart", label: "Serce (tułów, ×2)" });
     if (d.called === "eye") opts.push({ v: "eye", label: "Oko (głowa, ×1,5)" });
     opts.push({ v: "all", label: "Cały cel — wybuch (każda lokacja)" });
-    const sel = d.aoe ? "all" : calledOf(d.called) ?? (d.loc && locs.includes(d.loc) ? d.loc : "torso");
-    return { t, i, sys, table, locs, opts, sel };
+    const sel = d.aoe ? "all" : calledOf(d.called) && locs.includes(calledOf(d.called)) ? calledOf(d.called) : d.loc && locs.includes(d.loc) ? d.loc : locs.includes("torso") ? "torso" : locs[0];
+    return { t, i, sys, table, locs, opts, sel, labels };
   });
 
   const defMult = v => (d.aoe || d.flatMult || v === "all" ? 1 : combineMultipliers(d.critMult ?? 1, locationMultiplier(locOf(v), calledOf(v))));
@@ -328,8 +344,8 @@ export async function applyDamage(message) {
     };
   };
   const describe = (r, res) => res.map(x => {
-    const st = statusText(x.loc, x.now, r.sys.attributes.end.total);
-    return `<div><b>${esc(locationName(x.loc, r.table))}</b>: ${x.dmg} − DT ${x.eff} = ${x.after} → <b>${x.wounds} ${x.wounds === 1 ? "rana" : "ran"}</b> (${x.before}→${x.now}/${r.sys.attributes.end.total})${st ? ` <span class="warn">${st}</span>` : ""}</div>`;
+    const st = statusText(x.loc, x.now, r.sys);
+    return `<div><b>${esc(r.labels[x.loc] ?? locationName(x.loc, r.table))}</b>: ${x.dmg} − DT ${x.eff} = ${x.after} → <b>${x.wounds} ${x.wounds === 1 ? "rana" : "ran"}</b> (${x.before}→${x.now}/${r.sys.locations[x.loc]?.limit ?? r.sys.attributes.end.total})${st ? ` <span class="warn">${st}</span>` : ""}</div>`;
   }).join("");
 
   const render = (event, dialog) => {

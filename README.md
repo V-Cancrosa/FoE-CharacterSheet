@@ -112,6 +112,14 @@ przycisk „Użyj” przy lekach i chemii w Ekwipunku (nowa kategoria „Leczeni
 - Radaway/Rad Purge (2× Medicine radów, 50–200), Rad-X, Med-X i Slasher (DT = Medicine/5), antidotum i antywenom (usuwają truciznę).
 - Choroba popromienna: od 200 radów kary do END, AGI i STR (Rad Tolerance znosi lekką, ghule bez kar; można wyłączyć w ustawieniach).
 
+Bestiariusz (s. 490–576): 93 stworzenia i NPC z podręcznika w zakładce „Bestiariusz” katalogu (przycisk „Bestiariusz FoE”
+w zakładce aktorów). 29 z nich ma pełne statystyki — mrówki, radskorpiony, mantykora, centaur, feniks, ankha, hydra,
+wieżyczki, protektron, rabusie, najemnicy, żołnierz Enklawy, ghule z Canterlotu…; reszta (w v1.22 bez statystyk) ma opis.
+- „Dodaj” tworzy NPC w folderze „Bestiariusz FoE”: atrybuty, rangi, obrażenia na ranę, progi okaleczenia i utraty z bloku,
+  broń z obrażeniami z bloku (bez ponownego doliczania premii), pancerze z katalogu, zaklęcia, manewry lotu, zdolności i łup w notatkach.
+- Strefy trafień potworów (czułki, szczypce, ogon, kadłub wieżyczki…) z własnym DT: okno ataku pokazuje je z MFD celowania
+  z podręcznika, a karta i nanoszenie obrażeń — ich nazwy.
+
 Pancerz: założony (kwadracik w zakładce Ekwipunek) sam daje DT na lokacjach, które osłania — liczy się najwyższe DT,
 a naturalne DT z cech się dodaje — oraz swoje premie (tymczasowe atrybuty, umiejętności, odporność na promieniowanie, SATS).
 Z każdej kategorii (ubranie, lekki, średni, ciężki) nosi się jedną warstwę; każda kolejna to −1 AGI, a od trzeciej −1 STR.

@@ -82,7 +82,7 @@
     <tbody>
     {{#each locations}}
       <tr class="st-{{status}}">
-        <td class="l">{{label}}</td>
+        <td class="l">{{label}}{{#if mfdNote}} <small class="sub">{{mfdNote}}</small>{{/if}}</td>
         <td class="nw"><input type="number" name="system.locations.{{key}}.wounds" value="{{wounds}}" min="0"><small class="sub">/{{limit}}</small></td>
         <td class="status">{{statusLabel}}</td>
         <td {{#if armorName}}title="{{armorName}}"{{/if}}>{{#if armorName}}{{armorDt}}{{else}}—{{/if}}</td>
@@ -97,5 +97,5 @@
   {{#if stateFx.length}}
   <div class="state-fx"><span>Kary z ran i obciążenia (liczą się same w rzutach)</span><ul>{{#each stateFx}}<li>{{this}}</li>{{/each}}</ul></div>
   {{/if}}
-  <p class="hint">Okaleczenie od {{crippleAt}} ran (połowa END), {{endT}} ran w głowie albo tułowiu to śmierć, w kończynie — jej utrata. DT pancerza bierze się z założonych pancerzy (zakładka Ekwipunek); „Inne DT” (naturalne, perki) się do niego dodaje.</p>
+  <p class="hint">Okaleczenie od {{crippleAt}} ran, {{endT}} ran w głowie albo tułowiu to śmierć, w kończynie — jej utrata. DT pancerza bierze się z założonych pancerzy (zakładka Ekwipunek); „Inne DT” (naturalne, perki) się do niego dodaje.</p>
 </section>
