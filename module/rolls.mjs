@@ -6,6 +6,7 @@ import {
 } from "./combat.mjs";
 import { wieldLimit } from "./saddle.mjs";
 import { loadedVariant, ammoIgnoreDT, shiftDice, dieOf } from "./ammo-data.mjs";
+import { degradationOn } from "./craft-data.mjs";
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
@@ -300,7 +301,10 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   const overWield = !attack?.vehicle && wieldPenalty(w.weight, str, wieldLimit(actor, w)) > 0;
   // amunicja specjalna (zasada opcjonalna, s. 202–203): ± kości, dodatkowe kości, maksymalne obrażenia, ogień
   const ammoV = item.type === "weapon" ? loadedVariant(w) : null;
-  const df = damageFormula({ ...w, damage: shiftDice(attack?.formula || w.damage, ammoV?.dice ?? 0) }, { str, rank, overWield });
+  // degradacja (s. 458): −1 kość za każdy utracony krok
+  const worn = item.type === "weapon" && degradationOn() ? Number(w.wear) || 0 : 0;
+  const df = damageFormula({ ...w, damage: shiftDice(attack?.formula || w.damage, (ammoV?.dice ?? 0) - worn) }, { str, rank, overWield });
+  if (worn) df.notes.push(`zużycie −${worn} ${worn === 1 ? "kość" : "kości"}`);
   let formula = df.formula;
   if (ammoV?.addDice) formula += ` + ${ammoV.addDice}`;
 

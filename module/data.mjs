@@ -444,6 +444,8 @@ export class WeaponData extends FoeItemData {
       mounted: bool(false),              // zamontowana na siodle bojowym
       armorless: bool(false),            // ignoruje pancerz noszony (Sonic Screech) — liczy się tylko naturalne DT
       loaded: str(""),                   // załadowany wariant amunicji specjalnej (ammo-data.mjs), "" = zwykła
+      wear: num(0, { min: 0 }),          // degradacja (zasada opcjonalna, s. 458): utracone kroki = kości obrażeń
+      fired: num(0, { min: 0 }),         // licznik naboi / trafień do następnego kroku degradacji
       aoe: new F.SchemaField({ enabled: bool(false), splash: str(""), inc: str(""), radius: str("") }),
       // specjalne efekty (s. 200–202): ogień i dezintegracja: "" | "hit" (każde trafienie) | "crit" (tylko krytyk)
       specials: new F.SchemaField({

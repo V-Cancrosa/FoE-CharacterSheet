@@ -109,6 +109,11 @@ function registerCombatSettings() {
     hint: "Zasada domowa: dodatkowa kara do AGI dla postaci bez Power Armor Training. Podręcznik mówi tylko, że bez szkolenia nie ma premii z pancerza, a jego kary AGI zostają (0 = tylko to).",
     scope: "world", config: true, type: Number, default: 0, range: { min: 0, max: 5, step: 1 }
   });
+  game.settings.register("foe-rpg", "weaponDegradation", {
+    name: "Degradacja broni",
+    hint: "Zasada opcjonalna (s. 458): każda kość obrażeń to krok degradacji; broń traci kość co 2 magazynki (ponad 8 kości — co 1, jednostrzałowa — co 4 strzały), wręcz — po tylu trafieniach, ile ma kości. Naprawa: Repair wg tabeli XXIX i broń-dawca na części.",
+    scope: "world", config: true, type: Boolean, default: false
+  });
   game.settings.register("foe-rpg", "specialAmmo", {
     name: "Amunicja specjalna",
     hint: "Zasada opcjonalna (s. 202–203): zwykłe naboje i amunicja energetyczna ignorują 5 DT, a w katalogu jest amunicja specjalna (AP, Incendiary, Spark, Focused, High Explosive…) wybierana przy przeładowaniu.",
