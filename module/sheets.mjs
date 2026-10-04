@@ -24,6 +24,8 @@ import { feedCyber, selfRepair, chargeReservoir } from "./cyber.mjs";
 import { canAwardXp, canLevelUp, canEditAdvancement } from "./permissions.mjs";
 import { isBatPony, isChangeling, hasShadowflash, hasShadowForm, shadowState, loveState, disguiseOf, SHADOW_MODES } from "./shadow-data.mjs";
 import { nameItem, canName } from "./named.mjs";
+import { readBook, bookStatus } from "./books.mjs";
+import { parseBook } from "./books-data.mjs";
 import { loadedVariant } from "./ammo-data.mjs";
 import { castShadow, addSonicScreech, shapeshift, endDisguise, feedOnLove, detectDisguise, promptLove } from "./shadow.mjs";
 
@@ -108,6 +110,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       castShadow: FoeActorSheet.#onCastShadow,
       addScreech: FoeActorSheet.#onAddScreech,
       nameItem: FoeActorSheet.#onNameItem,
+      readBook: FoeActorSheet.#onReadBook,
       shapeshift: FoeActorSheet.#onShapeshift,
       endDisguise: FoeActorSheet.#onEndDisguise,
       feedLove: FoeActorSheet.#onFeedLove,
@@ -363,6 +366,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         id: i.id, name: i.name, img: i.img, qty: i.system.qty, ammoType: i.system.ammoType,
         usable: ["potion", "talisman", "drug", "medical"].includes(cat),
         equippable: cat === "saddle", equipped: !!i.system.equipped,
+        readable: cat === "book", bookStatus: cat === "book" ? bookStatus(this.document, i) : "",
+        readTip: cat === "book" ? (() => { const b = parseBook(i.name, i.system.description); return `Przeczytane — punkty umiejętności (${b.skills.length > 5 ? "dowolna" : b.skills.map(k => SKILLS[k]?.label.split(" / ").pop()).join(", ") || "bez umiejętności"})${b.note ? `; ${b.note}` : ""}`; })() : "",
         reserve: cat === "saddle" && reserveCapacity(i.name) ? `${i.system.charges}/${reserveCapacity(i.name)}` : "",
         useLabel: cat === "medical" ? `${HEAL_KINDS[i.system.heal]?.label ?? "Leczenie"} — na siebie albo namierzony cel` : cat === "drug" ? "Zażyj (efekt, czas działania, rzut na uzależnienie)" : MODES[i.system.usage]?.label ?? "Użyj",
         charges: /talisman/i.test(i.system.heal ?? "") ? i.system.charges : null,
@@ -612,6 +617,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onFeedCyber() { await feedCyber(this.document); }
   static async #onCastShadow(event, target) { await castShadow(this.document, target.dataset.mode); }
+  static async #onReadBook(event, target) {
+    const item = this.#item(target);
+    if (item) await readBook(this.document, item);
+  }
   static async #onAddScreech() { await addSonicScreech(this.document); }
   static async #onNameItem(event, target) {
     const item = this.#item(target);

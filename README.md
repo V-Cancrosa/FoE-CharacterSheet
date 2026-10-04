@@ -132,6 +132,15 @@ Siodła bojowe i pancerze wspomagane (s. 161–170, 460):
 - Pancerz wspomagany bez Power Armor Training: bez premii do atrybutów i umiejętności z pancerza (kary zostają);
   ze szkoleniem kary AGI z pancerza znikają. Talizman naprawczy (klucz przy pancerzu): 2 DT na lokację za jednostkę złomu.
 
+Książki i magazyny (s. 208–210): przycisk „Czytaj” przy książce w Ekwipunku (katalog → Ekwipunek → Książki i magazyny, 84 tytuły).
+- Książka (b): punkt umiejętności za każde przeczytanie; nowa daje je 1+1d4 razy (rzut przy pierwszej lekturze), używana —
+  o 1 raz mniej za każdego poprzedniego czytelnika, a jej wartość spada o połowę. Wymaga rangi 25 w tej umiejętności.
+  Przeczytanie jednego wydania wyklucza kolejne egzemplarze tego samego tytułu.
+- Magazyn (m): raz, bez wymagań; tytuły „zależne od wydania” (Equestria Daily, Griffin's Paw…) czyta się numerami.
+- Punkty: 1 + Bookworm + Studious; Illiterate nie czyta; książki „tylko dla jednorożców/zebr” sprawdzają rasę.
+- Po skończeniu: Egghead's Guide to Running +5 ft ruchu, Daring Do and the Quest for the Sapphire Stone +5 do rzutów AGI,
+  Twilight Sparkle's Notebook — krótsze wypalenie (jako cecha z efektem). Lektura trwa dni–miesiące: kliknij po skończeniu.
+
 Amunicja specjalna (zasada opcjonalna, s. 202–203; włącz w ustawieniach świata „Amunicja specjalna”):
 - Zwykłe naboje i amunicja broni energetycznej (bez paliwa miotacza) ignorują 5 DT.
 - Katalog → „Amunicja specjalna”: naboje (AP, Explosive, Incendiary, Spark, Glue, Gel, Paint, Hollow Point/Flechette,
