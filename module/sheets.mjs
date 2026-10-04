@@ -16,6 +16,8 @@ import { useChem, endChem, cureAddiction, chemRows } from "./chems.mjs";
 import { useHealItem, rest, setLimb, HEAL_KINDS } from "./healing.mjs";
 import { rollActorInitiative } from "./tracker.mjs";
 import { areaLabels, areasOf } from "./bestiary.mjs";
+import { saddleState, builtInSaddle, hasPowerArmorTraining, accessoryOf, saddleKindOf, reserveCapacity } from "./saddle.mjs";
+import { fireVolley, repairPowerArmor } from "./attack.mjs";
 import { radLevel } from "./body.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -87,6 +89,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       undoLevel: FoeActorSheet.#onUndoLevel,
       awardXp: FoeActorSheet.#onAwardXp,
       rollInitiative: FoeActorSheet.#onRollInitiative,
+      toggleMount: FoeActorSheet.#onToggleMount,
+      toggleGearEquip: FoeActorSheet.#onToggleGearEquip,
+      fireVolley: FoeActorSheet.#onFireVolley,
+      repairArmor: FoeActorSheet.#onRepairArmor,
       endChem: FoeActorSheet.#onEndChem,
       cureAddiction: FoeActorSheet.#onCureAddiction,
       rest: FoeActorSheet.#onRest,
@@ -250,11 +256,20 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     const items = this.document.items;
     const str = sys.attributes.str.total;
+    // siodło bojowe i pancerz wspomagany (s. 161–170)
+    const saddle = saddleState(this.document);
+    ctx.saddle = saddle ? {
+      label: saddle.label, source: saddle.source, builtIn: saddle.builtIn, count: saddle.mounted.length, max: saddle.maxWeapons,
+      weight: saddle.weight, combined: saddle.combined, indiv: saddle.indiv, warnings: saddle.warnings,
+      canVolley: saddle.mounted.length >= 2, volleySteps: saddle.volleySteps, volleyAp: saddle.volleyExtraAp, stepsWord: saddle.volleySteps === 1 ? "krok" : "kroki",
+      acc: [saddle.acc.auto ? "podajnik automatyczny" : "", saddle.acc.semi ? "podajnik półautomatyczny" : "", saddle.acc.bit ? "wysuwane wędzidło" : "", saddle.acc.case ? "skrzynka amunicyjna" : "",
+        saddle.energy ? `rezerwa energii ${saddle.energy.pts}/${saddle.energy.cap}` : "", saddle.fuel ? `rezerwa paliwa ${saddle.fuel.units}/${saddle.fuel.cap}` : ""].filter(Boolean).join(", ")
+    } : null;
     ctx.weapons = items.filter(i => i.type === "weapon").map(i => {
       const w = i.system;
       const inc = rangeIncrement(w, str);
       return {
-        id: i.id, name: i.name, img: i.img, ...w,
+        id: i.id, name: i.name, img: i.img, ...w, canMount: !!saddle || w.mounted,
         skillLabel: SKILLS[w.skill]?.label ?? w.skill,
         burst: w.shots > 1 ? w.shots : 0,
         reloadLabel: w.reload ? `${w.reload}: ${reloadInfo(w.reload, { energy: w.skill === "energy" }).ap} AP w SATS` : "przeładuj",
@@ -269,6 +284,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     const labels = fxLabels();
     const short = shortLabels();
+    const trained = hasPowerArmorTraining(this.document);
     ctx.armor = items.filter(i => i.type === "armor").map(i => {
       const a = i.system;
       const wear = Object.values(a.wear ?? {}).reduce((t, v) => t + (v || 0), 0);
@@ -277,9 +293,13 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         categoryLabel: ARMOR_CATEGORIES[a.category] ?? a.category,
         coverText: coverText(a.cover),
         wearText: wear ? Object.entries(a.wear).filter(([, v]) => v).map(([k, v]) => `${SHORT[k]} −${v}`).join(", ") : "",
-        fxText: (a.effects ?? []).filter(e => FX_TYPES[e.type]).map(e => shortFx(e, short)).join(", ")
+        fxText: (a.effects ?? []).filter(e => FX_TYPES[e.type]).map(e => shortFx(e, short)).join(", "),
+        builtInSaddle: a.powered ? { heavy: "ciężkie siodło", four: "czteroramienne siodło" }[builtInSaddle(i)?.kind] : "",
+        untrained: a.powered && a.equipped && !trained, canRepair: a.powered && wear > 0
       };
     });
+    ctx.powerArmorWorn = items.some(i => i.type === "armor" && i.system.powered && i.system.equipped);
+    ctx.powerArmorTrained = trained;
     const layers = sys.armorLayers ?? { count: 0 };
     ctx.layers = { ...layers, names: (layers.names ?? []).join(", "), warn: layers.count > 1 };
 
@@ -291,6 +311,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       groups.get(cat).push({
         id: i.id, name: i.name, img: i.img, qty: i.system.qty, ammoType: i.system.ammoType,
         usable: ["potion", "talisman", "drug", "medical"].includes(cat),
+        equippable: cat === "saddle", equipped: !!i.system.equipped,
+        reserve: cat === "saddle" && reserveCapacity(i.name) ? `${i.system.charges}/${reserveCapacity(i.name)}` : "",
         useLabel: cat === "medical" ? `${HEAL_KINDS[i.system.heal]?.label ?? "Leczenie"} — na siebie albo namierzony cel` : cat === "drug" ? "Zażyj (efekt, czas działania, rzut na uzależnienie)" : MODES[i.system.usage]?.label ?? "Użyj",
         charges: /talisman/i.test(i.system.heal ?? "") ? i.system.charges : null,
         weightLabel: cat === "ammo" ? "—" : w ? `${Math.round(w * (i.system.qty || 0) * 10) / 10} lb` : "",
@@ -462,6 +484,36 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     await useProduct(this.document, item);
   }
 
+  static async #onToggleMount(event, target) {
+    const item = this.#item(target);
+    if (!item) return;
+    const on = !item.system.mounted;
+    await item.update({ "system.mounted": on });
+    const s = saddleState(this.document);
+    if (on && s?.warnings.length) ui.notifications.warn(`Siodło: ${s.warnings.join("; ")}.`);
+  }
+
+  /** Siodło bojowe i akcesoria: zakładanie (jedno siodło naraz). */
+  static async #onToggleGearEquip(event, target) {
+    const item = this.#item(target);
+    if (!item) return;
+    const on = !item.system.equipped;
+    const updates = [{ _id: item.id, "system.equipped": on }];
+    if (on && saddleKindOf(item.name)) {
+      for (const o of this.document.items.filter(i => i.type === "gear" && i.id !== item.id && i.system.equipped && saddleKindOf(i.name))) updates.push({ _id: o.id, "system.equipped": false });
+    }
+    await this.document.updateEmbeddedDocuments("Item", updates);
+  }
+
+  static async #onFireVolley() {
+    await fireVolley(this.document);
+  }
+
+  static async #onRepairArmor(event, target) {
+    const item = this.#item(target);
+    if (item) await repairPowerArmor(this.document, item);
+  }
+
   static async #onRollInitiative() {
     await rollActorInitiative(this.document);
   }
@@ -562,6 +614,8 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     ctx.rarities = RARITY;
     ctx.zebraGear = ctx.isGear && ["ingredient", "potion", "talisman"].includes(sys.category);
     ctx.medGear = ctx.isGear && sys.category === "medical";
+    ctx.reserveCap = ctx.isGear && sys.category === "saddle" ? reserveCapacity(this.document.name) : 0;
+    ctx.reserveGear = ctx.reserveCap > 0;
     ctx.healKinds = { "": "—", ...Object.fromEntries(Object.entries(HEAL_KINDS).map(([k, v]) => [k, v.label])) };
     ctx.gearRarities = { 0: "—", ...RARITY };
     ctx.usages = { "": "—", ...Object.fromEntries(["Drink", "Throw", "Apply", "Worn"].map(k => [k, MODES[k].label])) };

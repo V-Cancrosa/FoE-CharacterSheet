@@ -18,7 +18,7 @@
       <tr data-item-id="{{id}}" class="{{#if equipped}}worn{{/if}}">
         <td><a class="feat-toggle {{#if equipped}}on{{/if}}" data-action="toggleEquip" title="{{#if equipped}}Założony — kliknij, by zdjąć{{else}}Kliknij, by założyć{{/if}}"></a></td>
         <td><img class="icon" src="{{img}}" alt=""></td>
-        <td class="l nm">{{name}}{{#if powered}} <small class="sub">wspomagany</small>{{/if}}</td>
+        <td class="l nm">{{name}}{{#if powered}} <small class="sub">wspomagany{{#if builtInSaddle}} · {{builtInSaddle}}{{/if}}</small>{{/if}}{{#if untrained}} <small class="sub warn" title="Bez Power Armor Training: brak premii do atrybutów i umiejętności z pancerza">bez szkolenia</small>{{/if}}{{#if canRepair}} <a class="repair" data-action="repairArmor" title="Talizman naprawczy: 2 DT na każdej lokacji za jednostkę złomu"><i class="fa-solid fa-screwdriver-wrench"></i></a>{{/if}}</td>
         <td>{{categoryLabel}}</td>
         <td class="nw">{{dt}}{{#if wearText}}<small class="sub warn" title="Zużycie (degradacja)">{{wearText}}</small>{{/if}}</td>
         <td>{{coverText}}</td>
@@ -43,8 +43,9 @@
     <ul class="item-list gear">
     {{#each items}}
       <li data-item-id="{{id}}">
+        {{#if equippable}}<a class="feat-toggle {{#if equipped}}on{{/if}}" data-action="toggleGearEquip" title="{{#if equipped}}Założone — kliknij, by zdjąć{{else}}Kliknij, by założyć{{/if}}"></a>{{/if}}
         <img class="icon" src="{{img}}" alt="">
-        <span class="nm" {{#if notes}}title="{{notes}}"{{/if}}>{{name}}</span>
+        <span class="nm" {{#if notes}}title="{{notes}}"{{/if}}>{{name}}{{#if reserve}} <small class="sub" title="Zawartość rezerwy (edytuj na karcie przedmiotu)">{{reserve}}</small>{{/if}}</span>
         <span class="qty"><a data-action="qty" data-d="-1" title="−1 (Shift: −10)"><i class="fa-solid fa-minus"></i></a><b>×{{qty}}</b><a data-action="qty" data-d="1" title="+1 (Shift: +10)"><i class="fa-solid fa-plus"></i></a></span>
         {{#if usable}}<a class="use-btn" data-action="useProduct" title="{{useLabel}}"><i class="fa-solid fa-flask"></i> Użyj</a>{{/if}}
         {{#if charges includeZero=true}}<span class="charges" title="Ładunki talizmanu">⚡{{charges}}</span>{{/if}}

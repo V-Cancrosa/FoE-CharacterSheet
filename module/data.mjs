@@ -336,6 +336,7 @@ export class WeaponData extends FoeItemData {
       crit: str("x1"),
       ignoreDT: num(0, { min: 0 }),
       flat: bool(false),                 // obrażenia z bloku bestiariusza — bez dodatkowych premii STR/rangi
+      mounted: bool(false),              // zamontowana na siodle bojowym
       aoe: new F.SchemaField({ enabled: bool(false), splash: str(""), inc: str(""), radius: str("") }),
       // specjalne efekty (s. 200–202): ogień i dezintegracja: "" | "hit" (każde trafienie) | "crit" (tylko krytyk)
       specials: new F.SchemaField({
@@ -408,7 +409,8 @@ export class GearData extends FoeItemData {
       usage: str(""),                         // wyrób zebr: Drink / Throw / Apply / Worn
       damage: str(""),                        // wyrób rzucany
       heal: str(""),                          // leczenie: bandage | potion | rejuv | restore | talisman | rejuvTalisman | restoreTalisman
-      charges: num(0, { min: 0 }),            // ładunki talizmanu
+      charges: num(0, { min: 0 }),            // ładunki talizmanu, zawartość rezerwy energii/paliwa
+      equipped: bool(false),                  // siodło bojowe i akcesoria: założone
       description: desc()
     };
   }

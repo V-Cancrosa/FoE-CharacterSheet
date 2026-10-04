@@ -11,6 +11,7 @@
 
 import { weatherSituational } from "./weather.mjs";
 import { bodyEffects } from "./body.mjs";
+import { powerArmorFilter, hasPowerArmorTraining, untrainedAgiPenalty } from "./saddle.mjs";
 
 export const FX_TYPES = {
   attr:        { label: "Atrybut na stałe", targets: "attr" },
@@ -63,13 +64,19 @@ const n = v => Number(v) || 0;
  */
 export function actorEffects(actor, { state = true } = {}) {
   const out = [];
+  const trained = hasPowerArmorTraining(actor);
   for (const item of actor?.items ?? []) {
     const on = item.type === "feature" ? item.system?.active !== false
       : item.type === "armor" ? !!item.system?.equipped : false;
     if (!on) continue;
     (item.system?.effects ?? []).forEach((e, i) => {
-      if (e?.type && !CREATION_ONLY.has(e.type)) out.push({ ...e, source: item.name, id: `${item.id}.${i}` });
+      // pancerz wspomagany: bez szkolenia bez premii, ze szkoleniem bez kar AGI (Power Armor Training)
+      if (e?.type && !CREATION_ONLY.has(e.type) && powerArmorFilter(item, e, trained)) out.push({ ...e, source: item.name, id: `${item.id}.${i}` });
     });
+    if (item.type === "armor" && item.system?.powered && !trained) {
+      const pen = untrainedAgiPenalty();
+      if (pen) out.push({ type: "tempAttr", target: "agi", value: -pen, when: "", source: `${item.name} (bez szkolenia)`, id: `${item.id}.untrained` });
+    }
   }
   // chemikalia, odstawienie, choroba popromienna (body.mjs) — działają jak cechy
   for (const e of bodyEffects(actor)) if (!CREATION_ONLY.has(e.type)) out.push(e);

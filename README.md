@@ -120,6 +120,18 @@ wieżyczki, protektron, rabusie, najemnicy, żołnierz Enklawy, ghule z Canterlo
 - Strefy trafień potworów (czułki, szczypce, ogon, kadłub wieżyczki…) z własnym DT: okno ataku pokazuje je z MFD celowania
   z podręcznika, a karta i nanoszenie obrażeń — ich nazwy.
 
+Siodła bojowe i pancerze wspomagane (s. 161–170, 460):
+- Siodło (Ekwipunek → „Siodło bojowe i dodatki”) zakłada się kwadracikiem; pancerze wspomagane mają je wbudowane
+  (ciężkie, u Enklawy czteroramienne z rezerwą energii). Broń montuje się przyciskiem „S” przy nazwie (zakładka Walka).
+- Limity wagi: użytkowe — 3 lb; lekkie — jak bez siodła (2×STR), razem 3×STR; średnie — 2×STR+5, razem 4×STR;
+  ciężkie i czteroramienne — 4×STR. Ostrzeżenia przy przekroczeniu, kara za ciężką broń liczy się z limitu siodła.
+- „Salwa z siodła”: wszystkie zamontowane bronie jedną akcją, −1 krok MFD (czteroramienne −2); w SATS najdroższa broń +10 AP (+40).
+- Akcesoria: podajnik automatyczny (przeładowanie bez akcji), półautomatyczny (1 akcja), wysuwane wędzidło;
+  bez nich sięgnięcie po amunicję to +2 akcje. Rezerwa energii (60 pkt: ogniwo 2, MFC 4, gem cell 1) i paliwa (60/120/240)
+  działają jak dodatkowa amunicja zamontowanej broni.
+- Pancerz wspomagany bez Power Armor Training: bez premii do atrybutów i umiejętności z pancerza (kary zostają);
+  ze szkoleniem kary AGI z pancerza znikają. Talizman naprawczy (klucz przy pancerzu): 2 DT na lokację za jednostkę złomu.
+
 Pancerz: założony (kwadracik w zakładce Ekwipunek) sam daje DT na lokacjach, które osłania — liczy się najwyższe DT,
 a naturalne DT z cech się dodaje — oraz swoje premie (tymczasowe atrybuty, umiejętności, odporność na promieniowanie, SATS).
 Z każdej kategorii (ubranie, lekki, średni, ciężki) nosi się jedną warstwę; każda kolejna to −1 AGI, a od trzeciej −1 STR.

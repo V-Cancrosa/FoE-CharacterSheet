@@ -12,9 +12,12 @@
   </div>
 
   <h3>Broń
+    {{#if saddle.canVolley}}<a data-action="fireVolley" title="Wszystkie zamontowane bronie jedną akcją: −{{saddle.volleySteps}} {{saddle.stepsWord}} MFD; SATS: najdroższa broń +{{saddle.volleyAp}} AP"><i class="fa-solid fa-burst"></i> Salwa z siodła</a>{{/if}}
     <a data-action="openCatalog" data-tab="weapons" title="Katalog broni z podręcznika"><i class="fa-solid fa-boxes-stacked"></i> Katalog</a>
     <a class="plus" data-action="createItem" data-type="weapon" title="Pusta broń do uzupełnienia"><i class="fa-solid fa-plus"></i></a>
   </h3>
+  {{#if saddle}}<p class="hint saddle-line"><b>{{saddle.label}}</b>{{#if saddle.builtIn}} (wbudowane: {{saddle.source}}){{/if}} · broń {{saddle.count}}/{{saddle.max}} · waga {{saddle.weight}}{{#if saddle.combined}}/{{saddle.combined}}{{/if}} lb · jedna broń do {{saddle.indiv}} lb{{#if saddle.acc}} · {{saddle.acc}}{{/if}}
+    {{#each saddle.warnings}}<br><span class="warn">{{this}}</span>{{/each}}</p>{{/if}}
   <div class="scroll-x">
   <table class="foe-table items weapons">
     <thead><tr><th></th><th class="l">Nazwa</th><th class="hide-narrow">Umiejętność</th><th>Obrażenia</th><th title="Mnożnik krytyka">Kryt.</th><th title="Koszt ataku w SATS (AP)">SATS</th><th>Amunicja</th><th>Zasięg</th><th></th></tr></thead>
@@ -22,7 +25,7 @@
     {{#each weapons}}
       <tr data-item-id="{{id}}">
         <td><img class="icon" src="{{img}}" alt=""></td>
-        <td class="l"><a class="rollable" data-action="rollWeapon" title="Atak: okno z SATS, odległością i celem">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span title="{{tip}}">{{label}}</span>{{/each}}</div>{{/if}}</td>
+        <td class="l">{{#if canMount}}<a class="mount-toggle {{#if mounted}}on{{/if}}" data-action="toggleMount" title="{{#if mounted}}Na siodle bojowym — kliknij, by zdjąć{{else}}Zamontuj na siodle bojowym{{/if}}">S</a> {{/if}}<a class="rollable" data-action="rollWeapon" title="Atak: okno z SATS, odległością i celem">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span title="{{tip}}">{{label}}</span>{{/each}}</div>{{/if}}</td>
         <td class="hide-narrow">{{skillLabel}}</td>
         <td class="nw"><a class="rollable" data-action="rollDamage" title="Same obrażenia (Shift+klik: krytyk)">{{damage}}</a>{{#if burst}}<small class="sub">/{{burst}}</small>{{/if}}</td>
         <td>{{crit}}</td>
