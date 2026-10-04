@@ -8,6 +8,8 @@ rany, okaleczenia i DT na lokacjach, bronie, pancerze, ekwipunek, cechy/perki.
 
 Inicjatywa i tracker walki (s. 436–437): d100, a po rzucie gracz wybiera, czy odjąć (szybciej), czy dodać (później)
 próg AGI ¼ albo własną wartość; premie i kary z cech liczą się same, niższa inicjatywa działa pierwsza, remis — wyższe AGI.
+Rzut: przycisk „Inicjatywa” na karcie (Statystyki albo Walka) — dodaje token z tej sceny do walki i rzuca; gdy walki nie ma, MG
+tworzy ją tym samym kliknięciem. Można też rzucać ikoną kostki w trackerze walki (zakładka z mieczami).
 MG rzucający za NPC i „rzuć wszystkim” odejmuje automatycznie. W trackerze każdy walczący ma 2 kropki akcji
 (atak, przeładowanie i gaszenie odhaczają je same, kliknięcie odhacza ręcznie, nowa runda je odnawia).
 Przycisk „Zaskoczenie” w trackerze: zaskoczeni nie działają, atakujący mają 1 akcję, po tej rundzie wszyscy rzucają od nowa.

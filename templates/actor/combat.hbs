@@ -3,6 +3,7 @@
     <span class="cs" title="Action Points w SATS: 40 + 5×AGI; w walce +5 na rundę">SATS <b>{{system.resources.sats.value}}/{{system.resources.sats.max}}</b> AP</span>
     <span class="cs" title="4×END ran łącznie = utrata przytomności">Rany <b>{{system.totalWounds}}</b>/{{system.unconsciousAt}}</span>
     <span class="cs">Obrażenia na ranę <b>{{system.dmgPerWound}}</b></span>
+    <a class="cs act" data-action="rollInitiative" title="Dołącz do walki na tej scenie i rzuć inicjatywę (d100 ± AGI ¼; niżej = szybciej)"><i class="fa-solid fa-dice-d20"></i> Inicjatywa</a>
     <span class="cs">Ruch <b>{{system.speed}}</b> ft</span>
     {{#if system.flier}}<span class="cs" title="Lot: 5×AGI ft na akcję">Lot <b>{{#if system.canFly}}{{system.flySpeed}} ft{{else}}{{system.flyNote}}{{/if}}</b>{{#if system.altitude}} · wys. {{system.altitude}} ft{{/if}}</span>{{/if}}
     <span class="cs" title="Pogoda (ustawia MG w zakładce walki): {{weather.summary}}"><i class="fa-solid fa-cloud-sun-rain"></i> {{weather.label}}</span>

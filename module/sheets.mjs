@@ -14,6 +14,7 @@ import { currentWeather, weatherSummary } from "./weather.mjs";
 import { levelUp, undoLevelUp, promptAwardXp, xpFor, xpProgression } from "./perks.mjs";
 import { useChem, endChem, cureAddiction, chemRows } from "./chems.mjs";
 import { useHealItem, rest, setLimb, HEAL_KINDS } from "./healing.mjs";
+import { rollActorInitiative } from "./tracker.mjs";
 import { radLevel } from "./body.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -84,6 +85,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       levelUp: FoeActorSheet.#onLevelUp,
       undoLevel: FoeActorSheet.#onUndoLevel,
       awardXp: FoeActorSheet.#onAwardXp,
+      rollInitiative: FoeActorSheet.#onRollInitiative,
       endChem: FoeActorSheet.#onEndChem,
       cureAddiction: FoeActorSheet.#onCureAddiction,
       rest: FoeActorSheet.#onRest,
@@ -451,6 +453,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (item.system.category === "drug") return useChem(this.document, item);
     if (item.system.category === "medical") return useHealItem(this.document, item);
     await useProduct(this.document, item);
+  }
+
+  static async #onRollInitiative() {
+    await rollActorInitiative(this.document);
   }
 
   static async #onEndChem(event, target) {
