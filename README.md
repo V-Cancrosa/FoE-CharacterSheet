@@ -132,6 +132,26 @@ Siodła bojowe i pancerze wspomagane (s. 161–170, 460):
 - Pancerz wspomagany bez Power Armor Training: bez premii do atrybutów i umiejętności z pancerza (kary zostają);
   ze szkoleniem kary AGI z pancerza znikają. Talizman naprawczy (klucz przy pancerzu): 2 DT na lokację za jednostkę złomu.
 
+Pojazdy i walka pojazdów (nowy typ aktora „Pojazd”). Podręcznik v1.22 nie ma rozdziału o pojazdach — z książki są:
+tabela XLI (s. 608: rozmiar → obrażenia na ranę i łatwiejsze trafienie), zderzenia z Speed Lines (1d20 za każde 20 ft prędkości),
+prędkość zaprzęgu wg najwolniejszego kucyka i celowanie wybuchami wprost w pojazdy (s. 451). Reszta to zasady domowe:
+- Katalog → zakładka „Pojazdy” (albo przycisk „Pojazdy FoE” w zakładce aktorów): wóz, rydwan, sky-wagon, Vertibuck,
+  balon, czołg, bomb-wagon, łódź, wagon kolejowy — z bronią pokładową z katalogu. Wszystkie wartości można zmienić na karcie.
+- Strefy zamiast lokacji kucyka: kadłub (zniszczony = wrak), kabina i załoga (MFD ½; uszkodzona −1 krok sterowania),
+  napęd (MFD ¾; uszkodzony — połowa prędkości i −2 kroki, zniszczony — pojazd stoi, w powietrzu spada), uzbrojenie (MFD ½;
+  uszkodzone −2 kroki strzałów, zniszczone — broń nie strzela). Wytrzymałość strefy: 5 + 1 za każde podwojenie rozmiaru.
+- Załoga: przeciągnij postać na kartę pojazdu i wybierz rolę (kierowca, strzelec, zaprzęg, pasażer). Pojazd ciągnięty
+  jedzie z prędkością najwolniejszego w zaprzęgu (sky-wagon — z prędkością lotu pegazów, którzy mogą latać).
+  Bez postaci na stanowisku działa „załoga bez imienia” ze statystyk pojazdu.
+- „Steruj”: rzut kierowcy (domyślnie Flight w powietrzu, AGI na ziemi) z prowadzeniem pojazdu; manewr unikowy daje
+  atakującym −1 krok (krytyk −2) do końca następnej rundy, duże pojazdy mają −1 krok do uników.
+- Broń pokładowa: strzela wybrany członek załogi swoją umiejętnością i AP, bez kar za ciężar broni; z jadącego pojazdu −1 krok.
+- „Taranuj” (namierzony cel): rzut sterowania, 1d20 za każde 20 ft prędkości (+ prędkość celu przy zderzeniu czołowym)
+  i +1d20 za każde 4 punkty D/W przewagi; taranujący dostaje same kości prędkości w kadłub.
+- „Zderzenie”: przeszkoda (prędkość) albo upadek z wysokości (1d20 / 10 ft) — dla pojazdu, a załoga w środku dostaje
+  te same kości jako d10 (d20, gdy kadłub albo kabina są rozbite).
+- „Napraw”: rzut Repair (w walce 2 akcje i MFD ½) usuwa 1 ranę ze strefy (krytyk 2) i zużywa złom.
+
 Pancerz: założony (kwadracik w zakładce Ekwipunek) sam daje DT na lokacjach, które osłania — liczy się najwyższe DT,
 a naturalne DT z cech się dodaje — oraz swoje premie (tymczasowe atrybuty, umiejętności, odporność na promieniowanie, SATS).
 Z każdej kategorii (ubranie, lekki, średni, ciężki) nosi się jedną warstwę; każda kolejna to −1 AGI, a od trzeciej −1 STR.

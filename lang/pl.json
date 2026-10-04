@@ -2,7 +2,8 @@
   "TYPES": {
     "Actor": {
       "character": "Postać",
-      "npc": "NPC"
+      "npc": "NPC",
+      "vehicle": "Pojazd"
     },
     "Item": {
       "weapon": "Broń",

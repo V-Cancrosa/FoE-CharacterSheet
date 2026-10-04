@@ -10,6 +10,7 @@ import {
   POISONS, disintegrates, radsFrom, isMetalArmor
 } from "./combat.mjs";
 import { setCondition, toggleStatus, poisonCheck, endOfRound } from "./conditions.mjs";
+import { hitStepsAgainst, evasiveActive, AREA_STATUS } from "./vehicle-data.mjs";
 import { spendActions } from "./tracker.mjs";
 
 const { DialogV2 } = foundry.applications.api;
@@ -28,7 +29,7 @@ const elementOf = x => (x instanceof HTMLElement ? x : x?.element instanceof HTM
  * Atak: okno z SATS, warunkami, odległością, celem (strzał celowany / losowa lokacja), ciężarem broni;
  * zużywa amunicję (seria) albo sztukę granatu i AP w SATS, potem rzut d100 z kartą ataku.
  */
-export async function attackWithWeapon(actor, item, { spell = null, volley = null } = {}) {
+export async function attackWithWeapon(actor, item, { spell = null, volley = null, vehicle = null } = {}) {
   const sys = actor.system;
   const w = item.system;
   const sk = sys.skills[w.skill];
@@ -55,8 +56,9 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   const canSats = sats.value >= cost;
   const inc = close ? 0 : rangeIncrement(w, str);
   const bands = rangeBands(inc);
-  const limit = wieldLimit(actor, w);
-  const heavy = wieldPenalty(w.weight, str, limit);
+  // broń pokładowa pojazdu: ciężar nie ma znaczenia, strzela członek załogi swoją umiejętnością
+  const limit = vehicle ? Infinity : wieldLimit(actor, w);
+  const heavy = vehicle ? 0 : wieldPenalty(w.weight, str, limit);
   const targets = [...(game.user?.targets ?? [])];
   const target = targets[0]?.actor ?? null;
   const table = hitTableFor(target?.system?.race);
@@ -64,11 +66,18 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   // strefy celu z bestiariusza: MFD celowania wprost z bloku (np. czułki ¼, odwłok 1)
   const areas = target ? areasOf(target) : [];
   const areaSteps = a => (MFD_STEPS.some(s => s.key === String(a.mfd)) ? stepIndex("1") - stepIndex(String(a.mfd)) : 0);
+  // cel-pojazd: rozmiar z tabeli XLI ułatwia trafienie, manewr unikowy utrudnia; wybuchy można w niego celować wprost
+  const tVehicle = target?.system?.isVehicle ? target : null;
+  const sizeSteps = tVehicle ? hitStepsAgainst(tVehicle.system.size, evasiveActive(tVehicle.getFlag?.("foe-rpg", "evasive"), game.combat)) : [];
+  const vsys = vehicle?.system;
+  const moving = !!vsys?.vehicle?.currentSpeed;
 
   const info = [
     targets.length ? `Cel: <b>${targets.map(t => esc(t.name)).join(", ")}</b>` : "Cel: <i>brak — namierz token (T), żeby obrażenia trafiły od razu do niego</i>",
     w.consumable ? `Sztuk: <b>${w.qty}</b>` : w.ammo.max > 0 ? `Amunicja: <b>${w.ammo.value}/${w.ammo.max}</b>${w.shots > 1 ? ` · seria ${w.shots}${b.lacking ? ` → brakuje ${b.lacking}: <b>${esc(b.formula)}</b>` : ""}` : ""}` : "",
-    aoe ? "Broń obszarowa: przeciw celom normalnej wielkości podstawowe MFD ¾ (s. 451)." : "",
+    vehicle ? `Broń pokładowa: <b>${esc(vehicle.name)}</b> · strzela ${esc(actor.name)}${actor === vehicle ? " (załoga pojazdu)" : ""}${vsys.gunSteps ? ` · uszkodzone uzbrojenie ${vsys.gunSteps} kr.` : ""}` : "",
+    aoe ? (tVehicle ? "Broń obszarowa w pojazd: można celować wprost (s. 451) — podstawowe MFD 1." : "Broń obszarowa: przeciw celom normalnej wielkości podstawowe MFD ¾ (s. 451).") : "",
+    ...sizeSteps.map(x => `${esc(x.label)}: ${stepsLabel(x.steps)}`),
     w.specials?.silenced ? "Tłumik: wykrycie strzelca o krok trudniejsze (MFD ½)." : ""
   ].filter(Boolean).map(l => `<div>${l}</div>`).join("");
 
@@ -93,6 +102,8 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
       <label class="atk-row atk-table">Tabela trafień <select name="table">
         ${Object.entries(HIT_TABLES).map(([k, t]) => `<option value="${k}" ${k === table ? "selected" : ""}>${t.label}</option>`).join("")}
       </select></label>`}
+      ${vehicle ? `<label class="atk-row atk-check"><input type="checkbox" name="moving" ${moving ? "checked" : ""}>
+        <span>Pojazd w ruchu</span><small>strzał z jadącego pojazdu: −1 krok MFD (zasada domowa)</small></label>` : ""}
       ${heavy ? `<label class="atk-row atk-check"><input type="checkbox" name="heavy" checked>
         <span>Za ciężka broń</span><small>${w.weight} lb > ${w.mounted ? "limit siodła" : "2×STR"} (${limit}): −${heavy} kr.${close ? ", bez premii STR" : ""}</small></label>` : ""}
     </div>`;
@@ -109,6 +120,9 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     const called = raw === "random" ? 0 : area ? areaSteps(area) : CALLED_SHOTS[loc]?.steps ?? 0;
     const heavySteps = el.heavy?.checked ? -heavy : 0;
     const volleySteps = volley ? -volley.steps : 0;
+    const movingSteps = el.moving?.checked ? -1 : 0;
+    const gunSteps = vehicle ? vsys.gunSteps || 0 : 0;
+    const bigSteps = sizeSteps.reduce((t, x) => t + x.steps, 0);
     const notes = [];
     if (satsOn) notes.push(followUp ? "SATS (salwa)" : `SATS −${cost} AP${envRaw ? " (kary otoczenia pominięte)" : ""}`);
     if (env) notes.push(`Otoczenie ${stepsLabel(env)}`);
@@ -116,7 +130,10 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     if (called) notes.push(`Strzał celowany: ${area ? area.label : CALLED_SHOTS[loc].label} ${stepsLabel(called)}`);
     if (heavySteps) notes.push(`Za ciężka broń ${stepsLabel(heavySteps)}`);
     if (volleySteps) notes.push(`Salwa z siodła (${volley.index + 1}/${volley.count}) ${stepsLabel(volleySteps)}`);
-    return { steps: env + rng + called + heavySteps + volleySteps, mod: 0, notes, data: { sats: satsOn, loc: raw === "random" ? "random" : loc, area: area?.label ?? null, table: el.table?.value ?? table } };
+    if (movingSteps) notes.push(`Strzał z pojazdu w ruchu ${stepsLabel(movingSteps)}`);
+    if (gunSteps) notes.push(`Uszkodzone uzbrojenie ${stepsLabel(gunSteps)}`);
+    for (const x of sizeSteps) notes.push(`${x.label} ${stepsLabel(x.steps)}`);
+    return { steps: env + rng + called + heavySteps + volleySteps + movingSteps + gunSteps + bigSteps, mod: 0, notes, data: { sats: satsOn, loc: raw === "random" ? "random" : loc, area: area?.label ?? null, table: el.table?.value ?? table } };
   };
 
   const onRender = (form, update) => {
@@ -137,7 +154,7 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   };
 
   const rc = rollContext(actor, { kind: "attack", skill: w.skill, skillAttr: sk.attr }, { manualMod: sk.mod });
-  const r = await promptMfd(`Atak: ${item.name}`, sk.tn, rc, { defaultStep: aoe ? "3/4" : "1", extraHtml, readExtra, onRender });
+  const r = await promptMfd(`Atak: ${item.name}`, sk.tn, rc, { defaultStep: aoe && !tVehicle ? "3/4" : "1", extraHtml, readExtra, onRender });
   if (!r) return null;
   const { extra: ex = {}, ...roll } = r;
 
@@ -154,7 +171,8 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   const attack = {
     sats: !!ex.sats, satsCost: cost, random: ex.loc === "random", called: ex.loc === "random" ? null : ex.loc ?? "torso",
     table: ex.table ?? table, melee: close, aoe, area: ex.area ?? null, areaLabels: target ? areaLabels(target) : {}, formula: b.formula, lacking: b.lacking, used: b.use, consumable: !!w.consumable,
-    targets: targets.map(t => t.document?.uuid).filter(Boolean), overglow: spell?.layers ?? 0
+    targets: targets.map(t => t.document?.uuid).filter(Boolean), overglow: spell?.layers ?? 0,
+    ...(vehicle ? { vehicle: vehicle.uuid, gunnerUuid: actor.uuid } : {})
   };
   if (spell) return rollTest(actor, { label: `Celowanie: ${item.name} (Magic)`, baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
   return rollTest(actor, { label: `Atak: ${item.name} (${SKILLS[w.skill]?.label ?? w.skill})`, baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
@@ -347,6 +365,7 @@ export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0,
 /** Stan lokacji po ranach — progi z danych postaci (u potworów z bestiariusza: z bloku statystyk). */
 function statusText(loc, wounds, sys) {
   const L = sys.locations[loc] ?? {};
+  if (sys.isVehicle) return wounds > 0 && wounds >= L.limit ? AREA_STATUS[loc] ?? "ZNISZCZONA" : wounds > 0 && wounds >= L.crippleAt ? "USZKODZONA" : "";
   const maim = L.limit || sys.attributes.end.total;
   const crip = L.crippleAt || Math.max(1, Math.ceil(maim / 2));
   if (wounds > 0 && wounds >= maim) return loc === "head" || loc === "torso" ? "ŚMIERĆ" : "KOŃCZYNA UTRACONA";
@@ -389,7 +408,7 @@ export async function applyDamage(message) {
       <div class="atk-info"><div>${esc(d.itemName)}: <b>${d.pre}</b> obrażeń przed mnożnikami${d.crit ? " (krytyk)" : ""}${d.ignoreDT ? ` · ignoruje ${d.ignoreDT} DT` : ""}</div></div>
       ${rows.map(r => `
       <fieldset class="dmg-target" data-i="${r.i}">
-        <legend>${esc(r.t.name)} <small>${r.sys.dmgPerWound} obr. = 1 rana · END ${r.sys.attributes.end.total}</small></legend>
+        <legend>${esc(r.t.name)} <small>${r.sys.dmgPerWound} obr. = 1 rana · ${r.sys.isVehicle ? `wytrzymałość strefy ${r.sys.structure}` : `END ${r.sys.attributes.end.total}`}</small></legend>
         <label>Lokacja <select name="loc-${r.i}">${r.opts.map(o => `<option value="${o.v}" ${o.v === r.sel ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></label>
         <label>Mnożnik <input type="number" name="mult-${r.i}" value="${defMult(r.sel)}" step="0.5" min="0"></label>
         <label class="dt-row">DT <input type="number" name="dt-${r.i}" value="${r.sel === "all" ? "" : dtOf(r.sys, r.sel)}" ${r.sel === "all" ? "disabled placeholder=\"wg lokacji\"" : ""}></label>
@@ -397,7 +416,7 @@ export async function applyDamage(message) {
         <label class="atk-check"><input type="checkbox" name="all-${r.i}"> <span>Ignoruj całe DT</span></label>
         <div class="dmg-out" data-out="${r.i}"></div>
       </fieldset>`).join("")}
-      ${specialHtml(sp)}
+      ${specialHtml(sp, rows.some(r => r.sys.isVehicle))}
       <label class="atk-row atk-check"><input type="checkbox" name="degrade" ${degradeDefault ? "checked" : ""}>
         <span>Degradacja pancerza</span><small>przebity pancerz traci 1 DT na tej lokacji (zasada opcjonalna)</small></label>
     </div>`;
@@ -509,7 +528,7 @@ export async function applyDamage(message) {
         ${describe(r, res)}
         ${armorNotes.length ? `<div class="fc-meta">Pancerz: ${armorNotes.map(esc).join(" · ")}</div>` : ""}
         ${fx.notes.length ? `<div class="fc-special">${fx.notes.map(n => `<span>${esc(n)}</span>`).join("")}</div>` : ""}
-        <div class="fc-meta">Rany łącznie: ${total}/${4 * endT}${dead ? ` · <b class="warn">${esc(dead)}</b>` : actor.system.unconsciousRisk ? " · <b class=\"warn\">traci przytomność: przy każdej akcji rzut END MFD ¾</b>" : ""}</div>
+        ${sys.isVehicle ? vehicleNotes(actor, res) : `<div class="fc-meta">Rany łącznie: ${total}/${4 * endT}${dead ? ` · <b class="warn">${esc(dead)}</b>` : actor.system.unconsciousRisk ? " · <b class=\"warn\">traci przytomność: przy każdej akcji rzut END MFD ¾</b>" : ""}</div>`}
       </div>`);
   }
 
@@ -525,18 +544,31 @@ export async function applyDamage(message) {
   });
 }
 
+/** Skutki trafienia pojazdu: zniszczone strefy, przebita kabina, spadanie. */
+function vehicleNotes(actor, res) {
+  const sys = actor.system;
+  const out = [];
+  for (const x of res) {
+    const L = sys.locations[x.loc];
+    if (x.wounds && L?.effect) out.push(L.effect);
+    if (x.loc === "head" && x.after > 0) out.push(`kabina przebita: MG może przenieść ${x.after} obrażeń na członka załogi (zasada domowa)`);
+  }
+  if (sys.falling) out.push(`POJAZD SPADA z ${sys.altitude} ft — przycisk „Zderzenie” na karcie pojazdu (upadek)`);
+  return `<div class="fc-meta">Rany pojazdu: ${sys.totalWounds} · ${out.length ? out.map(n => `<b class="warn">${esc(n)}</b>`).join(" · ") : "pojazd sprawny"}</div>`;
+}
+
 // ======================================================================
 // Specjalne efekty broni przy nanoszeniu (s. 200–202)
 // ======================================================================
 
-function specialHtml(sp) {
+function specialHtml(sp, machine = false) {
   const row = (name, label, desc, checked = true) =>
     `<label class="atk-row atk-check"><input type="checkbox" name="${name}" ${checked ? "checked" : ""}><span>${label}</span><small>${desc}</small></label>`;
   const parts = [];
   if (sp.fire) parts.push(row("sp-fire", "Podpal cel (ogień)", "1d4 rundy po 3d12 na każdą lokację na koniec rundy; pancerz metalowy chroni, jeśli atak go nie przebił"));
   if (sp.electric) {
     parts.push(row("sp-electric", "Porażenie prądem", "na koniec rundy 3d12 na każdą lokację (pancerz metalowy nie chroni); wyłącza PipBucka i pancerz wspomagany"));
-    parts.push(row("sp-robot", "Cel to robot / maszyna", "+6d12 teraz i 6d12 na koniec rundy", false));
+    parts.push(row("sp-robot", "Cel to robot / maszyna", "+6d12 teraz i 6d12 na koniec rundy", machine));
   }
   if (sp.rads) parts.push(row("sp-rads", "Promieniowanie", "25 radów za każde 10 obrażeń po DT (minus odporność celu)"));
   if (sp.disintegrate) parts.push(row("sp-dis", "Dezintegracja", sp.disintegrate === "crit" ? "krytyk zawsze dezintegruje; inaczej: rany okaleczające lokację albo zabójcze" : "rany okaleczające nietkniętą lokację albo trafienie zabójcze zamieniają cel w popiół"));
@@ -568,7 +600,10 @@ async function applySpecials(actor, res, special, d, endT) {
     notes.push("DEZINTEGRACJA — cel zamienia się w popiół lub świecącą kałużę");
     dead = "ZDEZINTEGROWANY";
   } else if (actor.system.dead) {
-    if (special.shock) {
+    if (actor.system.isVehicle) {
+      await toggleStatus(actor, "dead", true);
+      dead = "WRAK";
+    } else if (special.shock) {
       await toggleStatus(actor, "unconscious", true);
       notes.push("rany zabójcze, ale broń nie zabija — nieprzytomny");
       dead = "NIEPRZYTOMNY";
@@ -622,7 +657,9 @@ export function registerCombatHooks() {
       if (!item) return ui.notifications.warn("Nie znaleziono tej broni.");
       if (!item.isOwner) return ui.notifications.warn("Nie jesteś właścicielem tej broni.");
       const crit = html.querySelector(".foe-card")?.classList.contains("crit-success");
-      await rollDamage(item.parent ?? item.actor, item, { crit, attack: test.attack ?? null });
+      // broń pokładowa: premie z umiejętności strzelca, nie pojazdu
+      const shooter = test.attack?.gunnerUuid ? await fromUuid(test.attack.gunnerUuid).catch(() => null) : null;
+      await rollDamage(shooter ?? item.parent ?? item.actor, item, { crit, attack: test.attack ?? null });
     });
 
     html.querySelector("[data-action=foeApply]")?.addEventListener("click", ev => {

@@ -1,0 +1,141 @@
+<section class="tab active vehicle-body">
+  <header class="foe-header">
+    <div class="pip-bar"><span>PIPBUCK 3000 · REJESTR POJAZDÓW</span><span>{{#if stats.dead}}WRAK{{else}}POJAZD{{/if}}</span></div>
+    <div class="foe-id">
+      <img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
+      <div class="identity">
+        <input class="name" type="text" name="name" value="{{actor.name}}" placeholder="Nazwa pojazdu">
+        <div class="row veh-row">
+          <label>Rodzaj <select name="system.vehicle.kind">{{#each kinds}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+          <label>Napęd <select name="system.vehicle.power">{{#each powers}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+        </div>
+        <div class="row veh-row">
+          <label class="wide" title="Tabela XLI (s. 608): rozmiar względem kucyka wyznacza obrażenia na ranę i trafianie">Rozmiar <select name="system.vehicle.size">{{#each sizes}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="status-bar">
+    <span class="cs" title="Obrażenia na ranę z tabeli XLI">D/W <b>{{stats.dw}}</b></span>
+    <span class="cs" title="Ile ran niszczy strefę (połowa: uszkodzona)">Wytrzymałość <b>{{stats.structure}}</b> · uszk. od {{stats.crippleAt}}</span>
+    <span class="cs" title="{{#each stats.speedNotes}}{{this}}&#10;{{/each}}">Prędkość <b>{{stats.speed}}</b> ft/akcję</span>
+    <label class="cs alt" title="Aktualna prędkość w ft na rundę: liczy się przy zderzeniach i strzałach z ruchu">W ruchu <input type="number" name="system.vehicle.currentSpeed" value="{{v.currentSpeed}}" min="0" step="5"> ft</label>
+    {{#if sky}}<label class="cs alt" title="Wysokość lotu: przy zniszczonym napędzie pojazd spada">Wys. <input type="number" name="system.altitude" value="{{system.altitude}}" min="0" step="5"> ft</label>{{/if}}
+    {{#if stats.hitSteps}}<span class="cs" title="Duży cel: łatwiej trafić (tabela XLI)">Trafienie <b>+{{stats.hitSteps}}</b> kr.</span>{{/if}}
+    {{#if stats.dodge}}<span class="cs" title="Duży pojazd: manewr unikowy {{stats.dodge}} krok MFD">Uniki <b>{{stats.dodge}}</b> kr.</span>{{/if}}
+    {{#if stats.evasive}}<a class="cs act" data-action="clearEvasive" title="Manewr unikowy działa: ataki na pojazd −{{stats.evasive}} kr. Kliknij, by zakończyć">Unik <b>−{{stats.evasive}}</b> kr. <i class="fa-solid fa-xmark"></i></a>{{/if}}
+    {{#if stats.dead}}<span class="cs alert">WRAK</span>{{/if}}
+    {{#if stats.falling}}<span class="cs alert">SPADA</span>{{/if}}
+  </div>
+  {{#if stats.speedNotes.length}}<p class="hint">{{#each stats.speedNotes}}{{this}}{{#unless @last}} · {{/unless}}{{/each}}</p>{{/if}}
+
+  <div class="veh-actions">
+    <a data-action="drive" title="Rzut sterowania: manewr unikowy, pościg, trudny teren, odzyskanie panowania"><i class="fa-solid fa-dharmachakra"></i> Steruj</a>
+    <a data-action="ram" title="Taranowanie namierzonego (T) celu: 1d20 za każde 20 ft prędkości"><i class="fa-solid fa-truck-monster"></i> Taranuj</a>
+    <a data-action="crash" title="Zderzenie z przeszkodą albo upadek: obrażenia dla pojazdu i załogi"><i class="fa-solid fa-car-burst"></i> Zderzenie</a>
+    <a data-action="repair" title="Naprawa strefy: rzut Repair, zużywa złom"><i class="fa-solid fa-screwdriver-wrench"></i> Napraw</a>
+    <a data-action="rollInitiative" title="Dołącz pojazd do walki (inicjatywa z AGI załogi pojazdu)"><i class="fa-solid fa-dice-d20"></i> Inicjatywa</a>
+  </div>
+  <p class="hint">Steruje: <b>{{stats.pilot}}</b> ({{stats.pilotSkill}}). Każdy członek załogi działa w swojej turze swoimi akcjami; strzelcy używają broni pokładowej z tej karty.</p>
+
+  <h3>Strefy</h3>
+  <table class="foe-table veh-areas">
+    <thead><tr><th class="l">Strefa</th><th title="MFD strzału celowanego w strefę">MFD</th><th title="Pancerz pojazdu (naturalne DT — nie degraduje się)">DT</th><th>Rany</th><th class="l">Stan</th></tr></thead>
+    <tbody>
+    {{#each areas}}
+      <tr class="{{cls}}">
+        <td class="l"><b>{{label}}</b></td>
+        <td>{{mfd}}</td>
+        <td><input type="number" name="system.locations.{{key}}.dt" value="{{dt}}" min="0"></td>
+        <td class="nw"><input type="number" name="system.locations.{{key}}.wounds" value="{{wounds}}" min="0"> / {{limit}}</td>
+        <td class="l">{{#if statusText}}<b>{{statusText}}</b>{{/if}}{{#if effect}} <small>{{effect}}</small>{{/if}}</td>
+      </tr>
+    {{/each}}
+    </tbody>
+  </table>
+  <p class="hint">Atak w pojazd pokazuje te strefy zamiast lokacji kucyka. Losowe trafienie (k20): 1–2 kabina, 3–14 kadłub, 15–18 napęd, 19–20 uzbrojenie. Zniszczony kadłub = wrak.</p>
+
+  <h3>Broń pokładowa
+    <a data-action="openCatalog" data-tab="weapons" title="Katalog broni z podręcznika (np. IF-2200 MBT Primary Cannon, AER-20 Magical Gatling Laser)"><i class="fa-solid fa-boxes-stacked"></i> Katalog</a>
+    <a class="plus" data-action="createItem" data-type="weapon" title="Pusta broń do uzupełnienia"><i class="fa-solid fa-plus"></i></a>
+  </h3>
+  {{#if gunsDown}}<p class="hint warn">Uzbrojenie zniszczone — broń nie strzela, dopóki strefa nie zostanie naprawiona.</p>{{else if gunSteps}}<p class="hint warn">Uzbrojenie uszkodzone: {{gunSteps}} kroki MFD do strzałów.</p>{{/if}}
+  <div class="scroll-x">
+  <table class="foe-table items weapons">
+    <thead><tr><th></th><th class="l">Nazwa</th><th class="hide-narrow">Umiejętność</th><th>Obrażenia</th><th>Kryt.</th><th>SATS</th><th>Amunicja</th><th>Zasięg</th><th></th></tr></thead>
+    <tbody>
+    {{#each weapons}}
+      <tr data-item-id="{{id}}">
+        <td><img class="icon" src="{{img}}" alt=""></td>
+        <td class="l"><a class="rollable" data-action="fireWeapon" title="Strzał: wybierz strzelca z załogi">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span title="{{tip}}">{{label}}</span>{{/each}}</div>{{/if}}</td>
+        <td class="hide-narrow">{{skillLabel}}</td>
+        <td class="nw"><a class="rollable" data-action="rollDamage" title="Same obrażenia (Shift+klik: krytyk)">{{damage}}</a>{{#if burst}}<small class="sub">/{{burst}}</small>{{/if}}</td>
+        <td>{{crit}}</td>
+        <td>{{satsCost}}</td>
+        <td class="nw ammo">{{#if ammo.max}}<b>{{ammo.value}}/{{ammo.max}}</b> <a class="reload" data-action="reload" title="Przeładuj ({{reloadLabel}})"><i class="fa-solid fa-rotate"></i></a>{{#if ammoType}}<small class="sub">{{ammoType}}</small>{{/if}}{{else}}—{{/if}}</td>
+        <td class="nw">{{rangeLabel}}</td>
+        <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+      </tr>
+    {{else}}<tr><td colspan="9" class="empty">Brak broni pokładowej — dodaj ją z katalogu albo plusem.</td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+  </div>
+  <p class="hint">Strzela członek załogi swoją umiejętnością i swoimi AP w SATS; ciężar broni nie daje kar. Strzał z pojazdu w ruchu: −1 krok (do odznaczenia w oknie ataku).</p>
+
+  <h3>Załoga
+    <a data-action="addCrew" title="Dodaj zaznaczone tokeny postaci (albo swoją postać)"><i class="fa-solid fa-user-plus"></i> Dodaj</a>
+  </h3>
+  <ul class="item-list veh-crew">
+    {{#each crew}}
+    <li data-crew="{{index}}" class="{{#if missing}}warn{{/if}}">
+      <img class="icon" src="{{img}}" alt="">
+      <a class="nm" data-action="openCrew" title="Otwórz kartę">{{name}}</a>
+      <select data-crew-index="{{index}}">{{#each roles}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+      <span class="cdesc">{{info}}</span>
+      <span class="ctl"><a data-action="removeCrew" title="Usuń z załogi"><i class="fa-solid fa-user-minus"></i></a></span>
+    </li>
+    {{else}}<li class="empty">Brak załogi — przeciągnij postać z zakładki aktorów na tę kartę albo zaznacz jej token i kliknij „Dodaj”. Bez załogi pojazd steruje i strzela statystykami z sekcji „Załoga bez imienia”.</li>
+    {{/each}}
+  </ul>
+  {{#if crewWarnings.length}}<p class="hint warn">{{#each crewWarnings}}{{this}}{{#unless @last}} · {{/unless}}{{/each}}</p>{{/if}}
+
+  <h3>Parametry</h3>
+  <div class="veh-params">
+    {{#unless pulled}}<label title="Własny napęd: ft na akcję">Prędkość <input type="number" name="system.vehicle.speed" value="{{v.speed}}" min="0" step="5"></label>{{/unless}}
+    {{#if pulled}}<label title="Ile kucyków mieści zaprzęg">Zaprzęg <input type="number" name="system.vehicle.harness" value="{{v.harness}}" min="0"></label>{{/if}}
+    <label title="Kroki MFD do sterowania (+ łatwiej, − trudniej)">Prowadzenie <input type="number" name="system.vehicle.handling" value="{{v.handling}}"></label>
+    <label>Sterowanie <select name="system.vehicle.pilotSkill">{{#each pilotOptions}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+    <label title="Kierowca i strzelcy">Załoga <input type="number" name="system.vehicle.crewMax" value="{{v.crewMax}}" min="0"></label>
+    <label>Pasażerowie <input type="number" name="system.vehicle.passengers" value="{{v.passengers}}" min="0"></label>
+    <label title="Udźwig w lb">Ładunek <input type="number" name="system.vehicle.cargo" value="{{v.cargo}}" min="0"></label>
+    <label title="Ile ran niszczy strefę; 0 = domyślnie {{stats.defaultStructure}} (5 + 1 za każde podwojenie rozmiaru)">Wytrzymałość <input type="number" name="system.woundLimits.maim" value="{{system.woundLimits.maim}}" min="0"></label>
+    <label title="Od ilu ran strefa jest uszkodzona; 0 = połowa wytrzymałości">Uszkodzenie od <input type="number" name="system.woundLimits.cripple" value="{{system.woundLimits.cripple}}" min="0"></label>
+    <label title="Dodatkowe obrażenia na ranę (np. wzmocniony kadłub)">D/W ± <input type="number" name="system.woundBonus" value="{{system.woundBonus}}"></label>
+  </div>
+
+  <h3>Załoga bez imienia <small>statystyki pojazdu dla stanowisk bez postaci</small></h3>
+  <div class="veh-params veh-attrs">
+    {{#each attrs}}<label title="{{title}}">{{label}} <input type="number" name="system.attributes.{{key}}.value" value="{{value}}" min="0" max="30"></label>{{/each}}
+  </div>
+  <div class="veh-params veh-attrs">
+    {{#each crewSkills}}<label title="Próg MFD 1: {{tn}}; pole to punkty umiejętności">{{label}} <b>{{tn}}</b> <input type="number" name="system.skills.{{key}}.points" value="{{points}}"></label>{{/each}}
+  </div>
+
+  <h3>Ładunek <small>{{stats.weight}} / {{stats.carry}} lb</small>
+    <a data-action="openCatalog" data-tab="gear" title="Katalog ekwipunku"><i class="fa-solid fa-boxes-stacked"></i> Katalog</a>
+    <a class="plus" data-action="createItem" data-type="gear" title="Nowy przedmiot"><i class="fa-solid fa-plus"></i></a>
+  </h3>
+  <ul class="item-list veh-cargo">
+    {{#each cargo}}
+    <li data-item-id="{{id}}"><img class="icon" src="{{img}}" alt=""><span class="nm">{{name}}</span><span class="cdesc">×{{qty}} · {{weight}} lb</span>
+      <span class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></span></li>
+    {{else}}<li class="empty">Pusto. Złom (Scrap Metal / Electronics) w ładunku przyda się do napraw.</li>
+    {{/each}}
+  </ul>
+
+  <h3>Notatki</h3>
+  <prose-mirror name="system.notes" toggled value="{{system.notes}}">{{{notesHTML}}}</prose-mirror>
+  <p class="hint">Podręcznik v1.22 nie ma rozdziału o pojazdach. Z książki są tabela rozmiarów XLI, zderzenia (1d20 za 20 ft prędkości), prędkość zaprzęgu wg najwolniejszego kucyka i celowanie wybuchami wprost w pojazdy. Strefy, sterowanie, taranowanie i naprawa to zasady domowe (opis w README).</p>
+</section>

@@ -1,6 +1,7 @@
 import { actorEffects, sumFx, sourcesFx, hits, signed } from "./effects.mjs";
 import { LAYER_CATEGORIES, defaultCover, layerPenalties, overloadSpeed, sneakWeightPenalty } from "./combat.mjs";
 import { iconFor } from "./catalog-data.mjs";
+import { sizeRow, defaultStructure, defaultPilotSkill, vehicleSpeed, VEHICLE_LOCS, AREA_EFFECTS, AREA_STATUS } from "./vehicle-data.mjs";
 
 const F = foundry.data.fields;
 
@@ -276,9 +277,10 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       add("basedStep", "int,agi", -held, `Podtrzymywane zaklęcia (${held})`);
       add("mfdStep", "attack", -held, `Podtrzymywane zaklęcia (${held}) — celność`);
     }
-    this.stateFx = st;
+    // pojazd: stany stref liczy VehicleData (kabina to nie głowa kucyka)
+    this.stateFx = this.parent?.type === "vehicle" ? [] : st;
     // kary do rzutów umiejętności ze stanu widać od razu na karcie (próg MFD 1)
-    for (const e of st.filter(x => x.type === "skillRoll")) {
+    for (const e of this.stateFx.filter(x => x.type === "skillRoll")) {
       for (const [k, sk] of Object.entries(this.skills)) {
         if (!hits(e.target, k)) continue;
         sk.fxRoll += e.value;
@@ -291,6 +293,96 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
 
 export class CharacterData extends BaseActorData {}
 export class NpcData extends BaseActorData {}
+
+/**
+ * Pojazd (zasady w vehicle-data.mjs): strefy kadłub/kabina/napęd/uzbrojenie na lokacjach systemu,
+ * D/W i trafianie wg rozmiaru z tabeli XLI, załoga z odnośnikami do aktorów.
+ * Atrybuty i umiejętności pojazdu to „załoga bez imienia” — używane, gdy na stanowisku nie ma postaci.
+ */
+export class VehicleData extends BaseActorData {
+  static defineSchema() {
+    return {
+      ...super.defineSchema(),
+      race: new F.StringField({ initial: "Pojazd" }),
+      vehicle: new F.SchemaField({
+        kind: new F.StringField({ initial: "ground" }),        // ground | sky | water | rail
+        power: new F.StringField({ initial: "pulled" }),       // pulled | motor
+        size: new F.StringField({ initial: "4" }),             // wiersz tabeli XLI
+        speed: num(30, { min: 0 }),                            // ft na akcję (własny napęd)
+        handling: num(0),                                      // kroki MFD sterowania (+ łatwiej)
+        pilotSkill: new F.StringField({ initial: "" }),        // umiejętność albo atrybut; "" = wg rodzaju
+        crewMax: num(1, { min: 0 }),
+        passengers: num(2, { min: 0 }),
+        harness: num(2, { min: 0 }),                           // miejsca w zaprzęgu
+        cargo: num(500, { min: 0 }),                           // udźwig w lb
+        currentSpeed: num(0, { min: 0 }),                      // aktualna prędkość w ft (zderzenia, strzał z ruchu)
+        crew: new F.ArrayField(new F.SchemaField({
+          uuid: new F.StringField({ initial: "" }),
+          name: new F.StringField({ initial: "" }),
+          role: new F.StringField({ initial: "passenger" })
+        }))
+      })
+    };
+  }
+
+  prepareDerivedData() {
+    super.prepareDerivedData();
+    const v = this.vehicle;
+    const size = sizeRow(v.size);
+    this.isVehicle = true;
+    this.size = size;
+    this.dmgPerWound = size.dw + (this.woundBonus ?? 0) + (this.fx?.wound ?? 0);
+    // wytrzymałość strefy: ile ran ją niszczy (MG może wpisać własną w „Progi”)
+    this.structure = this.woundLimits?.maim || defaultStructure(v.size);
+    const crip = this.woundLimits?.cripple || Math.max(1, Math.ceil(this.structure / 2));
+    const state = {};
+    for (const k of VEHICLE_LOCS) {
+      const L = this.locations[k];
+      L.limit = this.structure;
+      L.crippleAt = crip;
+      L.lethal = L.wounds > 0 && L.wounds >= this.structure;
+      L.autoCrippled = L.wounds > 0 && L.wounds >= crip;
+      L.isCrippled = L.crippled || L.autoCrippled || L.lethal;
+      L.status = L.lethal ? "destroyed" : L.isCrippled ? "crippled" : L.wounds ? "wounded" : "ok";
+      L.statusText = L.lethal ? AREA_STATUS[k] : L.isCrippled ? "USZKODZONA" : L.wounds ? "draśnięta" : "";
+      L.effect = L.lethal ? AREA_EFFECTS[k].lethal : L.isCrippled ? AREA_EFFECTS[k].crippled : "";
+      state[k] = L.lethal ? "lethal" : L.isCrippled ? "crippled" : "ok";
+    }
+    this.totalWounds = VEHICLE_LOCS.reduce((t, k) => t + this.locations[k].wounds, 0);
+    this.dead = this.locations.torso.lethal;
+    this.unconsciousRisk = false;
+    this.unconsciousAt = VEHICLE_LOCS.length * this.structure;
+    this.areaState = state;
+
+    // sterowanie i strzelanie: kary ze stref
+    this.pilotSkill = v.pilotSkill || defaultPilotSkill(v.kind);
+    this.pilotSteps = (state.head === "lethal" ? -3 : state.head === "crippled" ? -1 : 0) + (state.wings === "crippled" ? -2 : 0);
+    this.gunSteps = state.horn === "crippled" ? -2 : 0;
+    this.gunsDown = state.horn === "lethal";
+
+    // załoga: odnośniki do aktorów (prędkość zaprzęgu wg najwolniejszego)
+    const find = uuid => { try { return uuid ? globalThis.fromUuidSync?.(uuid) ?? null : null; } catch { return null; } };
+    this.crewList = (v.crew ?? []).map((c, i) => ({ ...c, index: i, actor: find(c.uuid) }));
+    const pullers = this.crewList.filter(c => c.role === "puller").map(c => ({
+      name: c.actor?.name ?? c.name, speed: c.actor?.system?.speed ?? 0, flySpeed: c.actor?.system?.flySpeed ?? 0,
+      canFly: !!c.actor?.system?.canFly
+    }));
+    this.carry = v.cargo;
+    this.overload = Math.max(0, Math.round((this.weight - this.carry) * 10) / 10);
+    const sp = vehicleSpeed(v, { pullers, propulsion: state.wings, cargo: this.weight, cargoMax: v.cargo });
+    this.speed = sp.speed;
+    this.speedNotes = sp.notes;
+    this.falling = v.kind === "sky" && this.altitude > 0 && (state.wings === "lethal" || (v.power === "pulled" && sp.speed === 0));
+    const count = r => this.crewList.filter(c => c.role === r).length;
+    this.crewCount = { pilot: count("pilot"), gunner: count("gunner"), puller: count("puller"), passenger: count("passenger") };
+    this.crewWarnings = [
+      count("pilot") + count("gunner") > v.crewMax ? `załoga ${count("pilot") + count("gunner")}/${v.crewMax}` : "",
+      count("passenger") > v.passengers ? `pasażerowie ${count("passenger")}/${v.passengers}` : "",
+      count("puller") > v.harness && v.power === "pulled" ? `zaprzęg ${count("puller")}/${v.harness}` : "",
+      count("pilot") > 1 ? "więcej niż jeden kierowca — steruje pierwszy" : ""
+    ].filter(Boolean);
+  }
+}
 
 // ---------- Itemy ----------
 const desc = () => new F.HTMLField({ initial: "" });

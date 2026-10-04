@@ -6,6 +6,7 @@ import { recipeItemData, RARITY } from "./zebra.mjs";
 import { maneuverItemData, maneuverWarnings, isWeatherManeuver, MFD_LABEL } from "./flight.mjs";
 import { addPerk, perkStatus, reqView, autoSummary, perkItemData } from "./perks.mjs";
 import { importCreature, BESTIARY_KINDS } from "./bestiary.mjs";
+import { VEHICLE_KINDS, VEHICLE_POWER, sizeRow } from "./vehicle-data.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -13,8 +14,8 @@ let cache = null;
 /** Katalog z podręcznika (data/catalog.json), wczytywany raz. */
 export function loadCatalog() {
   const get = name => fetch(`systems/${game.system.id}/data/${name}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
-  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => []), get("maneuvers.json").catch(() => []), get("perks.json").catch(() => []), get("bestiary.json").catch(() => [])])
-    .then(([cat, spells, recipes, maneuvers, perks, bestiary]) => ({ ...cat, spells, recipes, maneuvers, perks, bestiary }))
+  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => []), get("maneuvers.json").catch(() => []), get("perks.json").catch(() => []), get("bestiary.json").catch(() => []), get("vehicles.json").catch(() => [])])
+    .then(([cat, spells, recipes, maneuvers, perks, bestiary, vehicles]) => ({ ...cat, spells, recipes, maneuvers, perks, bestiary, vehicles }))
     .catch(err => { cache = null; throw err; });
   return cache;
 }
@@ -35,6 +36,8 @@ const TABS = {
 };
 TABS.bestiary = { label: "Bestiariusz", icon: "fa-solid fa-dragon", kinds: { S: "Z pełnymi statystykami", ...BESTIARY_KINDS },
   head: ["Rodzaj", "Poziom", "Strefy (DT)", "Obr./ranę", "Statystyki"] };
+TABS.vehicles = { label: "Pojazdy", icon: "fa-solid fa-truck-pickup", kinds: { ...VEHICLE_KINDS, pulled: "Ciągnięte przez kucyki", motor: "Własny napęd" },
+  head: ["Rodzaj", "Rozmiar (D/W)", "Prędkość", "Załoga", "DT kadłuba", "Broń"] };
 const PERK_STATUS = { ok: "✓ dostępny", unknown: "? sprawdź", fail: "✗", taken: "■ ma" };
 const KIND_LABEL = { active: "", passive: "pasywny", variable: "zmienne MFD", special: "specjalny" };
 
@@ -80,6 +83,15 @@ function rowOf(tab, e, i, actor = null) {
       i, name: e.name, notes: e.desc, search: `${e.name} ${e.group ?? ""}`.toLowerCase(), kind: `${e.kind}${e.a ? " S" : ""}`,
       img: "systems/foe-rpg/icons/creature.svg", qty: 0, noBuy: true,
       cols: [BESTIARY_KINDS[e.kind] ?? e.kind, e.lvl ?? "—", areas ? (areas.length > 60 ? `${areas.slice(0, 58)}…` : areas) : "—", e.dw ?? "—", e.a ? "✓" : "tylko opis"]
+    };
+  }
+  if (tab === "vehicles") {
+    const size = sizeRow(e.size);
+    return {
+      i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `${e.kind} ${e.power}`,
+      img: "systems/foe-rpg/icons/vehicle.svg", qty: 0, noBuy: true,
+      cols: [`${VEHICLE_KINDS[e.kind] ?? e.kind}, ${(VEHICLE_POWER[e.power] ?? e.power).split(" (")[0].toLowerCase()}`, `×${size.key} (${size.dw})`,
+        e.power === "pulled" ? "zaprzęg" : `${e.speed} ft`, `${e.crewMax}${e.passengers ? ` + ${e.passengers}` : ""}`, e.dt?.torso ?? 0, (e.weapons ?? []).join(", ") || "—"]
     };
   }
   if (tab === "perks") {
@@ -191,7 +203,8 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
       actor: this.actor,
       caps: this.actor?.system.caps ?? 0,
       isGear: this.tab === "gear",
-      isBestiary: this.tab === "bestiary"
+      isBestiary: this.tab === "bestiary",
+      isVehicles: this.tab === "vehicles"
     };
   }
 
@@ -268,9 +281,13 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     const entry = data[this.tab]?.[Number(row?.dataset.i)];
     if (!entry) return;
     const qty = Math.max(1, Math.floor(Number(row.querySelector("input[name=qty]")?.value) || 1));
-    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : this.tab === "perks" ? perkItemData(entry) : this.tab === "bestiary" ? null : catalogItem(this.tab, entry, qty);
+    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : this.tab === "perks" ? perkItemData(entry) : this.tab === "bestiary" || this.tab === "vehicles" ? null : catalogItem(this.tab, entry, qty);
     const what = qty > 1 ? `${entry.name} ×${qty}` : entry.name;
 
+    if (this.tab === "vehicles") {
+      const { importVehicle } = await import("./vehicle.mjs");
+      return importVehicle(entry, data);
+    }
     if (this.tab === "bestiary") {
       const { spellItemData } = await import("./magic.mjs");
       const { maneuverItemData } = await import("./flight.mjs");
@@ -340,7 +357,12 @@ export function registerCatalogButton() {
     btn.className = "foe-catalog-open foe-bestiary-open";
     btn.innerHTML = `<i class="fa-solid fa-dragon"></i> Bestiariusz FoE`;
     btn.addEventListener("click", () => openCatalog(null, "bestiary"));
+    const veh = document.createElement("button");
+    veh.type = "button";
+    veh.className = "foe-catalog-open foe-vehicles-open";
+    veh.innerHTML = `<i class="fa-solid fa-truck-pickup"></i> Pojazdy FoE`;
+    veh.addEventListener("click", () => openCatalog(null, "vehicles"));
     const bar = root.querySelector(".header-actions") ?? root.querySelector(".directory-header");
-    (bar ?? root).append(btn);
+    (bar ?? root).append(btn, veh);
   });
 }
