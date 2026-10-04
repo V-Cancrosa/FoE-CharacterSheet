@@ -132,6 +132,22 @@ Siodła bojowe i pancerze wspomagane (s. 161–170, 460):
 - Pancerz wspomagany bez Power Armor Training: bez premii do atrybutów i umiejętności z pancerza (kary zostają);
   ze szkoleniem kary AGI z pancerza znikają. Talizman naprawczy (klucz przy pancerzu): 2 DT na lokację za jednostkę złomu.
 
+Warsztat i naprawa (s. 198–199, 458–460):
+- „Warsztat” w zakładce Ekwipunek (nagłówek „Przedmioty”): naboje (prasa do naboi; łuska + ładunek + metal o wartości ⅓ naboi;
+  Repair MFD 1: krytyk ×2, porażka ½; Junk Rounds — bez łusek i prasy, 2× mniej metalu), ogniwa energii (pył klejnotów: 1 = 5 gem
+  cells / 3 ogniwa / 1 MFC; Repair ¾), ładowanie zużytych ogniw (Repair MFD 1, do 50 na rzut; porażka niszczy połowę),
+  ładunki miotające (proch + topnik albo zamiennik, Science ¾ → 1d10×10), proch (węgiel + nawóz ¾ albo jedzenie ½, 10 jedn.
+  na węgiel) i paliwo do miotacza (alkohol + Sugar Apple Bombs + Abronco Cleaner, Science ½ → 20, krytyk 30; wódka +5).
+  Paczki („(10)”, „10 units”) zużywają się w jednostkach — reszta otwartej paczki jest widoczna przy ilości.
+- Degradacja broni (zasada opcjonalna, ustawienie świata): kości obrażeń = kroki; krok co 2 magazynki (ponad 8 kości — 1,
+  jednostrzałowa — co 4 strzały), wręcz po tylu trafieniach, ile kości; amunicja Explosive/Bulk/Overcharged ×2, Home Made ×4.
+  Przy broni widać „stan x/y”, każdy krok to −1 kość, przy 0 broń jest złomem.
+- Naprawa broni (klucz przy stanie): do kroku z tabeli XXIX (ranga Repair z premiami jako procent), z drugą taką samą bronią
+  na części (do jej stanu +1); Jury Rigging pozwala użyć podobnej broni.
+- Naprawa pancerza (młotek przy pancerzu): części z innego pancerza (10% jego DT za każde 10 rang Repair na lokację, min. 1)
+  albo surowce przy randze 25+ (skóra/materiał — igła i nici; metal — młotek): 1 DT za jednostkę. Pancerz wspomagany —
+  talizman albo części z tego samego modelu.
+
 Książki i magazyny (s. 208–210): przycisk „Czytaj” przy książce w Ekwipunku (katalog → Ekwipunek → Książki i magazyny, 84 tytuły).
 - Książka (b): punkt umiejętności za każde przeczytanie; nowa daje je 1+1d4 razy (rzut przy pierwszej lekturze), używana —
   o 1 raz mniej za każdego poprzedniego czytelnika, a jej wartość spada o połowę. Wymaga rangi 25 w tej umiejętności.

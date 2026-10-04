@@ -13,6 +13,7 @@ import { setCondition, toggleStatus, poisonCheck, endOfRound } from "./condition
 import { hitStepsAgainst, evasiveActive, AREA_STATUS } from "./vehicle-data.mjs";
 import { implantReserve } from "./cyber.mjs";
 import { loadedVariant, ammoOnHit, SPECIAL_AMMO, variantsFor, specialAmmoOn, variantName } from "./ammo-data.mjs";
+import { degradationOn, weaponCondition, addWear, ammoWearFactor } from "./craft-data.mjs";
 import { spendActions } from "./tracker.mjs";
 
 const { DialogV2 } = foundry.applications.api;
@@ -36,6 +37,8 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   const w = item.system;
   const sk = sys.skills[w.skill];
   if (!sk) return warn("Broń nie ma przypisanej umiejętności.");
+  // degradacja (zasada opcjonalna, s. 458): broń bez kości obrażeń to złom
+  if (degradationOn() && weaponCondition(w).broken) return warn(`${item.name} jest zepsuta — napraw ją (zakładka Walka) albo oddaj na części.`);
   const str = sys.attributes.str.total;
   const close = isClose(w);
   const aoe = isAoe(w);
@@ -173,6 +176,8 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   if (!spell && !(volley?.index > 0)) await spendActions(actor, 1, volley ? "salwa z siodła" : ex.sats ? "SATS" : "atak");
   if (w.consumable) await item.update({ "system.qty": Math.max(0, (Number(item.system.qty) || 0) - 1) });
   else if (w.ammo.max > 0) await item.update({ "system.ammo.value": Math.max(0, item.system.ammo.value - b.use) });
+  // degradacja broni dystansowej: liczy się wystrzelona amunicja (niektóre rodzaje amunicji specjalnej 2× albo 4×)
+  if (degradationOn() && !w.consumable && w.ammo.max > 0 && !close) await wearWeapon(item, b.use * ammoWearFactor(loadedVariant(w)?.key));
 
   const attack = {
     sats: !!ex.sats, satsCost: cost, random: ex.loc === "random", called: ex.loc === "random" ? null : ex.loc ?? "torso",
@@ -181,7 +186,20 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     ...(vehicle ? { vehicle: vehicle.uuid, gunnerUuid: actor.uuid } : {})
   };
   if (spell) return rollTest(actor, { label: `Celowanie: ${item.name} (Magic)`, baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
-  return rollTest(actor, { label: `Atak: ${item.name} (${SKILLS[w.skill]?.label ?? w.skill})`, baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
+  const msg = await rollTest(actor, { label: `Atak: ${item.name} (${SKILLS[w.skill]?.label ?? w.skill})`, baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
+  // degradacja broni do walki wręcz: liczą się trafienia
+  const res = msg?.getFlag?.("foe-rpg", "test")?.result ?? msg?.flags?.["foe-rpg"]?.test?.result;
+  if (degradationOn() && close && (res === "success" || res === "crit-success")) await wearWeapon(item, 1);
+  return msg;
+}
+
+/** Zużycie broni: licznik i kroki degradacji (−1 kość za krok), powiadomienie przy utracie kroku. */
+async function wearWeapon(item, amount) {
+  const r = addWear(item.system, amount);
+  if (r.wear === (Number(item.system.wear) || 0) && r.fired === (Number(item.system.fired) || 0)) return;
+  await item.update({ "system.wear": r.wear, "system.fired": r.fired });
+  if (r.stepped) ui.notifications.warn(r.broken ? `${item.name} rozpadła się — to już tylko złom (albo części do naprawy innej takiej broni).`
+    : `${item.name} się zużywa: −${r.stepped} ${r.stepped === 1 ? "kość" : "kości"} obrażeń (stan ${weaponCondition({ ...item.system, wear: r.wear }).left}/${weaponCondition(item.system).total}).`);
 }
 
 // ======================================================================

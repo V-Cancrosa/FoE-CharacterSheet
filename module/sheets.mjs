@@ -25,6 +25,8 @@ import { canAwardXp, canLevelUp, canEditAdvancement } from "./permissions.mjs";
 import { isBatPony, isChangeling, hasShadowflash, hasShadowForm, shadowState, loveState, disguiseOf, SHADOW_MODES } from "./shadow-data.mjs";
 import { nameItem, canName } from "./named.mjs";
 import { readBook, bookStatus } from "./books.mjs";
+import { openWorkshop, repairWeapon, repairArmorItem } from "./craft.mjs";
+import { degradationOn, weaponCondition } from "./craft-data.mjs";
 import { parseBook } from "./books-data.mjs";
 import { loadedVariant } from "./ammo-data.mjs";
 import { castShadow, addSonicScreech, shapeshift, endDisguise, feedOnLove, detectDisguise, promptLove } from "./shadow.mjs";
@@ -111,6 +113,9 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       addScreech: FoeActorSheet.#onAddScreech,
       nameItem: FoeActorSheet.#onNameItem,
       readBook: FoeActorSheet.#onReadBook,
+      workshop: FoeActorSheet.#onWorkshop,
+      fixWeapon: FoeActorSheet.#onFixWeapon,
+      fixArmor: FoeActorSheet.#onFixArmor,
       shapeshift: FoeActorSheet.#onShapeshift,
       endDisguise: FoeActorSheet.#onEndDisguise,
       feedLove: FoeActorSheet.#onFeedLove,
@@ -321,6 +326,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const inc = rangeIncrement(w, str);
       return {
         id: i.id, name: i.name, img: i.img, ...w, canMount: !!saddle || w.mounted,
+        cond: degradationOn() && weaponCondition(w).total && !w.consumable ? (c => ({ ...c, worn: c.left < c.total, bad: c.left <= Math.ceil(c.total / 2) }))(weaponCondition(w)) : null,
         named: !!i.getFlag?.("foe-rpg", "named"), canName: !w.consumable && !i.getFlag?.("foe-rpg", "named") && canName(this.document),
         ammoVariant: loadedVariant(w)?.label.replace(/ \(.*\)$/, "") ?? "", ammoVariantTip: loadedVariant(w) ? `${loadedVariant(w).effect}; ${loadedVariant(w).downside}` : "",
         skillLabel: SKILLS[w.skill]?.label ?? w.skill,
@@ -348,7 +354,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         wearText: wear ? Object.entries(a.wear).filter(([, v]) => v).map(([k, v]) => `${SHORT[k]} −${v}`).join(", ") : "",
         fxText: (a.effects ?? []).filter(e => FX_TYPES[e.type]).map(e => shortFx(e, short)).join(", "),
         builtInSaddle: a.powered ? { heavy: "ciężkie siodło", four: "czteroramienne siodło" }[builtInSaddle(i)?.kind] : "",
-        untrained: a.powered && a.equipped && !trained, canRepair: a.powered && wear > 0,
+        untrained: a.powered && a.equipped && !trained, canRepair: a.powered && wear > 0, canFix: wear > 0,
         named: !!i.getFlag?.("foe-rpg", "named"), canName: !i.getFlag?.("foe-rpg", "named") && canName(this.document)
       };
     });
@@ -617,6 +623,15 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onFeedCyber() { await feedCyber(this.document); }
   static async #onCastShadow(event, target) { await castShadow(this.document, target.dataset.mode); }
+  static async #onWorkshop() { await openWorkshop(this.document); }
+  static async #onFixWeapon(event, target) {
+    const item = this.#item(target);
+    if (item) await repairWeapon(this.document, item);
+  }
+  static async #onFixArmor(event, target) {
+    const item = this.#item(target);
+    if (item) await repairArmorItem(this.document, item);
+  }
   static async #onReadBook(event, target) {
     const item = this.#item(target);
     if (item) await readBook(this.document, item);

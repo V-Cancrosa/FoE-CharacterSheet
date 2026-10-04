@@ -25,7 +25,7 @@
     {{#each weapons}}
       <tr data-item-id="{{id}}">
         <td><img class="icon" src="{{img}}" alt=""></td>
-        <td class="l">{{#if canMount}}<a class="mount-toggle {{#if mounted}}on{{/if}}" data-action="toggleMount" title="{{#if mounted}}Na siodle bojowym — kliknij, by zdjąć{{else}}Zamontuj na siodle bojowym{{/if}}">S</a> {{/if}}<a class="rollable" data-action="rollWeapon" title="Atak: okno z SATS, odległością i celem">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span title="{{tip}}">{{label}}</span>{{/each}}</div>{{/if}}</td>
+        <td class="l">{{#if canMount}}<a class="mount-toggle {{#if mounted}}on{{/if}}" data-action="toggleMount" title="{{#if mounted}}Na siodle bojowym — kliknij, by zdjąć{{else}}Zamontuj na siodle bojowym{{/if}}">S</a> {{/if}}<a class="rollable" data-action="rollWeapon" title="Atak: okno z SATS, odległością i celem">{{name}}</a>{{#if cond}} <small class="sub {{#if cond.bad}}warn{{/if}}" title="Degradacja (s. 458): kroki = kości obrażeń">stan {{cond.left}}/{{cond.total}}</small>{{#if cond.worn}} <a class="repair" data-action="fixWeapon" title="Naprawa: Repair wg tabeli XXIX + broń-dawca na części"><i class="fa-solid fa-screwdriver-wrench"></i></a>{{/if}}{{/if}}{{#if tags.length}}<div class="wtags">{{#each tags}}<span title="{{tip}}">{{label}}</span>{{/each}}</div>{{/if}}</td>
         <td class="hide-narrow">{{skillLabel}}</td>
         <td class="nw"><a class="rollable" data-action="rollDamage" title="Same obrażenia (Shift+klik: krytyk)">{{damage}}</a>{{#if burst}}<small class="sub">/{{burst}}</small>{{/if}}</td>
         <td>{{crit}}</td>

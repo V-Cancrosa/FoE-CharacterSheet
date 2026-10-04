@@ -18,7 +18,7 @@
       <tr data-item-id="{{id}}" class="{{#if equipped}}worn{{/if}}">
         <td><a class="feat-toggle {{#if equipped}}on{{/if}}" data-action="toggleEquip" title="{{#if equipped}}Założony — kliknij, by zdjąć{{else}}Kliknij, by założyć{{/if}}"></a></td>
         <td><img class="icon" src="{{img}}" alt=""></td>
-        <td class="l nm">{{name}}{{#if powered}} <small class="sub">wspomagany{{#if builtInSaddle}} · {{builtInSaddle}}{{/if}}</small>{{/if}}{{#if untrained}} <small class="sub warn" title="Bez Power Armor Training: brak premii do atrybutów i umiejętności z pancerza">bez szkolenia</small>{{/if}}{{#if canRepair}} <a class="repair" data-action="repairArmor" title="Talizman naprawczy: 2 DT na każdej lokacji za jednostkę złomu"><i class="fa-solid fa-screwdriver-wrench"></i></a>{{/if}}</td>
+        <td class="l nm">{{name}}{{#if powered}} <small class="sub">wspomagany{{#if builtInSaddle}} · {{builtInSaddle}}{{/if}}</small>{{/if}}{{#if untrained}} <small class="sub warn" title="Bez Power Armor Training: brak premii do atrybutów i umiejętności z pancerza">bez szkolenia</small>{{/if}}{{#if canRepair}} <a class="repair" data-action="repairArmor" title="Talizman naprawczy: 2 DT na każdej lokacji za jednostkę złomu"><i class="fa-solid fa-screwdriver-wrench"></i></a>{{/if}}{{#if canFix}} <a class="repair" data-action="fixArmor" title="Naprawa (s. 460): części z innego pancerza albo surowce (skóra, materiał, złom)"><i class="fa-solid fa-hammer"></i></a>{{/if}}</td>
         <td>{{categoryLabel}}</td>
         <td class="nw">{{dt}}{{#if wearText}}<small class="sub warn" title="Zużycie (degradacja)">{{wearText}}</small>{{/if}}</td>
         <td>{{coverText}}</td>
@@ -35,6 +35,7 @@
   <p class="hint">Założony pancerz sam daje DT na lokacjach, które osłania (liczy się najwyższe), i swoje premie. Z każdej kategorii (ubranie, lekki, średni, ciężki) można nosić jedną warstwę; każda kolejna warstwa to −1 AGI, a od trzeciej także −1 STR.</p>
 
   <h3>Przedmioty
+    <a data-action="workshop" title="Warsztat (s. 198–199): naboje, ogniwa, ładunki miotające, proch, paliwo do miotacza"><i class="fa-solid fa-hammer"></i> Warsztat</a>
     <a data-action="openCatalog" data-tab="gear" title="Katalog ekwipunku z podręcznika"><i class="fa-solid fa-boxes-stacked"></i> Katalog</a>
     <a class="plus" data-action="createItem" data-type="gear" title="Pusty przedmiot"><i class="fa-solid fa-plus"></i></a>
   </h3>
