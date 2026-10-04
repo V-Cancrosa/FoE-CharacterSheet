@@ -132,6 +132,21 @@ Siodła bojowe i pancerze wspomagane (s. 161–170, 460):
 - Pancerz wspomagany bez Power Armor Training: bez premii do atrybutów i umiejętności z pancerza (kary zostają);
   ze szkoleniem kary AGI z pancerza znikają. Talizman naprawczy (klucz przy pancerzu): 2 DT na lokację za jednostkę złomu.
 
+Magia cieni (s. 35, 574) — zakładka „Magia i lot”:
+- Cecha Shadowflash (kreator, 1 pkt; według podręcznika tylko kucyki nietoperzowe, nie z Young): pula strainu cieni AGI + PER + 2,
+  koszt 2, odnawia się 1 na godzinę czasu gry. Unik — Flight MFD ½, sukces = unik udany (reakcja, bez akcji);
+  teleport — Flight MFD ¾, do 10×INT ft, tylko postać i trzymane przedmioty. Tłumienie magii na nią nie działa.
+- Shadow Form (Czarna Księga): cecha o tej nazwie daje przeskok między cieniami do 40 ft (Flight MFD ¾).
+- Sonic Screech kucyków nietoperzowych jako broń (przycisk „Dodaj Sonic Screech”): 3d12, SATS 40, zasięg 10 ft (maks. 30),
+  ignoruje pancerz noszony (liczy się tylko naturalne DT; pole „Ignoruje pancerz” w broni).
+
+Podmieńcy — ZASADA DOMOWA (podręcznik v1.22 opisuje ich tylko fabularnie, zasady zapowiada księga II):
+- Rasa „Podmieniec (Changeling)” w kreatorze (za zgodą MG): +1 do CHA, AGI albo INT; Magic i Flight (owadzie skrzydła);
+  chityna +2 DT wszędzie i +10% odporności na promieniowanie; tabela trafień jak u alikornów (róg i skrzydła).
+- Miłość: pula CHA + END, 1 dziennie (liczy się, gdy MG przesuwa czas), 1 za przemianę; pusta pula — −1 krok rzutów END i CHA.
+- Przemiana: wygląd i głos widzianego kucyka; tokeny dostają jego imię (prawdziwe zostaje na karcie). „Wykrycie przebrania”:
+  rzut PER obserwatora z MFD wg znajomości oryginału (jak przy Voice Alteration, s. 316). Żerowanie: Speechcraft, sukces +1d4 miłości.
+
 MG i gracze (uprawnienia):
 - Gracz widzi i obsługuje tylko postacie, których jest właścicielem (uprawnienia aktora w Foundry); obrażenia na cudzy
   token nanosi MG tym samym przyciskiem na karcie z czatu.

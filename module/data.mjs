@@ -442,6 +442,7 @@ export class WeaponData extends FoeItemData {
       ignoreDT: num(0, { min: 0 }),
       flat: bool(false),                 // obrażenia z bloku bestiariusza — bez dodatkowych premii STR/rangi
       mounted: bool(false),              // zamontowana na siodle bojowym
+      armorless: bool(false),            // ignoruje pancerz noszony (Sonic Screech) — liczy się tylko naturalne DT
       aoe: new F.SchemaField({ enabled: bool(false), splash: str(""), inc: str(""), radius: str("") }),
       // specjalne efekty (s. 200–202): ogień i dezintegracja: "" | "hit" (każde trafienie) | "crit" (tylko krytyk)
       specials: new F.SchemaField({

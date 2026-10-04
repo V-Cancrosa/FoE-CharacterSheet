@@ -964,3 +964,6 @@ button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12p
 .foe-rpg .item-list.cyber .nm { flex: 0 0 auto; max-width: 16rem; }
 .foe-rpg .item-list.cyber .cdesc { flex: 1; font-size: 11px; opacity: .85; }
 .foe-rpg .cyber-line .warn { color: var(--pip-alert); }
+
+/* v0.18 — magia cieni i podmieńcy */
+.foe-rpg .shadow-actions a { white-space: nowrap; }

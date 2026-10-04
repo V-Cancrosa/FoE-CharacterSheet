@@ -110,6 +110,12 @@ export function computePc(state, pool = CREATION.pool) {
   for (const f of [...hList, ...tList]) {
     if (f.missing.length) errors.push(`${f.label}: wybierz ${f.missing.join(", ").toLowerCase()} (krok Wady i cechy).`);
   }
+  // cechy dostępne tylko dla wybranych ras / niełączące się z wadą (np. Shadowflash: kucyki nietoperzowe, nie z Young)
+  for (const t of tList) {
+    const def = TRAITS[t.key];
+    if (def?.onlyRaces && !def.onlyRaces.includes(state.race)) warnings.push(`${def.label}: według podręcznika tylko ${def.onlyRaces.map(r => RACES[r]?.label ?? r).join(", ")} — za zgodą MG.`);
+    for (const h of def?.notWith ?? []) if ((state.hindrances ?? []).includes(h)) errors.push(`${def.label} nie łączy się z wadą ${h === "young" ? "Young" : h}.`);
+  }
 
   // --- wszystkie efekty: wady, cechy, perk kucyka ziemskiego, rasa ---
   const perk = race.earthPerk ? EARTH_PERKS[state.earthPerk] : null;

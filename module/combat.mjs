@@ -30,7 +30,7 @@ export const BIPED_LABELS = { flLeg: "Lewe ramię", frLeg: "Prawe ramię", rlLeg
 export function hitTableFor(race) {
   const s = String(race ?? "").toLowerCase();
   if (/pojazd|vehicle/.test(s)) return "vehicle";
-  if (/alikorn|alicorn/.test(s)) return "alicorn";
+  if (/alikorn|alicorn|podmie|changeling/.test(s)) return "alicorn";   // podmieńcy: róg i skrzydła
   if (/pegaz|pegas|nietoperz|bat ?pon|gryf|griff/.test(s)) return "pegasus";
   if (/jednoro|unicorn/.test(s)) return "unicorn";
   if (/bizon|buffalo/.test(s)) return "buffalo";
