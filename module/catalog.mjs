@@ -14,8 +14,8 @@ let cache = null;
 /** Katalog z podręcznika (data/catalog.json), wczytywany raz. */
 export function loadCatalog() {
   const get = name => fetch(`systems/${game.system.id}/data/${name}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
-  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => []), get("maneuvers.json").catch(() => []), get("perks.json").catch(() => []), get("bestiary.json").catch(() => []), get("vehicles.json").catch(() => [])])
-    .then(([cat, spells, recipes, maneuvers, perks, bestiary, vehicles]) => ({ ...cat, spells, recipes, maneuvers, perks, bestiary, vehicles }))
+  cache ??= Promise.all([get("catalog.json"), get("spells.json").catch(() => []), get("recipes.json").catch(() => []), get("maneuvers.json").catch(() => []), get("perks.json").catch(() => []), get("bestiary.json").catch(() => []), get("vehicles.json").catch(() => []), get("cyber.json").catch(() => [])])
+    .then(([cat, spells, recipes, maneuvers, perks, bestiary, vehicles, cyber]) => ({ ...cat, spells, recipes, maneuvers, perks, bestiary, vehicles, cyber }))
     .catch(err => { cache = null; throw err; });
   return cache;
 }
@@ -36,6 +36,8 @@ const TABS = {
 };
 TABS.bestiary = { label: "Bestiariusz", icon: "fa-solid fa-dragon", kinds: { S: "Z pełnymi statystykami", ...BESTIARY_KINDS },
   head: ["Rodzaj", "Poziom", "Strefy (DT)", "Obr./ranę", "Statystyki"] };
+TABS.cyber = { label: "Cybernetyka", icon: "fa-solid fa-microchip", kinds: { limb: "Protezy (cyber-kończyny)", implant: "Implanty (tabela IX)" },
+  head: ["Rodzaj", "Efekty", "Energia", "Talizman"] };
 TABS.vehicles = { label: "Pojazdy", icon: "fa-solid fa-truck-pickup", kinds: { ...VEHICLE_KINDS, pulled: "Ciągnięte przez kucyki", motor: "Własny napęd" },
   head: ["Rodzaj", "Rozmiar (D/W)", "Prędkość", "Załoga", "DT kadłuba", "Broń"] };
 const PERK_STATUS = { ok: "✓ dostępny", unknown: "? sprawdź", fail: "✗", taken: "■ ma" };
@@ -83,6 +85,13 @@ function rowOf(tab, e, i, actor = null) {
       i, name: e.name, notes: e.desc, search: `${e.name} ${e.group ?? ""}`.toLowerCase(), kind: `${e.kind}${e.a ? " S" : ""}`,
       img: "systems/foe-rpg/icons/creature.svg", qty: 0, noBuy: true,
       cols: [BESTIARY_KINDS[e.kind] ?? e.kind, e.lvl ?? "—", areas ? (areas.length > 60 ? `${areas.slice(0, 58)}…` : areas) : "—", e.dw ?? "—", e.a ? "✓" : "tylko opis"]
+    };
+  }
+  if (tab === "cyber") {
+    const fxt = (e.fx ?? []).map(([type, target, value, when]) => shortFx({ type, target: target === "@loc" ? "miejsce protezy" : target === "@attr" ? "wybrany" : target, value, when }, FX_LABELS)).join(", ");
+    return {
+      i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: e.kind, img: "systems/foe-rpg/icons/cyber.svg", qty: 0, noBuy: true,
+      cols: [e.kind === "limb" ? "proteza" : "implant", fxt || "opis", e.power ? `${e.power} jedn.` : "—", e.talisman ? "✓" : "—"]
     };
   }
   if (tab === "vehicles") {
@@ -204,7 +213,8 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
       caps: this.actor?.system.caps ?? 0,
       isGear: this.tab === "gear",
       isBestiary: this.tab === "bestiary",
-      isVehicles: this.tab === "vehicles"
+      isVehicles: this.tab === "vehicles",
+      isCyber: this.tab === "cyber"
     };
   }
 
@@ -281,9 +291,19 @@ export class FoeCatalog extends HandlebarsApplicationMixin(ApplicationV2) {
     const entry = data[this.tab]?.[Number(row?.dataset.i)];
     if (!entry) return;
     const qty = Math.max(1, Math.floor(Number(row.querySelector("input[name=qty]")?.value) || 1));
-    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : this.tab === "perks" ? perkItemData(entry) : this.tab === "bestiary" || this.tab === "vehicles" ? null : catalogItem(this.tab, entry, qty);
+    const itemData = this.tab === "spells" ? spellItemData(entry) : this.tab === "recipes" ? recipeItemData(entry) : this.tab === "maneuvers" ? maneuverItemData(entry) : this.tab === "perks" ? perkItemData(entry) : this.tab === "bestiary" || this.tab === "vehicles" || this.tab === "cyber" ? null : catalogItem(this.tab, entry, qty);
     const what = qty > 1 ? `${entry.name} ×${qty}` : entry.name;
 
+    if (this.tab === "cyber") {
+      if (!this.actor) {
+        if (!game.user.can("ITEM_CREATE")) return ui.notifications.warn("Nie masz uprawnień do tworzenia przedmiotów.");
+        const { cyberItemData } = await import("./cyber-data.mjs");
+        const item = await Item.implementation.create(cyberItemData(entry, { loc: "flLeg", attr: "str" }));
+        return ui.notifications.info(`Dodano do przedmiotów świata: ${item?.name ?? entry.name} (lokację i atrybut zmienisz w przedmiocie).`);
+      }
+      const { installCyber } = await import("./cyber.mjs");
+      return installCyber(this.actor, entry);
+    }
     if (this.tab === "vehicles") {
       const { importVehicle } = await import("./vehicle.mjs");
       return importVehicle(entry, data);

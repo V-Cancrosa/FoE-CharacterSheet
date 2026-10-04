@@ -11,6 +11,7 @@ import {
 } from "./combat.mjs";
 import { setCondition, toggleStatus, poisonCheck, endOfRound } from "./conditions.mjs";
 import { hitStepsAgainst, evasiveActive, AREA_STATUS } from "./vehicle-data.mjs";
+import { implantReserve } from "./cyber.mjs";
 import { spendActions } from "./tracker.mjs";
 
 const { DialogV2 } = foundry.applications.api;
@@ -200,7 +201,10 @@ export async function reloadWeapon(actor, item) {
   const saddle = w.mounted ? saddleState(actor) : null;
   const ePts = energyCost(w.ammoType);
   const reserve = saddle?.energy && ePts ? { kind: "energy", item: saddle.energy.item, per: ePts, rounds: Math.floor(saddle.energy.pts / ePts), pts: saddle.energy.pts }
-    : saddle?.fuel && isFuel(w.ammoType) ? { kind: "fuel", item: saddle.fuel.item, per: 1, rounds: saddle.fuel.units, pts: saddle.fuel.units } : null;
+    : saddle?.fuel && isFuel(w.ammoType) ? { kind: "fuel", item: saddle.fuel.item, per: 1, rounds: saddle.fuel.units, pts: saddle.fuel.units }
+    : implantReserve(actor, w.ammoType);   // Internal Energy Reservoir: przewód do broni energetycznej
+  const reserveName = { energy: "rezerwa energii", fuel: "rezerwa paliwa", implant: "magazyn implantu" }[reserve?.kind] ?? "";
+  const reserveCap = reserve?.kind === "energy" ? saddle.energy.cap : reserve?.kind === "fuel" ? saddle.fuel.cap : reserve?.cap ?? 0;
   const available = fromStock + (reserve?.rounds ?? 0);
   const tracked = stock.length > 0 || !!reserve;
   const kind = String(w.reload ?? "").toUpperCase();
@@ -214,7 +218,7 @@ export async function reloadWeapon(actor, item) {
     <div class="foe-dialog">
       <div class="atk-info">
         <div>Magazynek: <b>${w.ammo.value}/${w.ammo.max}</b> · przeładowanie: <b>${esc(ri.label || "—")}</b></div>
-        <div>${tracked ? `Amunicja „${esc(w.ammoType)}”: <b>${available}</b>${reserve ? ` (ekwipunek ${fromStock} + ${reserve.kind === "energy" ? "rezerwa energii" : "rezerwa paliwa"} ${reserve.rounds})` : ""}`
+        <div>${tracked ? `Amunicja „${esc(w.ammoType)}”: <b>${available}</b>${reserve ? ` (ekwipunek ${fromStock} + ${reserveName} ${reserve.rounds})` : ""}`
           : w.ammoType ? `Brak amunicji „${esc(w.ammoType)}” w ekwipunku — załaduję bez odejmowania (dodaj ją z katalogu, żeby się liczyła).`
           : "Broń bez typu amunicji — załaduję bez odejmowania."}</div>
         ${saddle ? `<div>Na siodle (${esc(saddle.label)}): ${auto ? "podajnik automatyczny — przeładowanie bez akcji" : semi ? "podajnik półautomatyczny — 1 akcja, cały magazynek" : extraActions ? "bez podajnika i wysuwanego wędzidła sięgnięcie po amunicję to +2 akcje" : "normalnie"}</div>` : ""}
@@ -253,7 +257,7 @@ export async function reloadWeapon(actor, item) {
     }
   }
   if (tracked) amount = Math.min(amount, available);
-  if (amount <= 0) return warn(`Brak amunicji „${w.ammoType}” w ekwipunku${reserve ? " ani w rezerwie siodła" : ""}.`);
+  if (amount <= 0) return warn(`Brak amunicji „${w.ammoType}” w ekwipunku${reserve ? ` ani w: ${reserveName}` : ""}.`);
 
   let left = amount;
   for (const st of stock) {
@@ -265,7 +269,7 @@ export async function reloadWeapon(actor, item) {
   let fromReserve = 0;
   if (left && reserve) {
     fromReserve = Math.min(left, reserve.rounds);
-    await reserve.item.update({ "system.charges": Math.max(0, reserve.pts - fromReserve * reserve.per) });
+    await reserve.item.update({ [reserve.field ?? "system.charges"]: Math.max(0, reserve.pts - fromReserve * reserve.per) });
     left -= fromReserve;
   }
   const before = w.ammo.value;
@@ -279,7 +283,7 @@ export async function reloadWeapon(actor, item) {
       <div class="fc-tag"><span>PIPBUCK // PRZEŁADOWANIE</span><span>${how}</span></div>
       <h3>${esc(item.name)}</h3>
       <div class="fc-calc">Załadowano ${amount}${note}${w.ammoType ? ` × ${esc(w.ammoType)}` : ""} → <b>${before + amount}/${w.ammo.max}</b></div>
-      ${tracked ? `<div class="fc-meta">${stock.length ? `W ekwipunku zostało: ${fromStock - (amount - fromReserve)}` : ""}${reserve ? `${stock.length ? " · " : ""}Z rezerwy siodła: ${fromReserve} (zostało ${reserve.pts - fromReserve * reserve.per}/${reserve.kind === "energy" ? saddle.energy.cap : saddle.fuel.cap})` : ""}</div>` : ""}
+      ${tracked ? `<div class="fc-meta">${stock.length ? `W ekwipunku zostało: ${fromStock - (amount - fromReserve)}` : ""}${reserve ? `${stock.length ? " · " : ""}${reserve.kind === "implant" ? "Z magazynu implantu" : "Z rezerwy siodła"}: ${fromReserve} (zostało ${reserve.pts - fromReserve * reserve.per}/${reserveCap})` : ""}</div>` : ""}
     </div>`
   });
 }
@@ -348,13 +352,13 @@ async function resolveTargets(uuids = []) {
 }
 
 /** Wynik trafienia jednego celu: obrażenia na lokację po DT i rany. */
-export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0, ignoreAll = false, bonusWounds = 0, armorless = false }) {
+export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0, ignoreAll = false, bonusWounds = 0, armorless = false, fire = false }) {
   const list = where === "all" ? locs : [locOf(where)];
   const dmg = Math.floor(pre * mult);
   const bonus = where === "all" ? 0 : Math.max(0, bonusWounds);
   return list.filter(k => sys.locations[k]).map(k => {
     const L = sys.locations[k];
-    const dtBase = where === "all" || dt === null || dt === "" ? (armorless ? L.naturalDt : L.dtTotal) : Number(dt) || 0;
+    const dtBase = where === "all" || dt === null || dt === "" ? (armorless ? L.naturalDt : L.dtTotal) + (fire ? L.fireDt ?? 0 : 0) : Number(dt) || 0;
     const eff = ignoreAll ? 0 : effectiveDT(dtBase, ignore);
     const after = Math.max(0, dmg - eff);
     const wounds = woundsFrom(after, sys.dmgPerWound) + bonus;
@@ -385,7 +389,9 @@ export async function applyDamage(message) {
 
   const degradeDefault = !d.noDegrade && !!game.settings.get("foe-rpg", "armorDegradation");
   // Upadek ignoruje DT pancerza — zostaje naturalne DT z cech (s. 579)
-  const dtOf = (sys, v) => (d.ignoreArmor ? sys.locations[locOf(v)]?.naturalDt : sys.locations[locOf(v)]?.dtTotal) ?? 0;
+  // broń z efektem ognia: dolicz DT od ognia (Cyberpony, Zebra Augmented)
+  const fireDt = (sys, v) => (d.specials?.fire ? sys.locations[locOf(v)]?.fireDt ?? 0 : 0);
+  const dtOf = (sys, v) => ((d.ignoreArmor ? sys.locations[locOf(v)]?.naturalDt : sys.locations[locOf(v)]?.dtTotal) ?? 0) + fireDt(sys, v);
   const sp = d.specials ?? {};
   const rows = allowed.map((t, i) => {
     const sys = t.actor.system;
@@ -431,7 +437,8 @@ export async function applyDamage(message) {
       ignore: Math.max(0, Number(el[`ign-${r.i}`].value) || 0),
       ignoreAll: !!el[`all-${r.i}`].checked,
       bonusWounds: d.shockWounds ?? 0,
-      armorless: !!d.ignoreArmor
+      armorless: !!d.ignoreArmor,
+      fire: !!d.specials?.fire
     };
   };
   const describe = (r, res) => res.map(x => {

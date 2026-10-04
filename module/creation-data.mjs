@@ -424,7 +424,8 @@ export const TRAITS = {
     choices: [
       one("level", "Poziom", [{ v: "1", label: "1 pkt — proteza", cost: 1 }, { v: "3", label: "3 pkt — więcej maszyny niż ciała", cost: 3 }]),
       one("loc", "Miejsce protezy", locOpts(), { show: ch => ch.level === "1" })],
-    resolve: ch => [fx("radResist", "all", 10), ...(ch.level === "3" ? [fx("dt", "all", 3)] : ch.loc ? [fx("dt", ch.loc, 6)] : [])] },
+    resolve: ch => [fx("radResist", "all", 10), fx("fireDt", "all", 10), fx("limbWounds", "flLeg,frLeg,rlLeg,rrLeg,wings", 1),
+      ...(ch.level === "3" ? [fx("dt", "all", 3)] : ch.loc ? [fx("dt", ch.loc, 6)] : [])] },
   dareingDo: { label: "D.A.R.E.-ing Do", cost: [1, 1], desc: "+20 do END lub INT przeciw uzależnieniu." },
   diseaseResistant: { label: "Disease Resistant", cost: [1, 1], desc: "+20 do END przeciw chorobom." },
   faith: { label: "Faith", cost: [1, 1], desc: "Raz na sesję własny zakres krytycznego sukcesu; pomaga drużynie unikać wad psychicznych." },
@@ -518,7 +519,7 @@ export const TRAITS = {
   medicineMare: { label: "Trained under a Medicine Mare", cost: [1, 1], desc: "Jedna receptura zebr poziomu 0; ignoruje rasowe kary do Speechcraft wobec zebr." },
   weirdo: { label: "Wasteland Weirdo", cost: [1, 4], desc: "Rzadka lub unikalna cecha, zdolność albo efekt z przeszłości (efekty dodaj ręcznie)." },
   zebraAugmented: { label: "Zebra Augmented", cost: [1, 1], desc: "+3 DT, +10 DT od ognia, +10 przeciw truciznom, 10% odporności na promieniowanie (zebry).",
-    fx: [fx("dt", "all", 3), fx("radResist", "all", 10)] },
+    fx: [fx("dt", "all", 3), fx("fireDt", "all", 10), fx("radResist", "all", 10)] },
   ghoul: { label: "Ghoul", cost: [2, 3], desc: "Ghul: −5 do rzutów PER, −20 Speechcraft wobec nie-ghuli; leczy go promieniowanie.",
     fx: [AROLL("per", -5), ROLL("speech", -20, "Wobec nie-ghuli")] },
   canterlotGhoul: { label: "Canterlot Ghoul", cost: [4, 4], desc: "Jak Ghoul + odporność na Pink Cloud; 15 wolnych rang umiejętności (wpisz w kolumnie Inne).",

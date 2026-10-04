@@ -1,6 +1,7 @@
 import { actorEffects, sumFx, sourcesFx, hits, signed } from "./effects.mjs";
 import { LAYER_CATEGORIES, defaultCover, layerPenalties, overloadSpeed, sneakWeightPenalty } from "./combat.mjs";
 import { iconFor } from "./catalog-data.mjs";
+import { unpoweredLocs, powerState, isCyborg, LIMB_LOCS } from "./cyber-data.mjs";
 import { sizeRow, defaultStructure, defaultPilotSkill, vehicleSpeed, VEHICLE_LOCS, AREA_EFFECTS, AREA_STATUS } from "./vehicle-data.mjs";
 
 const F = foundry.data.fields;
@@ -165,6 +166,8 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       skillPoints: sum("skillPoints"), satsRegen: sum("satsRegen"), xpPct: sum("xpPct"),
       critSuccess: sum("critSuccess", e => hits(e.target, "all")), critFail: sum("critFail", e => hits(e.target, "all")),
       dtAll: sum("dt", e => hits(e.target, "all")),
+      // kończyny: Adamantium Bone Lacing ×2 (przed premiami stałymi), Cyberpony i protezy +1
+      limbMult: Math.max(1, fx.filter(e => e.type === "limbMult" && !e.when).reduce((m, e) => Math.max(m, Number(e.value) || 1), 1)),
       dodgeSources: src("dodge")
     };
     this.resources.sats.max = 40 + agi * 5 + this.fx.sats;
@@ -205,6 +208,11 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
     // Rany i DT na lokacjach
     const endT = a.end.total;
     const LEGS = ["flLeg", "frLeg", "rlLeg", "rrLeg"];
+    // cybernetyka: protezy bez zasilania działają jak okaleczone (zasada z s. 105 — klejnoty dają pełną moc)
+    const cyberPower = powerState(this.parent);
+    const dead = new Set(unpoweredLocs(this.parent, cyberPower));
+    this.cyber = { units: cyberPower.units, powered: cyberPower.powered, tracked: cyberPower.tracked, hoursLeft: cyberPower.hoursLeft, offline: [...dead] };
+    this.cyborg = isCyborg(this.parent);
     let totalWounds = 0;
     for (const [k, loc] of Object.entries(this.locations)) {
       totalWounds += loc.wounds;
@@ -220,16 +228,21 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       loc.dtFx = sum("dt", e => !hits(e.target, "all") && hits(e.target, k)) + this.fx.dtAll;
       loc.naturalDt = loc.dt + loc.dtFx;
       loc.dtTotal = loc.armorDt + loc.naturalDt;
+      loc.fireDt = sum("fireDt", e => hits(e.target, k));
       // Połowa END ran okalecza, END ran w głowie/tułowiu zabija, w kończynie ją odrywa (s. 462)
-      const maimAt = this.woundLimits?.maim || endT;
-      const crippleAt = this.woundLimits?.cripple || 0;
+      const limb = LIMB_LOCS.includes(k);
+      const mult = limb ? this.fx.limbMult : 1;
+      const plus = limb ? sum("limbWounds", e => hits(e.target, k)) : 0;
+      const maimAt = Math.floor((this.woundLimits?.maim || endT) * mult) + plus;
+      const crippleAt = (this.woundLimits?.cripple || endT / 2) * mult + plus;
       loc.lethal = loc.wounds > 0 && loc.wounds >= maimAt;
-      loc.autoCrippled = loc.wounds > 0 && (crippleAt ? loc.wounds >= crippleAt : loc.wounds * 2 >= endT);
-      loc.isCrippled = loc.crippled || loc.autoCrippled || loc.lethal;
+      loc.autoCrippled = loc.wounds > 0 && loc.wounds >= crippleAt;
+      loc.offline = dead.has(k);
+      loc.isCrippled = loc.crippled || loc.autoCrippled || loc.lethal || loc.offline;
       const vital = k === "head" || k === "torso";
       loc.status = loc.lethal ? (vital ? "dead" : "maimed") : loc.isCrippled ? "crippled" : loc.wounds ? "wounded" : "ok";
       loc.limit = maimAt;
-      loc.crippleAt = crippleAt || Math.max(1, Math.ceil(endT / 2));
+      loc.crippleAt = Math.max(1, Math.ceil(crippleAt));
     }
     const L = this.locations;
     this.totalWounds = totalWounds;
@@ -547,8 +560,18 @@ export class SpellData extends FoeItemData {
 export class FeatureData extends FoeItemData {
   static defineSchema() {
     return {
-      kind: new F.StringField({ initial: "trait" }),
+      kind: new F.StringField({ initial: "trait" }),       // trait | hindrance | perk | implant | cyberlimb | other
       active: new F.BooleanField({ initial: true }),
+      // cybernetyka (cyber-data.mjs): lokacja protezy, zużycie energii (kończyna 1, tułów 2), talizman naprawczy,
+      // wewnętrzny magazyn energii (pojemność i zawartość w punktach), regeneracja (sekundy na ranę)
+      cyber: new F.SchemaField({
+        loc: new F.StringField({ initial: "" }),
+        power: new F.NumberField({ required: true, nullable: false, initial: 0, min: 0 }),
+        talisman: new F.BooleanField({ initial: false }),
+        capacity: num(0, { min: 0 }),
+        charges: num(0, { min: 0 }),
+        regen: num(0, { min: 0 })
+      }),
       // efekty mechaniczne — patrz effects.mjs
       effects: effectsField(),
       description: desc()

@@ -108,6 +108,13 @@
   {{#if isFeature}}
     <label>Rodzaj <select name="system.kind">{{selectOptions featureKinds selected=system.kind}}</select></label>
     <label>Aktywna (efekty doliczane) <input type="checkbox" name="system.active" {{checked system.active}}></label>
+    {{#if isCyber}}
+    <label title="Lokacja protezy (bez zasilania działa jak okaleczona)">Lokacja <select name="system.cyber.loc">{{selectOptions cyberLocs selected=system.cyber.loc}}</select></label>
+    <label title="Zużycie energii: kończyna 1, tułów 2, implant ¼ (0 = nie potrzebuje)">Zużycie energii <input type="number" name="system.cyber.power" value="{{system.cyber.power}}" min="0" step="0.25"></label>
+    <label title="Złom naprawia 1 ranę na 15 minut na lokacji protezy">Talizman naprawczy <input type="checkbox" name="system.cyber.talisman" {{checked system.cyber.talisman}}></label>
+    <label title="Regeneracja: co ile sekund 1 rana (3600 = Phoenix Monocyte Breeder); 0 = brak">Regeneracja (s/ranę) <input type="number" name="system.cyber.regen" value="{{system.cyber.regen}}" min="0"></label>
+    <label title="Wewnętrzny magazyn energii w punktach (ogniwo 2, MFC 4, gem cell 1)">Magazyn energii <input type="number" name="system.cyber.charges" value="{{system.cyber.charges}}" min="0"> / <input type="number" name="system.cyber.capacity" value="{{system.cyber.capacity}}" min="0"></label>
+    {{/if}}
   {{/if}}
   </div>
   {{#if isArmor}}

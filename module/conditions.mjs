@@ -40,7 +40,7 @@ export async function clearCondition(actor, key) {
 /** DT przy obrażeniach z ognia (bez pancerza) albo prądu (tylko pancerz niemetalowy). */
 function ongoingDT(actor, loc, mode) {
   const L = actor.system.locations[loc];
-  if (mode === "fire") return L.naturalDt;
+  if (mode === "fire") return L.naturalDt + (L.fireDt ?? 0);   // Cyberpony, Zebra Augmented: +10 DT od ognia
   let best = 0;
   for (const i of actor.items) {
     if (i.type !== "armor" || !i.system.equipped || !i.system.cover?.[loc] || isMetalArmor(i.system)) continue;

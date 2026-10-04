@@ -78,6 +78,31 @@
   </ul>
   {{else}}<p class="hint">Bez działających środków, uzależnień i choroby popromiennej. Leki i chemię zażywasz przyciskiem „Użyj” w Ekwipunku.</p>{{/if}}
 
+  {{#if cyber.show}}
+  <h3>Cybernetyka
+    <a data-action="feedCyber" title="Zjedz klejnot: zasilanie protez i implantów (s. 178)"><i class="fa-solid fa-gem"></i> Zasilanie</a>
+    {{#if cyber.regen}}<a data-action="selfRepair" title="Talizman naprawczy (złom, 1 rana / 15 min) i regeneracja implantów"><i class="fa-solid fa-screwdriver-wrench"></i> Samonaprawa</a>{{/if}}
+    <a data-action="openCatalog" data-tab="cyber" title="Implanty i protezy z podręcznika"><i class="fa-solid fa-microchip"></i> Katalog</a>
+  </h3>
+  <p class="hint cyber-line">Zużycie: <b>{{cyber.units}}</b> jedn.{{#if cyber.tracked}} · {{#if cyber.powered}}zasilanie jeszcze <b>{{cyber.hoursLeft}} h</b>{{else}}<span class="warn">BEZ ZASILANIA — implanty nie działają{{#if cyber.offline}}, protezy jak okaleczone: {{cyber.offline}}{{/if}}</span>{{/if}}{{else}} · zasilanie nie jest śledzone (ustawienie świata){{/if}}</p>
+  <ul class="item-list cyber">
+    {{#each cyber.items}}
+    <li data-item-id="{{id}}" class="{{#unless active}}inactive{{/unless}}">
+      <img class="icon" src="{{img}}" alt="">
+      <span class="nm">{{name}}</span>
+      <span class="cdesc">{{kindLabel}}{{#if loc}} · {{loc}}{{/if}}{{#if fx}} · {{fx}}{{/if}}{{#if talisman}} · talizman naprawczy{{/if}}{{#if reservoir}} · magazyn {{reservoir}} pkt{{/if}}</span>
+      <span class="ctl">
+        {{#if reservoir}}<a data-action="chargeReservoir" title="Przelej ogniwa z ekwipunku"><i class="fa-solid fa-bolt"></i></a>{{/if}}
+        <a data-action="toggleFeature" title="Włącz / wyłącz"><i class="fa-solid fa-power-off"></i></a>
+        <a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a>
+        <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a>
+      </span>
+    </li>
+    {{else}}<li class="empty">Cecha Cyberpony bez osobnych protez — dodaj je z katalogu („Cybernetyka”).</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+
   <h3>Rany, okaleczenia i DT</h3>
   <div class="scroll-x">
   <table class="foe-table locs">

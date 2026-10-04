@@ -12,6 +12,7 @@
 import { weatherSituational } from "./weather.mjs";
 import { bodyEffects } from "./body.mjs";
 import { powerArmorFilter, hasPowerArmorTraining, untrainedAgiPenalty } from "./saddle.mjs";
+import { cyberFilter } from "./cyber-data.mjs";
 
 export const FX_TYPES = {
   attr:        { label: "Atrybut na stałe", targets: "attr" },
@@ -40,7 +41,10 @@ export const FX_TYPES = {
   dodge:       { label: "Uniki", targets: "none" },
   skillPoints: { label: "Punkty umiejętności na poziom", targets: "none" },
   satsRegen:   { label: "Odnawianie AP na rundę", targets: "none" },
-  xpPct:       { label: "Doświadczenie (%)", targets: "none" }
+  xpPct:       { label: "Doświadczenie (%)", targets: "none" },
+  fireDt:      { label: "DT przeciw ogniowi", targets: "location" },
+  limbWounds:  { label: "Rany kończyny do okaleczenia i utraty (+)", targets: "location" },
+  limbMult:    { label: "Mnożnik ran kończyn (×)", targets: "none" }
 };
 
 // Efekty liczone tylko w kreatorze (jednorazowo przy tworzeniu postaci)
@@ -65,13 +69,15 @@ const n = v => Number(v) || 0;
 export function actorEffects(actor, { state = true } = {}) {
   const out = [];
   const trained = hasPowerArmorTraining(actor);
+  // cybernetyka: bez zasilania nie działa; Nemean i Basilisk się nie sumują (cyber-data.mjs)
+  const cyberOk = cyberFilter(actor);
   for (const item of actor?.items ?? []) {
     const on = item.type === "feature" ? item.system?.active !== false
       : item.type === "armor" ? !!item.system?.equipped : false;
     if (!on) continue;
     (item.system?.effects ?? []).forEach((e, i) => {
       // pancerz wspomagany: bez szkolenia bez premii, ze szkoleniem bez kar AGI (Power Armor Training)
-      if (e?.type && !CREATION_ONLY.has(e.type) && powerArmorFilter(item, e, trained)) out.push({ ...e, source: item.name, id: `${item.id}.${i}` });
+      if (e?.type && !CREATION_ONLY.has(e.type) && powerArmorFilter(item, e, trained) && cyberOk(item, e)) out.push({ ...e, source: item.name, id: `${item.id}.${i}` });
     });
     if (item.type === "armor" && item.system?.powered && !trained) {
       const pen = untrainedAgiPenalty();
@@ -213,7 +219,8 @@ export function shortFx(e, labels = {}) {
     radResist: `${signed(v)}% odp. na prom.`, sats: `${signed(v)} SATS`, dt: `${signed(v)} DT (${tgt})`,
     speed: `${signed(v)} ft ruchu`, carry: `${signed(v)} lb udźwigu`, initiative: `${signed(v)} inicjatywa`,
     wound: `${signed(v)} obr. na ranę`, strain: `${signed(v)} strain`, dodge: `${signed(v)} uniki`, luckCards: `${signed(v)} karty szczęścia`,
-    skillPoints: `${signed(v)} pkt umiejętności/poziom`, satsRegen: `${signed(v)} AP/rundę`, xpPct: `${signed(v)}% PD`
+    skillPoints: `${signed(v)} pkt umiejętności/poziom`, satsRegen: `${signed(v)} AP/rundę`, xpPct: `${signed(v)}% PD`,
+    fireDt: `${signed(v)} DT od ognia (${tgt})`, limbWounds: `${signed(v)} rany do okaleczenia/utraty (${tgt})`, limbMult: `×${v} ran kończyn`
   }[e.type] ?? describeFx(e, labels);
   return e.when ? `${txt} (gdy: ${e.when})` : txt;
 }

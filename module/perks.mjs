@@ -112,9 +112,12 @@ export const PERK_FX = {
   "Road to Nightmare": { karma: -500 },
   "No Weaknesses": { floor: 5 },
   "Cooler Under Fire": { fx: [fx("satsRegen", "all", 10)] },
-  "Cyberpony": { fx: [fx("dt", "all", 3), fx("radResist", "all", 10), AROLL("end", 10, "Opór przed trucizną")] },
+  "Cyberpony": { fx: [fx("dt", "all", 3), fx("fireDt", "all", 10), fx("radResist", "all", 10), AROLL("end", 10, "Opór przed trucizną")] },
+  "Adamantium Bone Lacing": { fx: [fx("limbMult", "all", 2)] },
+  "Bone Strengthening Brew": { fx: [fx("limbMult", "all", 2)] },
+  "Implant Enhancement": { note: "ulepszenie jednego implantu — ustal z MG i dopisz efekt w implancie (zakładka Cechy)" },
   "Monster Hunter": { fx: [DMG("all", 10, "Przeciw mutantom większym od alikorna"), AROLL("end", 10, "Opór przed trucizną")] },
-  "Zebra Augmented": { fx: [fx("dt", "all", 3), fx("radResist", "all", 10), AROLL("end", 10, "Opór przed trucizną")] },
+  "Zebra Augmented": { fx: [fx("dt", "all", 3), fx("fireDt", "all", 10), fx("radResist", "all", 10), AROLL("end", 10, "Opór przed trucizną")] },
   "Almost Perfect": { floor: 9 },
   "Burden to Bear": { fx: [fx("carry", "all", 50)] }
 };

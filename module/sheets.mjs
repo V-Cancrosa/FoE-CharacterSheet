@@ -19,6 +19,8 @@ import { areaLabels, areasOf } from "./bestiary.mjs";
 import { saddleState, builtInSaddle, hasPowerArmorTraining, accessoryOf, saddleKindOf, reserveCapacity } from "./saddle.mjs";
 import { fireVolley, repairPowerArmor } from "./attack.mjs";
 import { radLevel } from "./body.mjs";
+import { cyberItems, CYBER_KINDS } from "./cyber-data.mjs";
+import { feedCyber, selfRepair, chargeReservoir } from "./cyber.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -97,6 +99,9 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       cureAddiction: FoeActorSheet.#onCureAddiction,
       rest: FoeActorSheet.#onRest,
       setLimb: FoeActorSheet.#onSetLimb,
+      feedCyber: FoeActorSheet.#onFeedCyber,
+      selfRepair: FoeActorSheet.#onSelfRepair,
+      chargeReservoir: FoeActorSheet.#onChargeReservoir,
       qty: FoeActorSheet.#onQty
     }
   };
@@ -187,6 +192,21 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const rl = radLevel(rads);
     ctx.body = { ...chemRows(this.document), rad: rl ? rl.label : "", radFx: rl ? Object.entries(rl.fx).map(([k, v]) => `${v} ${k.toUpperCase()}`).join(", ") : "" };
     ctx.body.any = ctx.body.active.length || ctx.body.addictions.length || ctx.body.rad;
+    // cybernetyka (s. 104–107, 178)
+    const cyb = cyberItems(this.document);
+    const cs = sys.cyber ?? {};
+    ctx.cyber = {
+      show: cyb.length > 0 || sys.cyborg,
+      units: cs.units, tracked: cs.tracked, powered: cs.powered, hoursLeft: cs.hoursLeft,
+      offline: (cs.offline ?? []).map(k => LOCATIONS[k]).join(", "),
+      regen: cyb.some(i => i.system.cyber?.talisman || i.system.cyber?.regen),
+      items: cyb.map(i => ({
+        id: i.id, name: i.name, img: i.img, kindLabel: CYBER_KINDS[i.system.kind], active: i.system.active !== false,
+        loc: LOCATIONS[i.system.cyber?.loc] ?? "", power: i.system.cyber?.power ?? 0, talisman: !!i.system.cyber?.talisman,
+        reservoir: (i.system.cyber?.capacity ?? 0) > 0 ? `${i.system.cyber.charges}/${i.system.cyber.capacity}` : "",
+        fx: (i.system.effects ?? []).filter(e => FX_TYPES[e.type]).map(e => shortFx(e, shortLabels())).join(", ")
+      }))
+    };
     // Magia
     const spells = this.document.items.filter(i => i.type === "spell" && (i.system.tradition ?? "unicorn") === "unicorn");
     const recipes = this.document.items.filter(i => i.type === "spell" && i.system.tradition === "zebra");
@@ -322,7 +342,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.gearGroups = Object.entries(GEAR_CATEGORIES).filter(([k]) => groups.has(k)).map(([k, label]) => ({ key: k, label, items: groups.get(k) }));
     ctx.overSpeed = overloadSpeed(sys.weight, sys.carry);
 
-    const kinds = { trait: "Cecha", hindrance: "Wada", perk: "Perk", spell: "Zaklęcie", other: "Inne" };
+    const kinds = { trait: "Cecha", hindrance: "Wada", perk: "Perk", spell: "Zaklęcie", implant: "Implant", cyberlimb: "Proteza", other: "Inne" };
     ctx.features = items.filter(i => i.type === "feature").map(i => ({
       id: i.id, name: i.name, system: i.system, kindLabel: kinds[i.system.kind] ?? i.system.kind,
       active: i.system.active !== false,
@@ -559,6 +579,13 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     await grantStartingManeuvers(this.document);
   }
 
+  static async #onFeedCyber() { await feedCyber(this.document); }
+  static async #onSelfRepair() { await selfRepair(this.document); }
+  static async #onChargeReservoir(event, target) {
+    const item = this.#item(target);
+    if (item) await chargeReservoir(this.document, item);
+  }
+
   static async #onSearchIngredients() {
     await searchIngredients(this.document);
   }
@@ -629,7 +656,9 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     ctx.poisons = POISONS;
     ctx.specialChecks = ["electric", "rads", "shock", "knockdown", "concealable", "scoped", "silenced", "timed", "placed"]
       .map(k => ({ key: k, label: SPECIALS[k].label, desc: SPECIALS[k].desc, on: !!sys.specials?.[k] }));
-    ctx.featureKinds = { trait: "Trait", hindrance: "Hindrance", perk: "Perk", spell: "Zaklęcie", other: "Inne" };
+    ctx.featureKinds = { trait: "Trait", hindrance: "Hindrance", perk: "Perk", spell: "Zaklęcie", implant: "Implant", cyberlimb: "Proteza (cyber-kończyna)", other: "Inne" };
+    ctx.isCyber = ctx.isFeature && ["implant", "cyberlimb"].includes(sys.kind);
+    ctx.cyberLocs = { "": "—", ...LOCATIONS };
     ctx.skillOptions = Object.fromEntries(Object.entries(SKILLS).map(([k, s]) => [k, s.label]));
     if (ctx.isArmor) {
       ctx.coverRows = Object.entries(LOCATIONS).map(([k, label]) => ({ key: k, label, on: !!sys.cover?.[k], wear: sys.wear?.[k] ?? 0 }));
