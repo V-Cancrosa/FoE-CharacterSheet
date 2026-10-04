@@ -107,11 +107,15 @@
   {{#if bodyMap}}
   <div class="body-map">
     <svg class="pip-body" viewBox="{{bodyMap.viewBox}}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stan części ciała">
+      <g class="vats" transform="translate(0,{{bodyMap.dy}})">
+        <circle cx="{{bodyMap.cx}}" cy="{{bodyMap.cy}}" r="150"/><circle cx="{{bodyMap.cx}}" cy="{{bodyMap.cy}}" r="104"/>
+        <path d="M{{bodyMap.cx}},14 L{{bodyMap.cx}},34 M{{bodyMap.cx}},306 L{{bodyMap.cx}},326 M226,{{bodyMap.cy}} L246,{{bodyMap.cy}} M514,{{bodyMap.cy}} L534,{{bodyMap.cy}}"/>
+      </g>
       {{#each bodyMap.callouts}}<line class="lead {{cls}}" x1="{{lx1}}" y1="{{ly1}}" x2="{{lx2}}" y2="{{ly2}}"/>{{/each}}
-      <g transform="translate({{bodyMap.dx}},{{bodyMap.dy}})">
-        {{#each bodyMap.parts}}<path class="part {{cls}}{{#if far}} far{{/if}}" d="{{d}}" style="--fill: {{fill}}" data-action="woundStep" data-loc="{{key}}"><title>{{title}}</title></path>{{/each}}
+      <g transform="translate(0,{{bodyMap.dy}})">
+        {{#each bodyMap.parts}}<g class="part {{cls}}" data-action="woundStep" data-loc="{{key}}"><title>{{title}}</title>{{#each ds}}<path d="{{this}}"/>{{/each}}</g>{{/each}}
         {{#each bodyMap.decor}}<path class="decor" d="{{this}}"/>{{/each}}
-        {{#if bodyMap.eye}}<circle class="decor eye" cx="{{bodyMap.eye.cx}}" cy="{{bodyMap.eye.cy}}" r="6"/><circle class="decor eye-hl" cx="{{bodyMap.eye.cx}}" cy="{{bodyMap.eye.cy}}" r="2" transform="translate(-2,-2)"/>{{/if}}
+        {{#each bodyMap.eyes}}<circle class="decor eye" cx="{{cx}}" cy="{{cy}}" r="5"/>{{/each}}
       </g>
       {{#each bodyMap.callouts}}
       <g class="callout {{cls}}" data-action="woundStep" data-loc="{{key}}">
@@ -122,7 +126,7 @@
       </g>
       {{/each}}
     </svg>
-    <p class="hint">Klik na część ciała albo jej opis: +1 rana · prawy przycisk (albo Shift+klik): −1. Pogrubiony, przerywany obrys — część osłania pancerz; ⚙ — proteza. Najedź, by zobaczyć progi i źródła DT.</p>
+    <p class="hint">Klik na część ciała albo jej opis: +1 rana · prawy przycisk (albo Shift+klik): −1. Kolory: żółty — ranna, czerwony — blisko okaleczenia, pulsujący — okaleczona, miga — utracona. Przerywany obrys — część osłania pancerz; ⚙ — proteza. Najedź, by zobaczyć progi i źródła DT.</p>
   </div>
   <details class="locs-details"><summary>Tabela lokacji (edycja ran, DT, okaleczeń)</summary>
   {{/if}}

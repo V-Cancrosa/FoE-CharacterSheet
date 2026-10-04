@@ -979,32 +979,38 @@ button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12p
 /* v0.20 — książki i magazyny */
 .foe-rpg .item-list.gear .book-st { font-family: var(--foe-mono); font-size: 11px; color: var(--pip-dim); white-space: nowrap; }
 
-/* v0.22 — sylwetka PipBucka */
+/* v0.22 — sylwetka PipBucka / V.A.T.S. */
 .foe-rpg .body-map { margin: .2rem 0 .3rem; border: 1px solid var(--pip-line); border-radius: 4px; background: radial-gradient(ellipse at center, var(--pip-faint), transparent 70%); padding: .2rem; }
-.foe-rpg .pip-body { width: 100%; height: auto; display: block; max-height: 330px; }
-.foe-rpg .pip-body .part { fill: var(--pip); fill-opacity: var(--fill); stroke: var(--pip-bright); stroke-width: 2; stroke-linejoin: round; cursor: pointer; transition: fill-opacity .15s; filter: drop-shadow(0 0 2px var(--pip)); }
-.foe-rpg .pip-body .part:hover { fill-opacity: .55; }
-.foe-rpg .pip-body .part.far { opacity: .55; }
-.foe-rpg .pip-body .part.armored { stroke-width: 4; stroke-dasharray: 7 3; }
-.foe-rpg .pip-body .part.st-wounded { stroke: var(--pip-bright); }
-.foe-rpg .pip-body .part.st-crippled { stroke: var(--pip-alert); animation: foe-pulse 1.4s ease-in-out infinite; }
-@keyframes foe-pulse { 50% { stroke-opacity: .25; } }
-.foe-rpg .pip-body .part.st-maimed, .foe-rpg .pip-body .part.st-dead { fill: var(--pip-alert); fill-opacity: .7; stroke: var(--pip-alert); }
-.foe-rpg .pip-body .part.cyber { stroke-dasharray: 2 3; }
-.foe-rpg .pip-body .decor { fill: none; stroke: var(--pip-bright); stroke-width: 2; stroke-linecap: round; pointer-events: none; opacity: .8; }
-.foe-rpg .pip-body .decor.eye { fill: var(--pip-bright); stroke: none; }
+.foe-rpg .pip-body { width: 100%; height: auto; display: block; max-height: 340px; --dmg-light: #e0c020; --dmg-heavy: #d8402a; --dmg-crip: #ff2a1a; }
+.foe-rpg .pip-body .vats { fill: none; stroke: var(--pip); stroke-width: .8; opacity: .18; stroke-dasharray: 5 5; pointer-events: none; }
+.foe-rpg .pip-body .part path { fill: color-mix(in srgb, var(--pip) 16%, #000); stroke: var(--pip); stroke-width: 2; stroke-linejoin: round; transition: fill .2s, stroke .2s; filter: drop-shadow(0 0 2px color-mix(in srgb, var(--pip) 60%, transparent)); }
+.foe-rpg .pip-body .part { cursor: pointer; }
+.foe-rpg .pip-body .part:hover path { fill: color-mix(in srgb, var(--pip) 32%, #000); stroke: var(--pip-bright); }
+.foe-rpg .pip-body .part.armored path { stroke-width: 3.5; stroke-dasharray: 8 3; }
+.foe-rpg .pip-body .part.cyber path { stroke-dasharray: 2 3; }
+.foe-rpg .pip-body .part.dmg-light path { fill: color-mix(in srgb, var(--dmg-light) 55%, #000); stroke: var(--dmg-light); }
+.foe-rpg .pip-body .part.dmg-heavy path { fill: color-mix(in srgb, var(--dmg-heavy) 60%, #000); stroke: var(--dmg-heavy); }
+.foe-rpg .pip-body .part.dmg-crippled path { fill: var(--dmg-crip); stroke: #ffd0c8; animation: foe-pulse 1.2s ease-in-out infinite; }
+.foe-rpg .pip-body .part.dmg-lost path { fill: var(--dmg-crip); stroke: #fff; animation: foe-vats-blink 1s infinite; }
+@keyframes foe-pulse { 50% { opacity: .55; } }
+@keyframes foe-vats-blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.foe-rpg .pip-body .decor { fill: none; stroke: var(--pip); stroke-width: 1.4; stroke-linecap: round; pointer-events: none; opacity: .55; }
+.foe-rpg .pip-body .decor.eye { fill: var(--pip-bright); stroke: none; opacity: .9; }
 .foe-rpg .pip-body .lead { stroke: var(--pip-dim); stroke-width: 1; stroke-dasharray: 3 3; }
-.foe-rpg .pip-body .lead.st-crippled, .foe-rpg .pip-body .lead.st-maimed, .foe-rpg .pip-body .lead.st-dead { stroke: var(--pip-alert); }
+.foe-rpg .pip-body .lead.dmg-light { stroke: var(--dmg-light); }
+.foe-rpg .pip-body .lead.dmg-heavy, .foe-rpg .pip-body .lead.dmg-crippled, .foe-rpg .pip-body .lead.dmg-lost { stroke: var(--dmg-crip); }
 .foe-rpg .pip-body .callout { cursor: pointer; }
-.foe-rpg .pip-body .callout .box { fill: rgba(0, 0, 0, .35); stroke: var(--pip-dim); stroke-width: 1; }
+.foe-rpg .pip-body .callout .box { fill: rgba(0, 0, 0, .4); stroke: var(--pip-dim); stroke-width: 1; }
 .foe-rpg .pip-body .callout:hover .box { stroke: var(--pip-bright); }
 .foe-rpg .pip-body .callout text { fill: var(--pip); font-family: var(--foe-mono); font-size: 11px; }
 .foe-rpg .pip-body .callout .nm { font-weight: 700; fill: var(--pip-bright); text-transform: uppercase; letter-spacing: .04em; }
 .foe-rpg .pip-body .callout .dim { fill: var(--pip-dim); }
-.foe-rpg .pip-body .callout.st-crippled .box, .foe-rpg .pip-body .callout.st-maimed .box, .foe-rpg .pip-body .callout.st-dead .box { stroke: var(--pip-alert); }
-.foe-rpg .pip-body .callout.st-crippled text, .foe-rpg .pip-body .callout.st-maimed text, .foe-rpg .pip-body .callout.st-dead text { fill: var(--pip-alert); }
+.foe-rpg .pip-body .callout.dmg-light .box { stroke: var(--dmg-light); }
+.foe-rpg .pip-body .callout.dmg-light .nm { fill: var(--dmg-light); }
+.foe-rpg .pip-body .callout.dmg-heavy .box, .foe-rpg .pip-body .callout.dmg-crippled .box, .foe-rpg .pip-body .callout.dmg-lost .box { stroke: var(--dmg-crip); }
+.foe-rpg .pip-body .callout.dmg-heavy text, .foe-rpg .pip-body .callout.dmg-crippled text, .foe-rpg .pip-body .callout.dmg-lost text { fill: #ff7a66; }
 .foe-rpg .pip-body .bar-bg { fill: var(--pip-faint); }
 .foe-rpg .pip-body .bar { fill: var(--pip-bright); }
-.foe-rpg .pip-body .st-crippled .bar, .foe-rpg .pip-body .st-maimed .bar, .foe-rpg .pip-body .st-dead .bar { fill: var(--pip-alert); }
+.foe-rpg .pip-body .dmg-light .bar { fill: var(--dmg-light); }
+.foe-rpg .pip-body .dmg-heavy .bar, .foe-rpg .pip-body .dmg-crippled .bar, .foe-rpg .pip-body .dmg-lost .bar { fill: var(--dmg-crip); }
 .foe-rpg details.locs-details > summary { cursor: pointer; font-family: var(--foe-mono); font-size: 12px; color: var(--pip-dim); margin: .2rem 0; }
-.foe-rpg .pip-body .decor.eye-hl { fill: #000; stroke: none; opacity: .7; }
