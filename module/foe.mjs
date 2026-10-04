@@ -8,6 +8,7 @@ import { specialsFrom } from "./catalog-data.mjs";
 import { FoeCombat, registerTrackerHooks, registerTrackerSettings } from "./tracker.mjs";
 import { registerWeatherSettings, registerWeatherHooks, setWeather } from "./weather.mjs";
 import { registerPerkSettings } from "./perks.mjs";
+import { registerChemSettings, registerChemHooks } from "./chems.mjs";
 
 Hooks.once("init", () => {
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData };
@@ -26,6 +27,10 @@ Hooks.once("init", () => {
   registerTrackerSettings();
   registerWeatherSettings();
   registerPerkSettings();
+  registerChemSettings();
+  registerChemHooks();
+  // runda walki = 6 sekund czasu gry (s. 389: „30 sekund, czyli pięć rund”) — czas działania chemii płynie w walce
+  CONFIG.time.roundTime = 6;
   registerWeatherHooks();
   registerCatalogButton();
   registerDisplaySettings();

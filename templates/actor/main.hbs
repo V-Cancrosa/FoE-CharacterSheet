@@ -22,7 +22,7 @@
         <dt>Udźwig</dt><dd>{{system.carry}} lb (niesiesz {{weight}}){{#if system.overload}} <span class="warn">przeciążenie +{{system.overload}}</span>{{/if}}</dd>
         <dt>Ruch</dt><dd>{{system.speed}} ft / akcję {{#if system.flier}}(lot {{#if system.canFly}}{{system.flySpeed}} ft{{else}}— {{system.flyNote}}{{/if}}){{else}}{{#if digSpeed}}(kopanie {{system.flySpeed}} ft){{/if}}{{/if}}{{#each system.speedNotes}}<small class="sub warn">{{this}}</small>{{/each}}</dd>
         <dt>Obrażenia na ranę</dt><dd>{{system.dmgPerWound}} <input type="number" name="system.woundBonus" value="{{system.woundBonus}}" title="Modyfikator (Large +2, Pipsqueak −2…)"></dd>
-        <dt>Inicjatywa</dt><dd>d100 ± {{system.initAgi}}{{#if extra.initFx}} {{extra.initFx}}{{/if}} (niżej = szybciej; ± wybierasz po rzucie)</dd>
+        <dt><a class="rollable" data-action="rollInitiative" title="Dołącz do walki i rzuć inicjatywę (d100, potem wybierasz ± AGI)"><i class="fa-solid fa-dice-d20"></i> Inicjatywa</a></dt><dd>d100 ± {{system.initAgi}}{{#if extra.initFx}} {{extra.initFx}}{{/if}} (niżej = szybciej; ± wybierasz po rzucie)</dd>
         <dt>Krytyki</dt><dd>sukces 1–{{extra.crit.success}} · porażka {{extra.critFailFrom}}–100</dd>
         {{#if extra.dodge}}<dt>Uniki</dt><dd title="{{extra.dodgeTip}}">{{extra.dodge}} (do rzutu na unik)</dd>{{/if}}
         {{#if extra.damage}}<dt>Obrażenia z cech</dt><dd>{{extra.damage}}</dd>{{/if}}

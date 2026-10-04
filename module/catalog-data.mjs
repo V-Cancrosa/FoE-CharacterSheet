@@ -10,7 +10,7 @@ export const ICONS = {
   armor: { clothing: `${I}/clothing.svg`, light: `${I}/armor.svg`, medium: `${I}/armor.svg`, heavy: `${I}/armor.svg`,
     helmet: `${I}/helmet.svg`, accessory: `${I}/accessory.svg`, powered: `${I}/power.svg`, default: `${I}/armor.svg` },
   gear: { ammo: `${I}/ammo.svg`, food: `${I}/food.svg`, drug: `${I}/drug.svg`, book: `${I}/book.svg`, pipbuck: `${I}/pipbuck.svg`,
-    saddle: `${I}/saddle.svg`, misc: `${I}/misc.svg`, ingredient: `${I}/ingredient.svg`, potion: `${I}/potion.svg`, talisman: `${I}/talisman.svg`,
+    saddle: `${I}/saddle.svg`, misc: `${I}/misc.svg`, medical: `${I}/medical.svg`, ingredient: `${I}/ingredient.svg`, potion: `${I}/potion.svg`, talisman: `${I}/talisman.svg`,
     default: `${I}/misc.svg` },
   feature: { default: `${I}/feature.svg` },
   spell: { default: `${I}/spell.svg`, zebra: `${I}/recipe.svg`, flight: `${I}/wing.svg` }
@@ -34,7 +34,7 @@ export const ARMOR_KINDS = {
   clothing: "Ubrania", light: "Lekkie", medium: "Średnie", heavy: "Ciężkie", helmet: "Hełmy i nakrycia głowy", accessory: "Akcesoria"
 };
 export const GEAR_KINDS = {
-  ammo: "Amunicja", drug: "Leki i używki", food: "Jedzenie i picie", book: "Książki i magazyny",
+  ammo: "Amunicja", medical: "Leczenie", drug: "Leki i używki", food: "Jedzenie i picie", book: "Książki i magazyny",
   pipbuck: "PipBucki", saddle: "Siodła bojowe i dodatki", misc: "Różne"
 };
 
@@ -98,7 +98,7 @@ export function armorItem(e) {
 export function gearItem(e, qty = 1) {
   const system = {
     category: e.category || "misc", qty: Math.max(1, qty), weight: e.weight || 0, value: e.value || 0,
-    ammoType: e.ammoType || "", description: notesHtml(e.notes)
+    ammoType: e.ammoType || "", heal: e.heal || "", charges: e.charges || 0, description: notesHtml(e.notes)
   };
   return { name: e.name, type: "gear", img: iconFor("gear", system), system, flags: { "foe-rpg": { catalog: e.name } } };
 }

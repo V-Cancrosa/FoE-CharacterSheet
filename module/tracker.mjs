@@ -45,6 +45,24 @@ async function chooseAgiMod(name, d100, q, fx) {
 }
 
 /** W FoE RPG niższa inicjatywa działa pierwsza. */
+/**
+ * Przycisk „Inicjatywa” na karcie: dodaje token postaci do walki na tej scenie i rzuca (z wyborem ± AGI).
+ * Gdy walki jeszcze nie ma, MG ją tworzy tym samym kliknięciem; gracz dostaje podpowiedź.
+ */
+export async function rollActorInitiative(actor) {
+  const tokens = actor.getActiveTokens?.() ?? [];
+  if (!tokens.length) return ui.notifications.warn(`${actor.name}: postaw token tej postaci na scenie, żeby dołączyć do walki.`);
+  if (!game.combat && !game.user.isGM) return ui.notifications.warn("Nie ma jeszcze walki — MG rozpoczyna ją w zakładce walki (miecze) albo klikając tu „Inicjatywa”.");
+  const c = game.combat?.getCombatantsByActor?.(actor)?.[0];
+  if (c && Number.isNumeric(c.initiative)) {
+    const again = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Inicjatywa" }, content: `<p>${foundry.utils.escapeHTML(actor.name)} ma już inicjatywę <b>${c.initiative}</b>. Rzucić jeszcze raz?</p>`
+    });
+    if (!again) return null;
+  }
+  return actor.rollInitiative({ createCombatants: true, rerollInitiative: true });
+}
+
 export class FoeCombat extends Combat {
   _sortCombatants(a, b) {
     const ia = Number.isNumeric(a.initiative) ? a.initiative : Infinity;

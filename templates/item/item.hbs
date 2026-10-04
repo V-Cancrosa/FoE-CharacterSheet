@@ -54,6 +54,10 @@
     <label>Ilość <input type="number" name="system.qty" value="{{system.qty}}"></label>
     <label>Waga (szt.) <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
     <label>Cena (szt.) <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
+    {{#if medGear}}
+    <label>Rodzaj leczenia <select name="system.heal">{{selectOptions healKinds selected=system.heal}}</select></label>
+    <label title="Talizmany: ładowanie zaklęciem leczącym poziomu 2+ (odmładzający: 3+)">Ładunki <input type="number" name="system.charges" value="{{system.charges}}" min="0"></label>
+    {{/if}}
     {{#if zebraGear}}
     <label>Rzadkość <select name="system.rarity" data-dtype="Number">{{selectOptions gearRarities selected=system.rarity}}</select></label>
     <label title="Drink, Throw, Apply albo Worn">Sposób użycia <select name="system.usage">{{selectOptions usages selected=system.usage}}</select></label>
