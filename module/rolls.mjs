@@ -388,7 +388,8 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
           specials: sp, shockWounds,
           actorUuid: actor.uuid, itemUuid: item.uuid ?? null, itemName: item.name, total, pre, critMult, crit: !!crit, aoe,
           loc: hit?.loc ?? null, called: hit?.called ?? null, table: attack?.table ?? null,
-          ignoreDT: Number(w.ignoreDT) || 0, targets
+          ignoreDT: Number(w.ignoreDT) || 0, targets,
+          ...(w.armorless ? { ignoreArmor: true, noDegrade: true } : {})
         }
       }
     }

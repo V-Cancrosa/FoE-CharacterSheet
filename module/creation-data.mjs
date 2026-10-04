@@ -164,6 +164,17 @@ export const RACES = {
     notes: ["Sonic Screech: 3d12, SATS 40, zasięg 10 (maks. 30), ignoruje pancerz (Energy Weapons).",
       "Echolokacja: ignoruje kary oświetlenia, „widzi” na 60 ft.", "Shadowflash (cecha za 1 pkt)."]
   },
+  changeling: {
+    label: "Podmieniec (Changeling) — zasada domowa",
+    desc: "Rasa spoza podręcznika v1.22 (zasady zapowiedziane w księdze II) — tylko za zgodą MG. Chitynowy pancerz, owadzie skrzydła, róg, przemiana i żywienie się miłością.",
+    attrs: { pick: 1, from: ["cha", "agi", "int"] },
+    skills: { fixed: LP, picks: [{ n: 2, value: 5, from: ["speech", "sneak", "energy", "lockpick", "mercantile"] }] },
+    racial: { magic: { bonus: 5, attrs: ["int", "cha"] }, flight: { bonus: 5, attrs: ["agi"] } },
+    notes: ["Chityna: +2 DT na wszystkich lokacjach; magicznie zahartowani przeciw promieniowaniu (+10%).",
+      "Przemiana w dowolnego widzianego kucyka podobnej wielkości (1 miłość); naturalnie zmienia głos (jak Voice Alteration).",
+      "Miłość: pula CHA + END, 1 dziennie; żerowanie rzutem Speechcraft. Przy pustej puli: −1 krok rzutów END i CHA.",
+      "Lot na owadzich skrzydłach (bez chodzenia po chmurach)."]
+  },
   buffalo: {
     label: "Bizon (Buffalo)",
     desc: "Duży i wytrzymały. Large i jedna cecha za 1 pkt za darmo.",
@@ -205,7 +216,8 @@ const RACE_FX = {
   alicornPost: [ROLL("speech", -20, "Wobec kucyków (bez przebrania)")],
   hellhound: [ROLL("speech", -50, "Wobec ras innych niż psy"), fx("speedPct", "ground", -50)],
   sanddog: [ROLL("speech", -15, "Wobec kucyków"), fx("speedPct", "ground", -50)],
-  minotaur: [fx("speedPct", "ground", -50)]
+  minotaur: [fx("speedPct", "ground", -50)],
+  changeling: [fx("dt", "all", 2), fx("radResist", "all", 10)]
 };
 for (const [k, v] of Object.entries(RACE_FX)) RACES[k].fx = v;
 
@@ -426,6 +438,8 @@ export const TRAITS = {
       one("loc", "Miejsce protezy", locOpts(), { show: ch => ch.level === "1" })],
     resolve: ch => [fx("radResist", "all", 10), fx("fireDt", "all", 10), fx("limbWounds", "flLeg,frLeg,rlLeg,rrLeg,wings", 1),
       ...(ch.level === "3" ? [fx("dt", "all", 3)] : ch.loc ? [fx("dt", ch.loc, 6)] : [])] },
+  shadowflash: { label: "Shadowflash", cost: [1, 1], onlyRaces: ["bat"], notWith: ["young"],
+    desc: "Magia cieni kucyka nietoperzowego (s. 35): teleport jak Teleportation I (10×INT ft) tylko siebie i trzymanych przedmiotów; pula cieni AGI+PER+2, koszt 2, odnawia się 1/h; rzut Flight MFD ½ przy uniku (sukces = unik), ¾ poza tym. Nie działa na nią tłumienie magii." },
   dareingDo: { label: "D.A.R.E.-ing Do", cost: [1, 1], desc: "+20 do END lub INT przeciw uzależnieniu." },
   diseaseResistant: { label: "Disease Resistant", cost: [1, 1], desc: "+20 do END przeciw chorobom." },
   faith: { label: "Faith", cost: [1, 1], desc: "Raz na sesję własny zakres krytycznego sukcesu; pomaga drużynie unikać wad psychicznych." },

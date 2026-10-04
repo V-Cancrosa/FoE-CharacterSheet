@@ -22,6 +22,8 @@ import { radLevel } from "./body.mjs";
 import { cyberItems, CYBER_KINDS } from "./cyber-data.mjs";
 import { feedCyber, selfRepair, chargeReservoir } from "./cyber.mjs";
 import { canAwardXp, canLevelUp, canEditAdvancement } from "./permissions.mjs";
+import { isBatPony, isChangeling, hasShadowflash, hasShadowForm, shadowState, loveState, disguiseOf, SHADOW_MODES } from "./shadow-data.mjs";
+import { castShadow, addSonicScreech, shapeshift, endDisguise, feedOnLove, detectDisguise, promptLove } from "./shadow.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -101,6 +103,13 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       rest: FoeActorSheet.#onRest,
       setLimb: FoeActorSheet.#onSetLimb,
       feedCyber: FoeActorSheet.#onFeedCyber,
+      castShadow: FoeActorSheet.#onCastShadow,
+      addScreech: FoeActorSheet.#onAddScreech,
+      shapeshift: FoeActorSheet.#onShapeshift,
+      endDisguise: FoeActorSheet.#onEndDisguise,
+      feedLove: FoeActorSheet.#onFeedLove,
+      detectDisguise: FoeActorSheet.#onDetectDisguise,
+      setLove: FoeActorSheet.#onSetLove,
       selfRepair: FoeActorSheet.#onSelfRepair,
       chargeReservoir: FoeActorSheet.#onChargeReservoir,
       qty: FoeActorSheet.#onQty
@@ -232,6 +241,20 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         };
       }).filter(g => g.count || g.level <= 1)
     };
+    // Magia cieni (s. 35, 574) i podmieńcy (zasady domowe)
+    const doc = this.document;
+    const sh = shadowState(doc);
+    const flash = hasShadowflash(doc), form = hasShadowForm(doc);
+    ctx.shadow = {
+      show: isBatPony(doc) || flash || form, flash, form, bat: isBatPony(doc), ...sh,
+      hasScreech: doc.items.some(i => i.type === "weapon" && /sonic screech/i.test(i.name)),
+      tn: sys.skills.flight?.tn ?? 0, teleport: 10 * sys.attributes.int.total,
+      modes: Object.entries(SHADOW_MODES).filter(([k]) => (k === "warp" ? form : flash)).map(([k, m]) => ({ key: k, ...m, tn: Math.floor((sys.skills.flight?.tn ?? 0) * ({ "1/2": 0.5, "3/4": 0.75 }[m.mfd] ?? 1)) })),
+      nextMin: Math.ceil(sh.nextIn / 60)
+    };
+    const love = loveState(doc);
+    const dis = disguiseOf(doc);
+    ctx.changeling = isChangeling(doc) ? { ...love, pct: Math.round(100 * love.value / love.max), disguise: dis } : null;
     // Lot i manewry (s. 379–394)
     const w = currentWeather();
     ctx.weather = { label: w.label, summary: weatherSummary(w) };
@@ -582,6 +605,13 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   static async #onFeedCyber() { await feedCyber(this.document); }
+  static async #onCastShadow(event, target) { await castShadow(this.document, target.dataset.mode); }
+  static async #onAddScreech() { await addSonicScreech(this.document); }
+  static async #onShapeshift() { await shapeshift(this.document); }
+  static async #onEndDisguise() { await endDisguise(this.document); }
+  static async #onFeedLove() { await feedOnLove(this.document); }
+  static async #onDetectDisguise() { await detectDisguise(this.document); }
+  static async #onSetLove() { await promptLove(this.document); }
   static async #onSelfRepair() { await selfRepair(this.document); }
   static async #onChargeReservoir(event, target) {
     const item = this.#item(target);

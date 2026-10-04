@@ -1,4 +1,36 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="magic">
+  {{#if shadow.show}}
+  <h3>Magia cieni</h3>
+  <div class="status-bar">
+    {{#if shadow.flash}}<span class="cs" title="AGI + PER + 2; odnawia się 1 na godzinę czasu gry">Strain cieni <b>{{shadow.value}}/{{shadow.max}}</b>{{#if shadow.spent}} · +1 za {{shadow.nextMin}} min{{/if}}</span>{{/if}}
+    <span class="cs">Flight MFD 1 <b>{{shadow.tn}}</b></span>
+    {{#if shadow.flash}}<span class="cs" title="Teleportation I: 10×INT ft">Teleport <b>{{shadow.teleport}} ft</b></span>{{/if}}
+    {{#if shadow.bat}}<span class="cs" title="Echolokacja (s. 35)">Bez kar za ciemność · „widzi” na 60 ft</span>{{/if}}
+  </div>
+  <div class="veh-actions shadow-actions">
+    {{#each shadow.modes}}<a data-action="castShadow" data-mode="{{key}}" title="{{note}} (Flight MFD {{mfd}} ≤ {{tn}}{{#if cost}}, koszt {{cost}}{{/if}})"><i class="fa-solid fa-moon"></i> {{label}}</a>{{/each}}
+    {{#if shadow.bat}}{{#unless shadow.hasScreech}}<a data-action="addScreech" title="Dodaj atak rasowy do broni (3d12, ignoruje pancerz)"><i class="fa-solid fa-volume-high"></i> Dodaj Sonic Screech</a>{{/unless}}{{/if}}
+  </div>
+  <p class="hint">{{#if shadow.flash}}Shadowflash (s. 35): unik — Flight MFD ½, sukces oznacza udany unik; teleport — MFD ¾, tylko ty i trzymane przedmioty, pęd przepada. Koszt 2 z puli cieni. Tłumienie magii nie działa na magię cieni.{{else}}{{#if shadow.bat}}Kucyk nietoperzowy może mieć cechę Shadowflash (1 pkt przy tworzeniu postaci, kreator → Wady i cechy; nie z Young).{{/if}}{{/if}}
+    {{#if shadow.form}} Shadow Form (Czarna Księga): +4 kroki MFD do skradania w cieniu i przeskok między cieniami do 40 ft.{{/if}}</p>
+  {{/if}}
+
+  {{#if changeling}}
+  <h3>Podmieniec <small>zasady domowe</small></h3>
+  <div class="status-bar">
+    <span class="cs {{#if changeling.starving}}alert{{/if}}" title="CHA + END; 1 dziennie na utrzymanie, 1 za przemianę">Miłość <b>{{changeling.value}}/{{changeling.max}}</b></span>
+    <a class="cs act" data-action="setLove" title="Ustaw ręcznie"><i class="fa-solid fa-pen"></i></a>
+    {{#if changeling.disguise}}<span class="cs" title="Prawdziwe imię widzi tylko właściciel i MG">Udaje: <b>{{changeling.disguise.name}}</b> ({{changeling.disguise.race}})</span>{{/if}}
+    {{#if changeling.starving}}<span class="cs alert">GŁÓD — −1 krok END i CHA</span>{{/if}}
+  </div>
+  <div class="veh-actions">
+    <a data-action="shapeshift" title="Przybierz wygląd i głos widzianego kucyka (1 miłość)"><i class="fa-solid fa-masks-theater"></i> Przemiana</a>
+    {{#if changeling.disguise}}<a data-action="endDisguise" title="Wróć do własnej postaci"><i class="fa-solid fa-rotate-left"></i> Własna postać</a>
+    <a data-action="detectDisguise" title="Zaznacz token obserwatora: rzut PER, MFD wg znajomości oryginału"><i class="fa-solid fa-eye"></i> Wykrycie przebrania</a>{{/if}}
+    <a data-action="feedLove" title="Speechcraft: sukces +1d4 miłości"><i class="fa-solid fa-heart"></i> Żerowanie</a>
+  </div>
+  <p class="hint">Podręcznik v1.22 nie ma zasad podmieńców (zapowiedziane w księdze II) — to zasady domowe opisane w README. Naturalnie zmieniają głos (jak Voice Alteration); Perfect Illusion mogą rzucać mimo poziomu 4.</p>
+  {{/if}}
   {{#if flight.flier}}
   <div class="status-bar">
     <span class="cs">Flight: ranga <b>{{flight.rank}}</b> · MFD 1 <b>{{flight.tn}}</b></span>

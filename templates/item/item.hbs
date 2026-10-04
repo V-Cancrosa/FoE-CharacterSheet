@@ -20,6 +20,7 @@
     <label title="Broń magiczna (MFC, ME-Cell, Gem Cell) ignoruje 5 DT">Ignoruje DT <input type="number" name="system.ignoreDT" value="{{system.ignoreDT}}" min="0"></label>
     <label title="Zamontowana na siodle bojowym: limit wagi siodła, salwa, rezerwy i podajniki">Na siodle bojowym <input type="checkbox" name="system.mounted" {{checked system.mounted}}></label>
     <label title="Obrażenia już z premiami (broń z bestiariusza) — system nic nie dolicza">Obrażenia bez premii <input type="checkbox" name="system.flat" {{checked system.flat}}></label>
+    <label title="Ignoruje pancerz noszony — liczy się tylko naturalne DT (np. Sonic Screech)">Ignoruje pancerz <input type="checkbox" name="system.armorless" {{checked system.armorless}}></label>
     <label>Obszarowa (wybuch) <input type="checkbox" name="system.aoe.enabled" {{checked system.aoe.enabled}}></label>
     {{#if system.aoe.enabled}}
     <label>Obrażenia odłamków / promień <span class="pair"><input type="text" name="system.aoe.splash" value="{{system.aoe.splash}}" placeholder="6d12"> <input type="text" name="system.aoe.radius" value="{{system.aoe.radius}}" placeholder="15 ft"></span></label>
