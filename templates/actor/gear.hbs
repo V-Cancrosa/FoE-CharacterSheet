@@ -48,6 +48,7 @@
         <span class="nm" {{#if notes}}title="{{notes}}"{{/if}}>{{name}}{{#if reserve}} <small class="sub" title="Zawartość rezerwy (edytuj na karcie przedmiotu)">{{reserve}}</small>{{/if}}</span>
         <span class="qty"><a data-action="qty" data-d="-1" title="−1 (Shift: −10)"><i class="fa-solid fa-minus"></i></a><b>×{{qty}}</b><a data-action="qty" data-d="1" title="+1 (Shift: +10)"><i class="fa-solid fa-plus"></i></a></span>
         {{#if usable}}<a class="use-btn" data-action="useProduct" title="{{useLabel}}"><i class="fa-solid fa-flask"></i> Użyj</a>{{/if}}
+        {{#if readable}}<span class="book-st" title="Postęp lektury tej postaci">{{bookStatus}}</span> <a class="use-btn" data-action="readBook" title="{{readTip}}"><i class="fa-solid fa-book-open"></i> Czytaj</a>{{/if}}
         {{#if charges includeZero=true}}<span class="charges" title="Ładunki talizmanu">⚡{{charges}}</span>{{/if}}
         <span class="wt">{{weightLabel}}</span>
         <span class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></span>

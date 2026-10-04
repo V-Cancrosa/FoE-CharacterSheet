@@ -975,3 +975,6 @@ button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12p
 .foe-roll-dialog .named-dlg tr.drawback td { opacity: .8; font-style: italic; }
 .foe-roll-dialog .named-picks label { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; margin: .2rem 0; font-size: 12px; }
 .foe-roll-dialog .named-picks select, .foe-roll-dialog .named-picks input { max-width: 9rem; height: 1.5rem; }
+
+/* v0.20 — książki i magazyny */
+.foe-rpg .item-list.gear .book-st { font-family: var(--foe-mono); font-size: 11px; color: var(--pip-dim); white-space: nowrap; }
