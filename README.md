@@ -132,11 +132,13 @@ Siodła bojowe i pancerze wspomagane (s. 161–170, 460):
 - Pancerz wspomagany bez Power Armor Training: bez premii do atrybutów i umiejętności z pancerza (kary zostają);
   ze szkoleniem kary AGI z pancerza znikają. Talizman naprawczy (klucz przy pancerzu): 2 DT na lokację za jednostkę złomu.
 
-Sylwetka PipBucka (zakładka Walka, „Rany, okaleczenia i DT”): kucyk z profilu (u dwunożnych — postać z przodu) jak schemat
-z karty postaci w podręczniku (s. 630). Części ciała świecą wg stanu (ranna, okaleczona — pulsuje, utracona/śmiertelna — czerwona),
-róg i skrzydła tylko u ras, które je mają; przy każdej części opis: rany, DT z nazwą pancerza, kara strzału celowanego i pasek ran.
-Przerywany, gruby obrys — część osłania pancerz; ⚙ — proteza. Klik: +1 rana, prawy przycisk albo Shift+klik: −1.
-Tabela do edycji DT i okaleczeń jest pod sylwetką (rozwijana). Potwory z bestiariusza i pojazdy mają dalej tabelę stref.
+Sylwetka PipBucka / V.A.T.S. (zakładka Walka, „Rany, okaleczenia i DT”): kucyk z góry „na rozgwiazdę” — łeb u góry, nogi
+rozłożone na boki (lewa strona kucyka po lewej), oba skrzydła, ogon; u dwunożnych postać z przodu. Wzór: schemat lokacji z karty
+postaci (s. 630) i ekran V.A.T.S. Kolory stanu: żółty — ranna, czerwony — o krok od okaleczenia, pulsujący — okaleczona,
+migający z białym konturem — utracona/śmiertelna. Róg i skrzydła tylko u ras, które je mają; przy każdej części opis: rany, DT
+z nazwą pancerza, kara strzału celowanego i pasek ran. Przerywany obrys — część osłania pancerz; ⚙ — proteza.
+Klik: +1 rana, prawy przycisk albo Shift+klik: −1. Tabela do edycji DT i okaleczeń jest pod sylwetką (rozwijana).
+Potwory z bestiariusza i pojazdy mają dalej tabelę stref.
 
 Warsztat i naprawa (s. 198–199, 458–460):
 - „Warsztat” w zakładce Ekwipunek (nagłówek „Przedmioty”): naboje (prasa do naboi; łuska + ładunek + metal o wartości ⅓ naboi;
