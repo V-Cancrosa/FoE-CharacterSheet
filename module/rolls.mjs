@@ -4,6 +4,7 @@ import {
   CALLED_SHOTS, BIPED_LABELS, HIT_TABLES, hitLocation, locationMultiplier, combineMultipliers,
   damageFormula, isAoe, isClose, wieldPenalty, SPECIALS, POISONS
 } from "./combat.mjs";
+import { wieldLimit } from "./saddle.mjs";
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
@@ -294,7 +295,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   const str = sys.attributes?.str?.total ?? 0;
   const aoe = isAoe(w);
   const close = isClose(w);
-  const overWield = wieldPenalty(w.weight, str) > 0;
+  const overWield = wieldPenalty(w.weight, str, wieldLimit(actor, w)) > 0;
   const df = damageFormula({ ...w, damage: attack?.formula || w.damage }, { str, rank, overWield });
   let formula = df.formula;
 

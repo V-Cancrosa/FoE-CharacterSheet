@@ -18,6 +18,8 @@
     <label title="Przedział zasięgu w stopach; każdy kolejny przedział = 1 krok MFD trudniej. 0 = wręcz albo liczony z opisu (np. (STR/2)×5 ft)">Przedział zasięgu (ft) <input type="number" name="system.rangeInc" value="{{system.rangeInc}}" min="0"></label>
     <label>Zasięg (opis) <input type="text" name="system.range" value="{{system.range}}" placeholder="np. (STR/2)×5 ft"></label>
     <label title="Broń magiczna (MFC, ME-Cell, Gem Cell) ignoruje 5 DT">Ignoruje DT <input type="number" name="system.ignoreDT" value="{{system.ignoreDT}}" min="0"></label>
+    <label title="Zamontowana na siodle bojowym: limit wagi siodła, salwa, rezerwy i podajniki">Na siodle bojowym <input type="checkbox" name="system.mounted" {{checked system.mounted}}></label>
+    <label title="Obrażenia już z premiami (broń z bestiariusza) — system nic nie dolicza">Obrażenia bez premii <input type="checkbox" name="system.flat" {{checked system.flat}}></label>
     <label>Obszarowa (wybuch) <input type="checkbox" name="system.aoe.enabled" {{checked system.aoe.enabled}}></label>
     {{#if system.aoe.enabled}}
     <label>Obrażenia odłamków / promień <span class="pair"><input type="text" name="system.aoe.splash" value="{{system.aoe.splash}}" placeholder="6d12"> <input type="text" name="system.aoe.radius" value="{{system.aoe.radius}}" placeholder="15 ft"></span></label>
@@ -54,6 +56,9 @@
     <label>Ilość <input type="number" name="system.qty" value="{{system.qty}}"></label>
     <label>Waga (szt.) <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
     <label>Cena (szt.) <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
+    {{#if reserveGear}}
+    <label title="Rezerwa energii: punkty (ogniwo energii 2, MFC 4, gem cell 1); rezerwa paliwa: jednostki paliwa">Zawartość rezerwy <input type="number" name="system.charges" value="{{system.charges}}" min="0"> / {{reserveCap}}</label>
+    {{/if}}
     {{#if medGear}}
     <label>Rodzaj leczenia <select name="system.heal">{{selectOptions healKinds selected=system.heal}}</select></label>
     <label title="Talizmany: ładowanie zaklęciem leczącym poziomu 2+ (odmładzający: 3+)">Ładunki <input type="number" name="system.charges" value="{{system.charges}}" min="0"></label>

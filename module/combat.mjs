@@ -117,8 +117,8 @@ export function rangeBands(inc, count = 6) {
 }
 
 /** Kara za zbyt ciężką broń: 1 krok MFD za każde rozpoczęte 2 lb ponad 2×STR (s. 187). */
-export function wieldPenalty(weight, str) {
-  const over = (Number(weight) || 0) - 2 * (Number(str) || 0);
+export function wieldPenalty(weight, str, limit = null) {
+  const over = (Number(weight) || 0) - (limit ?? 2 * (Number(str) || 0));
   return over > 0 ? Math.ceil(over / 2) : 0;
 }
 

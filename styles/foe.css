@@ -929,3 +929,10 @@ button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12p
 .foe-rpg .item-list.gear .charges { font-family: var(--foe-mono); font-size: 11px; color: var(--pip-bright); margin-right: .4rem; }
 .foe-card .fc-list { margin: .2rem 0 .2rem 1rem; padding: 0; font-size: 12px; }
 .foe-rpg .item-list.conditions.body li:not(.alert) .nm { color: var(--pip-bright); text-shadow: none; }
+
+/* v0.14 — siodła bojowe i pancerze wspomagane */
+.foe-rpg a.mount-toggle { display: inline-block; width: 1.1rem; text-align: center; font-family: var(--foe-mono); font-size: 10px; border: 1px solid var(--pip-dim); border-radius: 2px; color: var(--pip-dim); cursor: pointer; }
+.foe-rpg a.mount-toggle.on { background: var(--pip); color: #000; border-color: var(--pip); }
+.foe-rpg .saddle-line { margin: .2rem 0; }
+.foe-rpg td.nm a.repair { margin-left: .3rem; cursor: pointer; }
+.foe-rpg .item-list.gear .feat-toggle { margin-right: .3rem; }

@@ -2,6 +2,7 @@ import { SKILLS } from "./data.mjs";
 import { rollContext } from "./effects.mjs";
 import { promptMfd, rollTest, rollDamage, locationName, stepIndex } from "./rolls.mjs";
 import { areasOf, areaLabels } from "./bestiary.mjs";
+import { wieldLimit, saddleState, energyCost, isFuel } from "./saddle.mjs";
 import { MFD_STEPS } from "./data.mjs";
 import {
   CALLED_SHOTS, HIT_TABLES, hitTableFor, tableLocations, locationMultiplier, combineMultipliers,
@@ -27,7 +28,7 @@ const elementOf = x => (x instanceof HTMLElement ? x : x?.element instanceof HTM
  * Atak: okno z SATS, warunkami, odległością, celem (strzał celowany / losowa lokacja), ciężarem broni;
  * zużywa amunicję (seria) albo sztukę granatu i AP w SATS, potem rzut d100 z kartą ataku.
  */
-export async function attackWithWeapon(actor, item, { spell = null } = {}) {
+export async function attackWithWeapon(actor, item, { spell = null, volley = null } = {}) {
   const sys = actor.system;
   const w = item.system;
   const sk = sys.skills[w.skill];
@@ -48,11 +49,14 @@ export async function attackWithWeapon(actor, item, { spell = null } = {}) {
   }
 
   const sats = sys.resources.sats;
-  const cost = Number(w.satsCost) || 0;
+  // salwa: koszt najdroższej broni + 10 AP (czteroramienne +40), płacony przy pierwszej broni
+  const cost = volley ? volley.satsCost : Number(w.satsCost) || 0;
+  const followUp = volley?.index > 0;
   const canSats = sats.value >= cost;
   const inc = close ? 0 : rangeIncrement(w, str);
   const bands = rangeBands(inc);
-  const heavy = wieldPenalty(w.weight, str);
+  const limit = wieldLimit(actor, w);
+  const heavy = wieldPenalty(w.weight, str, limit);
   const targets = [...(game.user?.targets ?? [])];
   const target = targets[0]?.actor ?? null;
   const table = hitTableFor(target?.system?.race);
@@ -71,7 +75,8 @@ export async function attackWithWeapon(actor, item, { spell = null } = {}) {
   const extraHtml = `
     <div class="dlg-attack">
       <div class="atk-info">${info}</div>
-      ${spell ? "" : `<label class="atk-row atk-check"><input type="checkbox" name="sats" ${canSats ? "" : "disabled"}>
+      ${followUp ? `<div class="atk-info"><div>Salwa z siodła: ${volley.sats ? "w SATS (AP już zapłacone)" : "ta sama akcja"}.</div></div>` : ""}
+      ${spell || followUp ? "" : `<label class="atk-row atk-check"><input type="checkbox" name="sats" ${canSats ? "" : "disabled"}>
         <span>SATS</span><small>${canSats ? `−${cost} AP (zostanie ${sats.value - cost}) · bez kar otoczenia i pośpiechu` : `za mało AP: ${sats.value}/${cost}`}</small></label>`}
       <label class="atk-row">Otoczenie i pośpiech <select name="env">
         <option value="0">bez kar</option>
@@ -89,12 +94,12 @@ export async function attackWithWeapon(actor, item, { spell = null } = {}) {
         ${Object.entries(HIT_TABLES).map(([k, t]) => `<option value="${k}" ${k === table ? "selected" : ""}>${t.label}</option>`).join("")}
       </select></label>`}
       ${heavy ? `<label class="atk-row atk-check"><input type="checkbox" name="heavy" checked>
-        <span>Za ciężka broń</span><small>${w.weight} lb > 2×STR (${2 * str}): −${heavy} kr.${close ? ", bez premii STR" : ""}</small></label>` : ""}
+        <span>Za ciężka broń</span><small>${w.weight} lb > ${w.mounted ? "limit siodła" : "2×STR"} (${limit}): −${heavy} kr.${close ? ", bez premii STR" : ""}</small></label>` : ""}
     </div>`;
 
   const readExtra = form => {
     const el = form.elements;
-    const satsOn = !!el.sats?.checked;
+    const satsOn = followUp ? !!volley.sats : !!el.sats?.checked;
     const envRaw = Number(el.env?.value) || 0;
     const env = satsOn ? 0 : envRaw;
     const rng = Number(el.range?.value) || 0;
@@ -103,13 +108,15 @@ export async function attackWithWeapon(actor, item, { spell = null } = {}) {
     const loc = area ? area.loc : raw;
     const called = raw === "random" ? 0 : area ? areaSteps(area) : CALLED_SHOTS[loc]?.steps ?? 0;
     const heavySteps = el.heavy?.checked ? -heavy : 0;
+    const volleySteps = volley ? -volley.steps : 0;
     const notes = [];
-    if (satsOn) notes.push(`SATS −${cost} AP${envRaw ? " (kary otoczenia pominięte)" : ""}`);
+    if (satsOn) notes.push(followUp ? "SATS (salwa)" : `SATS −${cost} AP${envRaw ? " (kary otoczenia pominięte)" : ""}`);
     if (env) notes.push(`Otoczenie ${stepsLabel(env)}`);
     if (rng) notes.push(`Odległość ${el.range.selectedOptions[0]?.textContent.split(" (")[0]} ${stepsLabel(rng)}`);
     if (called) notes.push(`Strzał celowany: ${area ? area.label : CALLED_SHOTS[loc].label} ${stepsLabel(called)}`);
     if (heavySteps) notes.push(`Za ciężka broń ${stepsLabel(heavySteps)}`);
-    return { steps: env + rng + called + heavySteps, mod: 0, notes, data: { sats: satsOn, loc: raw === "random" ? "random" : loc, area: area?.label ?? null, table: el.table?.value ?? table } };
+    if (volleySteps) notes.push(`Salwa z siodła (${volley.index + 1}/${volley.count}) ${stepsLabel(volleySteps)}`);
+    return { steps: env + rng + called + heavySteps + volleySteps, mod: 0, notes, data: { sats: satsOn, loc: raw === "random" ? "random" : loc, area: area?.label ?? null, table: el.table?.value ?? table } };
   };
 
   const onRender = (form, update) => {
@@ -134,12 +141,13 @@ export async function attackWithWeapon(actor, item, { spell = null } = {}) {
   if (!r) return null;
   const { extra: ex = {}, ...roll } = r;
 
-  if (ex.sats) {
+  if (ex.sats && !followUp) {
     const cur = actor.system.resources.sats.value;
     if (cur < cost) return warn(`Za mało AP w SATS (${cur}/${cost}).`);
     await actor.update({ "system.resources.sats.value": cur - cost });
   }
-  if (!spell) await spendActions(actor, 1, ex.sats ? "SATS" : "atak");
+  // salwa z siodła: jedna akcja (i jeden koszt SATS) za wszystkie bronie
+  if (!spell && !(volley?.index > 0)) await spendActions(actor, 1, volley ? "salwa z siodła" : ex.sats ? "SATS" : "atak");
   if (w.consumable) await item.update({ "system.qty": Math.max(0, (Number(item.system.qty) || 0) - 1) });
   else if (w.ammo.max > 0) await item.update({ "system.ammo.value": Math.max(0, item.system.ammo.value - b.use) });
 
@@ -168,33 +176,44 @@ export async function reloadWeapon(actor, item) {
   const type = String(w.ammoType ?? "").trim().toLowerCase();
   const stock = type ? actor.items.filter(i => i.type === "gear"
     && [i.system.ammoType, i.name].some(v => String(v ?? "").trim().toLowerCase() === type)) : [];
-  const available = stock.reduce((t, i) => t + Math.max(0, Number(i.system.qty) || 0), 0);
-  const tracked = stock.length > 0;
+  const fromStock = stock.reduce((t, i) => t + Math.max(0, Number(i.system.qty) || 0), 0);
+
+  // Siodło bojowe (s. 168–170): rezerwa energii/paliwa jako dodatkowa amunicja, podajniki
+  const saddle = w.mounted ? saddleState(actor) : null;
+  const ePts = energyCost(w.ammoType);
+  const reserve = saddle?.energy && ePts ? { kind: "energy", item: saddle.energy.item, per: ePts, rounds: Math.floor(saddle.energy.pts / ePts), pts: saddle.energy.pts }
+    : saddle?.fuel && isFuel(w.ammoType) ? { kind: "fuel", item: saddle.fuel.item, per: 1, rounds: saddle.fuel.units, pts: saddle.fuel.units } : null;
+  const available = fromStock + (reserve?.rounds ?? 0);
+  const tracked = stock.length > 0 || !!reserve;
+  const kind = String(w.reload ?? "").toUpperCase();
+  const loaderOk = !(w.skill === "energy" || isFuel(w.ammoType) || /bow|crossbow/i.test(item.name)) && /DTM|BREECH|INTERNAL|BELT/.test(kind);
+  const auto = !!(saddle?.acc?.auto && loaderOk);
+  const semi = !auto && !!(saddle?.acc?.semi && /DTM|BELT/.test(kind));
+  const extraActions = saddle && !auto && !semi && !saddle.acc?.bit && !reserve ? 2 : 0;
 
   const actionText = { full: "cały magazynek", half: "pół magazynka", breech: "1d4+1 naboi" }[ri.action];
   const content = `
     <div class="foe-dialog">
       <div class="atk-info">
         <div>Magazynek: <b>${w.ammo.value}/${w.ammo.max}</b> · przeładowanie: <b>${esc(ri.label || "—")}</b></div>
-        <div>${tracked ? `Amunicja „${esc(w.ammoType)}” w ekwipunku: <b>${available}</b>`
+        <div>${tracked ? `Amunicja „${esc(w.ammoType)}”: <b>${available}</b>${reserve ? ` (ekwipunek ${fromStock} + ${reserve.kind === "energy" ? "rezerwa energii" : "rezerwa paliwa"} ${reserve.rounds})` : ""}`
           : w.ammoType ? `Brak amunicji „${esc(w.ammoType)}” w ekwipunku — załaduję bez odejmowania (dodaj ją z katalogu, żeby się liczyła).`
           : "Broń bez typu amunicji — załaduję bez odejmowania."}</div>
+        ${saddle ? `<div>Na siodle (${esc(saddle.label)}): ${auto ? "podajnik automatyczny — przeładowanie bez akcji" : semi ? "podajnik półautomatyczny — 1 akcja, cały magazynek" : extraActions ? "bez podajnika i wysuwanego wędzidła sięgnięcie po amunicję to +2 akcje" : "normalnie"}</div>` : ""}
       </div>
       <ul class="rl-opts">
-        <li><b>Akcją:</b> ${actionText}</li>
+        <li><b>Akcją:</b> ${semi ? "cały magazynek" : actionText}${extraActions ? ` (razem ${1 + extraActions} akcje)` : ""}</li>
         <li><b>W SATS:</b> pełny magazynek za ${ri.ap} AP (masz ${sats.value})</li>
       </ul>
     </div>`;
+  const buttons = [
+    ...(auto ? [{ action: "auto", label: "Podajnik (bez akcji)", icon: "fa-solid fa-gears", default: true }] : []),
+    { action: "action", label: extraActions ? `Akcjami (${1 + extraActions})` : "Akcją", icon: "fa-solid fa-rotate", default: !auto },
+    { action: "sats", label: `SATS −${ri.ap} AP`, icon: "fa-solid fa-crosshairs", disabled: sats.value < ri.ap }
+  ];
   const choice = await DialogV2.wait({
-    window: { title: `Przeładowanie: ${item.name}` },
-    classes: ["foe-rpg", "foe-roll-dialog"],
-    position: { width: 420 },
-    content,
-    rejectClose: false,
-    buttons: [
-      { action: "action", label: "Akcją", icon: "fa-solid fa-rotate", default: true },
-      { action: "sats", label: `SATS −${ri.ap} AP`, icon: "fa-solid fa-crosshairs", disabled: sats.value < ri.ap }
-    ]
+    window: { title: `Przeładowanie: ${item.name}` }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 440 },
+    content, rejectClose: false, buttons
   });
   if (!choice) return null;
 
@@ -204,39 +223,92 @@ export async function reloadWeapon(actor, item) {
     const cur = actor.system.resources.sats.value;
     if (cur < ri.ap) return warn(`Za mało AP w SATS (${cur}/${ri.ap}).`);
     await actor.update({ "system.resources.sats.value": cur - ri.ap });
-  } else {
-    await spendActions(actor, 1, "przeładowanie");
+  } else if (choice === "action") {
+    await spendActions(actor, 1 + extraActions, "przeładowanie");
   }
-  if (choice === "sats") {
-    // pełny magazynek
-  } else if (ri.action === "half") {
-    amount = Math.min(missing, Math.ceil(w.ammo.max / 2));
-  } else if (ri.action === "breech") {
-    const r = await new Roll("1d4 + 1").evaluate();
-    amount = Math.min(missing, r.total);
-    note = ` (1d4+1 = ${r.total})`;
+  if (choice === "action" && !semi) {
+    if (ri.action === "half") amount = Math.min(missing, Math.ceil(w.ammo.max / 2));
+    else if (ri.action === "breech") {
+      const r = await new Roll("1d4 + 1").evaluate();
+      amount = Math.min(missing, r.total);
+      note = ` (1d4+1 = ${r.total})`;
+    }
   }
   if (tracked) amount = Math.min(amount, available);
-  if (amount <= 0) return warn(`Brak amunicji „${w.ammoType}” w ekwipunku.`);
+  if (amount <= 0) return warn(`Brak amunicji „${w.ammoType}” w ekwipunku${reserve ? " ani w rezerwie siodła" : ""}.`);
 
   let left = amount;
-  for (const s of stock) {
+  for (const st of stock) {
     if (!left) break;
-    const q = Math.max(0, Number(s.system.qty) || 0);
+    const q = Math.max(0, Number(st.system.qty) || 0);
     const take = Math.min(q, left);
-    if (take) { await s.update({ "system.qty": q - take }); left -= take; }
+    if (take) { await st.update({ "system.qty": q - take }); left -= take; }
   }
-  await item.update({ "system.ammo.value": w.ammo.value + amount });
+  let fromReserve = 0;
+  if (left && reserve) {
+    fromReserve = Math.min(left, reserve.rounds);
+    await reserve.item.update({ "system.charges": Math.max(0, reserve.pts - fromReserve * reserve.per) });
+    left -= fromReserve;
+  }
+  const before = w.ammo.value;
+  await item.update({ "system.ammo.value": before + amount });
 
+  const how = choice === "sats" ? `SATS −${ri.ap} AP` : choice === "auto" ? "podajnik, bez akcji" : `${1 + extraActions} ${1 + extraActions === 1 ? "akcja" : "akcje"}`;
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content: `
     <div class="foe-card reload">
-      <div class="fc-tag"><span>PIPBUCK // PRZEŁADOWANIE</span><span>${choice === "sats" ? `SATS −${ri.ap} AP` : "1 akcja"}</span></div>
+      <div class="fc-tag"><span>PIPBUCK // PRZEŁADOWANIE</span><span>${how}</span></div>
       <h3>${esc(item.name)}</h3>
-      <div class="fc-calc">Załadowano ${amount}${note}${w.ammoType ? ` × ${esc(w.ammoType)}` : ""} → <b>${w.ammo.value + amount}/${w.ammo.max}</b></div>
-      ${tracked ? `<div class="fc-meta">W ekwipunku zostało: ${available - amount}</div>` : ""}
+      <div class="fc-calc">Załadowano ${amount}${note}${w.ammoType ? ` × ${esc(w.ammoType)}` : ""} → <b>${before + amount}/${w.ammo.max}</b></div>
+      ${tracked ? `<div class="fc-meta">${stock.length ? `W ekwipunku zostało: ${fromStock - (amount - fromReserve)}` : ""}${reserve ? `${stock.length ? " · " : ""}Z rezerwy siodła: ${fromReserve} (zostało ${reserve.pts - fromReserve * reserve.per}/${reserve.kind === "energy" ? saddle.energy.cap : saddle.fuel.cap})` : ""}</div>` : ""}
     </div>`
+  });
+}
+
+/** Salwa z siodła: wszystkie zamontowane bronie jedną akcją, −1 krok MFD (czteroramienne −2); SATS: najdroższa +10 (+40). */
+export async function fireVolley(actor) {
+  const s = saddleState(actor);
+  if (!s) return warn(`${actor.name}: brak założonego siodła bojowego (Ekwipunek) ani pancerza wspomaganego z siodłem.`);
+  const list = s.mounted.slice(0, s.maxWeapons);
+  if (list.length < 2) return warn(`Salwa wymaga co najmniej dwóch broni zamontowanych na siodle (zaznacz „S” przy broni w zakładce Walka).`);
+  const satsCost = Math.max(...list.map(i => Number(i.system.satsCost) || 0)) + s.volleyExtraAp;
+  let sats = false;
+  const out = [];
+  for (const [index, item] of list.entries()) {
+    const msg = await attackWithWeapon(actor, item, { volley: { index, count: list.length, steps: s.volleySteps, satsCost, sats } });
+    if (!msg && index === 0) return null;
+    if (index === 0) sats = !!(msg?.flags?.["foe-rpg"]?.test?.attack?.sats ?? msg?.getFlag?.("foe-rpg", "test")?.attack?.sats);
+    out.push(msg);
+  }
+  return out;
+}
+
+/** Talizman naprawczy pancerza wspomaganego: 2 DT na każdej lokacji za jednostkę złomu (metalu albo elektroniki). */
+export async function repairPowerArmor(actor, armor) {
+  const wear = armor.system.wear ?? {};
+  const worst = Math.max(0, ...Object.values(wear).map(v => Number(v) || 0));
+  if (!worst) return ui.notifications.info(`${armor.name}: pancerz nie jest uszkodzony.`);
+  const scrap = actor.items.filter(i => i.type === "gear" && /scrap (metal|electronics)|złom/i.test(i.name) && (i.system.qty || 0) > 0);
+  const have = scrap.reduce((t, i) => t + (i.system.qty || 0), 0);
+  if (!have) return warn("Talizman naprawczy potrzebuje złomu (Scrap Metal albo Scrap Electronics) w ekwipunku.");
+  const need = Math.ceil(worst / 2);
+  const units = Math.min(have, need);
+  let left = units;
+  for (const it of scrap) {
+    if (!left) break;
+    const t = Math.min(left, it.system.qty);
+    await it.update({ "system.qty": it.system.qty - t });
+    left -= t;
+  }
+  const upd = {};
+  for (const [k, v] of Object.entries(wear)) if (v) upd[`system.wear.${k}`] = Math.max(0, v - 2 * units);
+  await armor.update(upd);
+  return ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `<div class="foe-card reload"><div class="fc-tag"><span>PIPBUCK // NAPRAWA</span><span>talizman naprawczy</span></div><h3>${esc(armor.name)}</h3>
+      <div class="fc-calc">Zużyto ${units} × złom → +${2 * units} DT na każdej lokacji</div>
+      <div class="fc-meta">Talizman naprawia 1 DT co 30 sekund; mieści do 3 jednostek złomu na raz. Przestaje działać, gdy DT spadnie poniżej 25%.</div></div>`
   });
 }
 

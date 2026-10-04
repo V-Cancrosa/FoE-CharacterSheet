@@ -92,6 +92,11 @@ Hooks.once("ready", async () => {
 
 /** Zasady opcjonalne z rozdziału o walce. */
 function registerCombatSettings() {
+  game.settings.register("foe-rpg", "powerArmorUntrainedAgi", {
+    name: "Kara AGI za pancerz wspomagany bez szkolenia",
+    hint: "Zasada domowa: dodatkowa kara do AGI dla postaci bez Power Armor Training. Podręcznik mówi tylko, że bez szkolenia nie ma premii z pancerza, a jego kary AGI zostają (0 = tylko to).",
+    scope: "world", config: true, type: Number, default: 0, range: { min: 0, max: 5, step: 1 }
+  });
   game.settings.register("foe-rpg", "specialsMigrated", { scope: "world", config: false, type: Boolean, default: false });
   game.settings.register("foe-rpg", "randomHitLocations", {
     name: "Losowe lokacje trafień",
