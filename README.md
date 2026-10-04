@@ -132,6 +132,12 @@ Siodła bojowe i pancerze wspomagane (s. 161–170, 460):
 - Pancerz wspomagany bez Power Armor Training: bez premii do atrybutów i umiejętności z pancerza (kary zostają);
   ze szkoleniem kary AGI z pancerza znikają. Talizman naprawczy (klucz przy pancerzu): 2 DT na lokację za jednostkę złomu.
 
+Sylwetka PipBucka (zakładka Walka, „Rany, okaleczenia i DT”): kucyk z profilu (u dwunożnych — postać z przodu) jak schemat
+z karty postaci w podręczniku (s. 630). Części ciała świecą wg stanu (ranna, okaleczona — pulsuje, utracona/śmiertelna — czerwona),
+róg i skrzydła tylko u ras, które je mają; przy każdej części opis: rany, DT z nazwą pancerza, kara strzału celowanego i pasek ran.
+Przerywany, gruby obrys — część osłania pancerz; ⚙ — proteza. Klik: +1 rana, prawy przycisk albo Shift+klik: −1.
+Tabela do edycji DT i okaleczeń jest pod sylwetką (rozwijana). Potwory z bestiariusza i pojazdy mają dalej tabelę stref.
+
 Warsztat i naprawa (s. 198–199, 458–460):
 - „Warsztat” w zakładce Ekwipunek (nagłówek „Przedmioty”): naboje (prasa do naboi; łuska + ładunek + metal o wartości ⅓ naboi;
   Repair MFD 1: krytyk ×2, porażka ½; Junk Rounds — bez łusek i prasy, 2× mniej metalu), ogniwa energii (pył klejnotów: 1 = 5 gem

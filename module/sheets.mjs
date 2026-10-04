@@ -26,6 +26,9 @@ import { isBatPony, isChangeling, hasShadowflash, hasShadowForm, shadowState, lo
 import { nameItem, canName } from "./named.mjs";
 import { readBook, bookStatus } from "./books.mjs";
 import { openWorkshop, repairWeapon, repairArmorItem } from "./craft.mjs";
+import { bodyMap } from "./body-map.mjs";
+import { hitTableFor, tableLocations } from "./combat.mjs";
+import { locationName } from "./rolls.mjs";
 import { degradationOn, weaponCondition } from "./craft-data.mjs";
 import { parseBook } from "./books-data.mjs";
 import { loadedVariant } from "./ammo-data.mjs";
@@ -114,6 +117,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       nameItem: FoeActorSheet.#onNameItem,
       readBook: FoeActorSheet.#onReadBook,
       workshop: FoeActorSheet.#onWorkshop,
+      woundStep: FoeActorSheet.#onWoundStep,
       fixWeapon: FoeActorSheet.#onFixWeapon,
       fixArmor: FoeActorSheet.#onFixArmor,
       shapeshift: FoeActorSheet.#onShapeshift,
@@ -206,6 +210,15 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return { key: k, label: areaNames[k] ?? label, ...l, statusLabel: STATUS[l.status] ?? "", dtFxLabel: l.dtFx ? signed(l.dtFx) : "",
         mfdNote: areaMfd[k] ? `MFD celowania ${areaMfd[k]}` : "" };
     });
+    // sylwetka w stylu PipBucka (potwory z własnymi strefami i pojazdy zostają przy tabeli)
+    if (!monster) {
+      const table = hitTableFor(sys.race);
+      const locs = tableLocations(table).filter(k => sys.locations[k]);
+      // skrzydła i róg także, gdy rasa ich nie ma w tabeli, ale mają rany albo DT (np. proteza skrzydła)
+      for (const k of ["wings", "horn"]) if (!locs.includes(k) && (sys.locations[k]?.wounds || sys.locations[k]?.dt)) locs.push(k);
+      const cyber = new Set(cyberItems(this.document).filter(i => i.system.kind === "cyberlimb" && i.system.cyber?.loc).map(i => i.system.cyber.loc));
+      ctx.bodyMap = bodyMap(sys, locs, { table, labels: Object.fromEntries(locs.map(k => [k, locationName(k, table)])), cyber });
+    }
     ctx.endT = sys.attributes.end.total;
     ctx.crippleAt = sys.woundLimits?.cripple || Math.max(1, Math.ceil(ctx.endT / 2));
     if (sys.woundLimits?.maim) ctx.endT = sys.woundLimits.maim;
@@ -624,6 +637,22 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static async #onFeedCyber() { await feedCyber(this.document); }
   static async #onCastShadow(event, target) { await castShadow(this.document, target.dataset.mode); }
   static async #onWorkshop() { await openWorkshop(this.document); }
+  /** Sylwetka: klik +1 rana, Shift+klik albo prawy przycisk −1. */
+  static async #onWoundStep(event, target) {
+    await this.#stepWound(target.closest("[data-loc]")?.dataset.loc, event.shiftKey ? -1 : 1);
+  }
+  async #stepWound(loc, d) {
+    const L = this.document.system.locations?.[loc];
+    if (!L || !this.document.isOwner) return;
+    await this.document.update({ [`system.locations.${loc}.wounds`]: Math.max(0, (L.wounds || 0) + d) });
+  }
+
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+    for (const el of this.element.querySelectorAll("[data-action=woundStep]")) {
+      el.addEventListener("contextmenu", ev => { ev.preventDefault(); ev.stopPropagation(); this.#stepWound(el.dataset.loc, -1); });
+    }
+  }
   static async #onFixWeapon(event, target) {
     const item = this.#item(target);
     if (item) await repairWeapon(this.document, item);
