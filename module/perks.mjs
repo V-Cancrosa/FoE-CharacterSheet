@@ -8,6 +8,7 @@
  */
 import { ATTRS, SKILLS } from "./data.mjs";
 import { shortFx } from "./effects.mjs";
+import { canLevelUp, canAwardXp } from "./permissions.mjs";
 
 const F = "foe-rpg";
 const { DialogV2 } = foundry.applications.api;
@@ -319,6 +320,8 @@ const STATUS_MARK = { ok: "✓", unknown: "?", fail: "✗" };
 
 /** Okno awansu: punkty umiejętności, potem perk (wymagania liczone z nowymi rangami). */
 export async function levelUp(actor) {
+  const can = canLevelUp(actor);
+  if (!can.ok) return warn(can.why);
   const sys = actor.system;
   if (sys.level >= MAX_LEVEL) return warn(`${actor.name}: osiągnięto maksymalny poziom ${MAX_LEVEL}.`);
   const newLevel = sys.level + 1;
@@ -408,7 +411,7 @@ export async function levelUp(actor) {
 
   const update = { "system.level": newLevel };
   for (const [k, v] of Object.entries(result.alloc)) update[`system.skills.${k}.points`] = (sys.skills[k].points || 0) + v;
-  await actor.update(update);
+  await actor.update(update, { foeAdvance: true });
   let perkItem = null;
   if (result.perk) {
     const e = perks.find(p => p.name === result.perk);
@@ -438,6 +441,7 @@ export async function levelUp(actor) {
 
 /** Cofa ostatni awans zapisany w dzienniku (punkty, perk, poziom). */
 export async function undoLevelUp(actor) {
+  if (!canAwardXp()) return warn("Cofnąć awans może tylko MG.");
   const log = [...(actor.getFlag(F, "levelLog") ?? [])];
   const last = log.pop();
   if (!last) return warn("Brak zapisanych awansów do cofnięcia.");
@@ -449,7 +453,7 @@ export async function undoLevelUp(actor) {
   const sys = actor.system;
   const update = { "system.level": Math.max(1, last.level - 1) };
   for (const [k, v] of Object.entries(last.alloc ?? {})) update[`system.skills.${k}.points`] = Math.max(0, (sys.skills[k].points || 0) - v);
-  await actor.update(update);
+  await actor.update(update, { foeAdvance: true });
   if (last.perkId && actor.items.get(last.perkId)) await actor.deleteEmbeddedDocuments("Item", [last.perkId]);
   await actor.setFlag(F, "levelLog", log);
   ui.notifications.info(`${actor.name}: cofnięto awans na poziom ${last.level}.`);
@@ -458,10 +462,11 @@ export async function undoLevelUp(actor) {
 
 /** Przyznaje PD (z premią Horse Sense) i informuje, gdy postać może awansować. */
 export async function awardXp(actor, amount) {
+  if (!canAwardXp()) return warn("PD przyznaje MG.");
   const pct = actor.system.fx?.xpPct ?? 0;
   const gain = Math.floor(amount * (100 + pct) / 100);
   const xp = Math.max(0, (actor.system.xp || 0) + gain);
-  await actor.update({ "system.xp": xp });
+  await actor.update({ "system.xp": xp }, { foeAdvance: true });
   const next = xpFor(actor.system.level + 1);
   const ready = next !== null && xp >= next;
   ui.notifications.info(`${actor.name}: +${gain} PD${pct ? ` (w tym ${pct}% z perków)` : ""} → ${xp}${ready ? " — można awansować!" : "."}`);
@@ -469,6 +474,7 @@ export async function awardXp(actor, amount) {
 }
 
 export async function promptAwardXp(actor) {
+  if (!canAwardXp()) return warn("PD przyznaje MG.");
   const n = await DialogV2.wait({
     window: { title: `Doświadczenie: ${actor.name}` }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 360 }, rejectClose: false,
     content: `<div class="foe-dialog"><label class="atk-row">Ile PD dodać (ujemne odejmują) <input type="number" name="xp" value="100" step="10" autofocus></label></div>`,

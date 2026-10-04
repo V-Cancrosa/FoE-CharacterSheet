@@ -21,6 +21,7 @@ import { fireVolley, repairPowerArmor } from "./attack.mjs";
 import { radLevel } from "./body.mjs";
 import { cyberItems, CYBER_KINDS } from "./cyber-data.mjs";
 import { feedCyber, selfRepair, chargeReservoir } from "./cyber.mjs";
+import { canAwardXp, canLevelUp, canEditAdvancement } from "./permissions.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -141,7 +142,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const xpNext = prog === "none" ? null : xpFor(sys.level + 1, prog);
     ctx.adv = {
       useXp: prog !== "none", xp: sys.xp ?? 0, next: xpNext, ready: xpNext !== null && (sys.xp ?? 0) >= xpNext,
-      canUndo: (this.document.getFlag("foe-rpg", "levelLog") ?? []).length > 0
+      canUndo: canAwardXp() && (this.document.getFlag("foe-rpg", "levelLog") ?? []).length > 0,
+      canAward: canAwardXp(), canLevel: canLevelUp(this.document).ok, lock: !canEditAdvancement()
     };
     const pct = (v, m) => (m > 0 ? Math.max(0, Math.min(100, Math.round(100 * v / m))) : 0);
     const res = sys.resources;

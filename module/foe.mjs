@@ -2,6 +2,7 @@ import { CharacterData, NpcData, VehicleData, WeaponData, ArmorData, GearData, F
 import { FoeVehicleSheet } from "./vehicle-sheet.mjs";
 import { registerVehicleHooks } from "./vehicle.mjs";
 import { registerCyberSettings, registerCyberHooks } from "./cyber.mjs";
+import { registerPermissionSettings, registerPermissionHooks } from "./permissions.mjs";
 import { registerMagicHooks } from "./magic.mjs";
 import { FoeActorSheet, FoeItemSheet } from "./sheets.mjs";
 import { registerCombatHooks } from "./attack.mjs";
@@ -35,6 +36,8 @@ Hooks.once("init", () => {
   registerChemHooks();
   registerVehicleHooks();
   registerCyberSettings();
+  registerPermissionSettings();
+  registerPermissionHooks();
   registerCyberHooks();
   // runda walki = 6 sekund czasu gry (s. 389: „30 sekund, czyli pięć rund”) — czas działania chemii płynie w walce
   CONFIG.time.roundTime = 6;
