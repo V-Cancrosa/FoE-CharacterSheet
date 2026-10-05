@@ -2,6 +2,7 @@
  * Karta pojazdu: rozmiar, strefy (kadłub, kabina, napęd, uzbrojenie), broń pokładowa, załoga i ładunek.
  * Akcje: sterowanie, taranowanie, zderzenie, naprawa — vehicle.mjs.
  */
+import { clearFlag } from "./flags.mjs";
 import { ATTRS, SKILLS, GEAR_CATEGORIES } from "./data.mjs";
 import { rollDamage } from "./rolls.mjs";
 import { reloadWeapon } from "./attack.mjs";
@@ -136,7 +137,7 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static #onCrash() { return crashVehicle(this.document); }
   static #onRepair() { return repairVehicle(this.document); }
   static #onRollInitiative() { return rollActorInitiative(this.document); }
-  static #onClearEvasive() { return this.document.unsetFlag(F, "evasive"); }
+  static #onClearEvasive() { return clearFlag(this.document, "evasive"); }
 
   static async #onFire(event, target) {
     const item = this.#item(target);

@@ -1,6 +1,7 @@
 /**
  * Magia cieni (Shadowflash, Shadow Form) i podmieńcy w grze. Zasady: shadow-data.mjs.
  */
+import { clearFlag } from "./flags.mjs";
 import { ATTRS } from "./data.mjs";
 import { rollContext } from "./effects.mjs";
 import { promptMfd, rollTest } from "./rolls.mjs";
@@ -98,7 +99,7 @@ export async function endDisguise(actor) {
   const d = disguiseOf(actor);
   if (!d) return null;
   if (d.tokens) for (const t of actor.getActiveTokens?.() ?? []) await t.document.update({ name: d.original ?? actor.name });
-  await actor.unsetFlag(F, "disguise");
+  await clearFlag(actor, "disguise");
   ui.notifications.info(`${actor.name}: powrót do własnej postaci.`);
   return true;
 }

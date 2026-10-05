@@ -1,3 +1,4 @@
+import { clearFlag } from "./flags.mjs";
 import { ATTRS, SKILLS, LOCATIONS, ARMOR_CATEGORIES, GEAR_CATEGORIES } from "./data.mjs";
 import { promptMfd, rollTest, rollDamage } from "./rolls.mjs";
 import { attackWithWeapon, reloadWeapon } from "./attack.mjs";
@@ -531,7 +532,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   static async #onClearBurnout() {
-    await this.document.unsetFlag("foe-rpg", "burnout");
+    await clearFlag(this.document, "burnout");
   }
 
   /** Odpoczynek: +1 strain za każdą godzinę (Shift: do pełna). */
