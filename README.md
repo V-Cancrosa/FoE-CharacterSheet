@@ -288,6 +288,11 @@ Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 
+Grafiki kampanii (folder `assets/gardens/`, w Foundry pod `systems/foe-rpg/assets/gardens/`):
+`gardens-logo.webp` (logo Gardens), `gardens-scena.webp` (scena z logo, 1920×1080),
+`stodola-mapa.webp` (mapa stodoły do sceny) i `stodola-plan.png` (plan stodoły z numerami dla MG).
+Pliki w folderze systemu są nadpisywane przy aktualizacji — własne zmiany trzymaj poza nim.
+
 Nowe wydanie: zmień `"version"` w system.json (np. na `0.2.0`) i scal to do `main` —
 workflow `.github/workflows/release.yml` sam utworzy wydanie `v0.2.0` z plikami `foe-rpg.zip` i `system.json`.
 
