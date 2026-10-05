@@ -1,3 +1,4 @@
+import { clearFlag } from "./flags.mjs";
 import { rollTest, locationName } from "./rolls.mjs";
 import { hitTableFor, tableLocations, effectiveDT, woundsFrom, isMetalArmor } from "./combat.mjs";
 import { spendActions } from "./tracker.mjs";
@@ -25,7 +26,7 @@ export async function toggleStatus(actor, id, active) {
   await actor.toggleStatusEffect?.(id, { active, overlay: id === "dead" });
 }
 
-export const conditionsOf = actor => actor?.getFlag?.("foe-rpg", "conditions") ?? {};
+export const conditionsOf = actor => Object.fromEntries(Object.entries(actor?.getFlag?.("foe-rpg", "conditions") ?? {}).filter(([, v]) => v));
 
 export async function setCondition(actor, key, data) {
   await actor.setFlag("foe-rpg", `conditions.${key}`, data);
@@ -33,7 +34,7 @@ export async function setCondition(actor, key, data) {
 }
 
 export async function clearCondition(actor, key) {
-  await actor.unsetFlag("foe-rpg", `conditions.${key}`);
+  await clearFlag(actor, `conditions.${key}`);
   await toggleStatus(actor, CONDITIONS[key].status, false);
 }
 

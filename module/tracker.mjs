@@ -7,6 +7,8 @@
  */
 
 const { DialogV2 } = foundry.applications.api;
+import { clearFlag } from "./flags.mjs";
+
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
 const F = "foe-rpg";
@@ -164,7 +166,7 @@ export function registerTrackerHooks() {
       _id: c.id, [`flags.${F}.used`]: 0, ...(endSurprise ? { [`flags.${F}.surprised`]: false } : {})
     })));
     if (endSurprise) {
-      await combat.unsetFlag(F, "surprise");
+      await clearFlag(combat, "surprise");
       await combat.resetAll();
       ChatMessage.create({ content: `<div class="foe-card test"><div class="fc-tag"><span>PIPBUCK // KONIEC ZASKOCZENIA</span><span>runda ${changed.round}</span></div>
         <div class="fc-meta">Wszyscy rzucają inicjatywę od nowa (ikonka kości przy nazwie w trackerze).</div></div>` });
