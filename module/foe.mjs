@@ -22,10 +22,14 @@ Hooks.once("init", () => {
   // d100 − ¼ progu Agility; FoeCombat.rollInitiative pyta gracza: odjąć czy dodać (s. 436)
   CONFIG.Combat.initiative = { formula: "1d100 - @initMod", decimals: 0 };
 
-  const { Actors, Items } = foundry.documents.collections;
-  Actors.registerSheet("foe-rpg", FoeActorSheet, { types: ["character", "npc"], makeDefault: true, label: "FoE: karta postaci" });
-  Actors.registerSheet("foe-rpg", FoeVehicleSheet, { types: ["vehicle"], makeDefault: true, label: "FoE: karta pojazdu" });
-  Items.registerSheet("foe-rpg", FoeItemSheet, { makeDefault: true, label: "FoE: przedmiot" });
+  // v14: Actors/Items.registerSheet są przestarzałe — DocumentSheetConfig działa w v13 i v14
+  const SheetConfig = foundry.applications.apps?.DocumentSheetConfig;
+  const register = (cls, sheet, opts) => (SheetConfig?.registerSheet
+    ? SheetConfig.registerSheet(cls, "foe-rpg", sheet, opts)
+    : (cls === Actor ? foundry.documents.collections.Actors : foundry.documents.collections.Items).registerSheet("foe-rpg", sheet, opts));
+  register(Actor, FoeActorSheet, { types: ["character", "npc"], makeDefault: true, label: "FoE: karta postaci" });
+  register(Actor, FoeVehicleSheet, { types: ["vehicle"], makeDefault: true, label: "FoE: karta pojazdu" });
+  register(Item, FoeItemSheet, { makeDefault: true, label: "FoE: przedmiot" });
 
   registerCombatHooks();
   registerTrackerHooks();

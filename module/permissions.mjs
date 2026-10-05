@@ -50,16 +50,35 @@ export function registerPermissionSettings() {
   });
 }
 
-/** Tryb rzutu dla karty systemu: wybrany nad czatem, a u MG za przeciwników — opcjonalnie ukryty. */
+/** Tryby wiadomości: v14 „public/gm/blind/self/ic” (core.messageMode), v13 „publicroll/gmroll/blindroll/selfroll/roll” (core.rollMode). */
+const LEGACY = { publicroll: "public", roll: "public", gmroll: "gm", blindroll: "blind", selfroll: "self" };
+export const normMode = m => LEGACY[m] ?? m ?? "public";
+function currentMode() {
+  for (const key of ["messageMode", "rollMode"]) {
+    try { const v = game.settings.get("core", key); if (v) return normMode(v); } catch { /* brak ustawienia w tej wersji */ }
+  }
+  return "public";
+}
+
+/** Tryb dla karty systemu: wybrany nad czatem, a u MG za przeciwników — opcjonalnie ukryty. Zwraca public | gm | blind | self | ic. */
 export function rollModeFor(msg, options = {}) {
-  let mode = options.rollMode ?? game.settings.get("core", "rollMode");
-  if (mode === "publicroll" || mode === "roll") {
+  let mode = normMode(options.messageMode ?? options.rollMode ?? currentMode());
+  if (mode === "public" || mode === "ic") {
     const actor = msg.speaker?.actor ? game.actors?.get(msg.speaker.actor) : null;
     const tokenActor = msg.speaker?.token ? game.scenes?.get(msg.speaker.scene)?.tokens?.get(msg.speaker.token)?.actor : null;
     const who = tokenActor ?? actor;
-    if (isGM() && get("npcRollsPrivate") && who && !who.hasPlayerOwner) mode = "gmroll";
+    if (isGM() && get("npcRollsPrivate") && who && !who.hasPlayerOwner) mode = "gm";
   }
   return mode;
+}
+
+/** Odbiorcy dla trybu (to samo robi rdzeń; liczone tu, żeby działało w v13 i v14). */
+export function modeRecipients(mode) {
+  const gms = (game.users?.filter?.(u => u.isGM) ?? []).map(u => u.id);
+  if (mode === "gm") return { whisper: [...new Set([...gms, game.user.id])], blind: false };
+  if (mode === "blind") return { whisper: gms, blind: true };
+  if (mode === "self") return { whisper: [game.user.id], blind: false };
+  return null;
 }
 
 export function registerPermissionHooks() {
@@ -68,13 +87,8 @@ export function registerPermissionHooks() {
     if (userId !== game.user.id) return;
     if (!String(msg.content ?? "").includes("foe-card")) return;
     if (msg.whisper?.length || msg.blind) return;   // karta już prywatna
-    const mode = rollModeFor(msg, options);
-    if (!mode || mode === "publicroll" || mode === "roll") return;
-    if (typeof msg.applyRollMode === "function") msg.applyRollMode(mode);
-    else {
-      const d = ChatMessage.applyRollMode({}, mode);
-      msg.updateSource({ whisper: d.whisper ?? [], blind: !!d.blind });
-    }
+    const r = modeRecipients(rollModeFor(msg, options));
+    if (r) msg.updateSource(r);
   });
 
   // PD i poziom zmienia MG (awans i przyznanie PD przekazują opcję foeAdvance)
