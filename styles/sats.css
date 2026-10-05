@@ -1,0 +1,96 @@
+/* ==========================================================================
+   FoE: celownik S.A.T.S. (opcja świata; z modułu foe-sats) — nakładka nad planszą.
+   Kolory z systemu foe-rpg (--pip i pochodne; klasa .foe-rpg na nakładce),
+   sylwetka korzysta ze stylów .pip-body z karty postaci.
+   ========================================================================== */
+
+.foe-rpg.foe-sats {
+  position: fixed; inset: 0; z-index: 10000;
+  display: grid; grid-template-rows: auto 1fr auto auto;
+  font-family: var(--foe-mono); color: var(--pip);
+  text-shadow: 0 0 3px var(--pip-glow);
+  animation: foe-sats-in .35s ease-out;
+}
+.foe-sats .sats-tint { position: absolute; inset: 0; background: var(--pip); mix-blend-mode: color; opacity: .3; pointer-events: none; }
+.foe-sats .sats-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 30%, transparent 35%, rgba(0, 0, 0, .78) 100%),
+    repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, .16) 2px 3px);
+}
+body[data-foe-crt="off"] .foe-sats .sats-vignette { background: radial-gradient(ellipse 60% 50% at 50% 30%, transparent 35%, rgba(0, 0, 0, .78) 100%); }
+
+/* ---------- celownik na tokenie ---------- */
+.foe-sats .sats-reticle {
+  position: absolute; transform: translate(-50%, -50%); pointer-events: none;
+  border: 2px solid var(--pip); border-radius: 50%;
+  box-shadow: 0 0 14px var(--pip-glow), inset 0 0 14px var(--pip-glow);
+  animation: foe-sats-lock .45s ease-out, foe-sats-breathe 1.8s ease-in-out .45s infinite;
+}
+.foe-sats .sats-reticle::before, .foe-sats .sats-reticle::after {
+  content: ""; position: absolute; left: 50%; top: 50%; background: var(--pip); box-shadow: 0 0 6px var(--pip-glow);
+}
+.foe-sats .sats-reticle::before { width: 130%; height: 1px; transform: translate(-50%, -50%); mask: linear-gradient(to right, #000 0 18%, transparent 18% 82%, #000 82%); }
+.foe-sats .sats-reticle::after { width: 1px; height: 130%; transform: translate(-50%, -50%); mask: linear-gradient(to bottom, #000 0 18%, transparent 18% 82%, #000 82%); }
+
+/* ---------- nagłówek ---------- */
+.foe-sats .sats-head { position: relative; text-align: center; padding: 1rem 1rem 0; pointer-events: none; }
+.foe-sats .sats-logo { font-family: var(--foe-crt); font-size: 3rem; line-height: 1; letter-spacing: .35em; color: var(--pip-bright); text-shadow: 0 0 12px var(--pip-glow); }
+.foe-sats .sats-sub { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--pip-mid); }
+.foe-sats .sats-sub b { color: var(--pip-bright); }
+
+/* ---------- panel: sylwetka + lista ---------- */
+.foe-sats .sats-panel {
+  position: relative; grid-row: 3; justify-self: center;
+  width: min(1180px, calc(100vw - 2rem));
+  display: grid; grid-template-columns: minmax(0, 760px) minmax(240px, 1fr); gap: .8rem;
+  padding: .6rem; border: 1px solid var(--pip-dim); border-radius: 4px;
+  background: color-mix(in srgb, var(--pip-bg) 90%, transparent);
+  box-shadow: 0 0 0 1px #000, 0 0 24px var(--pip-faint);
+  animation: foe-sats-rise .4s ease-out;
+}
+.foe-sats .sats-panel.list-only { grid-template-columns: minmax(260px, 420px); }
+@media (max-width: 900px) { .foe-sats .sats-panel { grid-template-columns: 1fr; } }
+
+.foe-sats .sats-map { min-width: 0; }
+.foe-sats .pip-body { width: 100%; height: auto; display: block; max-height: 42vh; --dmg-light: #e0c020; --dmg-heavy: #d8402a; --dmg-crip: #ff2a1a; }
+.foe-rpg.foe-sats .pip-body .part.hot path { fill: color-mix(in srgb, var(--pip) 45%, #000); stroke: var(--pip-bright); stroke-width: 3.5; animation: foe-vats-blink .8s infinite; }
+.foe-rpg.foe-sats .pip-body .callout.hot .box { stroke: var(--pip-bright); stroke-width: 2; fill: color-mix(in srgb, var(--pip) 14%, rgba(0, 0, 0, .5)); }
+.foe-rpg.foe-sats .pip-body .callout .pct { font-family: var(--foe-crt); font-size: 26px; fill: var(--pip-bright); }
+.foe-rpg.foe-sats .pip-body .callout.mid .pct { fill: var(--dmg-light); }
+.foe-rpg.foe-sats .pip-body .callout.low .pct { fill: var(--pip-alert); }
+
+.foe-sats .sats-list { list-style: none; margin: 0; padding: 0; max-height: 42vh; overflow-y: auto; border-left: 1px solid var(--pip-line); }
+.foe-sats .sats-list li {
+  display: grid; grid-template-columns: 1fr auto; column-gap: .6rem; align-items: baseline;
+  padding: .25rem .5rem; cursor: pointer; border-left: 3px solid transparent;
+}
+.foe-sats .sats-list li.sub { padding-left: 1.4rem; }
+.foe-sats .sats-list li.sub .nm::before { content: "└ "; color: var(--pip-dim); }
+.foe-sats .sats-list li.random { border-top: 1px dotted var(--pip-line); margin-top: .2rem; }
+.foe-sats .sats-list li.hot { background: var(--pip-faint); border-left-color: var(--pip); }
+.foe-sats .sats-list .nm { text-transform: uppercase; letter-spacing: .04em; color: var(--pip-bright); font-weight: 700; }
+.foe-sats .sats-list .pct { font-family: var(--foe-crt); font-size: 1.7rem; line-height: 1; color: var(--pip-bright); }
+.foe-sats .sats-list li.mid .pct { color: #e0c020; }
+.foe-sats .sats-list li.low .pct { color: var(--pip-alert); }
+.foe-sats .sats-list small { grid-column: 1 / -1; color: var(--pip-dim); font-size: 11px; text-shadow: none; }
+
+/* ---------- stopka ---------- */
+.foe-sats .sats-foot {
+  position: relative; grid-row: 4; display: flex; justify-content: center; align-items: center; gap: 1rem;
+  padding: .5rem 1rem .8rem; font-size: 12px; color: var(--pip-mid); text-transform: uppercase; letter-spacing: .05em;
+}
+.foe-sats .sats-foot button {
+  width: auto; padding: .2rem .8rem; font-family: var(--foe-mono); font-size: 12px; text-transform: uppercase;
+  color: var(--pip); background: rgba(0, 0, 0, .5); border: 1px solid var(--pip-mid); border-radius: 2px; cursor: pointer;
+}
+.foe-sats .sats-foot button:hover { color: #000; background: var(--pip); box-shadow: 0 0 8px var(--pip-glow); }
+
+/* ---------- przycisk w oknie ataku ---------- */
+.foe-rpg .dlg-attack button.foe-sats-open { flex: 0 0 auto; width: 2rem; padding: 0; }
+
+@keyframes foe-sats-in { from { opacity: 0; } }
+@keyframes foe-sats-rise { from { opacity: 0; transform: translateY(24px); } }
+@keyframes foe-sats-lock { from { opacity: 0; transform: translate(-50%, -50%) scale(2.2) rotate(45deg); } }
+@keyframes foe-sats-breathe { 50% { box-shadow: 0 0 22px var(--pip-glow), inset 0 0 22px var(--pip-glow); } }
+@keyframes foe-vats-blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }

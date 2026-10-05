@@ -288,6 +288,13 @@ Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 
+Celownik S.A.T.S. (opcja, domyślnie wyłączona; na podstawie modułu foe-sats): MG włącza go w Ustawieniach gry →
+Fallout: Equestria RPG → „Celownik S.A.T.S. (opcja)”. Po namierzeniu celu (T) i zaznaczeniu SATS w oknie ataku
+kamera najeżdża na cel, a na ekranie pojawia się jego sylwetka V.A.T.S. z szansą trafienia każdej części ciała —
+klik ustawia strzał celowany, Esc wychodzi z SATS. Przycisk ⌖ przy „Cel ataku” otwiera celownik bez zaznaczania SATS.
+Każdy gracz może u siebie wyłączyć auto-otwieranie, przybliżanie kamery i ustawić powrót kamery. Gdy w świecie
+jest włączony osobny moduł foe-sats, wersja wbudowana się nie uruchamia (nie dubluje się).
+
 Grafiki kampanii (folder `assets/gardens/`, w Foundry pod `systems/foe-rpg/assets/gardens/`):
 `gardens-logo.webp` (logo Gardens 97), `gardens-scena.webp` (scena z logo Gardens 97, 1920×1080),
 `stodola-mapa.webp` (mapa stodoły do sceny) i `stodola-plan.png` (plan stodoły z numerami dla MG).

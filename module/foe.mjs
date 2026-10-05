@@ -14,6 +14,7 @@ import { FoeCombat, registerTrackerHooks, registerTrackerSettings } from "./trac
 import { registerWeatherSettings, registerWeatherHooks, setWeather } from "./weather.mjs";
 import { registerPerkSettings } from "./perks.mjs";
 import { registerChemSettings, registerChemHooks } from "./chems.mjs";
+import { registerSatsSettings, registerSatsHooks } from "./sats-targeting.mjs";
 
 Hooks.once("init", () => {
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData, vehicle: VehicleData };
@@ -52,6 +53,8 @@ Hooks.once("init", () => {
   registerDisplaySettings();
   registerCreatorSettings();
   registerCombatSettings();
+  registerSatsSettings();
+  registerSatsHooks();
   game.foe = { openCatalog, setWeather };
 });
 
