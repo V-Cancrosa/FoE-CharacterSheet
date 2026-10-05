@@ -289,7 +289,7 @@ Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 
 Grafiki kampanii (folder `assets/gardens/`, w Foundry pod `systems/foe-rpg/assets/gardens/`):
-`gardens-logo.webp` (logo Gardens), `gardens-scena.webp` (scena z logo, 1920×1080),
+`gardens-logo.webp` (logo Gardens 97), `gardens-scena.webp` (scena z logo Gardens 97, 1920×1080),
 `stodola-mapa.webp` (mapa stodoły do sceny) i `stodola-plan.png` (plan stodoły z numerami dla MG).
 Pliki w folderze systemu są nadpisywane przy aktualizacji — własne zmiany trzymaj poza nim.
 
