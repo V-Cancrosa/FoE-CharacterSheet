@@ -8,6 +8,7 @@
  *   - Fixer znosi odstawienie, Mint-als zaostrzają je po każdym użyciu w uzależnieniu,
  *   - Dash + alkohol („krew ghula”): rzut END ½ albo zawał.
  */
+import { tint } from "./dice3d.mjs";
 import { rollTest } from "./rolls.mjs";
 import { activeChems, addictionsOf, worldTime } from "./body.mjs";
 import { clearCondition, conditionsOf } from "./conditions.mjs";
@@ -100,7 +101,7 @@ export async function useChem(actor, item) {
     lines.push(keys.length ? "trucizna zneutralizowana" : chem.cure === "natural" ? "leczy naturalne trucizny" : "leczy trucizny");
   }
   if (chem.heal) {
-    const r = await new Roll(chem.heal).evaluate();
+    const r = tint(await new Roll(chem.heal).evaluate(), "heal");
     const healed = await healWounds(actor, r.total, { source: item.name, quiet: true });
     lines.push(`leczy ${r.total} ${r.total === 1 ? "ranę" : "ran"}${healed?.text ? ` (${healed.text})` : ""}`);
   }

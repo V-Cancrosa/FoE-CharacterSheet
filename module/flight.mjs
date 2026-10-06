@@ -8,6 +8,7 @@
  *   - wykonanie: rzut Flight na MFD manewru (pogoda i ciężar ponad 100 lb doliczają się same),
  *   - upadek: 1d20 na 10 ft (kontrolowany 1d10), ignoruje DT pancerza, lokacja k8 (ze skrzydłami) albo k6; > 100 ft — każda lokacja.
  */
+import { tint } from "./dice3d.mjs";
 import { MFD_STEPS } from "./data.mjs";
 import { rollContext } from "./effects.mjs";
 import { promptMfd, rollTest, stepIndex } from "./rolls.mjs";
@@ -172,12 +173,12 @@ export async function rollFall(actor, { feet = null, controlled = null } = {}) {
   }
   const formula = fallFormula(feet, controlled);
   if (!formula) return warn("Upadek z mniej niż 10 ft nie zadaje obrażeń.");
-  const roll = await new Roll(formula).evaluate();
+  const roll = tint(await new Roll(formula).evaluate(), "damage");
   const everywhere = feet > 100;
   const hasWings = sys.skills.flight?.known !== false || /pegaz|pegas|gryf|griff|alikorn|alicorn/i.test(sys.race ?? "");
   let loc = null, locRoll = null;
   if (!everywhere) {
-    locRoll = await new Roll(hasWings ? "1d8" : "1d6").evaluate();
+    locRoll = tint(await new Roll(hasWings ? "1d8" : "1d6").evaluate(), "hitloc");
     loc = (hasWings ? D8 : D6)[locRoll.total];
   }
   const LBL = { frLeg: "prawa przednia noga", flLeg: "lewa przednia noga", rrLeg: "prawa tylna noga", rlLeg: "lewa tylna noga", torso: "tułów", wings: "skrzydła", head: "głowa" };

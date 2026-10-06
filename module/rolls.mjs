@@ -1,3 +1,4 @@
+import { markCrit, tint } from "./dice3d.mjs";
 import { MFD_STEPS, LOCATIONS } from "./data.mjs";
 import { actorEffects, sumFx, hitsAttack } from "./effects.mjs";
 import {
@@ -133,7 +134,7 @@ function achievedStep(total, baseTn, mod) {
 async function rollHit(table, melee) {
   const rolls = [];
   for (let n = 0; n < 10; n++) {
-    const r = await new Roll("1d20").evaluate();
+    const r = tint(await new Roll("1d20").evaluate(), "hitloc");
     rolls.push(r);
     const h = hitLocation(table, r.total, { melee });
     if (h.loc) return { ...h, rerolls: n, rolls };
@@ -164,6 +165,8 @@ export async function rollTest(actor, data) {
   else if (r <= tn) { outcome = "Sukces"; cls = "success"; }
   else { outcome = "Porażka"; cls = "fail"; }
 
+  markCrit(roll, cls);
+  tint(roll, rerolls ? "luck" : data.attack?.sats ? "sats" : /^(Zaklęcie|Celowanie)/.test(data.label ?? "") ? "magic" : "test");   // efekt Dice So Nice na krytyk (jeśli moduł jest włączony)
   // Krytyczna porażka nie osiąga żadnego poziomu
   const ach = cls === "crit-fail" ? null : achievedStep(r, data.baseTn, data.mod);
   const failed = cls === "fail" || cls === "crit-fail";
@@ -319,7 +322,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   if (c.extra) formula = `${formula} + ${c.extra}`;
   let roll;
   try {
-    roll = await new Roll(formula, actor.getRollData?.() ?? {}).evaluate({ maximize: !!c.maximize || !!ammoV?.maxDamage });
+    roll = tint(await new Roll(formula, actor.getRollData?.() ?? {}).evaluate({ maximize: !!c.maximize || !!ammoV?.maxDamage }), item.type === "spell" ? "magic" : "damage");
   } catch (err) {
     ui.notifications.error(`Nieprawidłowa formuła obrażeń „${formula}” — popraw ją w broni (${err.message}).`);
     return null;

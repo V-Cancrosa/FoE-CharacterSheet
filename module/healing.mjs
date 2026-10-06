@@ -9,6 +9,7 @@
  *   - naturalnie: 1 rana na lokację za 8 h odpoczynku (maks. 3 na dobę, pod opieką medyka 75+ — ×2);
  *     okaleczona lokacja — 1 na dobę.
  */
+import { tint } from "./dice3d.mjs";
 import { LOCATIONS } from "./data.mjs";
 import { rollTest } from "./rolls.mjs";
 import { clearCondition, conditionsOf } from "./conditions.mjs";
@@ -174,7 +175,7 @@ export async function useHealItem(actor, item) {
     formula = potionFormula(med.rank ?? 0, kind.mult);
     await item.update({ "system.qty": item.system.qty - 1 });
   }
-  const roll = await new Roll(formula).evaluate();
+  const roll = tint(await new Roll(formula).evaluate(), "heal");
   const healed = await healWounds(target, roll.total, { source: item.name, mends: !!kind.mends });
   if (!healed) return null;
   if (talisman && kind.rads) {

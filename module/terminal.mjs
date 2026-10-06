@@ -5,6 +5,7 @@
  * Gracze mają do terminala dostęp „ograniczony” — nie mogą go zmieniać, więc każda zmiana stanu (odblokowanie, blokada,
  * komendy) idzie przez kanał systemu do przeglądarki aktywnego MG, który ją zapisuje. Rzuty robi gracz u siebie.
  */
+import { tint } from "./dice3d.mjs";
 import { SKILLS } from "./data.mjs";
 import { rollContext } from "./effects.mjs";
 import { promptMfd, rollTest } from "./rolls.mjs";
@@ -222,7 +223,7 @@ async function runCommand(terminal, c) {
 /** Wybuch terminala-pułapki: karta obrażeń obszarowych z przyciskiem „Nanieś obrażenia” dla tego, kto go włączył. */
 async function explode(terminal, tokenUuid) {
   const ex = TRAP_EXPLOSIVES[terminal.system.trap.explosive] ?? TRAP_EXPLOSIVES.frag;
-  const roll = await new Roll(ex.formula).evaluate();
+  const roll = tint(await new Roll(ex.formula).evaluate(), "trap");
   return ChatMessage.create({
     speaker: { alias: terminal.name },
     rolls: [roll],
