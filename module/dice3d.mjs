@@ -58,12 +58,12 @@ const byRollOn = () => {
   try { return !!game.modules?.get?.("dice-so-nice")?.active && !!game.settings.get(F, "dice3dByRoll"); } catch { return false; }
 };
 
-/** Opcja gracza: kolor kości według rodzaju rzutu (wygląd idzie z rzutem, więc inni widzą te same kolory). */
+/** Opcja gracza (domyślnie włączona): kolor kości według rodzaju rzutu (wygląd idzie z rzutem, więc inni widzą te same kolory). */
 export function registerDice3dSettings() {
   game.settings.register(F, "dice3dByRoll", {
     name: "Kości 3D: kolor według rodzaju rzutu",
-    hint: "Wymaga modułu Dice So Nice. Twoje kości zmieniają wygląd zależnie od rzutu: test — PipBuck (kolor ekranu), SATS, lokacja trafienia, obrażenia, magia, leczenie, karta szczęścia, pułapka. Wyłączone — Twój zestaw z ustawień Dice So Nice.",
-    scope: "client", config: true, type: Boolean, default: false
+    hint: "Wymaga modułu Dice So Nice. Twoje kości zmieniają wygląd zależnie od rzutu: test — PipBuck (kolor ekranu), SATS, lokacja trafienia, obrażenia, magia, leczenie, karta szczęścia, pułapka. Wyłącz, żeby używać zestawu wybranego w ustawieniach Dice So Nice.",
+    scope: "client", config: true, type: Boolean, default: true
   });
 }
 
