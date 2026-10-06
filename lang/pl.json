@@ -3,7 +3,8 @@
     "Actor": {
       "character": "Postać",
       "npc": "NPC",
-      "vehicle": "Pojazd"
+      "vehicle": "Pojazd",
+      "terminal": "Terminal"
     },
     "Item": {
       "weapon": "Broń",
