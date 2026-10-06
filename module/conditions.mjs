@@ -1,3 +1,4 @@
+import { tint } from "./dice3d.mjs";
 import { clearFlag } from "./flags.mjs";
 import { rollTest, locationName } from "./rolls.mjs";
 import { hitTableFor, tableLocations, effectiveDT, woundsFrom, isMetalArmor } from "./combat.mjs";
@@ -52,7 +53,7 @@ function ongoingDT(actor, loc, mode) {
 
 /** Obrażenia na każdą lokację celu (jeden rzut). Zwraca linie do karty czatu. */
 async function damageAllLocations(actor, formula, mode) {
-  const r = await new Roll(formula).evaluate();
+  const r = tint(await new Roll(formula).evaluate(), "damage");
   const sys = actor.system;
   const table = hitTableFor(sys.race);
   const update = {};

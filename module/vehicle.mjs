@@ -2,6 +2,7 @@
  * Pojazdy w grze: załoga, sterowanie, broń pokładowa, taranowanie, zderzenia i naprawa.
  * Zasady: vehicle-data.mjs (z podręcznika: tabela XLI, zderzenia Speed Lines, zaprzęg; reszta — zasady domowe).
  */
+import { tint } from "./dice3d.mjs";
 import { SKILLS, ATTRS } from "./data.mjs";
 import { rollContext } from "./effects.mjs";
 import { promptMfd, rollTest } from "./rolls.mjs";
@@ -244,13 +245,13 @@ export async function ramWithVehicle(vehicle) {
   const bonus = ramBonusDice(sys.dmgPerWound, tDw);
   const crit = res === "crit-success";
   const formula = `${n + bonus}d20`;
-  const hitRoll = await new Roll(formula).evaluate(crit ? { maximize: true } : {});
+  const hitRoll = tint(await new Roll(formula).evaluate(crit ? { maximize: true } : {}), "damage");
   const speaker = ChatMessage.getSpeaker({ actor: pilot });
   await collisionCard(speaker, {
     title: `Taranowanie: ${target.name}`, tag: "TARANOWANIE", formula, bonus, roll: hitRoll, targets: [targetTok.document?.uuid],
     loc: "torso", notes: [`prędkość ${speed} ft${extra.tspeed ? ` (w tym cel ${extra.tspeed} ft)` : ""}`, ...(crit ? ["krytyk: maksymalne obrażenia"] : [])]
   });
-  const selfRoll = await new Roll(base).evaluate();
+  const selfRoll = tint(await new Roll(base).evaluate(), "damage");
   await collisionCard(speaker, {
     title: `Odrzut: ${vehicle.name}`, tag: "TARANOWANIE", formula: base, roll: selfRoll, targets: [tokenUuid(vehicle)], loc: "torso",
     notes: ["taranujący obrywa przodem kadłuba (zasada domowa)"]
@@ -283,7 +284,7 @@ export async function crashVehicle(vehicle) {
   const formula = fall ? fallFormula(pick.feet) : collisionFormula(pick.speed);
   if (!formula) return warn(fall ? "Upadek z mniej niż 10 ft nie zadaje obrażeń." : "Prędkość poniżej 20 ft nie zadaje obrażeń.");
   const speaker = ChatMessage.getSpeaker({ actor: vehicle });
-  const roll = await new Roll(formula).evaluate();
+  const roll = tint(await new Roll(formula).evaluate(), "damage");
   const everywhere = fall && pick.feet > 100;
   await collisionCard(speaker, {
     title: `${fall ? "Katastrofa" : "Zderzenie"}: ${vehicle.name}`, tag: fall ? "KATASTROFA" : "ZDERZENIE", formula, roll,
@@ -295,7 +296,7 @@ export async function crashVehicle(vehicle) {
     if (inside.length) {
       const exposed = sys.locations.torso.isCrippled || sys.areaState?.head === "lethal";
       const crewFormula = exposed ? formula : formula.replace(/d20$/, "d10");
-      const crewRoll = await new Roll(crewFormula).evaluate();
+      const crewRoll = tint(await new Roll(crewFormula).evaluate(), "damage");
       await collisionCard(speaker, {
         title: `Załoga: ${vehicle.name}`, tag: "ZDERZENIE", formula: crewFormula, roll: crewRoll,
         targets: inside.map(c => tokenUuid(c.actor)), loc: "torso", aoe: everywhere,

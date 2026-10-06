@@ -18,7 +18,7 @@ import { registerSatsSettings, registerSatsHooks } from "./sats-targeting.mjs";
 import { terminalDataClass } from "./terminal-data.mjs";
 import { FoeTerminalSheet } from "./terminal-sheet.mjs";
 import { registerTerminalSettings, registerTerminalHooks } from "./terminal.mjs";
-import { registerDice3d } from "./dice3d.mjs";
+import { registerDice3d, registerDice3dSettings } from "./dice3d.mjs";
 
 Hooks.once("init", () => {
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData, vehicle: VehicleData, terminal: terminalDataClass() };
@@ -63,6 +63,7 @@ Hooks.once("init", () => {
   registerTerminalSettings();
   registerTerminalHooks();
   registerDice3d();
+  registerDice3dSettings();
   game.foe = { openCatalog, setWeather };
 });
 

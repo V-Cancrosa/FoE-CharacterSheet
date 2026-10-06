@@ -7,6 +7,7 @@
 const F = "foe-rpg";
 const T = `systems/${F}/assets/dice`;
 const CATEGORY = "Fallout: Equestria";
+const KINDS = "Fallout: Equestria — rodzaje rzutów";
 export const SFX_ID = "foe-rpg";
 export const SFX = { success: "Krytyczny sukces", fail: "Krytyczna porażka" };
 
@@ -32,8 +33,51 @@ export function colorsets() {
     { name: "foe-cap", description: "Kapsel", category: CATEGORY, foreground: "#a8231d", background: "#c9c4b8", outline: "#3b3b3b", edge: "#8e897e", texture: "foe-cap", material: "metal" },
     { name: "foe-radiation", description: "Radiacja", category: CATEGORY, foreground: "#111111", background: "#f2c200", outline: "#f2c200", edge: "#1a1a1a", texture: "foe-hazard", material: "plastic" },
     { name: "foe-zebra", description: "Zebra", category: CATEGORY, foreground: "#ff3b3b", background: "#f4f1ea", outline: "#000000", edge: "#111111", texture: "foe-zebra", material: "plastic" },
-    { name: "foe-enclave", description: "Enklawa", category: CATEGORY, foreground: "#d8d8d8", background: "#141414", outline: "#000000", edge: "#5a5a5a", texture: "none", material: "metal" }
+    { name: "foe-enclave", description: "Enklawa", category: CATEGORY, foreground: "#d8d8d8", background: "#141414", outline: "#000000", edge: "#5a5a5a", texture: "none", material: "metal" },
+    // rodzaje rzutów (opcja „kolor według rodzaju rzutu”)
+    { name: "foe-sats", description: "Rzut: S.A.T.S.", category: KINDS, foreground: "#eaffef", background: "#0b3d1e", outline: "#000000", edge: "#4dff8a", texture: "none", material: "glass", font: "FoE VT323" },
+    { name: "foe-hitloc", description: "Rzut: lokacja trafienia", category: KINDS, foreground: "#ff6a4d", background: "#262626", outline: "#000000", edge: "#ff6a4d", texture: "none", material: "plastic" },
+    { name: "foe-damage", description: "Rzut: obrażenia", category: KINDS, foreground: "#f3dcb4", background: "#6b2410", outline: "#2a0d05", edge: "#3d1407", texture: "foe-cap", material: "metal" },
+    { name: "foe-magic", description: "Rzut: magia", category: KINDS, foreground: "#f3e3ff", background: "#4b2a7a", outline: "#1e0f33", edge: "#b98cff", texture: "none", material: "glass" },
+    { name: "foe-heal", description: "Rzut: leczenie", category: KINDS, foreground: "#c8102e", background: "#f0f0f0", outline: "#ffffff", edge: "#c8102e", texture: "none", material: "plastic" },
+    { name: "foe-luck", description: "Rzut: karta szczęścia", category: KINDS, foreground: "#ffd700", background: "#1f5c2a", outline: "#0a2410", edge: "#ffd700", texture: "none", material: "metal" }
   ];
+}
+
+/** Zestaw dla rodzaju rzutu; test — PipBuck w kolorze ekranu gracza. */
+export function colorsetFor(kind) {
+  if (kind === "test") {
+    let pip = "green";
+    try { pip = game.settings.get(F, "pipColor") || "green"; } catch {}
+    return `foe-pipbuck-${PIP[pip] ? pip : "green"}`;
+  }
+  return { sats: "foe-sats", hitloc: "foe-hitloc", damage: "foe-damage", magic: "foe-magic", heal: "foe-heal", luck: "foe-luck", trap: "foe-radiation" }[kind] ?? null;
+}
+
+const byRollOn = () => {
+  try { return !!game.modules?.get?.("dice-so-nice")?.active && !!game.settings.get(F, "dice3dByRoll"); } catch { return false; }
+};
+
+/** Opcja gracza: kolor kości według rodzaju rzutu (wygląd idzie z rzutem, więc inni widzą te same kolory). */
+export function registerDice3dSettings() {
+  game.settings.register(F, "dice3dByRoll", {
+    name: "Kości 3D: kolor według rodzaju rzutu",
+    hint: "Wymaga modułu Dice So Nice. Twoje kości zmieniają wygląd zależnie od rzutu: test — PipBuck (kolor ekranu), SATS, lokacja trafienia, obrażenia, magia, leczenie, karta szczęścia, pułapka. Wyłączone — Twój zestaw z ustawień Dice So Nice.",
+    scope: "client", config: true, type: Boolean, default: false
+  });
+}
+
+/** Nadaj kościom rzutu zestaw dla rodzaju rzutu (gdy opcja jest włączona). */
+export function tint(roll, kind) {
+  if (!roll?.dice?.length || !byRollOn()) return roll;
+  const colorset = colorsetFor(kind);
+  if (!colorset) return roll;
+  for (const die of roll.dice) {
+    die.options ??= {};
+    die.options.colorset = colorset;
+    die.options.appearance = { ...(die.options.appearance ?? {}), colorset };
+  }
+  return roll;
 }
 
 export function registerDice3d() {
