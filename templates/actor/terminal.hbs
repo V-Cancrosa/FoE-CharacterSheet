@@ -1,0 +1,173 @@
+<section class="tab active terminal-body">
+{{#if config}}
+  <header class="foe-header">
+    <div class="pip-bar"><span>PIPBUCK 3000 · REJESTR TERMINALI</span><span>KONFIGURACJA MG</span></div>
+    <div class="foe-id">
+      <img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
+      <div class="identity">
+        <input class="name" type="text" name="name" value="{{actor.name}}" placeholder="Nazwa terminala">
+        <div class="row veh-row">
+          <label>Typ <select name="system.kind">{{#each kinds}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+          <label title="Trudność hakowania (MFD rzutu Science; w minigrze — długość słów i mniej podpowiedzi)">Zabezpieczenie <select name="system.security">{{#each security}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+        </div>
+        <div class="row veh-row">
+          <label title="Minimalna ranga Science, żeby w ogóle próbować hakować (s. 61)">Wymagane Science <input type="number" name="system.scienceReq" value="{{t.scienceReq}}" min="0" step="5"></label>
+          <label class="cbx"><input type="checkbox" name="system.powered" {{#if t.powered}}checked{{/if}}> zasilany</label>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="veh-actions">
+    <a data-action="toggleView" title="Zobacz ekran tak, jak widzą go gracze"><i class="fa-solid fa-display"></i> Podgląd ekranu</a>
+    <a data-action="resetTerminal" title="Wyloguj, zdejmij blokady, przerwij minigrę, wyczyść dziennik i wyłącz terminal"><i class="fa-solid fa-rotate-left"></i> Reset stanu</a>
+  </div>
+  <p class="hint">Gracze otwierają terminal klikając jego token (dostęp „ograniczony” ustawia się sam przy tworzeniu). Widzą tylko ekran komputera. Zmiany stanu wykonuje przeglądarka MG — musisz być zalogowany.{{#if minigame}} Hakowanie: <b>minigra</b> (ustawienia świata).{{else}} Hakowanie: <b>rzut Science</b> (minigrę włączysz w ustawieniach świata).{{/if}}</p>
+
+  <div class="term-config">
+    <fieldset>
+      <legend>Ekran i hasła</legend>
+      <label class="atk-row">Nagłówek <input type="text" name="system.brand" value="{{t.brand}}" placeholder="domyślny dla typu"></label>
+      <label class="atk-row">Hasło <input type="text" name="system.password" value="{{t.password}}" placeholder="brak — tylko hakowanie"></label>
+      <label class="atk-row">Hasło administratora <input type="text" name="system.adminPassword" value="{{t.adminPassword}}" placeholder="brak"></label>
+      <label class="atk-row stack">Powitanie (widać przed zalogowaniem)<textarea name="system.welcome" rows="2">{{t.welcome}}</textarea></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Wpisy ({{entries.length}}) <a data-action="addEntry" title="Dodaj wpis"><i class="fa-solid fa-plus"></i></a></legend>
+      {{#each entries}}
+      <div class="term-row">
+        <div class="row">
+          <input type="text" name="te.{{i}}.title" value="{{title}}" placeholder="Tytuł">
+          <select name="te.{{i}}.access" title="Kto widzi wpis">{{#each access}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+          <a data-action="delEntry" data-i="{{i}}" title="Usuń wpis"><i class="fa-solid fa-trash"></i></a>
+        </div>
+        <textarea name="te.{{i}}.body" rows="4" placeholder="Treść (zwykły tekst, nowe linie zostają)">{{body}}</textarea>
+      </div>
+      {{else}}<p class="hint">Brak wpisów. Dodaj dzienniki, notatki, e-maile — każdy z progiem dostępu.</p>{{/each}}
+    </fieldset>
+
+    <fieldset>
+      <legend>Komendy ({{commands.length}}) <a data-action="addCommand" title="Dodaj komendę"><i class="fa-solid fa-plus"></i></a></legend>
+      {{#each commands}}
+      <div class="term-row">
+        <div class="row">
+          <input type="text" name="tc.{{i}}.label" value="{{label}}" placeholder="Napis na ekranie">
+          <select name="tc.{{i}}.kind">{{#each kinds}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+          <select name="tc.{{i}}.action">{{#each actions}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+          <select name="tc.{{i}}.access" title="Kto może użyć">{{#each access}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+          <a data-action="delCommand" data-i="{{i}}" title="Usuń komendę"><i class="fa-solid fa-trash"></i></a>
+        </div>
+        {{#if isMessage}}
+        <input type="text" name="tc.{{i}}.text" value="{{text}}" placeholder="Treść komunikatu na czacie (np. ALARM — sektor B)">
+        {{else}}
+        <div class="row hint">
+          <span>Połączone: <b>{{#if targetNames}}{{targetNames}}{{else}}nic{{/if}}</b></span>
+          <a data-action="pickTargets" data-i="{{i}}" title="Dodaj zaznaczone na scenie ({{#if (eq kind "door")}}drzwi — warstwa ścian{{else}}tokeny{{/if}})"><i class="fa-solid fa-link"></i> dodaj zaznaczone</a>
+          <a data-action="clearTargets" data-i="{{i}}" title="Odłącz wszystko"><i class="fa-solid fa-link-slash"></i></a>
+        </div>
+        {{/if}}
+      </div>
+      {{else}}<p class="hint">Brak komend. Np. „Otwórz drzwi” (połącz drzwi ze sceny), „Wyłącz wieżyczki” (połącz tokeny), „Alarm” (komunikat).</p>{{/each}}
+    </fieldset>
+
+    <fieldset>
+      <legend>Pułapka (Rigged Terminal, s. 597)</legend>
+      <div class="row">
+        <label class="cbx"><input type="checkbox" name="system.trap.armed" {{#if t.trap.armed}}checked{{/if}}> uzbrojona</label>
+        <label>Ładunek <select name="system.trap.explosive">{{#each explosives}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+        <label title="Trudność oględzin i rozbrajania (Explosives)">Wykrycie <select name="system.trap.noticeMfd">{{#each mfds}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+      </div>
+      <p class="hint">Włączenie uzbrojonego terminala: wybuch w postać, która go włączyła (karta z „Nanieś obrażenia”). Oględziny i rozbrajanie — Explosives; krytyczna porażka też odpala ładunek.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Stan</legend>
+      <div class="row">
+        <label>Dostęp <select name="system.state.access">{{#each accessStates}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+        <label title="0 — działa; 1 — hakowanie tylko z Computer Whiz (hasło działa); 2 — zablokowany na stałe">Blokady <input type="number" name="system.state.lockouts" value="{{t.state.lockouts}}" min="0" max="2"></label>
+        <label class="cbx"><input type="checkbox" name="system.state.booted" {{#if t.state.booted}}checked{{/if}}> uruchomiony</label>
+        <label class="cbx"><input type="checkbox" name="system.state.trapFound" {{#if t.state.trapFound}}checked{{/if}}> pułapka wykryta</label>
+      </div>
+      {{#if t.state.log.length}}<pre class="term-log small">{{#each t.state.log}}{{this}}
+{{/each}}</pre>{{/if}}
+    </fieldset>
+
+    <fieldset>
+      <legend>Notatki MG</legend>
+      <textarea name="system.notes" rows="3">{{t.notes}}</textarea>
+    </fieldset>
+  </div>
+{{else}}
+  <div class="term-screen kind-{{screen.kind}}">
+    <div class="term-head">
+      <div>{{screen.brand}}</div>
+      <div class="term-sub">{{screen.name}}{{#if screen.admin}} · ADMIN{{/if}}</div>
+    </div>
+    <div class="term-body">
+      {{#if (eq screen.mode "off")}}
+        <div class="term-big">BRAK ZASILANIA</div>
+      {{else if (eq screen.mode "locked")}}
+        <div class="term-big alert">TERMINAL ZABLOKOWANY</div>
+        <p>SKONTAKTUJ SIĘ Z ADMINISTRATOREM.</p>
+      {{else if (eq screen.mode "denied")}}
+        <div class="term-big alert">ODMOWA DOSTĘPU</div>
+        {{#each screen.why}}<p>&gt; {{this}}</p>{{/each}}
+      {{else if (eq screen.mode "boot")}}
+        <p>&gt; ekran ciemny. Przełącznik zasilania pod obudową.</p>
+        {{#if screen.trapFound}}<p class="alert">&gt; POD OBUDOWĄ: ŁADUNEK WYBUCHOWY PODPIĘTY DO ZASILANIA</p>{{/if}}
+        <div class="term-menu">
+          <button type="button" data-action="boot">[ Włącz terminal ]</button>
+          {{#if screen.trapFound}}<button type="button" data-action="disarm">[ Rozbrój ładunek (Explosives) ]</button>
+          {{else}}<button type="button" data-action="inspect">[ Obejrzyj obudowę (Explosives) ]</button>{{/if}}
+        </div>
+      {{else if (eq screen.mode "game")}}
+        <p>&gt; WYMAGANE HASŁO · PRÓBY: {{#each screen.game.tries}}<span class="term-try">▮</span>{{/each}}</p>
+        <div class="term-dump">
+          {{#each screen.game.cols}}
+          <div class="col">
+            {{#each this}}<div class="dl"><span class="addr">{{addr}}</span> {{#each parts}}{{#if word}}<a class="w" data-action="guess" data-word="{{word}}">{{t}}</a>{{else if dud}}<span class="dud">{{t}}</span>{{else}}<span>{{t}}</span>{{/if}}{{/each}}</div>{{/each}}
+          </div>
+          {{/each}}
+        </div>
+        <div class="term-menu">
+          {{#if screen.game.hints}}<button type="button" data-action="hint">[ Usuń atrapę — Science: {{screen.game.hints}} ]</button>{{/if}}
+          <button type="button" data-action="abortGame">[ Przerwij ]</button>
+        </div>
+      {{else if (eq screen.mode "entry")}}
+        <div class="term-title">{{screen.entry.title}}</div>
+        <div class="term-text">{{#each screen.entry.lines}}<div>{{this}}&nbsp;</div>{{/each}}</div>
+        <div class="term-menu">
+          <button type="button" data-action="back">[ &lt; Wróć ]</button>
+          <button type="button" data-action="download" data-id="{{screen.entry.id}}">[ Zgraj na holotaśmę ]</button>
+        </div>
+      {{else}}
+        {{#if screen.welcome}}<p class="term-welcome">{{screen.welcome}}</p>{{/if}}
+        {{#if (eq screen.mode "login")}}
+          <p>&gt; WITAJ. PODAJ HASŁO{{#if screen.lockedOnce}} (WŁAMANIE ZABLOKOWANE){{/if}}:</p>
+          <div class="term-login">&gt; <input type="password" name="password" autocomplete="off"> <button type="button" data-action="login">[ Zaloguj ]</button></div>
+          <div class="term-menu">
+            <button type="button" data-action="hack" {{#unless screen.canHack}}title="{{#each screen.why}}{{this}}; {{/each}}"{{/unless}}>[ {{#if screen.minigame}}Zrzut pamięci (hakowanie){{else}}Hakuj (Science){{/if}} ]</button>
+          </div>
+          {{#if screen.entries.length}}<div class="term-title">PLIKI PUBLICZNE</div>{{/if}}
+        {{else}}
+          <div class="term-title">MENU{{#if screen.admin}} ADMINISTRATORA{{/if}}</div>
+        {{/if}}
+        <div class="term-menu">
+          {{#each screen.entries}}<button type="button" data-action="openEntry" data-id="{{id}}">[ {{title}} ]</button>{{/each}}
+          {{#if (ne screen.mode "login")}}
+            {{#each screen.commands}}<button type="button" class="cmd" data-action="command" data-id="{{id}}">[ &gt; {{label}} ]</button>{{/each}}
+            <button type="button" data-action="logout">[ Wyloguj ]</button>
+          {{/if}}
+        </div>
+      {{/if}}
+      {{#if screen.log.length}}<pre class="term-log">{{#each screen.log}}{{this}}
+{{/each}}</pre>{{/if}}
+    </div>
+    <div class="term-foot">
+      <span>Użytkownik: {{screen.who}}</span>
+      {{#if isGM}}<a data-action="toggleView"><i class="fa-solid fa-gear"></i> konfiguracja</a>{{/if}}
+    </div>
+  </div>
+{{/if}}
+</section>

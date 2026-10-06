@@ -288,6 +288,16 @@ Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 
+Terminale (osobny typ aktora „Terminal”): MG ustawia typ (biurowy, Stable-Tec, wojskowy, chmurowy, Unics,
+przenośny), zabezpieczenie (MFD hakowania), wymagane Science, hasło i hasło administratora, wpisy (publiczne / po
+zalogowaniu / administrator), komendy (drzwi ze sceny, tokeny wieżyczek i robotów, komunikat na czacie) i pułapkę
+(Rigged Terminal, s. 597). Gracze klikają token i widzą tylko ekran komputera: logowanie hasłem, hakowanie (rzut
+Science; krytyk — administrator, krytyczna porażka — blokada, Computer Whiz — druga próba, druga blokada na stałe),
+wpisy, komendy i zgrywanie wpisu na holotaśmę (zużywa pustą „Holotape”). Terminal chmurowy obsłużą tylko latający,
+Illiterate nie hakuje, Certified Pipbuck Technician dostaje administratora na Stable-Tec. Opcja świata „Terminale:
+minigra hakowania” (zasada domowa): zgadywanie hasła ze zrzutu pamięci jak w grach Fallout — 4 próby, podobieństwo
+liter, Science daje podpowiedzi. Zmiany stanu terminala zapisuje przeglądarka MG, więc MG musi być zalogowany.
+
 Celownik S.A.T.S. (opcja, domyślnie wyłączona; na podstawie modułu foe-sats): MG włącza go w Ustawieniach gry →
 Fallout: Equestria RPG → „Celownik S.A.T.S. (opcja)”. Po namierzeniu celu (T) i zaznaczeniu SATS w oknie ataku
 kamera najeżdża na cel, a na ekranie pojawia się jego sylwetka V.A.T.S. z szansą trafienia każdej części ciała —
