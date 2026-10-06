@@ -1,3 +1,4 @@
+import { markCrit } from "./dice3d.mjs";
 import { MFD_STEPS, LOCATIONS } from "./data.mjs";
 import { actorEffects, sumFx, hitsAttack } from "./effects.mjs";
 import {
@@ -164,6 +165,7 @@ export async function rollTest(actor, data) {
   else if (r <= tn) { outcome = "Sukces"; cls = "success"; }
   else { outcome = "Porażka"; cls = "fail"; }
 
+  markCrit(roll, cls);   // efekt Dice So Nice na krytyk (jeśli moduł jest włączony)
   // Krytyczna porażka nie osiąga żadnego poziomu
   const ach = cls === "crit-fail" ? null : achievedStep(r, data.baseTn, data.mod);
   const failed = cls === "fail" || cls === "crit-fail";

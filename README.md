@@ -288,6 +288,11 @@ Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 
+Kości 3D (jeśli jest włączony moduł Dice So Nice): w ustawieniach modułu, w kategorii „Fallout: Equestria”, są zestawy
+PipBuck (zielony, bursztynowy, niebieski, biały — czcionka ekranu PipBucka), Stable-Tec, Gardens, Kapsel, Radiacja,
+Zebra i Enklawa. Każdy gracz wybiera swój zestaw. W ustawieniach efektów specjalnych Dice So Nice są wyzwalacze
+„Fallout: Equestria — Krytyczny sukces / Krytyczna porażka” (nasze krytyki z rzutu d100, także poszerzone przerzutami).
+
 Terminale (osobny typ aktora „Terminal”): MG ustawia typ (biurowy, Stable-Tec, wojskowy, chmurowy, Unics,
 przenośny), zabezpieczenie (MFD hakowania), wymagane Science, hasło i hasło administratora, wpisy (publiczne / po
 zalogowaniu / administrator), komendy (drzwi ze sceny, tokeny wieżyczek i robotów, komunikat na czacie) i pułapkę
