@@ -291,7 +291,7 @@ Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 Kości 3D (jeśli jest włączony moduł Dice So Nice): w ustawieniach modułu, w kategorii „Fallout: Equestria”, są zestawy
 PipBuck (zielony, bursztynowy, niebieski, biały — czcionka ekranu PipBucka), Stable-Tec, Gardens, Kapsel, Radiacja,
 Zebra i Enklawa. Każdy gracz wybiera swój zestaw. Opcja gracza „Kości 3D: kolor według rodzaju rzutu” (Ustawienia gry →
-Fallout: Equestria RPG) zmienia jego kości zależnie od rzutu: test — PipBuck w kolorze ekranu, SATS, lokacja trafienia,
+Fallout: Equestria RPG; domyślnie włączona — po wyłączeniu działa zestaw z Dice So Nice) zmienia jego kości zależnie od rzutu: test — PipBuck w kolorze ekranu, SATS, lokacja trafienia,
 obrażenia, magia, leczenie, karta szczęścia, pułapka (Radiacja); inni widzą te same kolory. W ustawieniach efektów specjalnych Dice So Nice są wyzwalacze
 „Fallout: Equestria — Krytyczny sukces / Krytyczna porażka” (nasze krytyki z rzutu d100, także poszerzone przerzutami).
 
