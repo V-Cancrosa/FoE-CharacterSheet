@@ -1081,3 +1081,26 @@ body[data-foe-crt="off"] .foe-rpg .term-screen::after { display: none; }
 .foe-rpg .term-log.small { font-size: 12px; max-height: 10rem; overflow-y: auto; color: var(--pip); }
 .foe-rpg .term-foot { display: flex; justify-content: space-between; font-size: .7em; opacity: .7; border-top: 1px solid color-mix(in srgb, var(--term) 30%, transparent); padding-top: .3rem; margin-top: .3rem; }
 .foe-rpg .term-foot a { color: inherit; }
+
+/* ==========================================================================
+   v0.28 — tabele losowe: wynik na czacie jak karta PipBucka (także tabele MG)
+   ========================================================================== */
+.foe-card.foe-table-card .table-draw, .foe-card.foe-table-card .table-results { margin: 0; padding: 0; }
+.foe-card.foe-table-card .table-description { color: var(--pip-mid); font-size: 11px; margin-bottom: .3rem;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.foe-card.foe-table-card .fc-tag { gap: .6rem; }
+.foe-card.foe-table-card .fc-tag span { white-space: nowrap; }
+.foe-card.foe-table-card .fc-tag span:last-child { overflow: hidden; text-overflow: ellipsis; min-width: 0; text-align: right; }
+.foe-card.foe-table-card .table-results { list-style: none; }
+.foe-card.foe-table-card .table-result { display: flex; gap: .45rem; align-items: flex-start; padding: .3rem 0; border-top: 1px dashed var(--pip-line); }
+.foe-card.foe-table-card .table-result:first-child { border-top: 0; }
+.foe-card.foe-table-card img { width: 28px; height: 28px; flex: 0 0 28px; border: 0; object-fit: contain; filter: drop-shadow(0 0 2px var(--pip-glow)); }
+.foe-card.foe-table-card .result-text, .foe-card.foe-table-card .result-name, .foe-card.foe-table-card strong, .foe-card.foe-table-card b { color: var(--pip-bright); }
+.foe-card.foe-table-card p { margin: .15rem 0; }
+.foe-card.foe-table-card a.content-link { color: var(--pip-bright); background: transparent; border-color: var(--pip-mid); }
+.foe-card.foe-table-card .dice-roll, .foe-card.foe-table-card .dice-result { color: var(--pip); }
+.foe-card.foe-table-card .dice-total { color: var(--pip-bright); background: transparent; border: 1px solid var(--pip-mid); box-shadow: none; text-shadow: 0 0 4px var(--pip-glow); }
+.foe-card.foe-table-card .dice-formula { color: var(--pip-mid); background: transparent; border-color: var(--pip-line); }
+.foe-table-actions { margin-top: .2rem; }
+.foe-card .foe-table-actions button.foe-luck { margin-top: .25rem; text-align: left; }
+.foe-tables-import i { margin-right: .3rem; }
