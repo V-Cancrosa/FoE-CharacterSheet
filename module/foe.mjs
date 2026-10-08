@@ -19,6 +19,7 @@ import { terminalDataClass } from "./terminal-data.mjs";
 import { FoeTerminalSheet } from "./terminal-sheet.mjs";
 import { registerTerminalSettings, registerTerminalHooks } from "./terminal.mjs";
 import { registerDice3d, registerDice3dSettings } from "./dice3d.mjs";
+import { registerRollTableClass, registerTableHooks } from "./tables.mjs";
 
 Hooks.once("init", () => {
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData, vehicle: VehicleData, terminal: terminalDataClass() };
@@ -64,6 +65,8 @@ Hooks.once("init", () => {
   registerTerminalHooks();
   registerDice3d();
   registerDice3dSettings();
+  registerRollTableClass();
+  registerTableHooks();
   game.foe = { openCatalog, setWeather };
 });
 

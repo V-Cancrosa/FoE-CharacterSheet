@@ -1,0 +1,773 @@
+{
+ "version": 1,
+ "tables": [
+  {
+   "id": "encounters",
+   "name": "Spotkania losowe (Random Encounters)",
+   "img": "systems/foe-rpg/icons/creature.svg",
+   "formula": "1d100",
+   "description": "Zdarzenia i spotkania w podróży (s. 618). Wynik to pomysł dla MG, nie gotowa scena — szczegóły ustala MG. Przy stworach z bestiariusza na czacie pojawia się przycisk „Dodaj NPC”.",
+   "results": [
+    {
+     "name": "Karawana kupiecka (Merchant Caravan)",
+     "creatures": [
+      "Wasteland Merchant",
+      "Caravan Guard",
+      "Brahmin"
+     ]
+    },
+    {
+     "name": "Konwój łowców niewolników (Slaver Convoy)",
+     "desc": "Trzech lub więcej łowców niewolników i trzech lub więcej niewolników.",
+     "creatures": [
+      "Slaver Grunt",
+      "Slaver Lieutenant",
+      "Slave"
+     ]
+    },
+    {
+     "name": "Osadnicy (Settlers)",
+     "creatures": [
+      "Settlement Militia"
+     ]
+    },
+    {
+     "name": "Kupiec z pustkowi (Wasteland Merchant)",
+     "desc": "Różne przedmioty, chemia, zapasowa amunicja.",
+     "creatures": [
+      "Wasteland Merchant"
+     ]
+    },
+    {
+     "name": "Zasadzka rajderów (Raider Ambush)",
+     "creatures": [
+      "Raider Grunt",
+      "Raider Lieutenant"
+     ]
+    },
+    {
+     "name": "Radskorpion (Radscorpion)",
+     "creatures": [
+      "Radscorpion"
+     ]
+    },
+    {
+     "name": "Wędrujący spritebot (Travelling Spritebot)",
+     "creatures": [
+      "Spritebot"
+     ]
+    },
+    {
+     "name": "Ukryte wejście do tunelu (Concealed Tunnel Entrance)"
+    },
+    {
+     "name": "Wykryto lokalny nadajnik radiowy (Local Radio Signal Broadcaster Detected)"
+    },
+    {
+     "name": "Myśliwi (Hunters)"
+    },
+    {
+     "name": "Nomadzi (Nomads)"
+    },
+    {
+     "name": "Łowcy zbiegłych niewolników (Slave Hunters)",
+     "creatures": [
+      "Slaver Grunt",
+      "Slaver Lieutenant"
+     ]
+    },
+    {
+     "name": "Patrol Steel Rangers (Steel Ranger Patrol)",
+     "creatures": [
+      "Ranger Initiate",
+      "Ranger Knight",
+      "Ranger Paladin"
+     ]
+    },
+    {
+     "name": "Patrol Applejack’s Rangers (Applejack’s Ranger Patrol)",
+     "creatures": [
+      "Ranger Initiate",
+      "Ranger Knight",
+      "Ranger Paladin"
+     ]
+    },
+    {
+     "name": "Klucz alikornów (Wing of Alicorns)",
+     "creatures": [
+      "Blue Alicorn",
+      "Green Alicorn",
+      "Purple Alicorn"
+     ]
+    },
+    {
+     "name": "Kultyści Jedności (Unity Cultists)"
+    },
+    {
+     "name": "Wędrujący Protectapony (Wandering Protectapony)",
+     "creatures": [
+      "Protectapony (Protectron)"
+     ]
+    },
+    {
+     "name": "Zbiegły niewolnik (albo kilku) (Escaped Slave(s))",
+     "creatures": [
+      "Slave"
+     ]
+    },
+    {
+     "name": "Olbrzymie owady (Giant Insect(s))",
+     "desc": "Radkaraluch, radskorpion, bloatsprite, olbrzymia mrówka itp.",
+     "creatures": [
+      "Radroach",
+      "Radscorpion",
+      "Bloatsprite",
+      "Giant Ant Worker",
+      "Giant Ant Soldier"
+     ]
+    },
+    {
+     "name": "Olbrzymie owady (Giant Insect(s))",
+     "desc": "Radkaraluch, radskorpion, bloatsprite, olbrzymia mrówka itp.",
+     "creatures": [
+      "Radroach",
+      "Radscorpion",
+      "Bloatsprite",
+      "Giant Ant Worker",
+      "Giant Ant Soldier"
+     ]
+    },
+    {
+     "name": "Yao Guai",
+     "creatures": [
+      "Yao Guai"
+     ]
+    },
+    {
+     "name": "Zniszczony przedwojenny konwój wojskowy (Destroyed Pre-War Military Convoy)"
+    },
+    {
+     "name": "Wędrowny kupiec – chemia (Travelling Merchant – Chems)",
+     "creatures": [
+      "Wasteland Merchant",
+      "Caravan Guard"
+     ]
+    },
+    {
+     "name": "Wędrowny kupiec – broń (Travelling Merchant – Weapons)",
+     "creatures": [
+      "Wasteland Merchant",
+      "Caravan Guard"
+     ]
+    },
+    {
+     "name": "Wędrowny kupiec – pancerze (Travelling Merchant – Armor)",
+     "creatures": [
+      "Wasteland Merchant",
+      "Caravan Guard"
+     ]
+    },
+    {
+     "name": "Wędrowny kupiec – jedzenie (Travelling Merchant – Food)",
+     "creatures": [
+      "Wasteland Merchant",
+      "Caravan Guard"
+     ]
+    },
+    {
+     "name": "W oddali słychać wybuch (An Explosion Sounds in the Distance)",
+     "desc": "Być może jakaś walka."
+    },
+    {
+     "name": "Zdziczałe ghule (Feral Ghouls)",
+     "creatures": [
+      "Feral Ghoul"
+     ]
+    },
+    {
+     "name": "Najemnicy (Mercenaries)",
+     "creatures": [
+      "Pony Mercenary",
+      "Talon Griffin Mercenary",
+      "Mercenary Lieutenant"
+     ]
+    },
+    {
+     "name": "Zwiadowcy piekielnych ogarów (Hellhound Scout(s))",
+     "creatures": [
+      "Hellhound Digger",
+      "Hellhound Sniper"
+     ]
+    },
+    {
+     "name": "Patrol lokalnego gangu (Local Gang Patrol)",
+     "desc": "Statystyki: np. rajderzy.",
+     "creatures": [
+      "Raider Grunt",
+      "Raider Lieutenant"
+     ]
+    },
+    {
+     "name": "Zwiadowcy lokalnego plemienia (Local Tribe Scouts)",
+     "creatures": [
+      "Tribal Warrior"
+     ]
+    },
+    {
+     "name": "Droga zablokowana gruzem (Path is blocked by fallen debris)",
+     "desc": "Drużyna musi obejść przeszkodę."
+    },
+    {
+     "name": "Mała osada (Small Settlement)",
+     "creatures": [
+      "Settlement Militia"
+     ]
+    },
+    {
+     "name": "Obóz rajderów (Raider Encampment)",
+     "creatures": [
+      "Raider Grunt",
+      "Raider Lieutenant",
+      "Raider Boss"
+     ]
+    },
+    {
+     "name": "Trwa bitwa albo potyczka (Battle or Skirmish in Progress)",
+     "desc": "Dowolne dwie frakcje albo jedna frakcja przeciw stworom."
+    },
+    {
+     "name": "Kupcy albo zwiadowcy Enclave Volunteer Corps (Enclave Volunteer Corps Merchants or Scouts)",
+     "creatures": [
+      "Enclave Soldier"
+     ]
+    },
+    {
+     "name": "Zwłoki w płytkim, niezasypanym grobie (Corpses in a shallow, unfilled grave)",
+     "desc": "Losowa broń i pancerz (tabele „Łup: broń” i „Łup: pancerz”)."
+    },
+    {
+     "name": "Wędrowny śpiewak (Travelling Singer)",
+     "desc": "„Zachowanie kucykowej kultury przez pieśni jest niezwykle ważne!”"
+    },
+    {
+     "name": "Opuszczony bunkier (Abandoned Bunker)"
+    },
+    {
+     "name": "Właz do kanału (Manhole Cover)",
+     "desc": "Może coś pod nim jest, a może nie. Jest tylko jeden sposób, żeby się przekonać!"
+    },
+    {
+     "name": "Wojenna banda plemienia albo gangu (Tribal or Ganger War Party)",
+     "desc": "2–4 wrogów.",
+     "creatures": [
+      "Tribal Warrior"
+     ]
+    },
+    {
+     "name": "Rośliny zarodnikowe (Spore Plants)",
+     "creatures": [
+      "Spore Shooter (Floater)"
+     ]
+    },
+    {
+     "name": "Średnie zwierzę, pojedyncze (Medium sized Animals, singular)",
+     "desc": "Gekony, kojoty, psy itp.",
+     "creatures": [
+      "Dog"
+     ]
+    },
+    {
+     "name": "Średnie zwierzęta, stado (Medium sized Animals, pack)",
+     "desc": "Gekony, kojoty, psy itp.",
+     "creatures": [
+      "Dog"
+     ]
+    },
+    {
+     "name": "Średnie zwierzęta, stado (Medium sized Animals, pack)",
+     "desc": "Gekony, kojoty, psy itp.",
+     "creatures": [
+      "Dog"
+     ]
+    },
+    {
+     "name": "Wywrócony wóz – beczki Skazy/Fluxu (Overturned Wagon – Barrels of Taint/Flux)",
+     "desc": "„Własność Ministerstwa Nauk Magicznych. Nie spożywać.”"
+    },
+    {
+     "name": "Wywrócony wóz – beczki z materiałem radioaktywnym (Overturned Wagon – Barrels of Radioactive Material)",
+     "desc": "„Widnieją na nich mocno wyblakłe glify zebr.”"
+    },
+    {
+     "name": "Małe zwierzęta (Small sized Animals)",
+     "desc": "Kretoszczury, małe gekony itp.",
+     "creatures": [
+      "Mole Rat",
+      "Radroach"
+     ]
+    },
+    {
+     "name": "Małe zwierzęta (Small sized Animals)",
+     "desc": "Kretoszczury, małe gekony itp.",
+     "creatures": [
+      "Mole Rat",
+      "Radroach"
+     ]
+    },
+    {
+     "name": "Kucyki-farmerzy (Farmer Ponies)"
+    },
+    {
+     "name": "Bandyci (Bandits)",
+     "desc": "Statystyki: np. rajderzy.",
+     "creatures": [
+      "Raider Grunt",
+      "Raider Lieutenant"
+     ]
+    },
+    {
+     "name": "Zasadzka bandytów (Bandit Ambush)",
+     "desc": "Statystyki: np. rajderzy.",
+     "creatures": [
+      "Raider Grunt",
+      "Raider Lieutenant"
+     ]
+    },
+    {
+     "name": "Gnijące zwłoki (Rotting Corpses)",
+     "desc": "Może pozostałość po jakiejś bitwie? Losowa broń (tabela „Łup: broń”)."
+    },
+    {
+     "name": "Kucyk uwięziony w pancerzu wspomaganym (Pony trapped in power armor)",
+     "desc": "Pancerz zardzewiał tak, że nie da się w nim ruszyć."
+    },
+    {
+     "name": "Wysypisko toksycznych odpadów (Toxic Waste Dump)"
+    },
+    {
+     "name": "Zakapturzony strażnik mostu (Hooded Bridge Guardian)",
+     "desc": "Strzeże mostu nad wielką przepaścią. Wygląda na to, że nie ma innej drogi."
+    },
+    {
+     "name": "Rozbity wagon kolejowy (Wrecked rail-car)"
+    },
+    {
+     "name": "Rozbity dom na kółkach (Wrecked Mobile-Home)"
+    },
+    {
+     "name": "Mały prowizoryczny pomnik (Small Makeshift Memorial)"
+    },
+    {
+     "name": "Wywrócony powietrzny wóz albo pojazd osobowy (Overturned Sky-Wagon or Personal Transport)"
+    },
+    {
+     "name": "Zezowaty alikorn (Derpy-eyed Alicorn)",
+     "desc": "Podlatuje, pstryka was w nos i odlatuje — w dodatku do góry nogami."
+    },
+    {
+     "name": "Oddział najemnych zabójców (Mercenary Hit Squad)",
+     "creatures": [
+      "Pony Mercenary",
+      "Talon Griffin Mercenary",
+      "Mercenary Lieutenant"
+     ]
+    },
+    {
+     "name": "Patrol lokalnej frakcji – przyjazny (Local Faction Patrol – Friendly)"
+    },
+    {
+     "name": "Patrol lokalnej frakcji – wrogi (Local Faction Patrol – Hostile)"
+    },
+    {
+     "name": "Patrol lokalnej frakcji – neutralny (Local Faction Patrol – Neutral)"
+    },
+    {
+     "name": "Łowcy-kanibale (Cannibal Hunters)"
+    },
+    {
+     "name": "Rozbójnik z nienaładowaną bronią (A Highwayman with an unloaded gun)"
+    },
+    {
+     "name": "Zbiegły niewolnik w uzbrojonej obroży z bombą (Escaped Slave wearing an armed Bomb Collar)",
+     "creatures": [
+      "Slave"
+     ]
+    },
+    {
+     "name": "Szkielety (Skeletons)"
+    },
+    {
+     "name": "Pole minowe (Minefield)",
+     "desc": "Zobacz tabelę „Pułapki”."
+    },
+    {
+     "name": "Mieszkaniec pustkowi umierający z pragnienia (A wastelander, dying of thirst)"
+    },
+    {
+     "name": "Wojskowy konwój zaopatrzeniowy ze znaczkiem Celestii (Military supply convoy with Celestia’s cutie mark)",
+     "desc": "Skrzynia na wozie zawiera „Celestial Frag Grenades”.",
+     "item": "Frag Grenade",
+     "qty": "1d4"
+    },
+    {
+     "name": "Tłum ziemskich kucyków palący czarownice (Earth Pony Witch Burning Mob)",
+     "desc": "„Spalić jednorożce, spalić je za zamienianie kucyków w traszki!”"
+    },
+    {
+     "name": "Skamieniały pies (Petrified Dog)",
+     "desc": "Seymour."
+    },
+    {
+     "name": "Piaskowe psy albo piekielne ogary grające w pokera (Table of Sand Dogs or Hellhounds playing poker)",
+     "creatures": [
+      "Hellhound Guard"
+     ]
+    },
+    {
+     "name": "Spritebot Obserwatora (Watcher’s Spritebot)",
+     "creatures": [
+      "Spritebot"
+     ]
+    },
+    {
+     "name": "Źrebak w masce gazowej (Gasmask Wearing Colt)",
+     "desc": "„Jesteś moją mamusią?”"
+    },
+    {
+     "name": "Przypadkowa audycja radiowa (Random Radio Broadcast)",
+     "desc": "„Game over, man, game over!”"
+    },
+    {
+     "name": "Graffiti „Zebra Eunt Domus” (Graffiti reading “Zebra Eunt Domus.”)",
+     "desc": "Obok na ziemi leży puszka farby w sprayu."
+    },
+    {
+     "name": "Lodówka z martwym kucykiem w środku (Fridge with a dead pony inside it)",
+     "desc": "Ma bicz i fajny kapelusz."
+    },
+    {
+     "name": "Pies prowadzi drużynę do szabrownika uwięzionego w studni (A dog leads the party to a Scavenger trapped down a well)",
+     "desc": "Albo przynajmniej próbuje.",
+     "creatures": [
+      "Dog"
+     ]
+    },
+    {
+     "name": "Piekielne Babcie (Hell’s Grannies)",
+     "desc": "Trzy stare szkapy z wałkami do ciasta, w skórzanych kurtkach."
+    },
+    {
+     "name": "Radiolatarnia zebr (Zebra Radio Beacon)",
+     "desc": "Może prowadzić do szkieletu zebrzego jeźdźca smoka albo zwłok zebrzego komandosa."
+    },
+    {
+     "name": "Alikorn-filozof (Alicorn Philosopher)",
+     "desc": "Dokładnie to, co na etykiecie."
+    },
+    {
+     "name": "Vertibuck",
+     "vehicle": "Vertibuck"
+    },
+    {
+     "name": "Patrol Enklawy (Enclave Patrol)",
+     "creatures": [
+      "Enclave Soldier"
+     ]
+    },
+    {
+     "name": "Samotny ocalały pies (Lone Surviving Dog)",
+     "desc": "Bardzo pechowy — na stałe zmniejsza o połowę Szczęście jednego członka drużyny.",
+     "creatures": [
+      "Dog"
+     ]
+    },
+    {
+     "name": "Wyschnięte koryto rzeki (Dried up Riverbed)",
+     "desc": "Pośrodku leży wyrzucony na brzeg jacht (albo inna łódź), do połowy zakopany."
+    },
+    {
+     "name": "Napromieniowane jezioro albo staw (Irradiated lake or pond)"
+    },
+    {
+     "name": "Nadciąga gęsta mgła (Thick Fog rolls in)",
+     "desc": "Rzuć ponownie.",
+     "again": true
+    },
+    {
+     "name": "Zepsute roboty (Malfunctioning Robot(s))",
+     "creatures": [
+      "Mister Handy",
+      "Mister Gutsy",
+      "Robronco (Robo Brain)"
+     ]
+    },
+    {
+     "name": "Zautomatyzowane systemy obronne (Automated Defense Systems)",
+     "creatures": [
+      "Stationary Gun Turret (Mk I-III)",
+      "Heavy Stationary Gun Turret (Mk IV-VI)"
+     ]
+    },
+    {
+     "name": "Robot-wartownik (możliwe, że kilka) (Robotic Sentry)",
+     "creatures": [
+      "Sentry Bot"
+     ]
+    },
+    {
+     "name": "Do połowy zakopany powietrzny wóz Sparkle-Coli (Half-Buried Sparkle Cola Sky Wagon)"
+    },
+    {
+     "name": "Gigantyczny ślad stopy (albo kopyta) (Gigantic Footprint (or Hoofprint))"
+    },
+    {
+     "name": "Nietypowa policyjna budka telefoniczna (Unusual Police Call Box)"
+    },
+    {
+     "name": "Stado brahminów (Brahmin Herd)",
+     "desc": "„Muu, powiadam.”",
+     "creatures": [
+      "Brahmin"
+     ]
+    },
+    {
+     "name": "Pnącza Killing Joke (Killing Joke vines)",
+     "creatures": [
+      "Killing Joke"
+     ]
+    },
+    {
+     "name": "Krater po spadłej gwieździe (meteorycie) (Fallen Star (meteorite) crater)",
+     "desc": "Możliwy Star Blaster.",
+     "item": "Star Blaster"
+    }
+   ]
+  },
+  {
+   "id": "starvation",
+   "name": "Głód: który atrybut spada (Starvation)",
+   "img": "systems/foe-rpg/icons/food.svg",
+   "formula": "1d6",
+   "description": "Tabela XXXII (s. 477). Za każdy dzień bez pełnego posiłku: −1 tymczasowo do losowego atrybutu (bez Szczęścia), z karami do umiejętności. Ten sam atrybut nie spada dwa dni z rzędu — wtedy rzuć ponownie. Po 3 tygodniach głodu postać umiera. Przycisk na czacie dopisuje karę do cechy „Głód” postaci.",
+   "results": [
+    {
+     "name": "Siła (Strength) −1",
+     "attr": "str"
+    },
+    {
+     "name": "Percepcja (Perception) −1",
+     "attr": "per"
+    },
+    {
+     "name": "Wytrzymałość (Endurance) −1",
+     "attr": "end"
+    },
+    {
+     "name": "Charyzma (Charisma) −1",
+     "attr": "cha"
+    },
+    {
+     "name": "Inteligencja (Intelligence) −1",
+     "attr": "int"
+    },
+    {
+     "name": "Zwinność (Agility) −1",
+     "attr": "agi"
+    }
+   ]
+  },
+  {
+   "id": "covering",
+   "name": "Covering Sickness: objaw (1d6)",
+   "img": "systems/foe-rpg/icons/medical.svg",
+   "formula": "1d6",
+   "description": "Krytyczna porażka w rzucie END przy Covering Sickness: dodatkowy objaw (s. 587). Leczenie: tylko silna magia lecznicza (zaklęcia i receptury poziomu 3+, talizmany odnowy), skuteczność 75%.",
+   "results": [
+    {
+     "name": "Częściowy paraliż (Partial Paralysis)",
+     "desc": "−5 na stałe do AGI; ruch odpowiednio wolniejszy."
+    },
+    {
+     "name": "Ślepota (Blind)",
+     "desc": "Jak wada Blind."
+    },
+    {
+     "name": "Chudy jak szczapa (Skinny as a Rail)",
+     "desc": "Jak wada Skinny as a Rail, łącznie ze stałym spadkiem STR i END."
+    },
+    {
+     "name": "Zapalenie spojówek (Conjunctivitis)",
+     "desc": "−30 do wszystkich rzutów na trafienie; −10 ft ruchu na akcję."
+    },
+    {
+     "name": "Ciężka immunosupresja (Severe Immunosuppression)",
+     "desc": "Opieranie się innym chorobom o 1 krok MFD trudniejsze."
+    },
+    {
+     "name": "Obrzęk (Edema)",
+     "desc": "Postać musi pić dwa razy więcej płynów dziennie; odwodnienie postępuje dwa razy szybciej."
+    }
+   ]
+  },
+  {
+   "id": "ehv",
+   "name": "EHV: objaw (1d4)",
+   "img": "systems/foe-rpg/icons/medical.svg",
+   "formula": "1d4",
+   "description": "EHV — porażka rzutu END dzień po zakażeniu: objaw z tabeli (s. 588). Krytyczna porażka — dwa objawy.",
+   "results": [
+    {
+     "name": "Częściowy paraliż (Partial Paralysis)",
+     "desc": "−5 na stałe do AGI; ruch odpowiednio wolniejszy."
+    },
+    {
+     "name": "Końskie zapalenie mózgu (EE (Equestrian Encephalitis))",
+     "desc": "Jak ta choroba."
+    },
+    {
+     "name": "Heeves",
+     "desc": "Jak ta choroba."
+    },
+    {
+     "name": "Przeziębienie (Common Cold)",
+     "desc": "Jak ta choroba."
+    }
+   ]
+  },
+  {
+   "id": "rabies",
+   "name": "Wścieklizna: objaw (Rabies, 1d10)",
+   "img": "systems/foe-rpg/icons/medical.svg",
+   "formula": "1d10",
+   "description": "Wścieklizna — jeden nowy objaw dziennie (s. 593). Objawy są trwałe, nawet po wyleczeniu choroby. Ten sam objaw drugi raz: 10 ran w głowę, drgawki i śmierć.",
+   "results": [
+    {
+     "name": "Częściowy paraliż (Partial Paralysis)",
+     "desc": "−5 na stałe do AGI; ruch odpowiednio wolniejszy."
+    },
+    {
+     "name": "Natręctwa (OCD)",
+     "desc": "Jak wada OCD."
+    },
+    {
+     "name": "Bezsenność (Insomnia)",
+     "desc": "Zarażony nie może zasnąć; stracić przytomność może tylko przez działania innych."
+    },
+    {
+     "name": "Halucynacje (Hallucinations)",
+     "desc": "Jak wada Hallucinations. MG rzuca raz dziennie; wynik „brak halucynacji” przerzuca."
+    },
+    {
+     "name": "Fobia – woda (Phobia – Water)",
+     "desc": "Jak wada Phobia; każda fobia to osobna wada."
+    },
+    {
+     "name": "Fobia – ogień (Phobia – Fire)",
+     "desc": "Jak wada Phobia; każda fobia to osobna wada."
+    },
+    {
+     "name": "Fobia – elektryczność (Phobia – Electricity)",
+     "desc": "Jak wada Phobia; każda fobia to osobna wada."
+    },
+    {
+     "name": "Half-Decked",
+     "desc": "Jak wada „Half-Decked”."
+    },
+    {
+     "name": "Psychoza (Psychosis)",
+     "desc": "Jak wada Psychosis (wybór MG)."
+    },
+    {
+     "name": "Pobudzenie (Agitation)",
+     "desc": "−25 do Speechcraft; sprowokowana nawet żartem postać musi zdać INT MFD ½, żeby nie zaatakować."
+    }
+   ]
+  },
+  {
+   "id": "traps",
+   "name": "Pułapki (Traps)",
+   "img": "systems/foe-rpg/icons/explosive.svg",
+   "description": "Najczęstsze pułapki pustkowi (s. 597). W podręczniku to lista — tu każda ma równą szansę. Pułapki nie pokazują się na kompasie EFS.",
+   "results": [
+    {
+     "name": "Wybuchający skybus (Exploding Skybus)",
+     "desc": "Wraki powozów i skybusów potrafią wybuchnąć po ostrzale: 10d20 obrażeń, −2d20 co 5 ft; napromieniowuje stojących obok (radiacja)."
+    },
+    {
+     "name": "Walący się mur (Falling Wall)",
+     "desc": "Niestabilna ściana spada na zbyt bliskich, wzbijając zasłaniający pył: od 4d4 (karton, zgniłe drewno, płyta) do 10d20 (lity beton)."
+    },
+    {
+     "name": "Ukryta mina (Hidden Landmine)",
+     "desc": "Klasyczna pułapka wybuchowa — ukryta zaklęciem niewidzialności, zamaskowana albo leżąca na widoku. Paskudny wariant uzbraja się ponownie, gdy ktoś ją podniesie."
+    },
+    {
+     "name": "Strzelbowa niespodzianka (Shotgun Surprise)",
+     "desc": "Za rogiem czeka strzelba na linkę albo płytkę naciskową: obrażenia jak Combat Shotgun albo Hunting Shotgun (12 gauge)."
+    },
+    {
+     "name": "Maszyna do piłek-tłuczek (Pitching Machine Pummeler)",
+     "desc": "Ostrzeliwuje wąskie przejście piłkami (jak kamień 10 lb: 2d4 + 5–25) albo granatami. Wersje klasyczne: wyrzutnie strzałek (trucizna) i włóczni (jak włócznia zebr, 5–25)."
+    },
+    {
+     "name": "Fałszywy wózek ze źrebięciem (Phony Foal Carriage)",
+     "desc": "Z wózka dochodzi płacz… BUM! Obrażenia jak ładunek (satchel charge), bomba zapalająca albo sparkle grenade."
+    },
+    {
+     "name": "Terminal-pułapka (Rigged Terminal)",
+     "desc": "Ekran jeszcze świeci — włączasz i… wybucha w twarz: jak granat odłamkowy, ładunek albo sparkle grenade."
+    },
+    {
+     "name": "Bukiet granatów (Grenade Bouquet)",
+     "desc": "Zwykle trzy granaty na sznurku nad wyzwalaczem; spadając, tracą zawleczki. Najczęściej odłamkowe."
+    },
+    {
+     "name": "Wilczy dół (Pit Trap)",
+     "desc": "Zamaskowana dziura. Groźniejsze wersje mają kolce: obrażenia od upadku ×3, kolce bywają zatrute albo brudne (tężec?)."
+    },
+    {
+     "name": "Głaz Daring Do / lawina kamieni (Daring Do’s Boulder/Rock Slide)",
+     "desc": "Zatrzymanie głazu wymaga STR 10+ i rzutu STR „MFD Crit”. Lepiej uskoczyć."
+    },
+    {
+     "name": "Wahadłowy ciężar (Swinging Weight)",
+     "desc": "Ciężar na łańcuchu (często z kolcami) zwalnia się i uderza ofiarę poniżej."
+    }
+   ],
+   "formula": "1d11"
+  },
+  {
+   "id": "triggers",
+   "name": "Pułapki: wyzwalacz (Triggers)",
+   "img": "systems/foe-rpg/icons/explosive.svg",
+   "description": "Typowe wyzwalacze pułapek (s. 597–598). W podręczniku to lista — tu każdy ma równą szansę.",
+   "results": [
+    {
+     "name": "Czujnik zbliżeniowy (Proximity Detector)",
+     "desc": "Odpala, gdy ktoś podejdzie; często z krótkim opóźnieniem."
+    },
+    {
+     "name": "Zdalny zapalnik (Remote Trigger)",
+     "desc": "Odpala obserwator — z bliska, przez monitoring albo lornetkę."
+    },
+    {
+     "name": "Linka (Trip Wire)",
+     "desc": "Zerwanie linki uruchamia pułapkę; ulubiona przez rajderów."
+    },
+    {
+     "name": "Zegar (Timer)",
+     "desc": "Odpala po ustalonym czasie — zwykle od kilku sekund do kilku minut; często łączony z innym wyzwalaczem."
+    },
+    {
+     "name": "Przycisk w podłodze (Floor Button)",
+     "desc": "Mechaniczna płytka; łatwa do ustawienia, trudna do ukrycia."
+    },
+    {
+     "name": "Wyzwalacz na pociągnięcie (Pull Trigger)",
+     "desc": "Otwarcie skrzyni albo ruszenie przedmiotu odpala pułapkę; często drugi zapalnik pod miną albo w skrzyni Ministerstwa Pokoju."
+    }
+   ],
+   "formula": "1d6"
+  }
+ ]
+}

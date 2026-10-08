@@ -288,6 +288,15 @@ Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 
+Tabele losowe: w zakładce „Tabele” MG klika „Tabele FoE” — powstaje (albo aktualizuje się, bez dublowania) folder
+„Tabele FoE”: spotkania losowe d% (100, s. 618), głód 1d6 (tabela XXXII, s. 477), objawy chorób (Covering Sickness,
+EHV, Rabies, s. 587–593), pułapki i ich wyzwalacze (s. 597) — po polsku z nazwą oryginalną — oraz tabele łupów z katalogu
+(amunicja, chemia, jedzenie, różności, broń, pancerz; tanie częściej, nasze, nie z podręcznika). Zmiany w tych tabelach
+nadpisze kolejny import — własne tabele kampanii rób osobno. Wynik każdej tabeli (także własnej) wygląda na czacie jak
+karta PipBucka; przy stworach z bestiariusza jest „Dodaj NPC”, przy pojazdach „Dodaj pojazd”, przy przedmiotach z katalogu
+„Dodaj do ekwipunku” (postać z zaznaczonego tokenu), przy głodzie „Zastosuj głód” (cecha „Głód” z karą), przy mgle
+„Rzuć ponownie”. W tabelach MG przyciski pojawiają się, gdy w wyniku jest dokładna nazwa stwora albo przedmiotu.
+
 Kości 3D (jeśli jest włączony moduł Dice So Nice): w ustawieniach modułu, w kategorii „Fallout: Equestria”, są zestawy
 PipBuck (zielony, bursztynowy, niebieski, biały — czcionka ekranu PipBucka), Stable-Tec, Gardens, Kapsel, Radiacja,
 Zebra i Enklawa. Każdy gracz wybiera swój zestaw. Opcja gracza „Kości 3D: kolor według rodzaju rzutu” (Ustawienia gry →
