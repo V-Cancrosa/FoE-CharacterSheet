@@ -288,6 +288,14 @@ Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 
+Łup z ciał NPC: MG klika „ŁUP” w nagłówku karty NPC albo „Przeszukaj” w przypomnieniu, które dostaje szeptem, gdy NPC
+zginie (ustawienie świata „Łup: przypomnienie po śmierci NPC”). Na czacie pojawia się karta łupu: rzeczy, które NPC ma przy
+sobie (broń z katalogu — bez naturalnej, pancerz, ekwipunek), oraz łup z bestiariusza — szanse i ilości rzucone, wpisy
+ogólne (Random ammo — amunicja do broni NPC, Food Item, Random Drug, ubrania, zabawki) losowane z tabel łupów, kapsle.
+Stwory bez łupu w podręczniku dostają nasze domyślne (zwierzęta — mięso z katalogu, roboty — złom, frakcje — kapsle).
+Gracze klikają „Weź” albo „Weź wszystko” — rzecz trafia do postaci z zaznaczonego tokenu i znika z karty u wszystkich
+(rzeczy NPC znikają też z jego ekwipunku; zapisuje to przeglądarka MG). Ciało oznacza się jako przeszukane.
+
 Tabele losowe: w zakładce „Tabele” MG klika „Tabele FoE” — powstaje (albo aktualizuje się, bez dublowania) folder
 „Tabele FoE”: spotkania losowe d% (100, s. 618), głód 1d6 (tabela XXXII, s. 477), objawy chorób (Covering Sickness,
 EHV, Rabies, s. 587–593), pułapki i ich wyzwalacze (s. 597) — po polsku z nazwą oryginalną — oraz tabele łupów z katalogu

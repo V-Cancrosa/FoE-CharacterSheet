@@ -1104,3 +1104,16 @@ body[data-foe-crt="off"] .foe-rpg .term-screen::after { display: none; }
 .foe-table-actions { margin-top: .2rem; }
 .foe-card .foe-table-actions button.foe-luck { margin-top: .25rem; text-align: left; }
 .foe-tables-import i { margin-right: .3rem; }
+
+/* ==========================================================================
+   v0.29 — łup: karta przeszukania ciała
+   ========================================================================== */
+.foe-card.foe-loot .foe-loot-list { list-style: none; margin: .25rem 0 0; padding: 0; }
+.foe-card.foe-loot .foe-loot-list li { display: grid; grid-template-columns: 1fr auto; gap: .4rem; align-items: center; padding: .2rem 0; border-top: 1px dashed var(--pip-line); }
+.foe-card.foe-loot .foe-loot-list li:first-child { border-top: 0; }
+.foe-card.foe-loot .foe-loot-list .nm { color: var(--pip-bright); }
+.foe-card.foe-loot .foe-loot-list .nm small { display: block; color: var(--pip-dim); font-size: 10px; text-transform: lowercase; }
+.foe-card.foe-loot .foe-loot-list li.taken .nm { color: var(--pip-dim); text-decoration: line-through; }
+.foe-card.foe-loot .foe-loot-list em { color: var(--pip-mid); font-size: 11px; }
+.foe-card.foe-loot .foe-loot-list button.foe-luck { width: auto; margin: 0; padding: 0 .5rem; }
+.foe-card.foe-loot .foe-loot-all { margin-top: .4rem; }
