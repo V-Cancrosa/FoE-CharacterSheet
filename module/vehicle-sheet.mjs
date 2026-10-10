@@ -3,6 +3,7 @@
  * Akcje: sterowanie, taranowanie, zderzenie, naprawa — vehicle.mjs.
  */
 import { clearFlag } from "./flags.mjs";
+import { giveItem } from "./give.mjs";
 import { ATTRS, SKILLS, GEAR_CATEGORIES } from "./data.mjs";
 import { rollDamage } from "./rolls.mjs";
 import { reloadWeapon } from "./attack.mjs";
@@ -41,7 +42,8 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       removeCrew: FoeVehicleSheet.#onRemoveCrew,
       openCrew: FoeVehicleSheet.#onOpenCrew,
       rollInitiative: FoeVehicleSheet.#onRollInitiative,
-      clearEvasive: FoeVehicleSheet.#onClearEvasive
+      clearEvasive: FoeVehicleSheet.#onClearEvasive,
+      giveItem: FoeVehicleSheet.#onGiveItem
     }
   };
 
@@ -162,6 +164,7 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   static #onEditItem(event, target) { this.#item(target)?.sheet.render(true); }
+  static #onGiveItem(event, target) { return giveItem(this.document, this.#item(target)); }
 
   static async #onDeleteItem(event, target) {
     const item = this.#item(target);

@@ -288,6 +288,17 @@ Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 
+Wymiana: przy broni, pancerzu, ekwipunku (i ładowni pojazdu) jest „Przekaż” (ikona dłoni), przy kapslach — „Przekaż
+kapsle”. Odbiorca: inna postać, pojazd albo postać/NPC z tokenu na scenie (np. kupiec); przy stosach wybierasz ilość.
+Założony przedmiot zdejmuje się przy przekazaniu. Gdy odbiorca nie jest Twój, przeniesienie zapisuje przeglądarka MG
+(sprawdza, czy oddajesz swoje rzeczy); ślad zostaje na czacie.
+
+Znaczek: obok portretu na karcie jest pole znaczka — kliknij, wybierz obrazek (albo wklej adres, jeśli nie masz dostępu
+do przeglądarki plików) i dopisz krótki opis talentu (pokazuje się po najechaniu).
+
+Przeładowanie: postać gracza ładuje tylko amunicję z ekwipunku (albo z rezerwy siodła lub implantu) — bez niej dostaje
+komunikat i nie traci akcji. NPC prowadzone przez MG ładują bez liczenia amunicji.
+
 Łup z ciał NPC: MG klika „ŁUP” w nagłówku karty NPC albo „Przeszukaj” w przypomnieniu, które dostaje szeptem, gdy NPC
 zginie (ustawienie świata „Łup: przypomnienie po śmierci NPC”). Na czacie pojawia się karta łupu: rzeczy, które NPC ma przy
 sobie (broń z katalogu — bez naturalnej, pancerz, ekwipunek), oraz łup z bestiariusza — szanse i ilości rzucone, wpisy
@@ -326,7 +337,7 @@ Celownik S.A.T.S. (opcja, domyślnie wyłączona; na podstawie modułu foe-sats)
 Fallout: Equestria RPG → „Celownik S.A.T.S. (opcja)”. Po namierzeniu celu (T) i zaznaczeniu SATS w oknie ataku
 kamera najeżdża na cel, a na ekranie pojawia się jego sylwetka V.A.T.S. z szansą trafienia każdej części ciała —
 klik ustawia strzał celowany, Esc wychodzi z SATS. Przycisk ⌖ przy „Cel ataku” otwiera celownik bez zaznaczania SATS.
-Każdy gracz może u siebie wyłączyć auto-otwieranie, przybliżanie kamery i ustawić powrót kamery. Gdy w świecie
+Każdy gracz może u siebie wyłączyć auto-otwieranie, przybliżanie kamery i zwijanie kart na czas celowania oraz ustawić powrót kamery. Gdy w świecie
 jest włączony osobny moduł foe-sats, wersja wbudowana się nie uruchamia (nie dubluje się).
 
 Grafiki kampanii (folder `assets/gardens/`, w Foundry pod `systems/foe-rpg/assets/gardens/`):

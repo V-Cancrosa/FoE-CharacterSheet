@@ -106,6 +106,8 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       karma: num(0),
       caps: num(0),
       race: new F.StringField({ initial: "" }),
+      cutieMark: new F.StringField({ initial: "" }),       // obrazek znaczka (ścieżka albo adres)
+      cutieMarkText: new F.StringField({ initial: "" }),   // opis talentu ze znaczka
       altitude: num(0, { min: 0 }),            // wysokość lotu w ft
       notes: new F.HTMLField({ initial: "" })
     };

@@ -1117,3 +1117,18 @@ body[data-foe-crt="off"] .foe-rpg .term-screen::after { display: none; }
 .foe-card.foe-loot .foe-loot-list em { color: var(--pip-mid); font-size: 11px; }
 .foe-card.foe-loot .foe-loot-list button.foe-luck { width: auto; margin: 0; padding: 0 .5rem; }
 .foe-card.foe-loot .foe-loot-all { margin-top: .4rem; }
+
+/* ==========================================================================
+   v0.30 — znaczek obok portretu, przekazywanie przedmiotów
+   ========================================================================== */
+.foe-rpg .foe-id .cutie-mark {
+  flex: 0 0 auto; width: 76px; height: 76px; display: grid; place-items: center;
+  border: 1px solid var(--pip-mid); background: var(--pip-bg); cursor: pointer; overflow: hidden;
+}
+.foe-rpg .foe-id .cutie-mark img { width: 100%; height: 100%; object-fit: contain; border: 0; }
+.foe-rpg .foe-id .cutie-mark.empty { border-style: dashed; color: var(--pip-dim); font-family: var(--foe-crt); font-size: 13px; letter-spacing: .08em; }
+.foe-rpg .foe-id .cutie-mark.empty:hover { color: var(--pip); border-color: var(--pip); }
+@media (max-width: 700px) { .foe-rpg .foe-id .cutie-mark { width: 56px; height: 56px; } }
+.foe-rpg .cutie-mark-dialog .cm-preview { width: 96px; height: 96px; margin: 0 auto .4rem; display: grid; place-items: center; border: 1px dashed var(--pip-mid); }
+.foe-rpg .cutie-mark-dialog .cm-preview img { max-width: 100%; max-height: 100%; object-fit: contain; border: 0; }
+.foe-rpg .cutie-mark-dialog .cm-pick { margin: .2rem 0 .4rem; }

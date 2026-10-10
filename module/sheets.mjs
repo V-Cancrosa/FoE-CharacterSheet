@@ -29,6 +29,8 @@ import { readBook, bookStatus } from "./books.mjs";
 import { openWorkshop, repairWeapon, repairArmorItem } from "./craft.mjs";
 import { bodyMap } from "./body-map.mjs";
 import { searchBody } from "./loot.mjs";
+import { editCutieMark } from "./cutie-mark.mjs";
+import { giveItem, giveCaps } from "./give.mjs";
 import { hitTableFor, tableLocations } from "./combat.mjs";
 import { locationName } from "./rolls.mjs";
 import { degradationOn, weaponCondition } from "./craft-data.mjs";
@@ -84,6 +86,9 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       newSession: FoeActorSheet.#onNewSession,
       openCreator: FoeActorSheet.#onOpenCreator,
       searchBody: FoeActorSheet.#onSearchBody,
+      cutieMark: FoeActorSheet.#onCutieMark,
+      giveItem: FoeActorSheet.#onGiveItem,
+      giveCaps: FoeActorSheet.#onGiveCaps,
       openCatalog: FoeActorSheet.#onOpenCatalog,
       toggleFeature: FoeActorSheet.#onToggleFeature,
       toggleEquip: FoeActorSheet.#onToggleEquip,
@@ -696,6 +701,18 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static #onSearchBody() {
     return searchBody(this.document);
+  }
+
+  static #onCutieMark() {
+    return editCutieMark(this.document);
+  }
+
+  static #onGiveItem(event, target) {
+    return giveItem(this.document, this.#item(target));
+  }
+
+  static #onGiveCaps() {
+    return giveCaps(this.document);
   }
 
   static #onOpenCatalog(event, target) {
