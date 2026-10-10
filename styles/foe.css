@@ -1132,3 +1132,6 @@ body[data-foe-crt="off"] .foe-rpg .term-screen::after { display: none; }
 .foe-rpg .cutie-mark-dialog .cm-preview { width: 96px; height: 96px; margin: 0 auto .4rem; display: grid; place-items: center; border: 1px dashed var(--pip-mid); }
 .foe-rpg .cutie-mark-dialog .cm-preview img { max-width: 100%; max-height: 100%; object-fit: contain; border: 0; }
 .foe-rpg .cutie-mark-dialog .cm-pick { margin: .2rem 0 .4rem; }
+/* ptaszek okaleczenia od ran: zablokowany, ale wyraźnie zaznaczony */
+.foe-rpg table.locs td.crip input[type=checkbox]:disabled { opacity: 1; cursor: help; }
+.foe-rpg table.locs td.crip input[type=checkbox]:disabled:checked { background: var(--pip-alert); box-shadow: 0 0 6px var(--pip-alert), inset 0 0 0 2px #000; }

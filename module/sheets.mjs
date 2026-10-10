@@ -217,8 +217,16 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const monster = Object.keys(areaNames).length > 0;
     ctx.locations = Object.entries(LOCATIONS).filter(([k]) => !monster || areaNames[k]).map(([k, label]) => {
       const l = sys.locations[k];
+      // ptaszek „Okal.” pokazuje stan na bieżąco: od ran zaznacza się sam (i jest wtedy zablokowany), ręcznie — inne przyczyny
+      const auto = !l.crippled && l.isCrippled;
+      const cripTitle = auto
+        ? (l.offline ? "Okaleczona: proteza bez zasilania" : l.lethal ? `Utracona od ran (${l.wounds}/${l.limit})`
+          : `Okaleczona od ran (${l.wounds}/${l.crippleAt}) — zniknie, gdy rany spadną poniżej ${l.crippleAt} (leczenie)`)
+        : l.crippled && (l.autoCrippled || l.lethal) ? `Okaleczona ręcznie i od ran (${l.wounds}/${l.crippleAt}) — odznaczenie zdejmie tylko oznaczenie ręczne`
+        : l.crippled ? "Okaleczona ręcznie (wada albo decyzja MG) — odznacz, żeby zdjąć"
+        : `Zaznaczy się sama od ${l.crippleAt} ran; ręcznie — inne przyczyny (wada, decyzja MG)`;
       return { key: k, label: areaNames[k] ?? label, ...l, statusLabel: STATUS[l.status] ?? "", dtFxLabel: l.dtFx ? signed(l.dtFx) : "",
-        mfdNote: areaMfd[k] ? `MFD celowania ${areaMfd[k]}` : "" };
+        mfdNote: areaMfd[k] ? `MFD celowania ${areaMfd[k]}` : "", cripChecked: !!l.isCrippled, cripLocked: auto, cripTitle };
     });
     // sylwetka w stylu PipBucka (potwory z własnymi strefami i pojazdy zostają przy tabeli)
     if (!monster) {
