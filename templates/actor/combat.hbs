@@ -132,7 +132,7 @@
   {{/if}}
   <div class="scroll-x">
   <table class="foe-table locs">
-    <thead><tr><th class="l">Lokacja</th><th title="Rany / Endurance">Rany</th><th>Stan</th><th title="Najwyższe DT założonego pancerza (warstwy się nie sumują)">Pancerz</th><th title="Naturalne DT, perki, cechy — dodaje się do pancerza">Inne DT</th><th title="DT razem">DT</th><th title="Okaleczenie ręczne (np. z wady albo decyzji MG)">Okal.</th></tr></thead>
+    <thead><tr><th class="l">Lokacja</th><th title="Rany / Endurance">Rany</th><th>Stan</th><th title="Najwyższe DT założonego pancerza (warstwy się nie sumują)">Pancerz</th><th title="Naturalne DT, perki, cechy — dodaje się do pancerza">Inne DT</th><th title="DT razem">DT</th><th title="Okaleczenie: zaznacza się samo od ran (połowa END w lokacji) i znika, gdy rany spadną poniżej progu; ręcznie — inne przyczyny (wada, decyzja MG)">Okal.</th></tr></thead>
     <tbody>
     {{#each locations}}
       <tr class="st-{{status}}">
@@ -142,7 +142,7 @@
         <td {{#if armorName}}title="{{armorName}}"{{/if}}>{{#if armorName}}{{armorDt}}{{else}}—{{/if}}</td>
         <td class="nw"><input type="number" name="system.locations.{{key}}.dt" value="{{dt}}">{{#if dtFxLabel}}<span class="fxb" title="Z cech">{{dtFxLabel}}</span>{{/if}}</td>
         <td class="tn">{{dtTotal}}</td>
-        <td><input type="checkbox" name="system.locations.{{key}}.crippled" {{checked crippled}}></td>
+        <td class="crip"><input type="checkbox" name="system.locations.{{key}}.crippled" {{checked cripChecked}} {{#if cripLocked}}disabled{{/if}} title="{{cripTitle}}"></td>
       </tr>
     {{/each}}
     </tbody>
