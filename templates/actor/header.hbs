@@ -1,5 +1,5 @@
 <header class="foe-header">
-  <div class="pip-bar"><span>PIPBUCK 3000 · STABLE-TEC</span><span><a class="pip-creator" data-action="openCreator" title="Uruchom kreator {{#if isNpc}}NPC{{else}}postaci{{/if}}"><i class="fa-solid fa-user-gear"></i> KREATOR</a> · {{#if isNpc}}NPC{{else}}POZ. {{system.level}}{{/if}}</span></div>
+  <div class="pip-bar"><span>PIPBUCK 3000 · STABLE-TEC</span><span><a class="pip-creator" data-action="openCreator" title="Uruchom kreator {{#if isNpc}}NPC{{else}}postaci{{/if}}"><i class="fa-solid fa-user-gear"></i> KREATOR</a>{{#if isNpc}}{{#if isGM}} · <a class="pip-creator" data-action="searchBody" title="Przeszukaj ciało: łup z bestiariusza (albo nasze domyślne) i rzeczy, które NPC ma przy sobie — karta łupu na czacie{{#if looted}} (już przeszukane){{/if}}"><i class="fa-solid fa-sack-dollar"></i> ŁUP{{#if looted}} ✓{{/if}}</a>{{/if}}{{/if}} · {{#if isNpc}}NPC{{else}}POZ. {{system.level}}{{/if}}</span></div>
   <div class="foe-id">
     <img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
     <div class="identity">

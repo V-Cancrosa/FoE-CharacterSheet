@@ -28,6 +28,7 @@ import { nameItem, canName } from "./named.mjs";
 import { readBook, bookStatus } from "./books.mjs";
 import { openWorkshop, repairWeapon, repairArmorItem } from "./craft.mjs";
 import { bodyMap } from "./body-map.mjs";
+import { searchBody } from "./loot.mjs";
 import { hitTableFor, tableLocations } from "./combat.mjs";
 import { locationName } from "./rolls.mjs";
 import { degradationOn, weaponCondition } from "./craft-data.mjs";
@@ -82,6 +83,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       deleteItem: FoeActorSheet.#onDeleteItem,
       newSession: FoeActorSheet.#onNewSession,
       openCreator: FoeActorSheet.#onOpenCreator,
+      searchBody: FoeActorSheet.#onSearchBody,
       openCatalog: FoeActorSheet.#onOpenCatalog,
       toggleFeature: FoeActorSheet.#onToggleFeature,
       toggleEquip: FoeActorSheet.#onToggleEquip,
@@ -162,6 +164,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.system = sys;
     ctx.tabs = this._prepareTabs("primary");
     ctx.isNpc = this.document.type === "npc";
+    ctx.isGM = game.user.isGM;
+    ctx.looted = !!this.document.getFlag?.("foe-rpg", "looted");
     ctx.digSpeed = sys.skills.dig?.known !== false;
     const prog = xpProgression();
     const xpNext = prog === "none" ? null : xpFor(sys.level + 1, prog);
@@ -688,6 +692,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static #onOpenCreator() {
     openCreator(this.document);
+  }
+
+  static #onSearchBody() {
+    return searchBody(this.document);
   }
 
   static #onOpenCatalog(event, target) {
