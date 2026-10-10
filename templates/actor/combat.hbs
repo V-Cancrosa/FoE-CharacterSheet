@@ -36,7 +36,7 @@
           {{else}}—{{/if}}
         </td>
         <td class="nw" {{#if rangeTip}}title="{{rangeTip}}"{{/if}}>{{rangeLabel}}</td>
-        <td class="ctl">{{#if canName}}<a data-action="nameItem" title="Broń nazwana (s. 204–206): 1+1d4 pkt na obrażenia, magazynek, SATS, efekty"><i class="fa-solid fa-star"></i></a> {{/if}}{{#if named}}<i class="fa-solid fa-star named-mark" title="Broń nazwana"></i> {{/if}}<a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+        <td class="ctl">{{#if canName}}<a data-action="nameItem" title="Broń nazwana (s. 204–206): 1+1d4 pkt na obrażenia, magazynek, SATS, efekty"><i class="fa-solid fa-star"></i></a> {{/if}}{{#if named}}<i class="fa-solid fa-star named-mark" title="Broń nazwana"></i> {{/if}}<a data-action="giveItem" title="Przekaż innej postaci, pojazdowi albo NPC na scenie"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
       </tr>
     {{else}}<tr><td colspan="9" class="empty">Brak broni — wybierz ją z katalogu albo dodaj plusem.</td></tr>
     {{/each}}

@@ -299,19 +299,30 @@ export async function hackTerminal(terminal) {
 
 export const guess = (terminal, word) => request(terminal, "guess", { word, who: userActor()?.name, tech: hasPipbuckTech(userActor()) });
 
+/**
+ * Pusta holotaśma: dokładnie „Holotape” (z katalogu) albo „Holotaśma” / „… (pusta)”, bez nagrania.
+ * Holotaśmy z treścią (nagrane tu, z opisem albo nazwane przez MG, np. „Holotape – wiadomość nadzorcy”) się nie liczą.
+ */
+export function isBlankHolotape(i) {
+  if (i?.type !== "gear" || (Number(i.system?.qty) || 0) <= 0) return false;
+  if (i.flags?.[F]?.holotape || i.getFlag?.(F, "holotape")) return false;
+  if (String(i.system?.description ?? "").replace(/<[^>]+>/g, "").trim()) return false;   // ma treść — nie jest pusta
+  return /^(holotape|holota[sś]ma)(\s*\((blank|empty|pusta)\))?$|^pusta holota[sś]ma$/i.test(String(i.name ?? "").trim());
+}
+
 /** Zgraj wpis na holotaśmę: zużywa pustą „Holotape” z ekwipunku i tworzy przedmiot z treścią. */
 export async function downloadEntry(terminal, entryId) {
   const actor = userActor();
   if (!actor) return warn("Zaznacz swój token albo przypisz postać do gracza.");
   const e = terminal.system.entries.find(x => x.id === entryId);
   if (!e || !canSee(e.access, effectiveState(terminal.system))) return null;
-  const blank = actor.items.find(i => i.type === "gear" && /^holotape/i.test(i.name) && (Number(i.system.qty) || 0) > 0);
-  if (!blank) return warn(`${actor.name}: potrzebna pusta holotaśma („Holotape” z katalogu).`);
+  const blank = actor.items.find(isBlankHolotape);
+  if (!blank) return warn(`${actor.name}: potrzebna pusta holotaśma („Holotape” z katalogu). Nagrane holotaśmy nie są nadpisywane.`);
   if ((Number(blank.system.qty) || 0) > 1) await blank.update({ "system.qty": blank.system.qty - 1 });
   else await blank.delete();
   const body = String(e.body ?? "").split(/\n/).map(l => `<p>${esc(l)}</p>`).join("");
   await actor.createEmbeddedDocuments("Item", [{
-    name: `Holotaśma: ${e.title}`, type: "gear", img: blank.img,
+    name: `Holotaśma: ${e.title}`, type: "gear", img: blank.img, flags: { [F]: { holotape: { terminal: terminal.name, entry: e.id, title: e.title } } },
     system: { category: blank.system.category ?? "misc", qty: 1, weight: blank.system.weight ?? 0, value: 0, description: `<p><b>${esc(terminal.name)}</b></p>${body}` }
   }]);
   ui.notifications.info(`${actor.name}: zgrano „${e.title}” na holotaśmę.`);

@@ -254,6 +254,11 @@ export async function reloadWeapon(actor, item) {
   const reserveCap = reserve?.kind === "energy" ? saddle.energy.cap : reserve?.kind === "fuel" ? saddle.fuel.cap : reserve?.cap ?? 0;
   const available = fromStock + (reserve?.rounds ?? 0);
   const tracked = stock.length > 0 || !!reserve;
+  // Postać gracza ładuje tylko z ekwipunku albo rezerwy — amunicja nie bierze się znikąd.
+  // NPC MG (bez właściciela-gracza) ładują bez liczenia; Junk, Cake i Rock to „amunicja” z czegokolwiek.
+  const mustTrack = !!type && (actor.type === "character" || actor.hasPlayerOwner) && !/^(junk|cake|rock)$/i.test(type);
+  if (mustTrack && !tracked) return warn(`${actor.name}: brak amunicji „${w.ammoType}” w ekwipunku — nie ma czym przeładować ${item.name} (dodaj amunicję z katalogu albo z łupu).`);
+  if (tracked && available <= 0) return warn(`${actor.name}: brak amunicji „${w.ammoType}” w ekwipunku${reserve ? ` ani w: ${reserveName}` : ""}.`);
   const kind = String(w.reload ?? "").toUpperCase();
   const loaderOk = !(w.skill === "energy" || isFuel(w.ammoType) || /bow|crossbow/i.test(item.name)) && /DTM|BREECH|INTERNAL|BELT/.test(kind);
   const auto = !!(saddle?.acc?.auto && loaderOk);
@@ -266,7 +271,7 @@ export async function reloadWeapon(actor, item) {
       <div class="atk-info">
         <div>Magazynek: <b>${w.ammo.value}/${w.ammo.max}</b> · przeładowanie: <b>${esc(ri.label || "—")}</b></div>
         <div>${tracked ? `Amunicja „${esc(w.ammoType)}”: <b>${available}</b>${reserve ? ` (ekwipunek ${fromStock} + ${reserveName} ${reserve.rounds})` : ""}`
-          : w.ammoType ? `Brak amunicji „${esc(w.ammoType)}” w ekwipunku — załaduję bez odejmowania (dodaj ją z katalogu, żeby się liczyła).`
+          : w.ammoType ? `NPC bez amunicji „${esc(w.ammoType)}” w ekwipunku — załaduję bez odejmowania.`
           : "Broń bez typu amunicji — załaduję bez odejmowania."}</div>
         ${saddle ? `<div>Na siodle (${esc(saddle.label)}): ${auto ? "podajnik automatyczny — przeładowanie bez akcji" : semi ? "podajnik półautomatyczny — 1 akcja, cały magazynek" : extraActions ? "bez podajnika i wysuwanego wędzidła sięgnięcie po amunicję to +2 akcje" : "normalnie"}</div>` : ""}
       </div>

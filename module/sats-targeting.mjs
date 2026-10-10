@@ -12,7 +12,7 @@ import { locationName } from "./rolls.mjs";
 const F = "foe-rpg";
 const ID = "foe-sats";
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
-const SETTING = { autoOpen: "satsAutoOpen", zoom: "satsZoom", restoreDelay: "satsRestoreDelay" };
+const SETTING = { autoOpen: "satsAutoOpen", zoom: "satsZoom", restoreDelay: "satsRestoreDelay", minimize: "satsMinimize" };
 const setting = key => game.settings.get(F, SETTING[key]);
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 /** Włączone w świecie i nie zdublowane przez osobny moduł foe-sats. */
@@ -36,6 +36,11 @@ export function registerSatsSettings() {
   });
   game.settings.register(F, "satsZoom", {
     name: "S.A.T.S.: przybliżaj kamerę do celu",
+    scope: "client", config: true, type: Boolean, default: true
+  });
+  game.settings.register(F, "satsMinimize", {
+    name: "S.A.T.S.: zwijaj karty na czas celowania",
+    hint: "Otwarte karty postaci i przedmiotów zwijają się, gdy otwiera się celownik, i wracają po ataku albo wyjściu z SATS — nic nie zasłania celu.",
     scope: "client", config: true, type: Boolean, default: true
   });
   game.settings.register(F, "satsRestoreDelay", {
@@ -77,6 +82,7 @@ export function registerSatsHooks() {
     if (!st) return;
     st.close?.();
     restoreCamera(st, setting("restoreDelay"));
+    restoreSheets(st);
   });
 }
 
@@ -133,6 +139,28 @@ function rowsFor(measured, locs, table) {
   // podopcje bezpośrednio pod częścią, której dotyczą
   const main = rows.filter(r => !r.sub);
   return main.flatMap(r => [r, ...rows.filter(s => s.sub && s.part === r.value)]);
+}
+
+// ======================================================================
+// Karty: zwinięte na czas celowania
+// ======================================================================
+
+/** Zwiń otwarte okna systemu z dokumentem (karty postaci, NPC, przedmiotów), żeby nie zasłaniały celu. */
+function minimizeSheets(st) {
+  if (!setting("minimize")) return;
+  st.minimized ??= [];
+  for (const app of foundry.applications.instances?.values?.() ?? []) {
+    if (!app?.rendered || app.minimized || !app.document || st.minimized.includes(app)) continue;
+    if (!app.element?.classList?.contains("foe-rpg")) continue;
+    try { app.minimize(); st.minimized.push(app); } catch (err) { console.warn(`${ID} | zwijanie karty`, err); }
+  }
+}
+
+function restoreSheets(st) {
+  for (const app of st.minimized ?? []) {
+    try { if (app.rendered && app.minimized) app.maximize(); } catch (err) { console.warn(`${ID} | rozwijanie karty`, err); }
+  }
+  st.minimized = [];
 }
 
 // ======================================================================
@@ -242,6 +270,7 @@ async function openSats(app, form, { viaCheckbox }) {
       sats.dispatchEvent(new Event("change", { bubbles: true }));
     }
     restoreCamera(st);
+    restoreSheets(st);
   };
   // Esc w Foundry zamyka okna — przechwytujemy klawisze, zanim dotrą do skrótów Foundry
   const onKey = ev => {
@@ -267,6 +296,7 @@ async function openSats(app, form, { viaCheckbox }) {
   window.addEventListener("keydown", onKey, { capture: true });
 
   st.close = close;
+  minimizeSheets(st);
   if (dialogEl) dialogEl.style.visibility = "hidden";
   document.body.append(el);
   setActive(active);

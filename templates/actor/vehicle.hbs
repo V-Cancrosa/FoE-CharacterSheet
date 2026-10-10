@@ -130,7 +130,7 @@
   <ul class="item-list veh-cargo">
     {{#each cargo}}
     <li data-item-id="{{id}}"><img class="icon" src="{{img}}" alt=""><span class="nm">{{name}}</span><span class="cdesc">×{{qty}} · {{weight}} lb</span>
-      <span class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></span></li>
+      <span class="ctl"><a data-action="giveItem" title="Przekaż innej postaci, pojazdowi albo NPC na scenie"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></span></li>
     {{else}}<li class="empty">Pusto. Złom (Scrap Metal / Electronics) w ładunku przyda się do napraw.</li>
     {{/each}}
   </ul>
