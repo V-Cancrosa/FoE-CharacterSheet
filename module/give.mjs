@@ -1,79 +1,105 @@
 /**
- * Wymiana między postaciami: „Przekaż” przy przedmiocie (broń, pancerz, ekwipunek, ładownia pojazdu) i przy kapslach.
- * Odbiorcy: inne postacie, pojazdy, a z bieżącej sceny także NPC (np. kupiec). Stosy — z wyborem ilości.
+ * Wymiana — rdzeń: przeniesienie przedmiotu albo kapsli między aktorami i kanał do MG.
  * Gdy gracz nie jest właścicielem odbiorcy, przeniesienie wykonuje przeglądarka MG (kanał systemu) — sprawdza przy tym,
  * że prośba pochodzi od właściciela dającego. Na czacie zostaje ślad wymiany.
+ * Okno wymiany (kto stoi obok, rzut, sprzedaż): trade.mjs; rzut przedmiotem: throw.mjs; sprzedaż: sale.mjs.
  */
 import { addItemToActor } from "./catalog.mjs";
 
-const { DialogV2 } = foundry.applications.api;
-const F = "foe-rpg";
-const SOCKET = `system.${F}`;
-const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
-const warn = msg => { ui.notifications.warn(msg); return null; };
+export const F = "foe-rpg";
+export const SOCKET = `system.${F}`;
+export const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
+export const warn = msg => { ui.notifications.warn(msg); return null; };
 
-const stacks = it => it.type === "gear" || (it.type === "weapon" && !!it.system?.consumable);
-const qtyOf = it => (stacks(it) ? Math.max(0, Number(it.system?.qty) || 0) : 1);
+export const stacks = it => it?.type === "gear" || (it?.type === "weapon" && !!it.system?.consumable);
+export const qtyOf = it => (stacks(it) ? Math.max(0, Number(it.system?.qty) || 0) : 1);
+export const capsOf = actor => Math.max(0, Number(actor?.system?.caps) || 0);
+/** „1 kapsel”, „3 kapsle”, „5 kapsli”, „22 kapsle”. */
+export function capsText(n) {
+  const a = Math.abs(Number(n) || 0), d = a % 10, t = a % 100;
+  return `${n} ${a === 1 ? "kapsel" : d >= 2 && d <= 4 && (t < 12 || t > 14) ? "kapsle" : "kapsli"}`;
+}
 
-/** Możliwi odbiorcy: postacie i pojazdy świata oraz postacie/NPC z tokenów bieżącej sceny. */
-export function recipients(source) {
-  const out = new Map();
-  const add = (actor, label) => {
-    if (!actor || actor.uuid === source.uuid || out.has(actor.uuid)) return;
-    if (!["character", "npc", "vehicle"].includes(actor.type)) return;
-    out.set(actor.uuid, { uuid: actor.uuid, label });
-  };
-  for (const a of game.actors ?? []) {
-    if (a.type === "character") add(a, `${a.name}${a.hasPlayerOwner ? "" : " (postać MG)"}`);
-    else if (a.type === "vehicle") add(a, `${a.name} (ładownia pojazdu)`);
-    else if (a.type === "npc" && game.user.isGM) add(a, `${a.name} (NPC)`);
+/** Siatka sceny: { size (px), distance (ft na pole), diagonals (reguła przekątnych), gridless }. */
+export function gridOf(scene) {
+  const g = scene?.grid ?? {};
+  let diagonals = g.diagonals;
+  if (diagonals === undefined) { try { diagonals = game.settings.get("core", "gridDiagonals"); } catch { diagonals = 0; } }
+  return { size: Number(g.size) || 100, distance: Number(g.distance) || 5, diagonals: Number(diagonals) || 0, gridless: g.type === 0 };
+}
+
+/** Prostokąt tokenu w px. */
+export const rectOf = (doc, size) => ({
+  x: Number(doc?.x) || 0, y: Number(doc?.y) || 0, w: (Number(doc?.width) || 1) * size, h: (Number(doc?.height) || 1) * size
+});
+
+/** Token aktora na oglądanej scenie (zaznaczony, gdy jest kilka); bez tokenu — null. */
+export function tokenOf(actor) {
+  const scene = canvas?.ready ? canvas.scene : null;
+  if (!scene || !actor) return null;
+  const docs = actor.isToken ? [actor.token].filter(t => t?.parent?.id === scene.id) : (actor.getActiveTokens?.(true, true) ?? []);
+  return docs.find(d => d.object?.controlled) ?? docs[0] ?? null;
+}
+
+/** Dane przedmiotu do skopiowania: bez id, zdjęty, z ilością n (stosy). */
+export function itemCopy(it, n) {
+  const data = it.toObject();
+  delete data._id;
+  if (data.system) {
+    if ("equipped" in data.system) data.system.equipped = false;
+    if (stacks(it)) data.system.qty = n;
   }
-  for (const t of canvas?.tokens?.placeables ?? []) {
-    if (!t.actor || (!game.user.isGM && !t.visible)) continue;
-    add(t.actor, `${t.name} (na scenie${t.actor.type === "npc" ? ", NPC" : ""})`);
-  }
-  return [...out.values()].sort((a, b) => a.label.localeCompare(b.label, "pl"));
+  return data;
 }
 
-async function ask(source, title, body) {
-  const list = recipients(source);
-  if (!list.length) return warn("Nie ma komu przekazać — brak innych postaci, pojazdów ani tokenów na scenie.");
-  return DialogV2.wait({
-    window: { title }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 420 }, rejectClose: false,
-    content: `<div class="foe-dialog">${body}
-      <label class="atk-row">Dla <select name="to">${list.map(r => `<option value="${esc(r.uuid)}">${esc(r.label)}</option>`).join("")}</select></label></div>`,
-    buttons: [{ action: "give", label: "Przekaż", icon: "fa-solid fa-hand-holding", default: true,
-      callback: (ev, btn) => ({ to: btn.form.elements.to.value, qty: Number(btn.form.elements.qty?.value ?? 1) || 1 }) }]
-  });
+/** Dodaje przedmiot z danych (stos — n sztuk, inne — jedna sztuka). */
+export function putItem(dst, data, n = 1) {
+  const d = foundry.utils.deepClone(data);
+  const stack = d.type === "gear" || (d.type === "weapon" && d.system?.consumable);
+  if (stack) d.system.qty = n;
+  return addItemToActor(dst, d, stack ? n : 1);
 }
 
-/** „Przekaż” przy przedmiocie. */
-export async function giveItem(source, item) {
-  if (!source?.isOwner) return warn(`Nie jesteś właścicielem: ${source?.name ?? "?"}.`);
-  if (!item) return null;
-  const have = qtyOf(item);
-  if (have <= 0) return warn(`${item.name}: nic do przekazania.`);
-  const body = `<div class="atk-info"><div><b>${esc(item.name)}</b>${stacks(item) ? ` — masz ${have}` : ""}${item.system?.equipped ? " · teraz założone / w użyciu" : ""}</div></div>
-    ${stacks(item) && have > 1 ? `<label class="atk-row">Ile <input type="number" name="qty" value="${have}" min="1" max="${have}"></label>` : ""}`;
-  const pick = await ask(source, `Przekaż: ${item.name}`, body);
-  if (!pick?.to) return null;
-  return request({ op: "item", from: source.uuid, itemId: item.id, to: pick.to, qty: Math.min(have, Math.max(1, pick.qty)) });
+/** Zdejmuje n sztuk przedmiotu z aktora (stos zmniejsza, resztę usuwa). */
+export async function dropItem(it, n) {
+  const have = qtyOf(it);
+  if (stacks(it) && n < have) return it.update({ "system.qty": have - n });
+  return it.delete();
 }
 
-/** „Przekaż” przy kapslach. */
-export async function giveCaps(source) {
-  if (!source?.isOwner) return warn(`Nie jesteś właścicielem: ${source?.name ?? "?"}.`);
-  const have = Math.max(0, Number(source.system?.caps) || 0);
-  if (!have) return warn(`${source.name}: brak kapsli.`);
-  const body = `<div class="atk-info"><div>Kapsle: <b>${have}</b></div></div>
-    <label class="atk-row">Ile <input type="number" name="qty" value="${Math.min(10, have)}" min="1" max="${have}"></label>`;
-  const pick = await ask(source, `Przekaż kapsle: ${source.name}`, body);
-  if (!pick?.to) return null;
-  return request({ op: "caps", from: source.uuid, to: pick.to, qty: Math.min(have, Math.max(1, pick.qty)) });
+/** Przenosi przedmiot: najpierw do odbiorcy, potem zdejmuje z dającego. Zwraca { name, n } albo null. */
+export async function moveItem(src, itemId, dst, qty) {
+  const it = src?.items?.get(itemId);
+  if (!it || !dst) return null;
+  const have = qtyOf(it);
+  const n = stacks(it) ? Math.min(have, Math.max(1, Number(qty) || 1)) : 1;
+  if (n <= 0) return null;
+  await putItem(dst, itemCopy(it, n), n);
+  await dropItem(it, n);
+  return { name: it.name, n };
 }
 
-/** Właściciel obu stron (albo MG) przenosi sam; inaczej prośba do MG. */
-async function request(data) {
+/** Przenosi kapsle; zwraca liczbę przeniesionych. */
+export async function moveCaps(src, dst, qty) {
+  const have = capsOf(src);
+  const n = Math.min(have, Math.max(1, Math.floor(Number(qty) || 1)));
+  if (!n || !dst) return 0;
+  await src.update({ "system.caps": have - n });
+  await dst.update({ "system.caps": capsOf(dst) + n });
+  return n;
+}
+
+/** Operacja wykonywana przez MG: MG robi ją od razu, gracz wysyła ją kanałem systemu. */
+export function viaGM(payload, apply) {
+  const p = { user: game.user.id, ...payload };
+  if (game.user.isGM) return apply(p);
+  if (!game.users.activeGM) return warn("To wymaga zalogowanego MG.");
+  game.socket.emit(SOCKET, p);
+  return true;
+}
+
+/** Przekazanie: właściciel obu stron (albo MG) przenosi sam; inaczej prośba do MG. */
+export async function handOver(data) {
   const payload = { kind: "give", user: game.user.id, ...data };
   const to = await fromUuid(data.to).catch(() => null);
   if (game.user.isGM || to?.isOwner) return transfer(payload);
@@ -83,8 +109,11 @@ async function request(data) {
   return true;
 }
 
-/** Wykonanie przeniesienia (MG albo właściciel obu stron). */
-export async function transfer({ op, from, itemId, to, qty, user }) {
+/**
+ * Wykonanie przeniesienia (MG albo właściciel obu stron). tag — dopisek na karcie („przekazanie”, „rzut — złapane”);
+ * toName — nazwa odbiorcy, jaką widział gracz (NPC z ukrytą nazwą to „nieznany NPC”).
+ */
+export async function transfer({ op, from, itemId, to, toName, qty, user, tag = "przekazanie" }) {
   const src = await fromUuid(from).catch(() => null);
   const dst = await fromUuid(to).catch(() => null);
   if (!src || !dst || src.uuid === dst.uuid) return null;
@@ -92,32 +121,18 @@ export async function transfer({ op, from, itemId, to, qty, user }) {
   if (who && !who.isGM && !src.testUserPermission?.(who, "OWNER")) return null;   // tylko właściciel może oddawać swoje rzeczy
   let line;
   if (op === "caps") {
-    const have = Math.max(0, Number(src.system?.caps) || 0);
-    const n = Math.min(have, Math.max(1, Number(qty) || 1));
+    const n = await moveCaps(src, dst, qty);
     if (!n) return null;
-    await src.update({ "system.caps": have - n });
-    await dst.update({ "system.caps": (Number(dst.system?.caps) || 0) + n });
-    line = `${n} kapsli`;
+    line = capsText(n);
   } else {
-    const it = src.items.get(itemId);
-    if (!it) return null;
-    const have = qtyOf(it);
-    const n = stacks(it) ? Math.min(have, Math.max(1, Number(qty) || 1)) : 1;
-    const data = it.toObject();
-    delete data._id;
-    if (data.system) {
-      if ("equipped" in data.system) data.system.equipped = false;
-      if (stacks(it)) data.system.qty = n;
-    }
-    await addItemToActor(dst, data, n);
-    if (stacks(it) && n < have) await it.update({ "system.qty": have - n });
-    else await it.delete();
-    line = `${it.name}${n > 1 ? ` ×${n}` : ""}`;
+    const r = await moveItem(src, itemId, dst, qty);
+    if (!r) return null;
+    line = `${r.name}${r.n > 1 ? ` ×${r.n}` : ""}`;
   }
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: src }),
-    content: `<div class="foe-card reload"><div class="fc-tag"><span>PIPBUCK // WYMIANA</span><span>przekazanie</span></div>
-      <h3>${esc(src.name)} → ${esc(dst.name)}</h3><div class="fc-calc">${esc(line)}</div></div>`
+    content: `<div class="foe-card reload"><div class="fc-tag"><span>PIPBUCK // WYMIANA</span><span>${esc(tag)}</span></div>
+      <h3>${esc(src.name)} → ${esc(toName || dst.name)}</h3><div class="fc-calc">${esc(line)}</div></div>`
   });
 }
 

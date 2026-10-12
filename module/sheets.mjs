@@ -30,7 +30,7 @@ import { openWorkshop, repairWeapon, repairArmorItem } from "./craft.mjs";
 import { bodyMap } from "./body-map.mjs";
 import { searchBody } from "./loot.mjs";
 import { editCutieMark } from "./cutie-mark.mjs";
-import { giveItem, giveCaps } from "./give.mjs";
+import { giveItem, giveCaps } from "./trade.mjs";
 import { hitTableFor, tableLocations } from "./combat.mjs";
 import { locationName } from "./rolls.mjs";
 import { degradationOn, weaponCondition } from "./craft-data.mjs";

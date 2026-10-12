@@ -1135,3 +1135,18 @@ body[data-foe-crt="off"] .foe-rpg .term-screen::after { display: none; }
 /* ptaszek okaleczenia od ran: zablokowany, ale wyraźnie zaznaczony */
 .foe-rpg table.locs td.crip input[type=checkbox]:disabled { opacity: 1; cursor: help; }
 .foe-rpg table.locs td.crip input[type=checkbox]:disabled:checked { background: var(--pip-alert); box-shadow: 0 0 6px var(--pip-alert), inset 0 0 0 2px #000; }
+
+/* ==========================================================================
+   v0.31 — handel: okno wymiany, oferta sprzedaży, przedmiot na ziemi po chybionym rzucie
+   ========================================================================== */
+.foe-rpg .trade-dlg .hint:empty { display: none; }
+.foe-card.foe-offer .offer-row { display: grid; grid-template-columns: auto 1fr auto; gap: .4rem; align-items: center; margin-top: .2rem; }
+.foe-card.foe-offer .offer-row img { width: 32px; height: 32px; object-fit: contain; border: 1px solid var(--pip-line); }
+.foe-card.foe-offer .offer-row .nm { color: var(--pip-bright); }
+.foe-card.foe-offer .offer-price { font-family: var(--foe-crt); font-size: 1.3rem; color: var(--pip-bright); text-shadow: 0 0 4px var(--pip-glow); white-space: nowrap; }
+.foe-card.foe-offer .offer-btns { display: flex; flex-wrap: wrap; gap: .3rem; }
+.foe-card.foe-offer .offer-btns button.foe-luck { flex: 1 1 30%; width: auto; }
+.foe-card.foe-offer.st-declined .offer-row,
+.foe-card.foe-offer.st-withdrawn .offer-row,
+.foe-card.foe-offer.st-failed .offer-row { opacity: .55; text-decoration: line-through; }
+.foe-card.foe-ground .foe-ground-act b { color: var(--pip-bright); }
