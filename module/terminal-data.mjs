@@ -171,6 +171,80 @@ export function memoryDump(game, { rows = 24, width = 12 } = {}) {
   return out;
 }
 
+/**
+ * Analiza zrzutu — rzut Science w minigrze (raz na grę): krytyk — +2 podpowiedzi i pełne 4 próby; sukces — +1 podpowiedź;
+ * porażka — nic; krytyczna porażka — jedna próba mniej (ostatnia → blokada jak po chybionym haśle).
+ * Zwraca { game, lines, lockout }.
+ */
+export function analyzeOutcome(game, result) {
+  const g = { ...game, analyzed: true };
+  if (result === "crit-success") return { game: { ...g, hints: (Number(g.hints) || 0) + 2, tries: 4 }, lines: ["> ANALIZA: +2 PODPOWIEDZI", "> PRÓBY PRZYWRÓCONE"], lockout: false };
+  if (result === "success") return { game: { ...g, hints: (Number(g.hints) || 0) + 1 }, lines: ["> ANALIZA: +1 PODPOWIEDŹ"], lockout: false };
+  if (result === "crit-fail") {
+    const tries = Math.max(0, (Number(g.tries) || 4) - 1);
+    return { game: { ...g, tries }, lines: ["> BŁĄD ANALIZY — UTRACONO PRÓBĘ"], lockout: tries <= 0 };
+  }
+  return { game: g, lines: ["> ANALIZA BEZ WYNIKU"], lockout: false };
+}
+
+// ---------- zasięg obsługi ----------
+/**
+ * Przedmioty, z którymi postać obsłuży terminal z dystansu (ft):
+ * kabel z PipBucka (Cabling, Universal 10’, s. 218), implant Console Matrix Remote Control Talisman (20 ft, s. 108),
+ * kabel iskrowy do zdalnego dostępu (Wire, Spark 25’, s. 240).
+ */
+export const REMOTE_GEAR = [
+  { re: /^cabling,?\s*universal/i, ft: 10 },
+  { re: /console matrix remote control/i, ft: 20, implant: true },
+  { re: /^wire,?\s*spark/i, ft: 25 }
+];
+
+/** Najdłuższy zasięg z przedmiotów postaci: { ft, label } (0 — tylko obok). powered=false — implant bez zasilania nie działa. */
+export function remoteReach(actor, { powered = true } = {}) {
+  let best = { ft: 0, label: "" };
+  for (const i of actor?.items ?? []) {
+    const g = REMOTE_GEAR.find(x => x.re.test(String(i?.name ?? "")));
+    if (!g || g.ft <= best.ft) continue;
+    if (i.type === "feature" && i.system?.active === false) continue;
+    if (i.type === "gear" && (Number(i.system?.qty ?? 1) || 0) <= 0) continue;
+    if (g.implant && !powered && (Number(i.system?.cyber?.power) || 0) > 0) continue;
+    best = { ft: g.ft, label: i.name };
+  }
+  return best;
+}
+
+// ---------- uruchamianie (animacja ASCII) ----------
+const MAKERS = {
+  office: "MINISTERSTWO NAUK MAGICZNYCH", stabletec: "STABLE-TEC", military: "MINISTERSTWO TECHNOLOGII WOJENNEJ",
+  cloud: "ENKLAWA — SŁUŻBY CHMUROWE", unics: "UNICS LABS", portable: "STABLE-TEC"
+};
+
+/** Linie wypisywane przy uruchamianiu terminala (przed paskiem ładowania). */
+export function bootLines(kind = "office", brand = "") {
+  const head = brand || TERMINAL_KINDS[kind]?.brand || "TERMLINK";
+  const lines = [
+    head,
+    `(C) ${MAKERS[kind] ?? MAKERS.office}`,
+    "",
+    "> TEST PAMIĘCI ........... 64K OK",
+    "> MATRYCA ZAKLĘĆ ......... OK",
+    "> KRYSZTAŁY DANYCH ....... OK"
+  ];
+  if (kind === "cloud") lines.push("> ŁĄCZE SKY-LINK ......... OK");
+  else if (kind === "military") lines.push("> SZYFROWANIE ............ AKTYWNE");
+  else if (kind === "portable") lines.push("> BATERIA ISKROWA ........ 37%");
+  else lines.push("> ŁĄCZE TERMLINK ......... OK");
+  lines.push("> ŁADOWANIE SYSTEMU");
+  return lines;
+}
+
+/** Pasek ładowania ASCII: „[#####-----]  50% /” (spinner co krok). */
+export function bootBar(pct, width = 24, tick = 0) {
+  const p = Math.max(0, Math.min(100, Math.round(Number(pct) || 0)));
+  const full = Math.round((p / 100) * width);
+  return `[${"#".repeat(full)}${"-".repeat(width - full)}] ${String(p).padStart(3)}% ${p >= 100 ? " " : "|/-\\"[tick % 4]}`;
+}
+
 /** Linia dziennika ekranu z ograniczeniem długości. */
 export const pushLog = (log, ...lines) => [...(log ?? []), ...lines].slice(-14);
 

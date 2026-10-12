@@ -1150,3 +1150,27 @@ body[data-foe-crt="off"] .foe-rpg .term-screen::after { display: none; }
 .foe-card.foe-offer.st-withdrawn .offer-row,
 .foe-card.foe-offer.st-failed .offer-row { opacity: .55; text-decoration: line-through; }
 .foe-card.foe-ground .foe-ground-act b { color: var(--pip-bright); }
+
+/* ==========================================================================
+   v0.32 — terminale: obudowa (ukryta śrubka oględzin), słowa łamane w minigrze, animacja uruchamiania
+   ========================================================================== */
+.foe-rpg .term-case { display: flex; align-items: center; gap: .5rem; margin-top: .3rem; font-size: 14px; opacity: .35; user-select: none; }
+.foe-rpg .term-case .grill { flex: 1; text-align: center; letter-spacing: .12em; overflow: hidden; white-space: nowrap; }
+/* śrubka niczym się nie wyróżnia — o tym, gdzie kliknąć, mówi MG */
+.foe-rpg .term-case .screw, .foe-rpg .term-case [data-action] { cursor: default !important; padding: 0 .25rem; }
+.foe-rpg .term-dump a.w.hover { background: var(--term); color: #021006; text-shadow: none; }
+.foe-rpg.terminal .window-content { position: relative; }
+.foe-rpg .term-boot {
+  --term: var(--pip);
+  position: absolute; inset: 0; z-index: 5; padding: 1.2rem 1.4rem; cursor: pointer;
+  background: radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--term) 10%, #020503) 0%, #010201 85%);
+  color: var(--term); font-family: var(--foe-crt), var(--foe-mono); font-size: 20px; line-height: 1.2;
+  text-shadow: 0 0 4px color-mix(in srgb, var(--term) 60%, transparent); transition: opacity .25s;
+}
+.foe-rpg .term-boot::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, .22) 2px 3px); }
+body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
+.foe-rpg .term-boot.out { opacity: 0; }
+.foe-rpg .term-boot pre { margin: 0; font: inherit; white-space: pre-wrap; background: none; border: 0; color: inherit; padding: 0; }
+.foe-rpg .term-boot.kind-cloud { --term: #bfe8ff; }
+.foe-rpg .term-boot.kind-stabletec { --term: #ffd27a; }
+.foe-rpg .term-boot.kind-military { --term: #9cff6a; }
