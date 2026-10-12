@@ -288,10 +288,25 @@ Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
 
-Wymiana: przy broni, pancerzu, ekwipunku (i ładowni pojazdu) jest „Przekaż” (ikona dłoni), przy kapslach — „Przekaż
-kapsle”. Odbiorca: inna postać, pojazd albo postać/NPC z tokenu na scenie (np. kupiec); przy stosach wybierasz ilość.
-Założony przedmiot zdejmuje się przy przekazaniu. Gdy odbiorca nie jest Twój, przeniesienie zapisuje przeglądarka MG
-(sprawdza, czy oddajesz swoje rzeczy); ślad zostaje na czacie.
+Wymiana: przy broni, pancerzu, ekwipunku i kapslach jest ikona dłoni — okno wymiany. Lista bierze tylko tokeny
+z oglądanej sceny, które gracz widzi (bez ukrytych, martwych i NPC spoza mapy — nie zdradza przyszłych przeciwników);
+NPC, którego nazwy MG nie pokazuje na mapie, to „nieznany NPC” z kierunkiem (np. „obok, na północ”). Przy stosach
+wybierasz ilość, założony przedmiot zdejmuje się przy wymianie.
+- „Przekaż” — tylko komuś obok (tokeny stykają się bokiem albo rogiem, podobna wysokość) albo komuś w tym samym
+  pojeździe (załoga i ładownia — wtedy tokeny nie są potrzebne). Ładownia pojazdu ma samo „Przekaż”.
+- „Rzuć” — komuś, kogo widzisz w zasięgu, np. w walce: test Explosives (s. 58, 187). Rzucisz rzecz lżejszą niż ½ STR;
+  przedział zasięgu (STR/4)×5 ft, a dla rzeczy lżejszych niż ¼ STR — (STR/2)×5 ft (min. 5 ft); Heave, Ho! +5 ft,
+  Oops! −5 ft; jednorożec z telekinezą może rzucić nią (INT, udźwig 2×INT, s. 253). Zasięg to 4 przedziały, każdy
+  po pierwszym — krok MFD trudniej. Udany — cel łapie. Chybiony — przedmiot upada obok celu (5 ft dalej za każdy
+  brakujący krok MFD, kierunek k8): na mapie pojawia się znacznik, a na czacie karta „Podnieś” dla kogoś, kto stanie
+  obok. Udany przerzut za kartę szczęścia oddaje przedmiot celowi (jeśli nikt go jeszcze nie podniósł).
+- „Sprzedaj” — postaci albo NPC obok: oferta na czacie z ceną. Podpowiedź z Tabeli XXXI (s. 471–472): gracz sprzedaje
+  NPC za (Mercantile/5, w dół)×5 % wartości, NPC sprzedaje graczowi za 200% minus tyle samo (Mercantile kupującego),
+  między graczami — wartość z podręcznika; cenę można zmienić. Kupujący (jego gracz, za NPC — MG) klika „Kupuję”
+  albo „Odrzuć”, sprzedający może „Wycofać”. Kupiec-NPC, który ma za mało kapsli, płaci za zgodą MG tyle, ile ma.
+Zapis zmian u innych robi przeglądarka MG (sprawdza, czy oddajesz swoje rzeczy); ślad zostaje na czacie.
+Żeby gracze widzieli w oknie nazwę kupca, ustaw w jego tokenie wyświetlanie nazwy „po najechaniu” albo „zawsze”.
+Znacznik upuszczonego przedmiotu można wyłączyć w ustawieniach świata.
 
 Znaczek: obok portretu na karcie jest pole znaczka — kliknij, wybierz obrazek (albo wklej adres, jeśli nie masz dostępu
 do przeglądarki plików) i dopisz krótki opis talentu (pokazuje się po najechaniu).

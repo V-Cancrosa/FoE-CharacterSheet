@@ -3,7 +3,7 @@
  * Akcje: sterowanie, taranowanie, zderzenie, naprawa — vehicle.mjs.
  */
 import { clearFlag } from "./flags.mjs";
-import { giveItem } from "./give.mjs";
+import { giveItem } from "./trade.mjs";
 import { ATTRS, SKILLS, GEAR_CATEGORIES } from "./data.mjs";
 import { rollDamage } from "./rolls.mjs";
 import { reloadWeapon } from "./attack.mjs";
