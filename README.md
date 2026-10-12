@@ -346,7 +346,18 @@ Science; krytyk — administrator, krytyczna porażka — blokada, Computer Whiz
 wpisy, komendy i zgrywanie wpisu na holotaśmę (zużywa pustą „Holotape”). Terminal chmurowy obsłużą tylko latający,
 Illiterate nie hakuje, Certified Pipbuck Technician dostaje administratora na Stable-Tec. Opcja świata „Terminale:
 minigra hakowania” (zasada domowa): zgadywanie hasła ze zrzutu pamięci jak w grach Fallout — 4 próby, podobieństwo
-liter, Science daje podpowiedzi. Zmiany stanu terminala zapisuje przeglądarka MG, więc MG musi być zalogowany.
+liter. Science daje podpowiedzi (usunięcie atrapy): z góry ranga/25 minus trudność terminala (¾ −1, ½ −2, ¼ −3),
+a raz na grę „Analiza zrzutu” — rzut Science z trudnością terminala: sukces +1 podpowiedź, krytyk +2 i pełne próby,
+krytyczna porażka −1 próba. Zmiany stanu terminala zapisuje przeglądarka MG, więc MG musi być zalogowany.
+- Z bliska (opcja świata „Terminale: obsługa tylko z bliska”, domyślnie włączona): gracz korzysta z terminala tylko,
+  gdy token jego postaci stoi obok tokenu terminala (jak przy wymianie); z daleka widzi tylko „ZA DALEKO”. Dalej
+  sięgają przedmioty z podręcznika: Cabling, Universal (10’) — 10 ft, implant Console Matrix Remote Control Talisman
+  (zasilony) — 20 ft, Wire, Spark (25’) — 25 ft. Terminal bez tokenu na oglądanej scenie działa jak dotąd; MG zawsze.
+- Oględziny pod kątem ładunku nie mają przycisku: gracz musi sam powiedzieć MG, że sprawdza terminal. MG mówi mu
+  wtedy, żeby kliknął prawą śrubkę (◦) pod ekranem — przed włączeniem terminala; to otwiera rzut Explosives. Wykryty
+  ładunek widać już otwarcie, z przyciskiem „Rozbrój”.
+- Włączenie terminala pokazuje krótką animację ASCII (tekst startowy i pasek ładowania; kliknięcie pomija; opcja gracza
+  „Terminale: animacja uruchamiania”).
 
 Celownik S.A.T.S. (opcja, domyślnie wyłączona; na podstawie modułu foe-sats): MG włącza go w Ustawieniach gry →
 Fallout: Equestria RPG → „Celownik S.A.T.S. (opcja)”. Po namierzeniu celu (T) i zaznaczeniu SATS w oknie ataku

@@ -4,9 +4,12 @@
  */
 import {
   TERMINAL_KINDS, TERMINAL_SECURITY, ACCESS_LABELS, TRAP_EXPLOSIVES, COMMAND_KINDS, COMMAND_ACTIONS,
-  terminalAccess, canSee, effectiveState, memoryDump
+  terminalAccess, canSee, effectiveState, memoryDump, bootLines, bootBar
 } from "./terminal-data.mjs";
-import { request, bootTerminal, inspectTrap, login, hackTerminal, guess, downloadEntry, userActor, minigameOn } from "./terminal.mjs";
+import {
+  request, bootTerminal, inspectTrap, login, hackTerminal, guess, analyzeDump, downloadEntry, userActor, minigameOn,
+  terminalReach, reachOn, bootAnimOn
+} from "./terminal.mjs";
 import { MFD_STEPS } from "./data.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -36,6 +39,7 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       hack: FoeTerminalSheet.#onHack,
       guess: FoeTerminalSheet.#onGuess,
       hint: FoeTerminalSheet.#onHint,
+      analyze: FoeTerminalSheet.#onAnalyze,
       abortGame: FoeTerminalSheet.#onAbort,
       logout: FoeTerminalSheet.#onLogout,
       openEntry: FoeTerminalSheet.#onOpenEntry,
@@ -50,6 +54,8 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   /** Podgląd ekranu u MG i otwarty wpis — tylko w tym oknie. */
   #screen = false;
   #entry = null;
+  /** Ostatnio widziany stan „włączony” ekranu (animacja tylko przy przejściu z wyłączonego). */
+  #lastOn = null;
 
   get #config() { return game.user.isGM && !this.#screen; }
 
@@ -79,6 +85,7 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }).join(", ")
       }));
       ctx.minigame = minigameOn();
+      ctx.reach = reachOn();
       return ctx;
     }
     ctx.screen = this.#screenContext();
@@ -102,9 +109,16 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     else if (st.game?.words?.length) s.mode = "game";
     else if (st.access === "none" || !st.access) s.mode = "login";
     else s.mode = "menu";
+    // za daleko: gracz nie widzi treści ekranu (tylko nagłówek i prośbę, by podejść)
+    const reach = terminalReach(actor, this.document);
+    if (!reach.ok) { s.mode = "far"; s.farWhy = reach.why; s.log = []; this.#entry = null; }
+    else if (reach.via) s.via = `${reach.via} (${reach.dist} ft)`;
+    // oględziny obudowy (Explosives): bez napisu — ukryta śrubka, o której mówi MG
+    s.canInspect = s.mode === "boot" && !st.trapFound;
     s.lockedOnce = (st.lockouts ?? 0) === 1;
     s.entries = t.entries.filter(e => canSee(e.access, st)).map(e => ({ id: e.id, title: e.title, access: e.access }));
     s.commands = t.commands.filter(c => canSee(c.access, st)).map(c => ({ id: c.id, label: c.label }));
+    if (s.mode === "far") { s.entries = []; s.commands = []; }
     if (this.#entry) {
       const e = t.entries.find(x => x.id === this.#entry && canSee(x.access, st));
       if (e && ["menu", "login"].includes(s.mode)) { s.entry = { ...e, lines: String(e.body ?? "").split(/\n/) }; s.mode = "entry"; }
@@ -115,9 +129,41 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const removed = new Set(g.removed ?? []);
       const rows = memoryDump(g).map(r => ({ addr: r.addr, parts: r.parts.map(p => ({ t: p.t, word: p.word && !removed.has(p.word) ? p.word : null, dud: p.word && removed.has(p.word) })) }));
       const half = Math.ceil(rows.length / 2);
-      s.game = { cols: [rows.slice(0, half), rows.slice(half)], tries: Array.from({ length: g.tries }), triesN: g.tries, hints: g.hints };
+      s.game = { cols: [rows.slice(0, half), rows.slice(half)], tries: Array.from({ length: g.tries }), triesN: g.tries, hints: g.hints, analyzed: !!g.analyzed };
     }
     return s;
+  }
+
+  /**
+   * Animacja ASCII przy uruchamianiu: tekst startowy wypisywany po literze, potem pasek ładowania ze wskaźnikiem.
+   * Nakładka siedzi w treści okna (poza częścią szablonu), więc przeżywa odświeżenie ekranu; kliknięcie ją pomija.
+   */
+  #playBoot() {
+    const host = this.element.querySelector(".window-content") ?? this.element;
+    host.querySelector(".term-boot")?.remove();
+    const t = this.document.system;
+    const kind = t.kind;
+    const box = document.createElement("div");
+    box.className = `term-boot kind-${kind}`;
+    box.innerHTML = `<pre></pre>`;
+    host.append(box);
+    const pre = box.querySelector("pre");
+    const lines = bootLines(kind, t.brand);
+    const text = lines.join("\n");
+    let i = 0, pct = 0, tick = 0, timer = null;
+    const done = () => { clearInterval(timer); box.classList.add("out"); setTimeout(() => box.remove(), 250); };
+    box.addEventListener("click", done);
+    timer = setInterval(() => {
+      if (!box.isConnected) return clearInterval(timer);
+      if (i < text.length) {
+        i = Math.min(text.length, i + 3);
+        pre.textContent = `${text.slice(0, i)}█`;
+        return;
+      }
+      pct = Math.min(100, pct + 7);
+      pre.textContent = `${text}\n${bootBar(pct, 24, tick++)}${pct >= 100 ? "\n> GOTOWE_" : ""}`;
+      if (pct >= 100) { clearInterval(timer); setTimeout(done, 450); }
+    }, 22);
   }
 
   /** Gracz nie jest właścicielem — formularz byłby wyłączony; ekran działa na przyciskach, więc go nie blokujemy. */
@@ -139,6 +185,20 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   _onRender(context, options) {
     super._onRender?.(context, options);
     if (!this.#config) for (const el of this.element.querySelectorAll(".term-screen input, .term-screen button")) el.disabled = false;
+    // słowo przełamane między wierszami (albo kolumnami): podświetl wszystkie jego kawałki
+    for (const a of this.element.querySelectorAll(".term-dump a.w")) {
+      const parts = () => this.element.querySelectorAll(`.term-dump a.w[data-word="${CSS.escape(a.dataset.word ?? "")}"]`);
+      a.addEventListener("mouseenter", () => parts().forEach(x => x.classList.add("hover")));
+      a.addEventListener("mouseleave", () => parts().forEach(x => x.classList.remove("hover")));
+    }
+    // animacja uruchamiania: tylko gdy terminal właśnie się włączył (a postać stoi przy nim)
+    const t = this.document.system;
+    const on = !!(t.state.booted && t.powered);
+    if (this.#config || !context.screen) this.#lastOn = null;
+    else {
+      if (on && this.#lastOn === false && context.screen.mode !== "far" && bootAnimOn()) this.#playBoot();
+      this.#lastOn = on;
+    }
     const pw = this.element.querySelector(".term-screen input[name=password]");
     pw?.addEventListener("keydown", ev => {
       if (ev.key !== "Enter") return;
@@ -210,6 +270,7 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static #onHack() { return hackTerminal(this.document); }
   static #onGuess(ev, el) { return guess(this.document, el.dataset.word); }
   static #onHint() { return request(this.document, "hint", { who: userActor()?.name }); }
+  static #onAnalyze() { return analyzeDump(this.document); }
   static #onAbort() { return request(this.document, "abortGame", { who: userActor()?.name }); }
   static #onLogout() { this.#entry = null; return request(this.document, "logout", { who: userActor()?.name }); }
   static #onOpenEntry(ev, el) { this.#entry = el.dataset.id; this.render(); }

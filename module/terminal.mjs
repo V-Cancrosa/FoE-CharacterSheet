@@ -11,8 +11,11 @@ import { rollContext } from "./effects.mjs";
 import { promptMfd, rollTest } from "./rolls.mjs";
 import {
   TERMINAL_SECURITY, TRAP_EXPLOSIVES, terminalAccess, hackOutcome, loginOutcome, newGame, guessWord, pickDud,
-  hasPipbuckTech, canSee, effectiveState, pushLog
+  hasPipbuckTech, canSee, effectiveState, pushLog, analyzeOutcome, remoteReach
 } from "./terminal-data.mjs";
+import { gridOf, rectOf, tokenOf as tokenDocOf } from "./give.mjs";
+import { isAdjacent, tokenDistance } from "./trade-data.mjs";
+import { powerState } from "./cyber-data.mjs";
 
 const F = "foe-rpg";
 const SOCKET = `system.${F}`;
@@ -27,6 +30,8 @@ async function words() {
 }
 
 export const minigameOn = () => { try { return !!game.settings.get(F, "terminalMinigame"); } catch { return false; } };
+export const reachOn = () => { try { return game.settings.get(F, "terminalReach") !== false; } catch { return true; } };
+export const bootAnimOn = () => { try { return game.settings.get(F, "terminalBootAnim") !== false; } catch { return true; } };
 
 export function registerTerminalSettings() {
   game.settings.register(F, "terminalMinigame", {
@@ -34,6 +39,51 @@ export function registerTerminalSettings() {
     hint: "Zamiast rzutu Science gracz zgaduje hasło ze zrzutu pamięci jak w grach Fallout: 4 próby, podobieństwo liter, a Science daje podpowiedzi (usunięcie atrapy). Wyczerpanie prób blokuje terminal jak krytyczna porażka.",
     scope: "world", config: true, type: Boolean, default: false
   });
+  game.settings.register(F, "terminalReach", {
+    name: "Terminale: obsługa tylko z bliska",
+    hint: "Gracz korzysta z terminala tylko, gdy token jego postaci stoi obok tokenu terminala (jak przy wymianie). Dalej — z kablem Cabling, Universal (10 ft), implantem Console Matrix Remote Control Talisman (20 ft) albo Wire, Spark (25 ft). Terminal bez tokenu na oglądanej scenie działa jak dotąd.",
+    scope: "world", config: true, type: Boolean, default: true
+  });
+  game.settings.register(F, "terminalBootAnim", {
+    name: "Terminale: animacja uruchamiania",
+    hint: "Krótka animacja ASCII (tekst startowy i pasek ładowania), gdy terminal się włącza. Kliknięcie ją pomija.",
+    scope: "client", config: true, type: Boolean, default: true
+  });
+}
+
+/**
+ * Czy postać sięga terminala: { ok, why, via, dist }.
+ * Zawsze tak: bez tej zasady, u MG i gdy terminala nie ma na oglądanej scenie. Obok = tokeny się stykają (jak przy
+ * wymianie); dalej — tylko z przedmiotem z REMOTE_GEAR (kabel, implant zdalnej kontroli, kabel iskrowy).
+ */
+export function terminalReach(actor, terminal) {
+  if (!reachOn() || game.user.isGM) return { ok: true };
+  const scene = canvas?.ready ? canvas.scene : null;
+  const terms = scene && terminal ? (terminal.isToken ? [terminal.token].filter(t => t?.parent?.id === scene.id) : (terminal.getActiveTokens?.(false, true) ?? [])) : [];
+  if (!terms.length) return { ok: true };
+  if (!actor) return { ok: false, why: "zaznacz swój token" };
+  const me = tokenDocOf(actor);
+  if (!me) return { ok: false, why: `${actor.name} nie ma tokena na tej scenie` };
+  const grid = gridOf(scene);
+  const mine = rectOf(me, grid.size);
+  let dist = Infinity, adjacent = false;
+  for (const t of terms) {
+    const r = rectOf(t, grid.size), elev = [me.elevation, t.elevation];
+    if (isAdjacent(mine, r, grid, elev)) adjacent = true;
+    dist = Math.min(dist, tokenDistance(mine, r, grid, elev));
+  }
+  if (adjacent) return { ok: true, dist };
+  const rem = remoteReach(actor, { powered: powerState(actor).powered });
+  if (rem.ft && dist <= rem.ft) return { ok: true, dist, via: rem.label };
+  return { ok: false, dist, why: `za daleko (${dist} ft) — podejdź do terminala${rem.ft ? ` albo na ${rem.ft} ft (${rem.label})` : ""}` };
+}
+
+/** Ostrzeżenie, gdy postać gracza nie sięga terminala; zwraca true, gdy może działać. */
+function inReach(terminal, actor = userActor()) {
+  const r = terminalReach(actor, terminal);
+  if (r.ok) return true;
+  ui.notifications.warn(`${actor?.name ?? "Postać"}: ${r.why}.`);
+  return false;
 }
 
 // ======================================================================
@@ -44,6 +94,7 @@ export function registerTerminalSettings() {
 export async function request(terminal, op, data = {}) {
   const payload = { kind: "terminal", op, uuid: terminal.uuid, data, user: game.user.id };
   if (game.user.isGM) return applyOp(payload);
+  if (!inReach(terminal)) return null;
   if (!game.users.activeGM) return warn("Terminal działa tylko, gdy MG jest zalogowany.");
   game.socket.emit(SOCKET, payload);
   return true;
@@ -56,6 +107,15 @@ export function registerTerminalHooks() {
       applyOp(payload).catch(err => console.error("foe-rpg | terminal", err));
     });
   });
+  // ekran terminala zależy od tego, czy postać stoi obok — odśwież po ruchu jej tokenu (albo terminala) i zmianie zaznaczenia
+  const rerender = foundry.utils.debounce(() => {
+    for (const app of foundry.applications.instances.values()) if (app.document?.type === "terminal" && app.rendered) app.render();
+  }, 150);
+  Hooks.on("updateToken", (doc, changes) => {
+    if (game.user.isGM || !reachOn() || !["x", "y", "elevation"].some(k => k in changes)) return;
+    if (doc.actor?.type === "terminal" || doc.actor === userActor()) rerender();
+  });
+  Hooks.on("controlToken", () => { if (!game.user.isGM && reachOn()) rerender(); });
   // nowy terminal: gracze widzą ekran (dostęp ograniczony), token połączony z aktorem
   Hooks.on("preCreateActor", (actor, data) => {
     if (actor.type !== "terminal") return;
@@ -160,6 +220,18 @@ async function applyOp({ op, uuid, data, user }) {
       if (!dud) break;
       upd["system.state.game"] = { ...g, hints: g.hints - 1, removed: [...(g.removed ?? []), dud] };
       say("> ATRAPA USUNIĘTA");
+      break;
+    }
+    case "analyze": {
+      const g = st.game;
+      if (!g?.words?.length || g.analyzed) break;
+      const out = analyzeOutcome(g, data.result);
+      say(`> ${who}: analiza zrzutu (Science)`, ...out.lines);
+      if (out.lockout) {
+        upd["system.state.game"] = null;
+        upd["system.state.lockouts"] = (st.lockouts ?? 0) + 1;
+        say((st.lockouts ?? 0) + 1 >= 2 ? "> TERMINAL ZABLOKOWANY NA STAŁE" : "> TERMINAL ZABLOKOWANY");
+      } else upd["system.state.game"] = out.game;
       break;
     }
     case "abortGame": {
@@ -272,6 +344,7 @@ export async function bootTerminal(terminal) {
 export async function inspectTrap(terminal, step = "inspect") {
   const actor = userActor();
   if (!actor) return warn("Zaznacz swój token albo przypisz postać do gracza.");
+  if (!inReach(terminal, actor)) return null;
   const mfd = terminal.system.trap.noticeMfd || "3/4";
   const result = await skillRoll(actor, "explosives", mfd, step === "inspect" ? `Oględziny terminala: ${terminal.name}` : `Rozbrajanie ładunku: ${terminal.name}`);
   if (!result) return null;
@@ -286,6 +359,7 @@ export async function login(terminal, password) {
 export async function hackTerminal(terminal) {
   const actor = userActor();
   if (!actor) return warn("Zaznacz swój token albo przypisz postać do gracza.");
+  if (!inReach(terminal, actor)) return null;
   const t = terminal.system;
   const acc = terminalAccess(actor, t);
   if (!acc.hack) return warn(`${actor.name}: ${acc.why.join("; ") || "nie można hakować"}.`);
@@ -298,6 +372,20 @@ export async function hackTerminal(terminal) {
 }
 
 export const guess = (terminal, word) => request(terminal, "guess", { word, who: userActor()?.name, tech: hasPipbuckTech(userActor()) });
+
+/** Analiza zrzutu w minigrze: rzut Science z trudnością terminala, raz na grę (analyzeOutcome). */
+export async function analyzeDump(terminal) {
+  const actor = userActor();
+  if (!actor) return warn("Zaznacz swój token albo przypisz postać do gracza.");
+  if (!inReach(terminal, actor)) return null;
+  const g = terminal.system.state.game;
+  if (!g?.words?.length) return null;
+  if (g.analyzed) return warn("Ten zrzut pamięci już przeanalizowano.");
+  const mfd = TERMINAL_SECURITY[terminal.system.security]?.mfd ?? "1";
+  const result = await skillRoll(actor, "science", mfd, `Analiza zrzutu pamięci: ${terminal.name}`);
+  if (!result) return null;
+  return request(terminal, "analyze", { result, who: actor.name });
+}
 
 /**
  * Pusta holotaśma: dokładnie „Holotape” (z katalogu) albo „Holotaśma” / „… (pusta)”, bez nagrania.
@@ -314,6 +402,7 @@ export function isBlankHolotape(i) {
 export async function downloadEntry(terminal, entryId) {
   const actor = userActor();
   if (!actor) return warn("Zaznacz swój token albo przypisz postać do gracza.");
+  if (!inReach(terminal, actor)) return null;
   const e = terminal.system.entries.find(x => x.id === entryId);
   if (!e || !canSee(e.access, effectiveState(terminal.system))) return null;
   const blank = actor.items.find(isBlankHolotape);
