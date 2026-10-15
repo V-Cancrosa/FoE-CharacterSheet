@@ -284,6 +284,19 @@ Wygląd: ekran PipBucka. W Ustawieniach gry → Fallout: Equestria RPG każdy gr
 (zielony / bursztynowy / niebieski / biały) i może wyłączyć linie skanowania. Rzuty na czacie pokazują
 drabinkę MFD: wymagany poziom (CEL), osiągnięty poziom (WYNIK) i progi wszystkich poziomów.
 
+Motyw PipBucka dla całego Foundry (v13/v14; grafiki rysowane od zera, bez logo z gier):
+- Ekran pauzy: godło Stajni — zębate wrota z numerem (opcja świata „Numer Stajni”, domyślnie 97) i napis
+  „GRA WSTRZYMANA” z zakłóceniami kineskopu, w kolorze PipBucka gracza.
+- Interfejs (opcja gracza „Motyw PipBucka dla interfejsu”, domyślnie włączona): pasek boczny, czat jak terminal
+  (szepty z przerywaną ramką), lista graczy, pasek makr, sceny, kontrolki, tracker walki, powiadomienia i nagłówki
+  okien w kolorach ekranu PipBucka. Motyw zmienia kolory przez zmienne Foundry — elementy, których nie obejmuje,
+  zostają w zwykłym wyglądzie. Wyłączenie przywraca wygląd Foundry od razu.
+- Tokeny w kolorach radaru EFS (opcja świata): obwódki i pierścienie — zielone swoi, czerwone wrogowie, żółte neutralni.
+- Ekran powitalny PipBucka po zalogowaniu (opcja gracza): imię postaci, kapsle, SATS i promieniowanie; MG widzi
+  „terminal nadzorcy”. Tylko na ekranie gracza — nic nie trafia na czat. Kliknięcie zamyka.
+- Dźwięki PipBucka (opcja gracza, domyślnie wyłączona): ciche piknięcia przy pauzie, otwieraniu kart systemu i własnych
+  rzutach, generowane w przeglądarce; głośność jak „Interfejs” w ustawieniach dźwięku Foundry.
+
 Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL:
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
