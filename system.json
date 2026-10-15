@@ -2,7 +2,7 @@
   "id": "foe-rpg",
   "title": "Fallout: Equestria RPG (fan, v1.22)",
   "description": "Nieoficjalny system do Fallout: Equestria RPG System v1.22: rzut d100 pod próg i MFD, S.P.E.C.I.A.L., kreator postaci, SATS, pancerz i rany na lokacjach, katalog broni, pancerzy i ekwipunku z podręcznika.",
-  "version": "0.33.0",
+  "version": "0.33.1",
   "authors": [{ "name": "V_Cancrosa" }],
   "compatibility": { "minimum": "13", "verified": "14" },
   "esmodules": ["module/foe.mjs"],
