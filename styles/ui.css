@@ -92,7 +92,9 @@ body.foe-ui[data-foe-crt="on"] { --pip-scan: rgba(0, 0, 0, .2); }
    Interfejs (body.foe-ui)
    ========================================================================== */
 /* zmienne Foundry: tekst, ramki, przyciski, pola, paski przewijania, kontrolki, menu kontekstowe */
-body.foe-ui :is(#interface, #sidebar, #menu, #tooltip, #context-menu, #notifications, .chat-popout, .sidebar-popout, .sidebar-tab, #players, #hotbar, #scene-navigation, #scene-controls) {
+/* v14: wiadomości czatu i część paneli mają własny motyw (.themed.theme-light) — zmienne nadpisujemy także na nich */
+body.foe-ui :is(#interface, #sidebar, #menu, #tooltip, #context-menu, #notifications, #chat-notifications, .chat-popout, .sidebar-popout, .sidebar-tab, #players, #hotbar, #scene-navigation, #scene-controls),
+body.foe-ui :is(#interface, #sidebar, #chat-notifications, .chat-popout, .sidebar-popout) :is(.themed, .theme-light, .theme-dark, .chat-log, .message) {
   --color-text-primary: var(--pip);
   --color-text-secondary: var(--pip-mid);
   --color-text-subtle: var(--pip-dim);
@@ -167,33 +169,38 @@ body.foe-ui :is(#sidebar, .sidebar-popout) :is(.folder-header h3, h2, h4.divider
 /* ustawienia (karta z przyciskami „Konfiguruj…”) */
 body.foe-ui #settings :is(h2, h4, .divider) { font-family: var(--foe-crt); font-weight: 400; letter-spacing: .08em; text-transform: uppercase; color: var(--pip-bright); text-shadow: 0 0 6px var(--pip-glow); }
 
-/* czat jak terminal */
-body.foe-ui :is(#chat-log, .chat-popout) .message {
-  background: var(--chat-message-background);
+/* czat jak terminal (v14: dziennik to .chat-log; też okno czatu i powiadomienia czatu przy zwiniętym pasku) */
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message {
+  background: color-mix(in srgb, var(--pip-bg) 95%, transparent);
   border: 1px solid var(--pip-line);
+  border-radius: 3px;
   color: var(--pip);
   box-shadow: inset 0 0 0 1px #000, 0 0 8px var(--pip-faint);
+  text-shadow: none;
 }
-body.foe-ui :is(#chat-log, .chat-popout) .message .message-header { color: var(--pip-mid); border-color: var(--pip-line); }
-body.foe-ui :is(#chat-log, .chat-popout) .message .message-sender {
-  font-family: var(--foe-crt); font-weight: 400; font-size: 1.3em; letter-spacing: .04em;
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message :is(.message-header, .message-metadata, .whisper-to, .flavor-text) { color: var(--pip-dim); border-color: var(--pip-line); }
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message .message-sender {
+  font-family: var(--foe-crt); font-weight: 400; font-variant: normal; font-size: 1.3em; letter-spacing: .04em;
   color: var(--pip-bright); text-shadow: 0 0 5px var(--pip-glow);
 }
-body.foe-ui :is(#chat-log, .chat-popout) .message :is(.message-metadata, .message-metadata time, .whisper-to, .flavor-text) { color: var(--pip-dim); }
-body.foe-ui :is(#chat-log, .chat-popout) .message .message-content { color: var(--pip); }
-body.foe-ui :is(#chat-log, .chat-popout) .message.whisper {
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message .message-content { color: var(--pip); }
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message :is(.message-delete, .message-metadata a, .message-metadata button) { color: var(--pip-dim); }
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message.whisper {
   border-style: dashed;
-  --chat-message-background: color-mix(in srgb, var(--pip) 9%, #020403);
+  background: color-mix(in srgb, var(--pip) 9%, #020403);
 }
-body.foe-ui :is(#chat-log, .chat-popout) .message.blind { border-color: var(--pip-alert); }
-body.foe-ui :is(#chat-log, .chat-popout) .message :is(.dice-roll .dice-total, .dice-formula) {
-  background: transparent; color: var(--pip-bright); border-color: var(--pip-line); box-shadow: none;
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message.blind { border-color: var(--pip-alert); }
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message :is(.dice-roll .dice-total, .dice-formula, .dice-tooltip, .dice-roll .part-header) {
+  background: rgba(0, 0, 0, .35); color: var(--pip-bright); border-color: var(--pip-line); box-shadow: none; text-shadow: none;
 }
-body.foe-ui #chat-message {
+/* nasze karty PipBucka w wiadomości: bez jasnej obwódki wokół */
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message .foe-card { box-shadow: none; }
+/* pole wiadomości (v13: textarea #chat-message, v14: edytor z paskiem „Format”) */
+body.foe-ui :is(#chat-message, .chat-sidebar .prosemirror .editor-content, .chat-sidebar prose-mirror .editor-content) {
   background: rgba(0, 0, 0, .6); color: var(--pip-bright); caret-color: var(--pip-bright);
-  border: 1px solid var(--pip-dim); font-family: var(--foe-mono);
-  box-shadow: inset 0 0 12px var(--pip-faint);
+  font-family: var(--foe-mono);
 }
+body.foe-ui #chat-message { border: 1px solid var(--pip-dim); box-shadow: inset 0 0 12px var(--pip-faint); }
 body.foe-ui #chat-message::placeholder { color: var(--pip-dim); }
 body.foe-ui #chat-message:focus { border-color: var(--pip); box-shadow: inset 0 0 12px var(--pip-faint), 0 0 6px var(--pip-glow); }
 
