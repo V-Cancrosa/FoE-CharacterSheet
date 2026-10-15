@@ -372,6 +372,32 @@ krytyczna porażka −1 próba. Zmiany stanu terminala zapisuje przeglądarka MG
 - Włączenie terminala pokazuje krótką animację ASCII (tekst startowy i pasek ładowania; kliknięcie pomija; opcja gracza
   „Terminale: animacja uruchamiania”).
 
+Kasyno (osobny typ aktora „Stół do gry”): blackjack z automatycznym krupierem albo Texas Hold'em bez limitu. Talia jak
+w podręczniku (s. 220): damą kier jest Celestia, trefl — Luna, karo — Cadance, pik — Nightmare Moon (jokerów, Discorda
+i Chrysalis, te gry nie używają). Same zasady gier są jak w kasynach.
+- MG tworzy aktora „Stół do gry” i stawia jego token na mapie (2×1 pola). W ustawieniach stołu wybiera grę i stawki
+  (blackjack: najniższa i najwyższa stawka, talie w bucie; poker: ciemne, wpisowe od–do, prowizja kasyna 0–10%), imię
+  krupiera i bank kasyna — bez limitu albo z kwotą, którą da się rozbić (krupier nie przyjmie stawki, której bank nie
+  pokryje). MG widzi też bilans kasyna.
+- Gracze klikają token stołu. Usiąść można tylko, gdy token postaci stoi obok tokenu stołu (opcja świata „Stoły do gry:
+  siadanie tylko z bliska”). Kapsle schodzą z karty postaci: w blackjacku przy stawianiu, w pokerze wpisowe idzie na stół
+  i wraca przy wstawaniu. Wygrane trafiają na kartę postaci.
+- Blackjack: gracze stawiają, a ktokolwiek z nich klika „Rozdaj” — krupier rozdaje tym, którzy postawili. Dobierz, stój,
+  podwój (na dwóch kartach), rozdziel parę (raz; asy dostają po jednej karcie). Krupier dobiera do 16 i staje na każdych
+  17, zagląda pod kartę przy asie i dziesiątce; blackjack płaci 3:2. Bez ubezpieczenia i poddania.
+- Texas Hold'em: siedzący klika „Nowe rozdanie” (potrzeba dwóch graczy z kapslami na stole). Pas, czekaj, sprawdź,
+  podbij (co najmniej o ostatnie podbicie), va banque; boczne pule, pokazanie kart i podział puli liczy system.
+  Między rozdaniami można dokupić kapsli.
+- NPC: MG zaznacza ich tokeny i klika „Posadź zaznaczonych NPC” — gra nimi w oknie stołu i widzi ich karty (kart graczy
+  nie widzi). NPC, który ma za mało kapsli, dostaje je od MG; to, co wygra, zostaje na jego karcie.
+- Tajemnica kart: but, zakryta karta krupiera i karty graczy w pokerze są tylko w pamięci przeglądarki MG — nie ma ich
+  w świecie. Gracz dostaje swoje karty zaszyfrowane (odczyta je tylko jego przeglądarka), więc nikt nie podejrzy cudzych
+  nawet w konsoli. Gdy MG odświeży stronę w trakcie rozdania, rozdanie przepada, a stawki wracają do graczy; gracz po
+  odświeżeniu strony dostaje swoje karty jeszcze raz. Ruchy wykonuje przeglądarka MG, więc MG musi być zalogowany.
+- MG może wyprosić kogoś od stołu (kapsle wracają), zrobić ruch za gracza, który nie odpowiada (stój / pas), anulować
+  rozdanie i zamknąć stół (wszystkie kapsle ze stołu wracają). Wyniki rund idą na czat (opcja świata „Stoły do gry:
+  wyniki na czacie”).
+
 Celownik S.A.T.S. (opcja, domyślnie wyłączona; na podstawie modułu foe-sats): MG włącza go w Ustawieniach gry →
 Fallout: Equestria RPG → „Celownik S.A.T.S. (opcja)”. Po namierzeniu celu (T) i zaznaczeniu SATS w oknie ataku
 kamera najeżdża na cel, a na ekranie pojawia się jego sylwetka V.A.T.S. z szansą trafienia każdej części ciała —

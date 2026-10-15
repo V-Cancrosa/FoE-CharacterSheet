@@ -4,7 +4,8 @@
       "character": "Postać",
       "npc": "NPC",
       "vehicle": "Pojazd",
-      "terminal": "Terminal"
+      "terminal": "Terminal",
+      "casino": "Stół do gry"
     },
     "Item": {
       "weapon": "Broń",

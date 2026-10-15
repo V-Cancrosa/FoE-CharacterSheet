@@ -25,9 +25,12 @@ import { registerGiveHooks } from "./give.mjs";
 import { registerThrowSettings, registerThrowHooks } from "./throw.mjs";
 import { registerSaleHooks } from "./sale.mjs";
 import { registerUiSettings, registerUiHooks } from "./ui-theme.mjs";
+import { casinoDataClass } from "./casino-data.mjs";
+import { FoeCasinoSheet } from "./casino-sheet.mjs";
+import { registerCasinoSettings, registerCasinoHooks } from "./casino.mjs";
 
 Hooks.once("init", () => {
-  CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData, vehicle: VehicleData, terminal: terminalDataClass() };
+  CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData, vehicle: VehicleData, terminal: terminalDataClass(), casino: casinoDataClass() };
   CONFIG.Item.dataModels = { weapon: WeaponData, armor: ArmorData, gear: GearData, feature: FeatureData, spell: SpellData };
   CONFIG.Combat.documentClass = FoeCombat;
   // d100 − ¼ progu Agility; FoeCombat.rollInitiative pyta gracza: odjąć czy dodać (s. 436)
@@ -41,6 +44,7 @@ Hooks.once("init", () => {
   register(Actor, FoeActorSheet, { types: ["character", "npc"], makeDefault: true, label: "FoE: karta postaci" });
   register(Actor, FoeVehicleSheet, { types: ["vehicle"], makeDefault: true, label: "FoE: karta pojazdu" });
   register(Actor, FoeTerminalSheet, { types: ["terminal"], makeDefault: true, label: "FoE: terminal" });
+  register(Actor, FoeCasinoSheet, { types: ["casino"], makeDefault: true, label: "FoE: stół do gry" });
   register(Item, FoeItemSheet, { makeDefault: true, label: "FoE: przedmiot" });
 
   registerCombatHooks();
@@ -80,12 +84,14 @@ Hooks.once("init", () => {
   registerSaleHooks();
   registerUiSettings();
   registerUiHooks();
+  registerCasinoSettings();
+  registerCasinoHooks();
   game.foe = { openCatalog, setWeather };
 });
 
 /** Nowa postać lub NPC → kreator (tylko u osoby, która ją utworzyła). */
 Hooks.on("createActor", (actor, options, userId) => {
-  if (userId !== game.user.id || ["vehicle", "terminal"].includes(actor.type) || !game.settings.get("foe-rpg", "autoCreator")) return;
+  if (userId !== game.user.id || ["vehicle", "terminal", "casino"].includes(actor.type) || !game.settings.get("foe-rpg", "autoCreator")) return;
   if (actor.getFlag("foe-rpg", "created") || actor.items.size || actor.pack) return;
   // po chwili, żeby kreator otworzył się nad kartą postaci
   setTimeout(() => openCreator(actor), 150);

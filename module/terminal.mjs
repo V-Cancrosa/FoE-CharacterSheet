@@ -320,7 +320,7 @@ async function explode(terminal, tokenUuid) {
 
 /** Postać, która używa terminala: zaznaczony własny token, potem postać gracza. */
 export function userActor() {
-  const own = (canvas?.tokens?.controlled ?? []).map(t => t.actor).find(a => a?.isOwner && a.type !== "terminal" && a.type !== "vehicle");
+  const own = (canvas?.tokens?.controlled ?? []).map(t => t.actor).find(a => a?.isOwner && !["terminal", "vehicle", "casino"].includes(a.type));
   return own ?? game.user.character ?? null;
 }
 const tokenOf = actor => (canvas?.tokens?.controlled ?? []).find(t => t.actor === actor)?.document?.uuid
