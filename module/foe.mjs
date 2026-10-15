@@ -24,6 +24,7 @@ import { registerLootSettings, registerLootHooks } from "./loot.mjs";
 import { registerGiveHooks } from "./give.mjs";
 import { registerThrowSettings, registerThrowHooks } from "./throw.mjs";
 import { registerSaleHooks } from "./sale.mjs";
+import { registerUiSettings, registerUiHooks } from "./ui-theme.mjs";
 
 Hooks.once("init", () => {
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData, vehicle: VehicleData, terminal: terminalDataClass() };
@@ -77,6 +78,8 @@ Hooks.once("init", () => {
   registerThrowSettings();
   registerThrowHooks();
   registerSaleHooks();
+  registerUiSettings();
+  registerUiHooks();
   game.foe = { openCatalog, setWeather };
 });
 
@@ -172,6 +175,7 @@ function registerDisplaySettings() {
   const apply = () => {
     document.body.dataset.foePip = game.settings.get("foe-rpg", "pipColor");
     document.body.dataset.foeCrt = game.settings.get("foe-rpg", "crtEffect") ? "on" : "off";
+    try { globalThis.ui?.pause?.render?.(); } catch { /* ekran pauzy jeszcze nie istnieje */ }
   };
   game.settings.register("foe-rpg", "pipColor", {
     name: "Kolor ekranu PipBucka",

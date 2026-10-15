@@ -1,0 +1,268 @@
+/* ==========================================================================
+   Fallout: Equestria RPG — motyw PipBucka dla całego Foundry (v13/v14)
+   - ekran pauzy (zawsze): godło Stajni, „GRA WSTRZYMANA”, zakłócenia kineskopu,
+   - interfejs (opcja gracza „Motyw PipBucka dla interfejsu” → body.foe-ui): kolory przez zmienne Foundry,
+     więc elementy, których nie przewidzieliśmy, najwyżej zostają w zwykłym wyglądzie,
+   - ekran powitalny po zalogowaniu.
+   Kolor fosforu: ustawienie gracza „Kolor ekranu PipBucka” (body[data-foe-pip]).
+   ========================================================================== */
+
+/* ---------- paleta PipBucka na poziomie strony ---------- */
+body.foe-ui, .foe-welcome {
+  --pip: #4dff8a;
+  --pip-alert: #ff6a4d;
+  --pip-bright: color-mix(in srgb, var(--pip) 70%, white);
+  --pip-mid: color-mix(in srgb, var(--pip) 75%, black);
+  --pip-dim: color-mix(in srgb, var(--pip) 45%, black);
+  --pip-line: color-mix(in srgb, var(--pip) 35%, transparent);
+  --pip-faint: color-mix(in srgb, var(--pip) 12%, transparent);
+  --pip-glow: color-mix(in srgb, var(--pip) 55%, transparent);
+  --pip-bg: color-mix(in srgb, var(--pip) 5%, #030604);
+  --pip-bg-hi: color-mix(in srgb, var(--pip) 13%, #050a07);
+  --pip-panel: color-mix(in srgb, var(--pip-bg) 93%, transparent);
+  --pip-scan: transparent;
+  --foe-mono: "FoE Plex Mono", "IBM Plex Mono", "Consolas", monospace;
+  --foe-crt: "FoE VT323", "VT323", var(--foe-mono);
+}
+body.foe-ui[data-foe-pip="amber"], body[data-foe-pip="amber"] .foe-welcome { --pip: #ffb547; --pip-alert: #ff5040; }
+body.foe-ui[data-foe-pip="blue"],  body[data-foe-pip="blue"] .foe-welcome  { --pip: #5fd8ff; --pip-alert: #ff6a5a; }
+body.foe-ui[data-foe-pip="white"], body[data-foe-pip="white"] .foe-welcome { --pip: #e4f2e8; --pip-alert: #ff6a5a; }
+body.foe-ui[data-foe-crt="on"] { --pip-scan: rgba(0, 0, 0, .2); }
+
+/* ==========================================================================
+   Ekran pauzy (zawsze, niezależnie od motywu interfejsu)
+   ========================================================================== */
+#pause.foe-pause {
+  --foe-pause: #4dff8a;
+  background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, .78) 28%, rgba(0, 0, 0, .78) 72%, transparent 100%);
+}
+#pause.foe-pause img {
+  width: 128px; height: 128px; border: 0; opacity: .95;
+  animation: foe-pause-flicker 5s infinite steps(1);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--foe-pause) 60%, transparent));
+}
+#pause.foe-pause figcaption, #pause.foe-pause h3 {
+  position: relative; isolation: isolate;
+  font-family: "FoE VT323", "VT323", monospace; font-weight: 400; font-size: 3.4rem; letter-spacing: .14em;
+  color: var(--foe-pause);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--foe-pause) 70%, transparent), 0 0 22px color-mix(in srgb, var(--foe-pause) 35%, transparent);
+  animation: foe-pause-jitter 3.4s infinite steps(1);
+}
+/* rozszczepienie kolorów i „pocięte” paski obrazu jak na zepsutym kineskopie */
+#pause.foe-pause figcaption::before, #pause.foe-pause figcaption::after {
+  content: attr(data-text);
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  text-shadow: none;
+}
+#pause.foe-pause figcaption::before { color: #ff2a55; transform: translate(-3px, 0); opacity: .75; animation: foe-pause-slice-a 2.6s infinite steps(1); }
+#pause.foe-pause figcaption::after  { color: #2af0ff; transform: translate(3px, 0); opacity: .75; animation: foe-pause-slice-b 3.1s infinite steps(1); }
+@keyframes foe-pause-jitter {
+  0%, 100% { transform: none; opacity: 1; }
+  41% { transform: translate(-2px, 1px) skewX(-4deg); }
+  42% { transform: none; }
+  77% { transform: translate(3px, 0); opacity: .82; }
+  78% { transform: none; opacity: 1; }
+}
+@keyframes foe-pause-slice-a {
+  0%, 100% { clip-path: inset(0 0 0 0); }
+  12% { clip-path: inset(18% 0 62% 0); transform: translate(-6px, 0); }
+  14% { clip-path: inset(0 0 0 0); transform: translate(-3px, 0); }
+  63% { clip-path: inset(70% 0 8% 0); transform: translate(-8px, 0); }
+  65% { clip-path: inset(0 0 0 0); transform: translate(-3px, 0); }
+}
+@keyframes foe-pause-slice-b {
+  0%, 100% { clip-path: inset(0 0 0 0); }
+  33% { clip-path: inset(48% 0 30% 0); transform: translate(7px, 0); }
+  35% { clip-path: inset(0 0 0 0); transform: translate(3px, 0); }
+  86% { clip-path: inset(6% 0 78% 0); transform: translate(5px, 0); }
+  88% { clip-path: inset(0 0 0 0); transform: translate(3px, 0); }
+}
+@keyframes foe-pause-flicker {
+  0%, 100% { opacity: .95; }
+  47% { opacity: .6; }
+  48% { opacity: .95; }
+  91% { opacity: .8; }
+  92% { opacity: .95; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #pause.foe-pause img, #pause.foe-pause figcaption, #pause.foe-pause figcaption::before, #pause.foe-pause figcaption::after { animation: none; }
+}
+
+/* ==========================================================================
+   Interfejs (body.foe-ui)
+   ========================================================================== */
+/* zmienne Foundry: tekst, ramki, przyciski, pola, paski przewijania, kontrolki, menu kontekstowe */
+body.foe-ui :is(#interface, #sidebar, #menu, #tooltip, #context-menu, #notifications, .chat-popout, .sidebar-popout, .sidebar-tab, #players, #hotbar, #scene-navigation, #scene-controls) {
+  --color-text-primary: var(--pip);
+  --color-text-secondary: var(--pip-mid);
+  --color-text-subtle: var(--pip-dim);
+  --color-text-emphatic: var(--pip-bright);
+  --color-text-selection: var(--pip-bright);
+  --color-border: var(--pip-line);
+  --color-border-highlight: var(--pip);
+  --sidebar-background: linear-gradient(var(--pip-scan) 1px, transparent 1px) 0 0 / 100% 3px, var(--pip-panel);
+  --sidebar-separator: 1px solid var(--pip-line);
+  --chat-message-background: color-mix(in srgb, var(--pip-bg) 95%, transparent);
+  --button-background-color: var(--pip-bg-hi);
+  --button-border-color: var(--pip-dim);
+  --button-text-color: var(--pip);
+  --button-hover-background-color: var(--pip);
+  --button-hover-border-color: var(--pip-bright);
+  --button-hover-text-color: #021006;
+  --button-focus-outline-color: var(--pip-bright);
+  --input-background-color: rgba(0, 0, 0, .55);
+  --input-border-color: var(--pip-dim);
+  --input-text-color: var(--pip-bright);
+  --input-placeholder-color: var(--pip-dim);
+  --input-focus-outline-color: var(--pip);
+  --scrollbar-thumb-background: var(--pip-dim);
+  --scrollbar-thumb-border-color: var(--pip-mid);
+  --text-color: var(--pip);
+  --hover-text-color: #021006;
+  --hover-entry-border: var(--pip);
+  --hover-entry-background: var(--pip);
+}
+body.foe-ui :is(#interface, .ui-control) {
+  --control-bg-color: var(--pip-panel);
+  --control-border-color: var(--pip-line);
+  --control-icon-color: var(--pip);
+  --control-hover-bg-color: var(--pip-bg-hi);
+  --control-hover-border-color: var(--pip);
+  --control-hover-icon-color: var(--pip-bright);
+  --control-active-bg-color: var(--pip);
+  --control-active-border-color: var(--pip-bright);
+  --control-active-icon-color: #021006;
+  --control-button-bg-color: var(--pip-bg-hi);
+  --control-button-border-color: var(--pip-dim);
+  --control-button-hover-bg-color: var(--pip);
+  --control-button-hover-border-color: var(--pip-bright);
+  --toggle-bg-color: var(--pip-bg-hi);
+  --toggle-border-color: var(--pip-dim);
+  --toggle-active-bg-color: var(--pip);
+  --toggle-active-border-color: var(--pip-bright);
+  --toggle-icon-color: var(--pip);
+  --control-box-shadow: 0 0 6px var(--pip-faint);
+  --control-text-shadow: 0 0 4px var(--pip-glow);
+}
+
+/* pasek boczny i jego karty */
+body.foe-ui #sidebar :is(.sidebar-tab, #sidebar-content), body.foe-ui .sidebar-popout .window-content {
+  background: var(--sidebar-background);
+  color: var(--pip);
+}
+body.foe-ui #sidebar-tabs { border-color: var(--pip-line); }
+body.foe-ui :is(#sidebar, .sidebar-popout) :is(.directory-header, .directory-footer) { border-color: var(--pip-line); }
+body.foe-ui :is(#sidebar, .sidebar-popout) .directory-item { border-color: var(--pip-line); }
+body.foe-ui :is(#sidebar, .sidebar-popout) .directory-item:hover { background: var(--pip-faint); }
+body.foe-ui :is(#sidebar, .sidebar-popout) :is(.folder-header, .folder > header) {
+  background: var(--pip-bg-hi); color: var(--pip-bright); border-color: var(--pip-line);
+  text-shadow: 0 0 4px var(--pip-glow);
+}
+body.foe-ui :is(#sidebar, .sidebar-popout) :is(h1, h2, h3, h4, .folder-header h3, .entry-name, .document-name) {
+  color: inherit;
+}
+body.foe-ui :is(#sidebar, .sidebar-popout) :is(.folder-header h3, h2, h4.divider) {
+  font-family: var(--foe-crt); font-weight: 400; letter-spacing: .06em; text-transform: uppercase;
+}
+/* ustawienia (karta z przyciskami „Konfiguruj…”) */
+body.foe-ui #settings :is(h2, h4, .divider) { font-family: var(--foe-crt); font-weight: 400; letter-spacing: .08em; text-transform: uppercase; color: var(--pip-bright); text-shadow: 0 0 6px var(--pip-glow); }
+
+/* czat jak terminal */
+body.foe-ui :is(#chat-log, .chat-popout) .message {
+  background: var(--chat-message-background);
+  border: 1px solid var(--pip-line);
+  color: var(--pip);
+  box-shadow: inset 0 0 0 1px #000, 0 0 8px var(--pip-faint);
+}
+body.foe-ui :is(#chat-log, .chat-popout) .message .message-header { color: var(--pip-mid); border-color: var(--pip-line); }
+body.foe-ui :is(#chat-log, .chat-popout) .message .message-sender {
+  font-family: var(--foe-crt); font-weight: 400; font-size: 1.3em; letter-spacing: .04em;
+  color: var(--pip-bright); text-shadow: 0 0 5px var(--pip-glow);
+}
+body.foe-ui :is(#chat-log, .chat-popout) .message :is(.message-metadata, .message-metadata time, .whisper-to, .flavor-text) { color: var(--pip-dim); }
+body.foe-ui :is(#chat-log, .chat-popout) .message .message-content { color: var(--pip); }
+body.foe-ui :is(#chat-log, .chat-popout) .message.whisper {
+  border-style: dashed;
+  --chat-message-background: color-mix(in srgb, var(--pip) 9%, #020403);
+}
+body.foe-ui :is(#chat-log, .chat-popout) .message.blind { border-color: var(--pip-alert); }
+body.foe-ui :is(#chat-log, .chat-popout) .message :is(.dice-roll .dice-total, .dice-formula) {
+  background: transparent; color: var(--pip-bright); border-color: var(--pip-line); box-shadow: none;
+}
+body.foe-ui #chat-message {
+  background: rgba(0, 0, 0, .6); color: var(--pip-bright); caret-color: var(--pip-bright);
+  border: 1px solid var(--pip-dim); font-family: var(--foe-mono);
+  box-shadow: inset 0 0 12px var(--pip-faint);
+}
+body.foe-ui #chat-message::placeholder { color: var(--pip-dim); }
+body.foe-ui #chat-message:focus { border-color: var(--pip); box-shadow: inset 0 0 12px var(--pip-faint), 0 0 6px var(--pip-glow); }
+
+/* lista graczy */
+body.foe-ui #players :is(#players-active, #players-inactive) {
+  background: var(--pip-panel); border: 1px solid var(--pip-line); box-shadow: 0 0 8px var(--pip-faint);
+}
+body.foe-ui #players .player-name { font-family: var(--foe-crt); font-size: 1.15em; letter-spacing: .04em; color: var(--pip); }
+body.foe-ui #players .player.active .player-name { color: var(--pip-bright); text-shadow: 0 0 5px var(--pip-glow); }
+
+/* pasek makr */
+body.foe-ui #hotbar .slot { background-color: var(--pip-panel); border: 1px solid var(--pip-line); }
+body.foe-ui #hotbar .slot:hover { border-color: var(--pip); box-shadow: 0 0 8px var(--pip-glow); }
+body.foe-ui #hotbar .slot .key { color: var(--pip-bright); font-family: var(--foe-crt); text-shadow: 0 0 4px #000; }
+
+/* nawigacja scen */
+body.foe-ui #scene-navigation .scene {
+  background: var(--pip-panel); border: 1px solid var(--pip-line); color: var(--pip);
+}
+body.foe-ui #scene-navigation .scene .scene-name { font-family: var(--foe-crt); font-size: 1.15em; letter-spacing: .05em; text-transform: uppercase; }
+body.foe-ui #scene-navigation .scene.active { border-color: var(--pip); box-shadow: 0 0 8px var(--pip-glow); color: var(--pip-bright); }
+
+/* tracker walki */
+body.foe-ui :is(#combat, .combat-sidebar) li.combatant { border-color: var(--pip-line); }
+body.foe-ui :is(#combat, .combat-sidebar) li.combatant.active { background: var(--pip-faint); box-shadow: inset 3px 0 0 var(--pip); }
+body.foe-ui :is(#combat, .combat-sidebar) :is(.token-name, .name) { font-family: var(--foe-crt); font-size: 1.15em; letter-spacing: .03em; }
+
+/* powiadomienia, podpowiedzi, menu kontekstowe */
+body.foe-ui #notifications .notification {
+  background: var(--pip-bg); color: var(--pip); border: 1px solid var(--pip-dim);
+  box-shadow: 0 0 12px var(--pip-faint); font-family: var(--foe-mono); text-shadow: none;
+}
+body.foe-ui #notifications .notification.warning { color: #ffd27a; border-color: #ffb547; }
+body.foe-ui #notifications .notification.error { color: #ffb0a0; border-color: var(--pip-alert); }
+body.foe-ui #tooltip { background: var(--pip-bg); color: var(--pip-bright); border: 1px solid var(--pip-dim); box-shadow: 0 0 8px var(--pip-faint); }
+body.foe-ui #context-menu { background: var(--pip-bg); border: 1px solid var(--pip-dim); color: var(--pip); }
+
+/* nagłówki okien (karty systemu mają własny wygląd) */
+body.foe-ui .application:not(.foe-rpg) > .window-header {
+  background: var(--pip-bg); color: var(--pip); border-bottom: 1px solid var(--pip-line);
+}
+body.foe-ui .application:not(.foe-rpg) > .window-header .window-title {
+  font-family: var(--foe-crt); font-weight: 400; font-size: 1.3em; letter-spacing: .06em; text-transform: uppercase;
+  text-shadow: 0 0 5px var(--pip-glow);
+}
+body.foe-ui .application:not(.foe-rpg) > .window-header :is(.header-control, button) { color: var(--pip); }
+
+/* ==========================================================================
+   Ekran powitalny PipBucka (po zalogowaniu, tylko u gracza)
+   ========================================================================== */
+.foe-welcome {
+  position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, .55), rgba(0, 0, 0, .15) 70%);
+  cursor: pointer; transition: opacity .4s;
+}
+.foe-welcome.out { opacity: 0; }
+.foe-welcome .fw-frame {
+  display: flex; align-items: center; gap: 1.2rem; min-width: min(560px, 92vw); max-width: 92vw;
+  padding: 1.2rem 1.6rem; background: var(--pip-bg); color: var(--pip);
+  border: 1px solid var(--pip-dim); box-shadow: 0 0 0 1px #000, 0 0 30px var(--pip-faint), 0 10px 40px rgba(0, 0, 0, .7);
+  position: relative;
+}
+.foe-welcome .fw-frame::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, .22) 2px 3px);
+}
+body[data-foe-crt="off"] .foe-welcome .fw-frame::after { display: none; }
+.foe-welcome img { width: 96px; height: 96px; border: 0; flex: 0 0 auto; }
+.foe-welcome pre {
+  margin: 0; padding: 0; background: none; border: 0; white-space: pre-wrap; color: inherit; min-height: 7.5em;
+  font-family: var(--foe-crt); font-size: 22px; line-height: 1.2; text-shadow: 0 0 5px var(--pip-glow);
+}
