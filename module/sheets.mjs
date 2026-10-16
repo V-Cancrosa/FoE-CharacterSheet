@@ -37,34 +37,35 @@ import { degradationOn, weaponCondition } from "./craft-data.mjs";
 import { parseBook } from "./books-data.mjs";
 import { loadedVariant } from "./ammo-data.mjs";
 import { castShadow, addSonicScreech, shapeshift, endDisguise, feedOnLove, detectDisguise, promptLove } from "./shadow.mjs";
+import { t, tn, N_, tmap } from "./i18n.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
 const P = "systems/foe-rpg/templates";
 
-const STATUS = { ok: "", wounded: "ranna", crippled: "OKALECZONA", maimed: "UTRACONA", dead: "ŚMIERĆ" };
-const SHORT = { head: "głowa", torso: "tułów", flLeg: "PL", frLeg: "PP", rlLeg: "TL", rrLeg: "TP", wings: "skrzydła", horn: "róg" };
+const STATUS = tmap({ ok: "", wounded: "loc|wounded", crippled: "CRIPPLED", maimed: "MAIMED", dead: "DEATH" });
+const SHORT = tmap({ head: "loc|head", torso: "loc|torso", flLeg: "short|LF", frLeg: "short|RF", rlLeg: "short|LH", rrLeg: "short|RH", wings: "loc|wings", horn: "loc|horn" });
 const SHORT_ATTR = { str: "STR", per: "PER", end: "END", cha: "CHA", int: "INT", agi: "AGI", luck: "LCK" };
 const shortLabels = () => ({
   ...SHORT_ATTR, ...Object.fromEntries(Object.entries(SKILLS).map(([k, v]) => [k, v.label.split(" / ").pop()])), ...LOCATIONS,
-  all: "wszystko", attack: "ataki", melee: "wręcz", ranged: "dystans", ground: "ląd", fly: "lot"
+  all: t("fx|all"), attack: t("fx|attacks"), melee: t("fx|melee"), ranged: t("fx|ranged"), ground: t("fx|ground"), fly: t("fx|flight")
 });
 const fxLabels = () => ({
-  all: "wszystko", ...ATTRS, ...Object.fromEntries(Object.entries(SKILLS).map(([k, v]) => [k, v.label])), ...LOCATIONS,
-  ranged: "broń dystansowa", melee: "wręcz", attack: "ataki", ground: "ląd", fly: "lot"
+  all: t("fx|everything"), ...ATTRS, ...Object.fromEntries(Object.entries(SKILLS).map(([k, v]) => [k, v.label])), ...LOCATIONS,
+  ranged: t("fx|ranged weapons"), melee: t("fx|melee"), attack: t("fx|attacks"), ground: t("fx|ground"), fly: t("fx|flight")
 });
 
-/** Krótki opis osłony pancerza, np. „tułów, 4 nogi”. */
+/** Krótki opis osłony pancerza, np. „torso, 4 legs” (po polsku „tułów, 4 nogi”). */
 export function coverText(cover = {}) {
   const has = k => !!cover[k];
   const legs = ["flLeg", "frLeg", "rlLeg", "rrLeg"].filter(has);
   const parts = [];
-  if (has("head")) parts.push("głowa");
-  if (has("torso")) parts.push("tułów");
-  if (legs.length === 4) parts.push("4 nogi");
+  if (has("head")) parts.push(SHORT.head);
+  if (has("torso")) parts.push(SHORT.torso);
+  if (legs.length === 4) parts.push(t("4 legs"));
   else if (legs.length) parts.push(legs.map(k => SHORT[k]).join("+"));
-  if (has("wings")) parts.push("skrzydła");
-  if (has("horn")) parts.push("róg");
+  if (has("wings")) parts.push(SHORT.wings);
+  if (has("horn")) parts.push(SHORT.horn);
   return parts.join(", ") || "—";
 }
 
@@ -152,11 +153,11 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static TABS = {
     primary: {
       tabs: [
-        { id: "main", label: "Statystyki" },
-        { id: "combat", label: "Walka" },
-        { id: "gear", label: "Ekwipunek" },
-        { id: "magic", label: "Magia i lot" },
-        { id: "notes", label: "Cechy i dane" }
+        { id: "main", label: N_("Stats") },
+        { id: "combat", label: N_("Combat") },
+        { id: "gear", label: N_("Inventory") },
+        { id: "magic", label: N_("Magic & flight") },
+        { id: "notes", label: N_("Traits & notes") }
       ],
       initial: "main"
     }
@@ -168,6 +169,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.actor = this.document;
     ctx.system = sys;
     ctx.tabs = this._prepareTabs("primary");
+    for (const tab of Object.values(ctx.tabs ?? {})) if (tab?.label) tab.label = t(tab.label);
     ctx.isNpc = this.document.type === "npc";
     ctx.isGM = game.user.isGM;
     ctx.looted = !!this.document.getFlag?.("foe-rpg", "looted");
@@ -220,13 +222,13 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // ptaszek „Okal.” pokazuje stan na bieżąco: od ran zaznacza się sam (i jest wtedy zablokowany), ręcznie — inne przyczyny
       const auto = !l.crippled && l.isCrippled;
       const cripTitle = auto
-        ? (l.offline ? "Okaleczona: proteza bez zasilania" : l.lethal ? `Utracona od ran (${l.wounds}/${l.limit})`
-          : `Okaleczona od ran (${l.wounds}/${l.crippleAt}) — zniknie, gdy rany spadną poniżej ${l.crippleAt} (leczenie)`)
-        : l.crippled && (l.autoCrippled || l.lethal) ? `Okaleczona ręcznie i od ran (${l.wounds}/${l.crippleAt}) — odznaczenie zdejmie tylko oznaczenie ręczne`
-        : l.crippled ? "Okaleczona ręcznie (wada albo decyzja MG) — odznacz, żeby zdjąć"
-        : `Zaznaczy się sama od ${l.crippleAt} ran; ręcznie — inne przyczyny (wada, decyzja MG)`;
+        ? (l.offline ? t("Crippled: cyberlimb without power") : l.lethal ? t("Maimed by wounds ({w}/{max})", { w: l.wounds, max: l.limit })
+          : t("Crippled by wounds ({w}/{at}) — clears when wounds drop below {at} (healing)", { w: l.wounds, at: l.crippleAt }))
+        : l.crippled && (l.autoCrippled || l.lethal) ? t("Crippled manually and by wounds ({w}/{at}) — unchecking removes only the manual mark", { w: l.wounds, at: l.crippleAt })
+        : l.crippled ? t("Crippled manually (hindrance or GM's call) — uncheck to remove")
+        : t("Checks itself at {at} wounds; manually — other causes (hindrance, GM's call)", { at: l.crippleAt });
       return { key: k, label: areaNames[k] ?? label, ...l, statusLabel: STATUS[l.status] ?? "", dtFxLabel: l.dtFx ? signed(l.dtFx) : "",
-        mfdNote: areaMfd[k] ? `MFD celowania ${areaMfd[k]}` : "", cripChecked: !!l.isCrippled, cripLocked: auto, cripTitle };
+        mfdNote: areaMfd[k] ? t("Called shot MFD {m}", { m: areaMfd[k] }) : "", cripChecked: !!l.isCrippled, cripLocked: auto, cripTitle };
     });
     // sylwetka w stylu PipBucka (potwory z własnymi strefami i pojazdy zostają przy tabeli)
     if (!monster) {
@@ -278,7 +280,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           spells: list.map(i => ({
             id: i.id, name: i.name, img: i.img, ...i.system, held: held.has(i.id),
             costLabel: COST_LABELS[i.system.cost] ?? i.system.cost,
-            tags: [i.system.targeted ? "celowane" : "", i.system.maintained ? "podtrzymywane" : "", i.system.damage ? `obr. ${i.system.damage}` : ""].filter(Boolean)
+            tags: [i.system.targeted ? t("spell|targeted") : "", i.system.maintained ? t("spell|maintained") : "", i.system.damage ? t("dmg {d}", { d: i.system.damage }) : ""].filter(Boolean)
           }))
         };
       }).filter(g => g.count || g.level <= 1)
@@ -303,7 +305,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const mans = this.document.items.filter(i => i.type === "spell" && i.system.tradition === "flight");
     const mlim = maneuverLimits(this.document);
     const mcnt = maneuverCounts(this.document);
-    const TAG = { dodge: "unik powietrzny", block: "blok powietrzny" };
+    const TAG = { dodge: t("aerial dodge"), block: t("aerial block") };
     ctx.flight = {
       flier: sys.flier, canFly: sys.canFly, note: sys.flyNote, speed: sys.flySpeed, altitude: sys.altitude,
       rank: mlim.rank, tn: sys.skills.flight?.tn ?? 0, total: mlim.total, known: mcnt.total, over: mcnt.total > mlim.total,
@@ -316,11 +318,11 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           over: cap !== undefined && (mcnt.per[l] ?? 0) > cap,
           list: list.map(i => ({
             id: i.id, name: i.name, img: i.img,
-            mfd: i.system.kind === "passive" ? "zawsze" : i.system.kind === "variable" ? "zmienne" : `MFD ${MFD_LABEL[i.system.mfd] ?? i.system.mfd}`,
-            actions: i.system.kind === "passive" ? "—" : i.system.actions ? `${i.system.actions} ak.` : "bez akcji", learned: i.system.learned || i.system.kind === "passive",
+            mfd: i.system.kind === "passive" ? t("man|always") : i.system.kind === "variable" ? t("man|variable") : `MFD ${MFD_LABEL[i.system.mfd] ?? i.system.mfd}`,
+            actions: i.system.kind === "passive" ? "—" : i.system.actions ? t("{n} act.", { n: i.system.actions }) : t("no action"), learned: i.system.learned || i.system.kind === "passive",
             attempts: i.system.attempts, attemptsMax: sys.level,
-            tags: [i.system.kind === "passive" ? "pasywny" : i.system.kind === "variable" ? "zmienne MFD" : i.system.kind === "special" ? "specjalny" : "",
-              TAG[i.system.tag] ?? "", isWeatherManeuver(i.name) ? "pogoda" : "", i.system.requires ? i.system.requires.replace(/^Requires/i, "wymaga") : ""].filter(Boolean)
+            tags: [i.system.kind === "passive" ? t("man|passive") : i.system.kind === "variable" ? t("man|variable MFD") : i.system.kind === "special" ? t("man|special") : "",
+              TAG[i.system.tag] ?? "", isWeatherManeuver(i.name) ? t("man|weather") : "", i.system.requires ? i.system.requires.replace(/^Requires/i, t("man|requires")) : ""].filter(Boolean)
           }))
         };
       }).filter(g => g.list.length)
@@ -348,9 +350,9 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.saddle = saddle ? {
       label: saddle.label, source: saddle.source, builtIn: saddle.builtIn, count: saddle.mounted.length, max: saddle.maxWeapons,
       weight: saddle.weight, combined: saddle.combined, indiv: saddle.indiv, warnings: saddle.warnings,
-      canVolley: saddle.mounted.length >= 2, volleySteps: saddle.volleySteps, volleyAp: saddle.volleyExtraAp, stepsWord: saddle.volleySteps === 1 ? "krok" : "kroki",
-      acc: [saddle.acc.auto ? "podajnik automatyczny" : "", saddle.acc.semi ? "podajnik półautomatyczny" : "", saddle.acc.bit ? "wysuwane wędzidło" : "", saddle.acc.case ? "skrzynka amunicyjna" : "",
-        saddle.energy ? `rezerwa energii ${saddle.energy.pts}/${saddle.energy.cap}` : "", saddle.fuel ? `rezerwa paliwa ${saddle.fuel.units}/${saddle.fuel.cap}` : ""].filter(Boolean).join(", ")
+      canVolley: saddle.mounted.length >= 2, volleySteps: saddle.volleySteps, volleyAp: saddle.volleyExtraAp, stepsWord: tn(saddle.volleySteps, "step", "steps"),
+      acc: [saddle.acc.auto ? t("auto loader") : "", saddle.acc.semi ? t("semi-auto loader") : "", saddle.acc.bit ? t("retractable bit") : "", saddle.acc.case ? t("munitions case") : "",
+        saddle.energy ? t("energy reserve {v}/{max}", { v: saddle.energy.pts, max: saddle.energy.cap }) : "", saddle.fuel ? t("fuel reserve {v}/{max}", { v: saddle.fuel.units, max: saddle.fuel.cap }) : ""].filter(Boolean).join(", ")
     } : null;
     ctx.weapons = items.filter(i => i.type === "weapon").map(i => {
       const w = i.system;
@@ -362,13 +364,13 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         ammoVariant: loadedVariant(w)?.label.replace(/ \(.*\)$/, "") ?? "", ammoVariantTip: loadedVariant(w) ? `${loadedVariant(w).effect}; ${loadedVariant(w).downside}` : "",
         skillLabel: SKILLS[w.skill]?.label ?? w.skill,
         burst: w.shots > 1 ? w.shots : 0,
-        reloadLabel: w.reload ? `${w.reload}: ${reloadInfo(w.reload, { energy: w.skill === "energy" }).ap} AP w SATS` : "przeładuj",
-        rangeLabel: inc ? `${inc} ft` : w.range || "wręcz",
+        reloadLabel: w.reload ? t("{reload}: {ap} AP in SATS", { reload: w.reload, ap: reloadInfo(w.reload, { energy: w.skill === "energy" }).ap }) : t("reload"),
+        rangeLabel: inc ? `${inc} ft` : w.range || t("fx|melee"),
         tags: specialList(w.specials).map(k => ({
-          label: k === "fire" && w.specials.fire === "crit" ? "Ogień (kryt.)" : k === "disintegrate" && w.specials.disintegrate === "crit" ? "Dezintegracja (kryt.)" : SPECIALS[k].label,
+          label: k === "fire" && w.specials.fire === "crit" ? t("Fire (crit.)") : k === "disintegrate" && w.specials.disintegrate === "crit" ? t("Disintegration (crit.)") : SPECIALS[k].label,
           tip: k === "poison" ? POISONS[w.specials.poison] : SPECIALS[k].desc
         })),
-        rangeTip: inc && !w.rangeInc ? `${w.range} przy STR ${str}` : ""
+        rangeTip: inc && !w.rangeInc ? t("{range} at STR {str}", { range: w.range, str }) : ""
       };
     });
 
@@ -377,14 +379,14 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const trained = hasPowerArmorTraining(this.document);
     ctx.armor = items.filter(i => i.type === "armor").map(i => {
       const a = i.system;
-      const wear = Object.values(a.wear ?? {}).reduce((t, v) => t + (v || 0), 0);
+      const wear = Object.values(a.wear ?? {}).reduce((sum, v) => sum + (v || 0), 0);
       return {
         id: i.id, name: i.name, img: i.img, ...a,
         categoryLabel: ARMOR_CATEGORIES[a.category] ?? a.category,
         coverText: coverText(a.cover),
         wearText: wear ? Object.entries(a.wear).filter(([, v]) => v).map(([k, v]) => `${SHORT[k]} −${v}`).join(", ") : "",
         fxText: (a.effects ?? []).filter(e => FX_TYPES[e.type]).map(e => shortFx(e, short)).join(", "),
-        builtInSaddle: a.powered ? { heavy: "ciężkie siodło", four: "czteroramienne siodło" }[builtInSaddle(i)?.kind] : "",
+        builtInSaddle: a.powered ? { heavy: t("heavy saddle"), four: t("four-pronged saddle") }[builtInSaddle(i)?.kind] : "",
         untrained: a.powered && a.equipped && !trained, canRepair: a.powered && wear > 0, canFix: wear > 0,
         named: !!i.getFlag?.("foe-rpg", "named"), canName: !i.getFlag?.("foe-rpg", "named") && canName(this.document)
       };
@@ -404,9 +406,14 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         usable: ["potion", "talisman", "drug", "medical"].includes(cat),
         equippable: cat === "saddle", equipped: !!i.system.equipped,
         readable: cat === "book", bookStatus: cat === "book" ? bookStatus(this.document, i) : "",
-        readTip: cat === "book" ? (() => { const b = parseBook(i.name, i.system.description); return `Przeczytane — punkty umiejętności (${b.skills.length > 5 ? "dowolna" : b.skills.map(k => SKILLS[k]?.label.split(" / ").pop()).join(", ") || "bez umiejętności"})${b.note ? `; ${b.note}` : ""}`; })() : "",
+        readTip: cat === "book" ? (() => {
+          const b = parseBook(i.name, i.system.description);
+          const skills = b.skills.length > 5 ? t("skill|any") : b.skills.map(k => SKILLS[k]?.label.split(" / ").pop()).join(", ") || t("no skills");
+          return t("Read — skill points ({skills})", { skills }) + (b.note ? `; ${b.note}` : "");
+        })() : "",
         reserve: cat === "saddle" && reserveCapacity(i.name) ? `${i.system.charges}/${reserveCapacity(i.name)}` : "",
-        useLabel: cat === "medical" ? `${HEAL_KINDS[i.system.heal]?.label ?? "Leczenie"} — na siebie albo namierzony cel` : cat === "drug" ? "Zażyj (efekt, czas działania, rzut na uzależnienie)" : MODES[i.system.usage]?.label ?? "Użyj",
+        useLabel: cat === "medical" ? t("{kind} — on yourself or the targeted token", { kind: HEAL_KINDS[i.system.heal]?.label ?? t("Healing") })
+          : cat === "drug" ? t("Take (effect, duration, addiction roll)") : MODES[i.system.usage]?.label ?? t("Use"),
         charges: /talisman/i.test(i.system.heal ?? "") ? i.system.charges : null,
         weightLabel: cat === "ammo" ? "—" : w ? `${Math.round(w * (i.system.qty || 0) * 10) / 10} lb` : "",
         notes: String(i.system.description ?? "").replace(/<[^>]+>/g, "").slice(0, 300)
@@ -415,7 +422,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.gearGroups = Object.entries(GEAR_CATEGORIES).filter(([k]) => groups.has(k)).map(([k, label]) => ({ key: k, label, items: groups.get(k) }));
     ctx.overSpeed = overloadSpeed(sys.weight, sys.carry);
 
-    const kinds = { trait: "Cecha", hindrance: "Wada", perk: "Perk", spell: "Zaklęcie", implant: "Implant", cyberlimb: "Proteza", other: "Inne" };
+    const kinds = { trait: t("Trait"), hindrance: t("Hindrance"), perk: "Perk", spell: t("Spell"), implant: t("Implant"), cyberlimb: t("Cyberlimb"), other: t("kind|Other") };
     ctx.features = items.filter(i => i.type === "feature").map(i => ({
       id: i.id, name: i.name, system: i.system, kindLabel: kinds[i.system.kind] ?? i.system.kind,
       active: i.system.active !== false,
@@ -428,7 +435,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       critFailFrom: 101 - (sys.critRange?.fail ?? 5),
       strainBonus: sys.strainBonus ? signed(sys.strainBonus) : "",
       damage: fx.damage ? signed(fx.damage) : "",
-      initFx: sys.initFx > 0 ? `− ${sys.initFx} (cechy)` : sys.initFx < 0 ? `+ ${-sys.initFx} (cechy)` : ""
+      initFx: sys.initFx > 0 ? t("− {n} (features)", { n: sys.initFx }) : sys.initFx < 0 ? t("+ {n} (features)", { n: -sys.initFx }) : ""
     };
     ctx.weight = sys.weight;
     ctx.notesHTML = await foundry.applications.ux.TextEditor.implementation.enrichHTML(sys.notes, { relativeTo: this.document });
@@ -478,7 +485,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onCreateItem(event, target) {
     const type = target.dataset.type;
-    const names = { weapon: "Nowa broń", armor: "Nowy pancerz", gear: "Nowy przedmiot", feature: "Nowa cecha" };
+    const names = { weapon: t("New weapon"), armor: t("New armor"), gear: t("New item"), feature: t("New feature") };
     const [item] = await this.document.createEmbeddedDocuments("Item", [{ name: names[type], type }]);
     item?.sheet.render(true);
   }
@@ -491,7 +498,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const item = this.#item(target);
     if (!item) return;
     const ok = await foundry.applications.api.DialogV2.confirm({
-      window: { title: "Usuń przedmiot" }, content: `<p>Usunąć <b>${foundry.utils.escapeHTML(item.name)}</b>?</p>`
+      window: { title: t("Delete item") }, content: `<p>${t("Delete {name}?", { name: `<b>${foundry.utils.escapeHTML(item.name)}</b>` })}</p>`
     });
     if (ok) item.delete();
   }
@@ -511,7 +518,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (on && (LAYER_CATEGORIES.includes(cat) || cat === "helmet")) {
       const off = this.document.items.filter(i => i.type === "armor" && i.id !== item.id && i.system.equipped && i.system.category === cat);
       for (const i of off) updates.push({ _id: i.id, "system.equipped": false });
-      if (off.length) ui.notifications.info(`Zdjęto: ${off.map(i => i.name).join(", ")} — z jednej kategorii zakłada się jedną warstwę.`);
+      if (off.length) ui.notifications.info(t("Removed: {names} — only one layer per category can be worn.", { names: off.map(i => i.name).join(", ") }));
     }
     await this.document.updateEmbeddedDocuments("Item", updates);
   }
@@ -536,7 +543,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   static async #onEndRound() {
-    if (!(await endOfRound(this.document))) ui.notifications.info("Brak stanów działających na koniec rundy.");
+    if (!(await endOfRound(this.document))) ui.notifications.info(t("No conditions act at the end of the round."));
   }
 
   static async #onCastSpell(event, target) {
@@ -583,7 +590,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const on = !item.system.mounted;
     await item.update({ "system.mounted": on });
     const s = saddleState(this.document);
-    if (on && s?.warnings.length) ui.notifications.warn(`Siodło: ${s.warnings.join("; ")}.`);
+    if (on && s?.warnings.length) ui.notifications.warn(t("Saddle: {list}.", { list: s.warnings.join("; ") }));
   }
 
   /** Siodło bojowe i akcesoria: zakładanie (jedno siodło naraz). */
@@ -733,7 +740,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       "system.resources.luck.value": sys.resources.luck.max,
       "system.resources.sats.value": sys.resources.sats.max
     });
-    ui.notifications.info(`${this.document.name}: karty szczęścia i SATS odnowione.`);
+    ui.notifications.info(t("{name}: Luck cards and SATS restored.", { name: this.document.name }));
   }
 }
 
@@ -763,10 +770,10 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     ctx.isRecipe = ctx.isSpell && sys.tradition === "zebra";
     ctx.isManeuver = ctx.isSpell && sys.tradition === "flight";
     ctx.mfdSteps = MFD_LABEL;
-    ctx.maneuverKinds = { active: "Aktywny (rzut Flight)", passive: "Pasywny (zawsze działa)", variable: "Zmienne MFD", special: "Specjalny" };
-    ctx.maneuverTags = { "": "—", dodge: "Unik powietrzny", block: "Blok powietrzny" };
+    ctx.maneuverKinds = { active: t("Active (Flight roll)"), passive: t("Passive (always on)"), variable: t("Variable MFD"), special: t("man|Special") };
+    ctx.maneuverTags = { "": "—", dodge: t("Aerial dodge"), block: t("Aerial block") };
     ctx.isUnicorn = ctx.isSpell && !ctx.isRecipe && !ctx.isManeuver;
-    ctx.traditions = { unicorn: "Jednorożce / alikorny", zebra: "Zebry (receptura)", flight: "Lot (manewr)" };
+    ctx.traditions = { unicorn: t("Unicorns / alicorns"), zebra: t("Zebras (recipe)"), flight: t("Flight (maneuver)") };
     ctx.rarities = RARITY;
     ctx.zebraGear = ctx.isGear && ["ingredient", "potion", "talisman"].includes(sys.category);
     ctx.medGear = ctx.isGear && sys.category === "medical";
@@ -781,11 +788,11 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     ctx.armorCats = ARMOR_CATEGORIES;
     ctx.gearCats = GEAR_CATEGORIES;
     ctx.weaponKinds = { "": "—", ...WEAPON_KINDS };
-    ctx.hitModes = { "": "nie", hit: "przy każdym trafieniu", crit: "tylko przy krytyku" };
+    ctx.hitModes = { "": t("opt|no"), hit: t("on every hit"), crit: t("only on a critical") };
     ctx.poisons = POISONS;
     ctx.specialChecks = ["electric", "rads", "shock", "knockdown", "concealable", "scoped", "silenced", "timed", "placed"]
       .map(k => ({ key: k, label: SPECIALS[k].label, desc: SPECIALS[k].desc, on: !!sys.specials?.[k] }));
-    ctx.featureKinds = { trait: "Trait", hindrance: "Hindrance", perk: "Perk", spell: "Zaklęcie", implant: "Implant", cyberlimb: "Proteza (cyber-kończyna)", other: "Inne" };
+    ctx.featureKinds = { trait: t("kind|Trait"), hindrance: t("kind|Hindrance"), perk: "Perk", spell: t("Spell"), implant: t("Implant"), cyberlimb: t("kind|Cyberlimb"), other: t("kind|Other") };
     ctx.isCyber = ctx.isFeature && ["implant", "cyberlimb"].includes(sys.kind);
     ctx.cyberLocs = { "": "—", ...LOCATIONS };
     ctx.skillOptions = Object.fromEntries(Object.entries(SKILLS).map(([k, s]) => [k, s.label]));
@@ -795,19 +802,19 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     }
     if (ctx.hasFx) {
       const groups = [
-        { label: "Ogólne", opts: [["all", "Wszystko"], ["attack", "Każdy atak"], ["ranged", "Ataki dystansowe"], ["melee", "Ataki wręcz"]] },
-        { label: "Atrybuty", opts: Object.entries(ATTRS) },
-        { label: "Umiejętności", opts: Object.entries(SKILLS).map(([k, v]) => [k, v.label]) },
-        { label: "Lokacje (DT)", opts: Object.entries(LOCATIONS) },
-        { label: "Ruch (%)", opts: [["ground", "Ruch po ziemi"], ["fly", "Lot"]] }
+        { label: t("General"), opts: [["all", t("Everything")], ["attack", t("Every attack")], ["ranged", t("Ranged attacks")], ["melee", t("Melee attacks")]] },
+        { label: t("Attributes"), opts: Object.entries(ATTRS) },
+        { label: t("Skills"), opts: Object.entries(SKILLS).map(([k, v]) => [k, v.label]) },
+        { label: t("Locations (DT)"), opts: Object.entries(LOCATIONS) },
+        { label: t("Movement (%)"), opts: [["ground", t("Ground movement")], ["fly", t("fx|Flight")]] }
       ];
       const known = new Set(groups.flatMap(g => g.opts.map(o => o[0])));
       ctx.fxRows = (sys.effects ?? []).map((e, i) => ({
         i, value: e.value, when: e.when,
-        types: Object.entries(FX_TYPES).map(([k, t]) => ({ v: k, label: t.label, sel: k === e.type })),
+        types: Object.entries(FX_TYPES).map(([k, ft]) => ({ v: k, label: ft.label, sel: k === e.type })),
         custom: known.has(e.target) ? null : {
           v: e.target,
-          label: e.target.split(",").map(t => t.trim()).map(t => groups.flatMap(g => g.opts).find(o => o[0] === t)?.[1] ?? t).join(", ")
+          label: e.target.split(",").map(s => s.trim()).map(s => groups.flatMap(g => g.opts).find(o => o[0] === s)?.[1] ?? s).join(", ")
         },
         groups: groups.map(g => ({ label: g.label, opts: g.opts.map(([v, label]) => ({ v, label, sel: v === e.target })) }))
       }));

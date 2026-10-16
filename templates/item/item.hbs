@@ -5,136 +5,136 @@
   </header>
   <div class="fields">
   {{#if isWeapon}}
-    <label>Umiejętność <select name="system.skill">{{selectOptions skillOptions selected=system.skill}}</select></label>
-    <label>Rodzaj <select name="system.kind">{{selectOptions weaponKinds selected=system.kind}}</select></label>
-    <label title="„STR” w formule: wręcz = siła × mnożnik z rangi Melee/Unarmed, łuki i rzucane = sama siła">Obrażenia (formuła) <input type="text" name="system.damage" value="{{system.damage}}" placeholder="3d4 + STR"></label>
-    <label title="Broń z „/N” w tabeli: tyle naboi zużywa jeden strzał">Seria (naboje na strzał) <input type="number" name="system.shots" value="{{system.shots}}" min="1"></label>
-    <label title="Mnożnik z kolumny Crit, np. x1,5">Krytyk <input type="text" name="system.crit" value="{{system.crit}}" placeholder="x1 / x1.5 / x2"></label>
-    <label>Koszt SATS (AP) <input type="number" name="system.satsCost" value="{{system.satsCost}}"></label>
-    <label>Amunicja w magazynku <span class="pair"><input type="number" name="system.ammo.value" value="{{system.ammo.value}}"> / <input type="number" name="system.ammo.max" value="{{system.ammo.max}}"></span></label>
-    <label title="Musi się zgadzać z nazwą albo typem amunicji w ekwipunku — wtedy przeładowanie ją odejmuje">Typ amunicji <input type="text" name="system.ammoType" value="{{system.ammoType}}" placeholder="np. 10mm"></label>
-    <label title="DTM 10 AP, DTM+5 15, Revolver 20, Internal 20, Breech 25">Przeładowanie <input type="text" name="system.reload" value="{{system.reload}}" list="foe-reload-types" placeholder="DTM / Revolver / Internal / Breech">
+    <label>{{t "Skill"}} <select name="system.skill">{{selectOptions skillOptions selected=system.skill}}</select></label>
+    <label>{{t "col|Type"}} <select name="system.kind">{{selectOptions weaponKinds selected=system.kind}}</select></label>
+    <label title="{{t "“STR” in the formula: melee = strength × multiplier from the Melee/Unarmed rank, bows and thrown = strength alone"}}">{{t "Damage (formula)"}} <input type="text" name="system.damage" value="{{system.damage}}" placeholder="3d4 + STR"></label>
+    <label title="{{t "Weapons with “/N” in the table: a single shot uses that many rounds"}}">{{t "Burst (rounds per shot)"}} <input type="number" name="system.shots" value="{{system.shots}}" min="1"></label>
+    <label title="{{t "Multiplier from the Crit column, e.g. x1.5"}}">{{t "label|Critical"}} <input type="text" name="system.crit" value="{{system.crit}}" placeholder="x1 / x1.5 / x2"></label>
+    <label>{{t "SATS cost (AP)"}} <input type="number" name="system.satsCost" value="{{system.satsCost}}"></label>
+    <label>{{t "Ammo in the magazine"}} <span class="pair"><input type="number" name="system.ammo.value" value="{{system.ammo.value}}"> / <input type="number" name="system.ammo.max" value="{{system.ammo.max}}"></span></label>
+    <label title="{{t "Must match the name or ammo type in the inventory — then reloading deducts it"}}">{{t "Ammo type"}} <input type="text" name="system.ammoType" value="{{system.ammoType}}" placeholder="{{t "e.g. 10mm"}}"></label>
+    <label title="DTM 10 AP, DTM+5 15, Revolver 20, Internal 20, Breech 25">{{t "Reload"}} <input type="text" name="system.reload" value="{{system.reload}}" list="foe-reload-types" placeholder="DTM / Revolver / Internal / Breech">
       <datalist id="foe-reload-types"><option value="DTM"><option value="DTM+5"><option value="Revolver"><option value="Internal"><option value="Breech"></datalist></label>
-    <label title="Przedział zasięgu w stopach; każdy kolejny przedział = 1 krok MFD trudniej. 0 = wręcz albo liczony z opisu (np. (STR/2)×5 ft)">Przedział zasięgu (ft) <input type="number" name="system.rangeInc" value="{{system.rangeInc}}" min="0"></label>
-    <label>Zasięg (opis) <input type="text" name="system.range" value="{{system.range}}" placeholder="np. (STR/2)×5 ft"></label>
-    <label title="Broń magiczna (MFC, ME-Cell, Gem Cell) ignoruje 5 DT">Ignoruje DT <input type="number" name="system.ignoreDT" value="{{system.ignoreDT}}" min="0"></label>
-    <label title="Zamontowana na siodle bojowym: limit wagi siodła, salwa, rezerwy i podajniki">Na siodle bojowym <input type="checkbox" name="system.mounted" {{checked system.mounted}}></label>
-    <label title="Obrażenia już z premiami (broń z bestiariusza) — system nic nie dolicza">Obrażenia bez premii <input type="checkbox" name="system.flat" {{checked system.flat}}></label>
-    <label title="Ignoruje pancerz noszony — liczy się tylko naturalne DT (np. Sonic Screech)">Ignoruje pancerz <input type="checkbox" name="system.armorless" {{checked system.armorless}}></label>
-    <label>Obszarowa (wybuch) <input type="checkbox" name="system.aoe.enabled" {{checked system.aoe.enabled}}></label>
+    <label title="{{t "Range increment in feet; each further increment = 1 MFD step harder. 0 = melee or computed from the description (e.g. (STR/2)×5 ft)"}}">{{t "Range increment (ft)"}} <input type="number" name="system.rangeInc" value="{{system.rangeInc}}" min="0"></label>
+    <label>{{t "Range (description)"}} <input type="text" name="system.range" value="{{system.range}}" placeholder="{{t "e.g. (STR/2)×5 ft"}}"></label>
+    <label title="{{t "Magical weapons (MFC, ME-Cell, Gem Cell) ignore 5 DT"}}">{{t "Ignores DT"}} <input type="number" name="system.ignoreDT" value="{{system.ignoreDT}}" min="0"></label>
+    <label title="{{t "Mounted on a battle saddle: saddle weight limit, volley, reserves and loaders"}}">{{t "On a battle saddle"}} <input type="checkbox" name="system.mounted" {{checked system.mounted}}></label>
+    <label title="{{t "Damage already includes bonuses (bestiary weapons) — the system adds nothing"}}">{{t "Damage without bonuses"}} <input type="checkbox" name="system.flat" {{checked system.flat}}></label>
+    <label title="{{t "Ignores worn armor — only natural DT counts (e.g. Sonic Screech)"}}">{{t "Ignores armor"}} <input type="checkbox" name="system.armorless" {{checked system.armorless}}></label>
+    <label>{{t "Area (explosion)"}} <input type="checkbox" name="system.aoe.enabled" {{checked system.aoe.enabled}}></label>
     {{#if system.aoe.enabled}}
-    <label>Obrażenia odłamków / promień <span class="pair"><input type="text" name="system.aoe.splash" value="{{system.aoe.splash}}" placeholder="6d12"> <input type="text" name="system.aoe.radius" value="{{system.aoe.radius}}" placeholder="15 ft"></span></label>
-    <label title="O ile kości mniej za każde kolejne 5 ft od epicentrum">Spadek co 5 ft <input type="text" name="system.aoe.inc" value="{{system.aoe.inc}}" placeholder="−2d12"></label>
+    <label>{{t "Splash damage / radius"}} <span class="pair"><input type="text" name="system.aoe.splash" value="{{system.aoe.splash}}" placeholder="6d12"> <input type="text" name="system.aoe.radius" value="{{system.aoe.radius}}" placeholder="15 ft"></span></label>
+    <label title="{{t "How many dice fewer for every further 5 ft from the center"}}">{{t "Falloff per 5 ft"}} <input type="text" name="system.aoe.inc" value="{{system.aoe.inc}}" placeholder="−2d12"></label>
     {{/if}}
   </div>
-  <h3>Efekty specjalne</h3>
+  <h3>{{t "Special effects"}}</h3>
   <div class="fields">
-    <label>Ogień <select name="system.specials.fire">{{selectOptions hitModes selected=system.specials.fire}}</select></label>
-    <label>Dezintegracja <select name="system.specials.disintegrate">{{selectOptions hitModes selected=system.specials.disintegrate}}</select></label>
-    <label>Trucizna <select name="system.specials.poison">{{selectOptions poisons selected=system.specials.poison}}</select></label>
+    <label>{{t "Fire"}} <select name="system.specials.fire">{{selectOptions hitModes selected=system.specials.fire}}</select></label>
+    <label>{{t "Disintegration"}} <select name="system.specials.disintegrate">{{selectOptions hitModes selected=system.specials.disintegrate}}</select></label>
+    <label>{{t "Poison"}} <select name="system.specials.poison">{{selectOptions poisons selected=system.specials.poison}}</select></label>
     <div class="cover-grid specials">
       {{#each specialChecks}}<label class="cover" title="{{desc}}"><input type="checkbox" name="system.specials.{{key}}" {{checked on}}> {{label}}</label>{{/each}}
     </div>
-    <p class="hint">Ogień, prąd, promieniowanie, dezintegracja, ogłuszenie, trucizna i przewracanie działają przy „Nanieś obrażenia” i na koniec rundy. Pozostałe to znaczniki z opisem (najedź myszą). Broń z katalogu ma je ustawione z przypisów podręcznika.</p>
+    <p class="hint">{{t "Fire, electricity, radiation, disintegration, stun, poison and knockdown work on “Apply damage” and at the end of the round. The rest are markers with a description (hover). Catalog weapons have them set from the rulebook's footnotes."}}</p>
   </div>
   <div class="fields">
-    <label title="Granaty, miny: atak zużywa sztukę">Zużywalna (granat, mina) <input type="checkbox" name="system.consumable" {{checked system.consumable}}></label>
-    {{#if system.consumable}}<label>Ilość sztuk <input type="number" name="system.qty" value="{{system.qty}}" min="0"></label>{{/if}}
-    <label title="(mw) w tabeli — da się trzymać w pysku">Trzymana w pysku (mw) <input type="checkbox" name="system.mw" {{checked system.mw}}></label>
-    <label title="Maks. udźwig broni = 2×STR; każde rozpoczęte 2 lb ponad to −1 krok MFD">Waga <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
-    <label>Cena (kapsle) <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
+    <label title="{{t "Grenades, mines: an attack uses up one"}}">{{t "Consumable (grenade, mine)"}} <input type="checkbox" name="system.consumable" {{checked system.consumable}}></label>
+    {{#if system.consumable}}<label>{{t "Number of pieces"}} <input type="number" name="system.qty" value="{{system.qty}}" min="0"></label>{{/if}}
+    <label title="{{t "(mw) in the table — can be held in the mouth"}}">{{t "Mouth-wielded (mw)"}} <input type="checkbox" name="system.mw" {{checked system.mw}}></label>
+    <label title="{{t "Max. weapon weight = 2×STR; every started 2 lb over it is −1 MFD step"}}">{{t "Weight"}} <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
+    <label>{{t "Price (caps)"}} <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
   {{/if}}
   {{#if isArmor}}
-    <label>Kategoria <select name="system.category">{{selectOptions armorCats selected=system.category}}</select></label>
+    <label>{{t "Category"}} <select name="system.category">{{selectOptions armorCats selected=system.category}}</select></label>
     <label>DT <input type="number" name="system.dt" value="{{system.dt}}" min="0"></label>
-    <label>Założony <input type="checkbox" name="system.equipped" {{checked system.equipped}}></label>
-    <label>Pancerz wspomagany (power armor) <input type="checkbox" name="system.powered" {{checked system.powered}}></label>
-    <label>Waga <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
-    <label>Cena (kapsle) <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
+    <label>{{t "Worn"}} <input type="checkbox" name="system.equipped" {{checked system.equipped}}></label>
+    <label>{{t "Power armor"}} <input type="checkbox" name="system.powered" {{checked system.powered}}></label>
+    <label>{{t "Weight"}} <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
+    <label>{{t "Price (caps)"}} <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
   {{/if}}
   {{#if isGear}}
-    <label>Kategoria <select name="system.category">{{selectOptions gearCats selected=system.category}}</select></label>
-    <label>Ilość <input type="number" name="system.qty" value="{{system.qty}}"></label>
-    <label>Waga (szt.) <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
-    <label>Cena (szt.) <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
+    <label>{{t "Category"}} <select name="system.category">{{selectOptions gearCats selected=system.category}}</select></label>
+    <label>{{t "Quantity"}} <input type="number" name="system.qty" value="{{system.qty}}"></label>
+    <label>{{t "Weight (each)"}} <input type="number" step="0.1" name="system.weight" value="{{system.weight}}"></label>
+    <label>{{t "Price (each)"}} <input type="number" name="system.value" value="{{system.value}}" min="0"></label>
     {{#if reserveGear}}
-    <label title="Rezerwa energii: punkty (ogniwo energii 2, MFC 4, gem cell 1); rezerwa paliwa: jednostki paliwa">Zawartość rezerwy <input type="number" name="system.charges" value="{{system.charges}}" min="0"> / {{reserveCap}}</label>
+    <label title="{{t "Energy reserve: points (energy cell 2, MFC 4, gem cell 1); fuel reserve: fuel units"}}">{{t "Reserve contents"}} <input type="number" name="system.charges" value="{{system.charges}}" min="0"> / {{reserveCap}}</label>
     {{/if}}
     {{#if medGear}}
-    <label>Rodzaj leczenia <select name="system.heal">{{selectOptions healKinds selected=system.heal}}</select></label>
-    <label title="Talizmany: ładowanie zaklęciem leczącym poziomu 2+ (odmładzający: 3+)">Ładunki <input type="number" name="system.charges" value="{{system.charges}}" min="0"></label>
+    <label>{{t "Healing type"}} <select name="system.heal">{{selectOptions healKinds selected=system.heal}}</select></label>
+    <label title="{{t "Talismans: charged with a healing spell of level 2+ (rejuvenating: 3+)"}}">{{t "Charges"}} <input type="number" name="system.charges" value="{{system.charges}}" min="0"></label>
     {{/if}}
     {{#if zebraGear}}
-    <label>Rzadkość <select name="system.rarity" data-dtype="Number">{{selectOptions gearRarities selected=system.rarity}}</select></label>
-    <label title="Drink, Throw, Apply albo Worn">Sposób użycia <select name="system.usage">{{selectOptions usages selected=system.usage}}</select></label>
-    <label title="Mikstury rzucane">Obrażenia <input type="text" name="system.damage" value="{{system.damage}}"></label>
+    <label>{{t "Rarity"}} <select name="system.rarity" data-dtype="Number">{{selectOptions gearRarities selected=system.rarity}}</select></label>
+    <label title="{{t "Drink, Throw, Apply or Worn"}}">{{t "Usage"}} <select name="system.usage">{{selectOptions usages selected=system.usage}}</select></label>
+    <label title="{{t "Thrown potions"}}">{{t "Damage"}} <input type="text" name="system.damage" value="{{system.damage}}"></label>
     {{/if}}
-    <label title="Broń z takim samym typem amunicji ładuje się z tego przedmiotu">Typ amunicji <input type="text" name="system.ammoType" value="{{system.ammoType}}" placeholder="np. 10mm"></label>
+    <label title="{{t "Weapons with the same ammo type load from this item"}}">{{t "Ammo type"}} <input type="text" name="system.ammoType" value="{{system.ammoType}}" placeholder="{{t "e.g. 10mm"}}"></label>
   {{/if}}
   {{#if isSpell}}
-    <label title="Jednorożce/alikorny płacą strain, zebry — składnikami">Tradycja <select name="system.tradition">{{selectOptions traditions selected=system.tradition}}</select></label>
-    <label>Poziom {{#if isRecipe}}receptury{{else if isManeuver}}manewru{{else}}zaklęcia{{/if}} <select name="system.level" data-dtype="Number">{{selectOptions spellLevels selected=system.level}}</select></label>
+    <label title="{{t "Unicorns/alicorns pay strain, zebras — with ingredients"}}">{{t "Tradition"}} <select name="system.tradition">{{selectOptions traditions selected=system.tradition}}</select></label>
+    <label>{{#if isRecipe}}{{t "Recipe level"}}{{else if isManeuver}}{{t "Maneuver level"}}{{else}}{{t "Spell level"}}{{/if}} <select name="system.level" data-dtype="Number">{{selectOptions spellLevels selected=system.level}}</select></label>
   {{/if}}
   {{#if isManeuver}}
-    <label>MFD wykonania <select name="system.mfd">{{selectOptions mfdSteps selected=system.mfd}}</select></label>
-    <label>Rodzaj <select name="system.kind">{{selectOptions maneuverKinds selected=system.kind}}</select></label>
-    <label title="Unik powietrzny zastępuje zwykły unik">Obrona <select name="system.tag">{{selectOptions maneuverTags selected=system.tag}}</select></label>
-    <label title="0 = nie zajmuje akcji (np. Hover)">Akcje <input type="number" name="system.actions" value="{{system.actions}}" min="0"></label>
-    <label title="Opanowany: udany rzut przy nauce (z karą 3 kroków MFD)">Opanowany <input type="checkbox" name="system.learned" {{checked system.learned}}></label>
-    <label title="Limit prób nauki = poziom postaci">Zużyte próby nauki <input type="number" name="system.attempts" value="{{system.attempts}}" min="0"></label>
-    <label>Wymagania <input type="text" name="system.requires" value="{{system.requires}}"></label>
+    <label>{{t "MFD to perform"}} <select name="system.mfd">{{selectOptions mfdSteps selected=system.mfd}}</select></label>
+    <label>{{t "col|Type"}} <select name="system.kind">{{selectOptions maneuverKinds selected=system.kind}}</select></label>
+    <label title="{{t "An aerial dodge replaces the normal dodge"}}">{{t "Defense"}} <select name="system.tag">{{selectOptions maneuverTags selected=system.tag}}</select></label>
+    <label title="{{t "0 = takes no action (e.g. Hover)"}}">{{t "Actions"}} <input type="number" name="system.actions" value="{{system.actions}}" min="0"></label>
+    <label title="{{t "Mastered: a successful learning roll (with a 3 MFD step penalty)"}}">{{t "Mastered"}} <input type="checkbox" name="system.learned" {{checked system.learned}}></label>
+    <label title="{{t "Learning attempt limit = character level"}}">{{t "Learning attempts used"}} <input type="number" name="system.attempts" value="{{system.attempts}}" min="0"></label>
+    <label>{{t "Requirements"}} <input type="text" name="system.requires" value="{{system.requires}}"></label>
   {{/if}}
   {{#if isRecipe}}
-    <label title="Drink, Throw, Apply, Worn, Cast — oddzielone przecinkami">Sposób użycia <input type="text" name="system.usage" value="{{system.usage}}" placeholder="np. Drink, Throw"></label>
-    <label>Rzadkość składników <select name="system.rarity" data-dtype="Number">{{selectOptions rarities selected=system.rarity}}</select></label>
-    <label>Składnik specjalny <input type="text" name="system.special" value="{{system.special}}"></label>
-    <label>Szkoła <input type="text" name="system.school" value="{{system.school}}"></label>
-    <label title="Dla mikstur rzucanych i rytuałów z obrażeniami">Obrażenia (formuła) <input type="text" name="system.damage" value="{{system.damage}}"></label>
-    <label>Wymagany poziom postaci <input type="number" name="system.levelReq" value="{{system.levelReq}}" min="0"></label>
+    <label title="{{t "Drink, Throw, Apply, Worn, Cast — comma-separated"}}">{{t "Usage"}} <input type="text" name="system.usage" value="{{system.usage}}" placeholder="{{t "e.g. Drink, Throw"}}"></label>
+    <label>{{t "Ingredient rarity"}} <select name="system.rarity" data-dtype="Number">{{selectOptions rarities selected=system.rarity}}</select></label>
+    <label>{{t "Special ingredient"}} <input type="text" name="system.special" value="{{system.special}}"></label>
+    <label>{{t "School"}} <input type="text" name="system.school" value="{{system.school}}"></label>
+    <label title="{{t "For thrown potions and damaging rituals"}}">{{t "Damage (formula)"}} <input type="text" name="system.damage" value="{{system.damage}}"></label>
+    <label>{{t "Required character level"}} <input type="number" name="system.levelReq" value="{{system.levelReq}}" min="0"></label>
   {{/if}}
   {{#if isUnicorn}}
-    <label title="Low 1, Medium 2, High 3, Very High 4">Koszt strain <select name="system.cost" data-dtype="Number">{{selectOptions spellCosts selected=system.cost}}</select></label>
-    <label title="0 = nie da się rzucić w SATS">Koszt SATS (AP) <input type="number" name="system.satsCost" value="{{system.satsCost}}" min="0"></label>
-    <label title="Drugi rzut Magic na trafienie (przedział zasięgu 20 ft)">Celowane <input type="checkbox" name="system.targeted" {{checked system.targeted}}></label>
-    <label title="Koszt płacony na początku każdej rundy">Podtrzymywane <input type="checkbox" name="system.maintained" {{checked system.maintained}}></label>
-    <label title="INT = inteligencja, MAGIC10 = ranga Magic / 10">Obrażenia (formuła) <input type="text" name="system.damage" value="{{system.damage}}" placeholder="np. 1d12 albo 3d8 + INT"></label>
-    <label>Krytyk <input type="text" name="system.crit" value="{{system.crit}}" placeholder="x1"></label>
-    <label>Ignoruje DT <input type="number" name="system.ignoreDT" value="{{system.ignoreDT}}" min="0"></label>
-    <label>Procent nauki <input type="number" name="system.learn" value="{{system.learn}}" min="0" max="95"></label>
-    <label>Wymagany poziom postaci <input type="number" name="system.levelReq" value="{{system.levelReq}}" min="0"></label>
-    <label>Wymagania <input type="text" name="system.requirements" value="{{system.requirements}}"></label>
-    <label>Prekursory <input type="text" name="system.precursors" value="{{system.precursors}}"></label>
-    <label>Prekursor dla <input type="text" name="system.precursorFor" value="{{system.precursorFor}}"></label>
+    <label title="Low 1, Medium 2, High 3, Very High 4">{{t "Strain cost"}} <select name="system.cost" data-dtype="Number">{{selectOptions spellCosts selected=system.cost}}</select></label>
+    <label title="{{t "0 = can't be cast in SATS"}}">{{t "SATS cost (AP)"}} <input type="number" name="system.satsCost" value="{{system.satsCost}}" min="0"></label>
+    <label title="{{t "A second Magic roll to hit (range increment 20 ft)"}}">{{t "Targeted"}} <input type="checkbox" name="system.targeted" {{checked system.targeted}}></label>
+    <label title="{{t "Cost paid at the start of every round"}}">{{t "Maintained"}} <input type="checkbox" name="system.maintained" {{checked system.maintained}}></label>
+    <label title="{{t "INT = intelligence, MAGIC10 = Magic rank / 10"}}">{{t "Damage (formula)"}} <input type="text" name="system.damage" value="{{system.damage}}" placeholder="{{t "e.g. 1d12 or 3d8 + INT"}}"></label>
+    <label>{{t "label|Critical"}} <input type="text" name="system.crit" value="{{system.crit}}" placeholder="x1"></label>
+    <label>{{t "Ignores DT"}} <input type="number" name="system.ignoreDT" value="{{system.ignoreDT}}" min="0"></label>
+    <label>{{t "Learning percentage"}} <input type="number" name="system.learn" value="{{system.learn}}" min="0" max="95"></label>
+    <label>{{t "Required character level"}} <input type="number" name="system.levelReq" value="{{system.levelReq}}" min="0"></label>
+    <label>{{t "Requirements"}} <input type="text" name="system.requirements" value="{{system.requirements}}"></label>
+    <label>{{t "Precursors"}} <input type="text" name="system.precursors" value="{{system.precursors}}"></label>
+    <label>{{t "Precursor for"}} <input type="text" name="system.precursorFor" value="{{system.precursorFor}}"></label>
   {{/if}}
   {{#if isFeature}}
-    <label>Rodzaj <select name="system.kind">{{selectOptions featureKinds selected=system.kind}}</select></label>
-    <label>Aktywna (efekty doliczane) <input type="checkbox" name="system.active" {{checked system.active}}></label>
+    <label>{{t "col|Type"}} <select name="system.kind">{{selectOptions featureKinds selected=system.kind}}</select></label>
+    <label>{{t "Active (effects applied)"}} <input type="checkbox" name="system.active" {{checked system.active}}></label>
     {{#if isCyber}}
-    <label title="Lokacja protezy (bez zasilania działa jak okaleczona)">Lokacja <select name="system.cyber.loc">{{selectOptions cyberLocs selected=system.cyber.loc}}</select></label>
-    <label title="Zużycie energii: kończyna 1, tułów 2, implant ¼ (0 = nie potrzebuje)">Zużycie energii <input type="number" name="system.cyber.power" value="{{system.cyber.power}}" min="0" step="0.25"></label>
-    <label title="Złom naprawia 1 ranę na 15 minut na lokacji protezy">Talizman naprawczy <input type="checkbox" name="system.cyber.talisman" {{checked system.cyber.talisman}}></label>
-    <label title="Regeneracja: co ile sekund 1 rana (3600 = Phoenix Monocyte Breeder); 0 = brak">Regeneracja (s/ranę) <input type="number" name="system.cyber.regen" value="{{system.cyber.regen}}" min="0"></label>
-    <label title="Wewnętrzny magazyn energii w punktach (ogniwo 2, MFC 4, gem cell 1)">Magazyn energii <input type="number" name="system.cyber.charges" value="{{system.cyber.charges}}" min="0"> / <input type="number" name="system.cyber.capacity" value="{{system.cyber.capacity}}" min="0"></label>
+    <label title="{{t "Cyberlimb location (without power it works as crippled)"}}">{{t "Location"}} <select name="system.cyber.loc">{{selectOptions cyberLocs selected=system.cyber.loc}}</select></label>
+    <label title="{{t "Power usage: limb 1, torso 2, implant ¼ (0 = needs none)"}}">{{t "Power usage"}} <input type="number" name="system.cyber.power" value="{{system.cyber.power}}" min="0" step="0.25"></label>
+    <label title="{{t "Scrap repairs 1 wound per 15 minutes on the cyberlimb's location"}}">{{t "Repair talisman"}} <input type="checkbox" name="system.cyber.talisman" {{checked system.cyber.talisman}}></label>
+    <label title="{{t "Regeneration: 1 wound every this many seconds (3600 = Phoenix Monocyte Breeder); 0 = none"}}">{{t "Regeneration (s/wound)"}} <input type="number" name="system.cyber.regen" value="{{system.cyber.regen}}" min="0"></label>
+    <label title="{{t "Internal energy reservoir in points (cell 2, MFC 4, gem cell 1)"}}">{{t "Energy reservoir"}} <input type="number" name="system.cyber.charges" value="{{system.cyber.charges}}" min="0"> / <input type="number" name="system.cyber.capacity" value="{{system.cyber.capacity}}" min="0"></label>
     {{/if}}
   {{/if}}
   </div>
   {{#if isArmor}}
-  <h3>Osłania</h3>
+  <h3>{{t "Covers"}}</h3>
   <div class="cover-grid">
     {{#each coverRows}}<label class="cover"><input type="checkbox" name="system.cover.{{key}}" {{checked on}}> {{label}}</label>{{/each}}
   </div>
   {{#if wearRows.length}}
-  <div class="wear-row"><span title="Degradacja (zasada opcjonalna): o tyle DT mniej na lokacji. Wyzeruj po naprawie.">Zużycie DT:</span>
+  <div class="wear-row"><span title="{{t "Degradation (optional rule): this much less DT on the location. Reset after repair."}}">{{t "DT wear:"}}</span>
     {{#each wearRows}}<label>{{label}} <input type="number" name="system.wear.{{key}}" value="{{wear}}" min="0"></label>{{/each}}
   </div>
   {{/if}}
-  <p class="hint">Bardingi zwykle osłaniają tułów i cztery nogi, hełmy głowę; skrzydła tylko z „Wing Covers”, róg prawie nigdy. Na karcie postaci liczy się najwyższe DT spośród założonych pancerzy na danej lokacji.</p>
+  <p class="hint">{{t "Bardings usually cover the torso and four legs, helmets the head; wings only with “Wing Covers”, the horn almost never. On the character sheet the highest DT among worn armor on a given location counts."}}</p>
   {{/if}}
   {{#if hasFx}}
-  <h3>Efekty <a data-action="addFx" title="Dodaj efekt"><i class="fa-solid fa-plus"></i></a></h3>
-  <p class="hint">{{#if isArmor}}Działają, gdy pancerz jest założony. Premie do atrybutów z pancerza to „Tymczasowa zmiana atrybutu”. {{/if}}Efekt bez warunku działa zawsze. Z warunkiem („gdy”) pojawia się w oknie rzutu jako pole do zaznaczenia. Wartość dodatnia ułatwia (premia), ujemna utrudnia.</p>
+  <h3>{{t "Effects"}} <a data-action="addFx" title="{{t "Add effect"}}"><i class="fa-solid fa-plus"></i></a></h3>
+  <p class="hint">{{#if isArmor}}{{t "They work while the armor is worn. Attribute bonuses from armor are “Temporary attribute change”."}} {{/if}}{{t "An effect without a condition always works. One with a condition (“when”) appears in the roll window as a checkbox. A positive value makes it easier (bonus), a negative one harder."}}</p>
   <table class="foe-table fx-edit">
-    <thead><tr><th class="l">Co zmienia</th><th class="l">Czego dotyczy</th><th>Wartość</th><th class="l">Gdy (sytuacja)</th><th></th></tr></thead>
+    <thead><tr><th class="l">{{t "What it changes"}}</th><th class="l">{{t "Applies to"}}</th><th>{{t "Value"}}</th><th class="l">{{t "When (situation)"}}</th><th></th></tr></thead>
     <tbody>
     {{#each fxRows}}
       <tr>
@@ -144,10 +144,10 @@
           {{#each groups}}<optgroup label="{{label}}">{{#each opts}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</optgroup>{{/each}}
         </select></td>
         <td><input type="number" data-fx-i="{{i}}" data-fx-field="value" value="{{value}}"></td>
-        <td class="l"><input type="text" data-fx-i="{{i}}" data-fx-field="when" value="{{when}}" placeholder="zawsze"></td>
-        <td class="ctl"><a data-action="removeFx" data-i="{{i}}" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+        <td class="l"><input type="text" data-fx-i="{{i}}" data-fx-field="when" value="{{when}}" placeholder="{{t "fx|always"}}"></td>
+        <td class="ctl"><a data-action="removeFx" data-i="{{i}}" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></td>
       </tr>
-    {{else}}<tr><td colspan="5" class="empty">Brak efektów — tylko opis.</td></tr>
+    {{else}}<tr><td colspan="5" class="empty">{{t "No effects — description only."}}</td></tr>
     {{/each}}
     </tbody>
   </table>

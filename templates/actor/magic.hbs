@@ -1,146 +1,146 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="magic">
   {{#if shadow.show}}
-  <h3>Magia cieni</h3>
+  <h3>{{t "Shadow magic"}}</h3>
   <div class="status-bar">
-    {{#if shadow.flash}}<span class="cs" title="AGI + PER + 2; odnawia się 1 na godzinę czasu gry">Strain cieni <b>{{shadow.value}}/{{shadow.max}}</b>{{#if shadow.spent}} · +1 za {{shadow.nextMin}} min{{/if}}</span>{{/if}}
+    {{#if shadow.flash}}<span class="cs" title="{{t "AGI + PER + 2; recovers 1 per hour of game time"}}">{{t "Shadow strain"}} <b>{{shadow.value}}/{{shadow.max}}</b>{{#if shadow.spent}} · {{t "+1 in {n} min" n=shadow.nextMin}}{{/if}}</span>{{/if}}
     <span class="cs">Flight MFD 1 <b>{{shadow.tn}}</b></span>
     {{#if shadow.flash}}<span class="cs" title="Teleportation I: 10×INT ft">Teleport <b>{{shadow.teleport}} ft</b></span>{{/if}}
-    {{#if shadow.bat}}<span class="cs" title="Echolokacja (s. 35)">Bez kar za ciemność · „widzi” na 60 ft</span>{{/if}}
+    {{#if shadow.bat}}<span class="cs" title="{{t "Echolocation (p. 35)"}}">{{t "No darkness penalties · “sees” 60 ft"}}</span>{{/if}}
   </div>
   <div class="veh-actions shadow-actions">
-    {{#each shadow.modes}}<a data-action="castShadow" data-mode="{{key}}" title="{{note}} (Flight MFD {{mfd}} ≤ {{tn}}{{#if cost}}, koszt {{cost}}{{/if}})"><i class="fa-solid fa-moon"></i> {{label}}</a>{{/each}}
-    {{#if shadow.bat}}{{#unless shadow.hasScreech}}<a data-action="addScreech" title="Dodaj atak rasowy do broni (3d12, ignoruje pancerz)"><i class="fa-solid fa-volume-high"></i> Dodaj Sonic Screech</a>{{/unless}}{{/if}}
+    {{#each shadow.modes}}<a data-action="castShadow" data-mode="{{key}}" title="{{note}} (Flight MFD {{mfd}} ≤ {{tn}}{{#if cost}}, {{t "cost {c}" c=cost}}{{/if}})"><i class="fa-solid fa-moon"></i> {{label}}</a>{{/each}}
+    {{#if shadow.bat}}{{#unless shadow.hasScreech}}<a data-action="addScreech" title="{{t "Add the racial attack to weapons (3d12, ignores armor)"}}"><i class="fa-solid fa-volume-high"></i> {{t "Add Sonic Screech"}}</a>{{/unless}}{{/if}}
   </div>
-  <p class="hint">{{#if shadow.flash}}Shadowflash (s. 35): unik — Flight MFD ½, sukces oznacza udany unik; teleport — MFD ¾, tylko ty i trzymane przedmioty, pęd przepada. Koszt 2 z puli cieni. Tłumienie magii nie działa na magię cieni.{{else}}{{#if shadow.bat}}Kucyk nietoperzowy może mieć cechę Shadowflash (1 pkt przy tworzeniu postaci, kreator → Wady i cechy; nie z Young).{{/if}}{{/if}}
-    {{#if shadow.form}} Shadow Form (Czarna Księga): +4 kroki MFD do skradania w cieniu i przeskok między cieniami do 40 ft.{{/if}}</p>
+  <p class="hint">{{#if shadow.flash}}{{t "Shadowflash (p. 35): dodge — Flight MFD ½, a success means a successful dodge; teleport — MFD ¾, only you and held items, momentum is lost. Costs 2 from the shadow pool. Magic suppression doesn't work on shadow magic."}}{{else}}{{#if shadow.bat}}{{t "A bat pony can have the Shadowflash trait (1 point at character creation, creator → Hindrances and traits; not with Young)."}}{{/if}}{{/if}}
+    {{#if shadow.form}} {{t "Shadow Form (Black Book): +4 MFD steps to sneaking in shadows and jumping between shadows up to 40 ft."}}{{/if}}</p>
   {{/if}}
 
   {{#if changeling}}
-  <h3>Podmieniec <small>zasady domowe</small></h3>
+  <h3>{{t "Changeling"}} <small>{{t "house rules"}}</small></h3>
   <div class="status-bar">
-    <span class="cs {{#if changeling.starving}}alert{{/if}}" title="CHA + END; 1 dziennie na utrzymanie, 1 za przemianę">Miłość <b>{{changeling.value}}/{{changeling.max}}</b></span>
-    <a class="cs act" data-action="setLove" title="Ustaw ręcznie"><i class="fa-solid fa-pen"></i></a>
-    {{#if changeling.disguise}}<span class="cs" title="Prawdziwe imię widzi tylko właściciel i MG">Udaje: <b>{{changeling.disguise.name}}</b> ({{changeling.disguise.race}})</span>{{/if}}
-    {{#if changeling.starving}}<span class="cs alert">GŁÓD — −1 krok END i CHA</span>{{/if}}
+    <span class="cs {{#if changeling.starving}}alert{{/if}}" title="{{t "CHA + END; 1 per day for upkeep, 1 per transformation"}}">{{t "Love"}} <b>{{changeling.value}}/{{changeling.max}}</b></span>
+    <a class="cs act" data-action="setLove" title="{{t "Set manually"}}"><i class="fa-solid fa-pen"></i></a>
+    {{#if changeling.disguise}}<span class="cs" title="{{t "Only the owner and the GM see the real name"}}">{{t "Disguised as:"}} <b>{{changeling.disguise.name}}</b> ({{changeling.disguise.race}})</span>{{/if}}
+    {{#if changeling.starving}}<span class="cs alert">{{t "HUNGER — −1 step END and CHA"}}</span>{{/if}}
   </div>
   <div class="veh-actions">
-    <a data-action="shapeshift" title="Przybierz wygląd i głos widzianego kucyka (1 miłość)"><i class="fa-solid fa-masks-theater"></i> Przemiana</a>
-    {{#if changeling.disguise}}<a data-action="endDisguise" title="Wróć do własnej postaci"><i class="fa-solid fa-rotate-left"></i> Własna postać</a>
-    <a data-action="detectDisguise" title="Zaznacz token obserwatora: rzut PER, MFD wg znajomości oryginału"><i class="fa-solid fa-eye"></i> Wykrycie przebrania</a>{{/if}}
-    <a data-action="feedLove" title="Speechcraft: sukces +1d4 miłości"><i class="fa-solid fa-heart"></i> Żerowanie</a>
+    <a data-action="shapeshift" title="{{t "Take the appearance and voice of a pony you can see (1 love)"}}"><i class="fa-solid fa-masks-theater"></i> {{t "Transform"}}</a>
+    {{#if changeling.disguise}}<a data-action="endDisguise" title="{{t "Return to your own form"}}"><i class="fa-solid fa-rotate-left"></i> {{t "Own form"}}</a>
+    <a data-action="detectDisguise" title="{{t "Select the observer's token: PER roll, MFD by familiarity with the original"}}"><i class="fa-solid fa-eye"></i> {{t "Detect disguise"}}</a>{{/if}}
+    <a data-action="feedLove" title="{{t "Speechcraft: success +1d4 love"}}"><i class="fa-solid fa-heart"></i> {{t "Feed"}}</a>
   </div>
-  <p class="hint">Podręcznik v1.22 nie ma zasad podmieńców (zapowiedziane w księdze II) — to zasady domowe opisane w README. Naturalnie zmieniają głos (jak Voice Alteration); Perfect Illusion mogą rzucać mimo poziomu 4.</p>
+  <p class="hint">{{t "The v1.22 rulebook has no changeling rules (announced for book II) — these are house rules described in the README. They change their voice naturally (like Voice Alteration); they can cast Perfect Illusion despite level 4."}}</p>
   {{/if}}
   {{#if flight.flier}}
   <div class="status-bar">
-    <span class="cs">Flight: ranga <b>{{flight.rank}}</b> · MFD 1 <b>{{flight.tn}}</b></span>
-    <span class="cs" title="5×AGI ft na akcję">Lot <b>{{#if flight.canFly}}{{flight.speed}} ft{{else}}{{flight.note}}{{/if}}</b></span>
-    <label class="cs alt" title="Aktualna wysokość nad ziemią">Wysokość <input type="number" name="system.altitude" value="{{flight.altitude}}" min="0" step="5"> ft</label>
-    <span class="cs {{#if flight.over}}alert{{/if}}" title="Manewry poziomu 1+ (ranga Flight / 10); poziom 0 jest za darmo">Manewry <b>{{flight.known}}/{{flight.total}}</b></span>
-    {{#if flight.load}}<span class="cs warn" title="Każdy funt ponad 100 to −1 do rzutów Flight">Ciężar −{{flight.load}}</span>{{/if}}
+    <span class="cs">Flight: {{t "rank"}} <b>{{flight.rank}}</b> · MFD 1 <b>{{flight.tn}}</b></span>
+    <span class="cs" title="{{t "5×AGI ft per action"}}">{{t "fx|Flight"}} <b>{{#if flight.canFly}}{{flight.speed}} ft{{else}}{{flight.note}}{{/if}}</b></span>
+    <label class="cs alt" title="{{t "Current altitude above the ground"}}">{{t "Altitude"}} <input type="number" name="system.altitude" value="{{flight.altitude}}" min="0" step="5"> ft</label>
+    <span class="cs {{#if flight.over}}alert{{/if}}" title="{{t "Level 1+ maneuvers (Flight rank / 10); level 0 is free"}}">{{t "Maneuvers"}} <b>{{flight.known}}/{{flight.total}}</b></span>
+    {{#if flight.load}}<span class="cs warn" title="{{t "Every pound over 100 is −1 to Flight rolls"}}">{{t "Load −{n}" n=flight.load}}</span>{{/if}}
     <span class="cs" title="{{flight.weather.summary}}"><i class="fa-solid fa-cloud-sun-rain"></i> {{flight.weather.label}}</span>
-    <a class="cs act" data-action="rollFall" title="1d20 na 10 ft (kontrolowany 1d10), ignoruje DT pancerza"><i class="fa-solid fa-person-falling"></i> Upadek</a>
+    <a class="cs act" data-action="rollFall" title="{{t "1d20 per 10 ft (controlled 1d10), ignores armor DT"}}"><i class="fa-solid fa-person-falling"></i> {{t "Fall"}}</a>
   </div>
-  <h3>Lot i manewry
-    <a data-action="openCatalog" data-tab="maneuvers" title="Manewry lotu z podręcznika (także pogodowe)"><i class="fa-solid fa-feather"></i> Katalog</a>
+  <h3>{{t "Flight and maneuvers"}}
+    <a data-action="openCatalog" data-tab="maneuvers" title="{{t "Flight maneuvers from the rulebook (weather ones too)"}}"><i class="fa-solid fa-feather"></i> {{t "Catalog"}}</a>
   </h3>
   {{#each flight.levels}}
-    <h4 class="gear-cat">Poziom {{level}} <small class="{{#if over}}warn{{/if}}">{{#if level}}ranga {{rankReq}}{{#if limit}} · {{count}} / {{limit}}{{/if}}{{else}}bez limitu{{/if}}{{#if locked}} · <span class="warn">za niska ranga</span>{{/if}}</small></h4>
+    <h4 class="gear-cat">{{t "Level {n}" n=level}} <small class="{{#if over}}warn{{/if}}">{{#if level}}{{t "rank {r}" r=rankReq}}{{#if limit}} · {{count}} / {{limit}}{{/if}}{{else}}{{t "no limit"}}{{/if}}{{#if locked}} · <span class="warn">{{t "rank too low"}}</span>{{/if}}</small></h4>
     <div class="scroll-x">
     <table class="foe-table items spells maneuvers">
       <tbody>
       {{#each list}}
         <tr data-item-id="{{id}}" class="{{#unless learned}}unlearned{{/unless}}">
           <td><img class="icon" src="{{img}}" alt=""></td>
-          <td class="l"><a class="rollable" data-action="performManeuver" title="{{#if learned}}Wykonaj manewr (rzut Flight){{else}}Ćwicz manewr: rzut Flight z karą 3 kroków{{/if}}">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span>{{this}}</span>{{/each}}</div>{{/if}}</td>
-          <td title="MFD wykonania">{{mfd}}</td>
-          <td title="Akcje">{{actions}}</td>
-          <td title="Opanowanie (limit prób = poziom postaci)">{{#if learned}}<span class="ok">opanowany</span>{{else}}<span class="warn">nauka {{attempts}}/{{attemptsMax}}</span>{{/if}}</td>
-          <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+          <td class="l"><a class="rollable" data-action="performManeuver" title="{{#if learned}}{{t "Perform the maneuver (Flight roll)"}}{{else}}{{t "Practice the maneuver: Flight roll with a 3-step penalty"}}{{/if}}">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span>{{this}}</span>{{/each}}</div>{{/if}}</td>
+          <td title="{{t "MFD to perform"}}">{{mfd}}</td>
+          <td title="{{t "Actions"}}">{{actions}}</td>
+          <td title="{{t "Mastery (attempt limit = character level)"}}">{{#if learned}}<span class="ok">{{t "mastered"}}</span>{{else}}<span class="warn">{{t "learning {a}/{b}" a=attempts b=attemptsMax}}</span>{{/if}}</td>
+          <td class="ctl"><a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></td>
         </tr>
       {{/each}}
       </tbody>
     </table>
     </div>
   {{/each}}
-  {{#if flight.empty}}<p class="empty">Brak manewrów. <a class="rollable" data-action="startManeuvers"><i class="fa-solid fa-feather"></i> Dodaj manewry poziomu 0</a> albo wybierz je z katalogu.</p>{{/if}}
-  <p class="hint">Kliknij manewr, by go wykonać (rzut Flight na jego MFD; pogoda i ciężar ponad 100 lb liczą się same). Nowy manewr trzeba najpierw opanować: rzut z karą 3 kroków, tyle prób, ile masz poziomów. Uniki powietrzne zastępują zwykły unik. Manewry pogodowe (Cloudbuck, Cloud Cover, Fog Bank…) zmieniają pogodę — MG ustawia ją w zakładce walki.</p>
+  {{#if flight.empty}}<p class="empty">{{t "No maneuvers."}} <a class="rollable" data-action="startManeuvers"><i class="fa-solid fa-feather"></i> {{t "Add level 0 maneuvers"}}</a> {{t "or pick them from the catalog."}}</p>{{/if}}
+  <p class="hint">{{t "Click a maneuver to perform it (Flight roll at its MFD; weather and load over 100 lb are counted automatically). A new maneuver must first be mastered: a roll with a 3-step penalty, as many attempts as you have levels. Aerial dodges replace the normal dodge. Weather maneuvers (Cloudbuck, Cloud Cover, Fog Bank…) change the weather — the GM sets it in the combat tab."}}</p>
   {{/if}}
 
   {{#if magic.caster}}
   <div class="status-bar">
-    <span class="cs" title="END + INT + {{#if magic.alicorn}}5{{else}}2{{/if}} + cechy; odnawia się 1 na godzinę">Strain <b>{{magic.strain}}/{{magic.strainMax}}</b></span>
-    <a class="cs act" data-action="strainRest" title="Godzina odpoczynku: +1 strain (Shift: do pełna)"><i class="fa-solid fa-bed"></i> +1 strain</a>
-    <span class="cs">Magic: ranga <b>{{magic.rank}}</b> · MFD 1 <b>{{magic.tn}}</b></span>
-    {{#if magic.burnout}}<span class="cs alert">WYPALENIE — bez zaklęć 1d4 tygodnie</span> <a class="cs act" data-action="clearBurnout" title="Wypalenie minęło"><i class="fa-solid fa-xmark"></i> koniec wypalenia</a>{{/if}}
+    <span class="cs" title="END + INT + {{#if magic.alicorn}}5{{else}}2{{/if}} + {{t "features; recovers 1 per hour"}}">Strain <b>{{magic.strain}}/{{magic.strainMax}}</b></span>
+    <a class="cs act" data-action="strainRest" title="{{t "An hour of rest: +1 strain (Shift: to full)"}}"><i class="fa-solid fa-bed"></i> +1 strain</a>
+    <span class="cs">Magic: {{t "rank"}} <b>{{magic.rank}}</b> · MFD 1 <b>{{magic.tn}}</b></span>
+    {{#if magic.burnout}}<span class="cs alert">{{t "BURNOUT — no spells for 1d4 weeks"}}</span> <a class="cs act" data-action="clearBurnout" title="{{t "Burnout is over"}}"><i class="fa-solid fa-xmark"></i> {{t "end burnout"}}</a>{{/if}}
   </div>
 
   {{#if magic.maintained.length}}
-  <h3>Podtrzymywane zaklęcia</h3>
+  <h3>{{t "Maintained spells"}}</h3>
   <ul class="item-list conditions">
     {{#each magic.maintained}}
-    <li><span class="nm">{{name}}</span><span class="cdesc">{{perRound}} strain na początku rundy{{#if layers}} (overglow {{layers}}){{/if}}; nowe zaklęcia kosztują ×2, −1 krok do celności, INT i AGI</span>
-      <span class="ctl"><a data-action="endMaintain" data-id="{{id}}" title="Przestań podtrzymywać"><i class="fa-solid fa-xmark"></i></a></span></li>
+    <li><span class="nm">{{name}}</span><span class="cdesc">{{perRound}} {{t "strain at the start of the round"}}{{#if layers}} (overglow {{layers}}){{/if}}; {{t "new spells cost ×2, −1 step to accuracy, INT and AGI"}}</span>
+      <span class="ctl"><a data-action="endMaintain" data-id="{{id}}" title="{{t "Stop maintaining"}}"><i class="fa-solid fa-xmark"></i></a></span></li>
     {{/each}}
   </ul>
   {{/if}}
 
-  <h3>Zaklęcia
-    <a data-action="openCatalog" data-tab="spells" title="Zaklęcia jednorożców i alikornów z podręcznika"><i class="fa-solid fa-book"></i> Katalog</a>
+  <h3>{{t "Spells"}}
+    <a data-action="openCatalog" data-tab="spells" title="{{t "Unicorn and alicorn spells from the rulebook"}}"><i class="fa-solid fa-book"></i> {{t "Catalog"}}</a>
   </h3>
   {{#each magic.levels}}
-    <h4 class="gear-cat">Poziom {{level}} <small class="{{#if over}}warn{{/if}}">{{count}}{{#if limit}} / {{limit}}{{/if}}</small></h4>
+    <h4 class="gear-cat">{{t "Level {n}" n=level}} <small class="{{#if over}}warn{{/if}}">{{count}}{{#if limit}} / {{limit}}{{/if}}</small></h4>
     <div class="scroll-x">
     <table class="foe-table items spells">
       <tbody>
       {{#each spells}}
         <tr data-item-id="{{id}}" class="{{#if held}}worn{{/if}}">
           <td><img class="icon" src="{{img}}" alt=""></td>
-          <td class="l"><a class="rollable" data-action="castSpell" title="Rzuć zaklęcie (Magic, overglow, SATS)">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span>{{this}}</span>{{/each}}</div>{{/if}}</td>
-          <td title="Koszt strain">{{costLabel}}</td>
-          <td title="Koszt w SATS">{{#if satsCost}}{{satsCost}} AP{{else}}—{{/if}}</td>
-          <td title="Procent nauki (+1% za każde rzucenie)">{{learn}}%</td>
-          <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+          <td class="l"><a class="rollable" data-action="castSpell" title="{{t "Cast the spell (Magic, overglow, SATS)"}}">{{name}}</a>{{#if tags.length}}<div class="wtags">{{#each tags}}<span>{{this}}</span>{{/each}}</div>{{/if}}</td>
+          <td title="{{t "Strain cost"}}">{{costLabel}}</td>
+          <td title="{{t "SATS cost"}}">{{#if satsCost}}{{satsCost}} AP{{else}}—{{/if}}</td>
+          <td title="{{t "Learning percentage (+1% per cast)"}}">{{learn}}%</td>
+          <td class="ctl"><a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></td>
         </tr>
-      {{else}}<tr><td class="empty" colspan="6">Brak zaklęć tego poziomu.</td></tr>
+      {{else}}<tr><td class="empty" colspan="6">{{t "No spells of this level."}}</td></tr>
       {{/each}}
       </tbody>
     </table>
     </div>
   {{/each}}
-  <p class="hint">Kliknij zaklęcie, by je rzucić: wybierasz overglow (każda warstwa podwaja efekt i koszt, maks. 3) i ewentualnie SATS. Gdy zabraknie strain, rzut jest trudniejszy o każdy brakujący punkt, a porażka kończy się wypaleniem. Zaklęcia z obrażeniami mają na karcie przycisk celowania (Magic, przedział zasięgu 20 ft) albo obrażeń. Limity: poziom 2 — INT, poziom 3 — INT/3, poziom 4 — jedno (alikorny bez limitu do poziomu 3).</p>
+  <p class="hint">{{t "Click a spell to cast it: you choose overglow (each layer doubles the effect and cost, max. 3) and optionally SATS. When you run out of strain, the roll is harder by every missing point, and a failure ends in burnout. Damage spells have an aiming button (Magic, range increment 20 ft) or a damage button on their card. Limits: level 2 — INT, level 3 — INT/3, level 4 — one (alicorns have no limit up to level 3)."}}</p>
   {{else}}{{#unless zebra.mage}}{{#unless flight.flier}}
-  <p class="empty">Ta postać nie zna magii (nie ma umiejętności Magic).</p>
+  <p class="empty">{{t "This character knows no magic (has no Magic skill)."}}</p>
   {{/unless}}{{/unless}}{{/if}}
 
   {{#if zebra.mage}}
   <div class="status-bar">
-    <span class="cs">Magia zebr: ranga <b>{{zebra.rank}}</b> · MFD 1 <b>{{zebra.tn}}</b></span>
-    <span class="cs" title="Każde przygotowanie zużywa tyle składników (−1 za każde 25 rang Magic, min. 1)">Na wyrób: <b>{{zebra.perPrep}}</b> skł.</span>
-    {{#each zebra.stock}}<span class="cs" title="Składniki tej rzadkości">{{label}} <b>{{n}}</b></span>{{/each}}
-    <a class="cs act" data-action="searchIngredients" title="Survival albo Magic, MFD zależy od terenu"><i class="fa-solid fa-magnifying-glass"></i> Szukaj składników</a>
+    <span class="cs">{{t "Zebra magic:"}} {{t "rank"}} <b>{{zebra.rank}}</b> · MFD 1 <b>{{zebra.tn}}</b></span>
+    <span class="cs" title="{{t "Every preparation uses this many ingredients (−1 per 25 Magic ranks, min. 1)"}}">{{t "Per product:"}} <b>{{zebra.perPrep}}</b> {{t "ingr."}}</span>
+    {{#each zebra.stock}}<span class="cs" title="{{t "Ingredients of this rarity"}}">{{label}} <b>{{n}}</b></span>{{/each}}
+    <a class="cs act" data-action="searchIngredients" title="{{t "Survival or Magic, MFD depends on the terrain"}}"><i class="fa-solid fa-magnifying-glass"></i> {{t "Search for ingredients"}}</a>
   </div>
-  <h3>Receptury zebr
-    <a data-action="openCatalog" data-tab="recipes" title="Receptury z podręcznika"><i class="fa-solid fa-book"></i> Katalog</a>
+  <h3>{{t "Zebra recipes"}}
+    <a data-action="openCatalog" data-tab="recipes" title="{{t "Recipes from the rulebook"}}"><i class="fa-solid fa-book"></i> {{t "Catalog"}}</a>
   </h3>
   <div class="scroll-x">
   <table class="foe-table items spells recipes">
-    <thead><tr><th></th><th class="l">Receptura</th><th>Poz.</th><th>Składniki</th><th class="l">Przygotuj / rzuć</th><th></th></tr></thead>
+    <thead><tr><th></th><th class="l">{{t "Recipe"}}</th><th>{{t "short|Lvl"}}</th><th>{{t "Ingredients"}}</th><th class="l">{{t "Prepare / cast"}}</th><th></th></tr></thead>
     <tbody>
     {{#each zebra.recipes}}
       <tr data-item-id="{{id}}">
         <td><img class="icon" src="{{img}}" alt=""></td>
-        <td class="l nm">{{name}}<div class="wtags">{{#if school}}<span>{{school}}</span>{{/if}}{{#if special}}<span title="Składnik specjalny">+ {{special}}</span>{{/if}}{{#if damage}}<span>obr. {{damage}}</span>{{/if}}</div></td>
+        <td class="l nm">{{name}}<div class="wtags">{{#if school}}<span>{{school}}</span>{{/if}}{{#if special}}<span title="{{t "Special ingredient"}}">+ {{special}}</span>{{/if}}{{#if damage}}<span>{{t "dmg {d}" d=damage}}</span>{{/if}}</div></td>
         <td>{{level}}</td>
         <td>{{rarityLabel}}</td>
-        <td class="l modes">{{#each modes}}{{#if ritual}}<a class="mode-btn ritual" data-action="castRitual" title="Rytuał w walce: składniki + rzut Magic, 1 akcja / 40 AP"><i class="fa-solid fa-hand-sparkles"></i> Rytuał</a>{{else}}<a class="mode-btn" data-action="prepareRecipe" data-mode="{{key}}" title="{{tip}}: zużywa składniki i dodaje wyrób do Ekwipunku"><i class="fa-solid fa-mortar-pestle"></i> {{label}}</a>{{/if}}{{/each}}</td>
-        <td class="ctl"><a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+        <td class="l modes">{{#each modes}}{{#if ritual}}<a class="mode-btn ritual" data-action="castRitual" title="{{t "Combat ritual: ingredients + Magic roll, 1 action / 40 AP"}}"><i class="fa-solid fa-hand-sparkles"></i> {{t "Ritual"}}</a>{{else}}<a class="mode-btn" data-action="prepareRecipe" data-mode="{{key}}" title="{{t "{tip}: uses ingredients and adds the product to the Inventory" tip=tip}}"><i class="fa-solid fa-mortar-pestle"></i> {{label}}</a>{{/if}}{{/each}}</td>
+        <td class="ctl"><a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></td>
       </tr>
-    {{else}}<tr><td class="empty" colspan="6">Brak receptur — wybierz {{#if zebra.start}}{{zebra.start}} {{/if}}z katalogu (na start: poziom 0–1, ranga Magic / 10, maks. 5).</td></tr>
+    {{else}}<tr><td class="empty" colspan="6">{{#if zebra.start}}{{t "No recipes — pick {n} from the catalog (at start: level 0–1, Magic rank / 10, max. 5)." n=zebra.start}}{{else}}{{t "No recipes — pick them from the catalog (at start: level 0–1, Magic rank / 10, max. 5)."}}{{/if}}</td></tr>
     {{/each}}
     </tbody>
   </table>
   </div>
-  <p class="hint">Zebry nie mają strain — każde przygotowanie zużywa 1d4+1 składników o rzadkości receptury. Brakujące zastępują składniki rzadsze (1:1) albo cztery o stopień pospolitsze. Mikstury i talizmany trafiają do Ekwipunku (przycisk „Użyj”: wypicie 15 AP, posmarowanie 25 AP, rzut 35 AP — przedział zasięgu 10 ft). Rytuały rzuca się od razu w walce (1 akcja / 40 AP).</p>
+  <p class="hint">{{t "Zebras have no strain — every preparation uses 1d4+1 ingredients of the recipe's rarity. Missing ones are replaced by rarer ingredients (1:1) or four one step more common. Potions and talismans go to the Inventory (“Use” button: drinking 15 AP, applying 25 AP, throwing 35 AP — range increment 10 ft). Rituals are cast right away in combat (1 action / 40 AP)."}}</p>
   {{/if}}
 </section>

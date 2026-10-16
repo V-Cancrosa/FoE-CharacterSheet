@@ -1,61 +1,61 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="gear">
   <div class="status-bar">
-    <span class="cs" title="Udźwig: 100 + 10×STR; amunicja i kapsle nic nie ważą">Niesiesz <b>{{system.weight}}</b>/{{system.carry}} lb</span>
-    {{#if system.overload}}<span class="cs alert">Przeciążenie +{{system.overload}} lb: ruch −{{overSpeed}} ft</span>{{/if}}
-    {{#if system.sneakPenalty}}<span class="cs" title="−5 za każde rozpoczęte 10 lb ponad 50">Skradanie −{{system.sneakPenalty}}</span>{{/if}}
-    <span class="cs"><i class="fa-solid fa-coins"></i> Kapsle <b>{{system.caps}}</b> <a data-action="giveCaps" title="Kapsle: przekaż komuś obok albo rzuć komuś w zasięgu (tylko tokeny na mapie)"><i class="fa-solid fa-hand-holding-dollar"></i></a></span>
+    <span class="cs" title="{{t "Carry weight: 100 + 10×STR; ammo and caps weigh nothing"}}">{{t "Carrying"}} <b>{{system.weight}}</b>/{{system.carry}} lb</span>
+    {{#if system.overload}}<span class="cs alert">{{t "Overloaded +{n} lb: movement −{ft} ft" n=system.overload ft=overSpeed}}</span>{{/if}}
+    {{#if system.sneakPenalty}}<span class="cs" title="{{t "−5 for every started 10 lb over 50"}}">{{t "Sneak −{n}" n=system.sneakPenalty}}</span>{{/if}}
+    <span class="cs"><i class="fa-solid fa-coins"></i> {{t "Caps"}} <b>{{system.caps}}</b> <a data-action="giveCaps" title="{{t "Caps: give to someone next to you or throw to someone in range (map tokens only)"}}"><i class="fa-solid fa-hand-holding-dollar"></i></a></span>
   </div>
 
-  <h3>Pancerze i ubrania
-    <a data-action="openCatalog" data-tab="armor" title="Katalog pancerzy z podręcznika"><i class="fa-solid fa-boxes-stacked"></i> Katalog</a>
-    <a class="plus" data-action="createItem" data-type="armor" title="Pusty pancerz do uzupełnienia"><i class="fa-solid fa-plus"></i></a>
+  <h3>{{t "Armor and clothing"}}
+    <a data-action="openCatalog" data-tab="armor" title="{{t "Armor catalog from the rulebook"}}"><i class="fa-solid fa-boxes-stacked"></i> {{t "Catalog"}}</a>
+    <a class="plus" data-action="createItem" data-type="armor" title="{{t "Blank armor to fill in"}}"><i class="fa-solid fa-plus"></i></a>
   </h3>
   <div class="scroll-x">
   <table class="foe-table items armor">
-    <thead><tr><th title="Założony">Zał.</th><th></th><th class="l">Nazwa</th><th>Rodzaj</th><th>DT</th><th>Osłania</th><th class="l hide-narrow">Efekty</th><th>Lb</th><th></th></tr></thead>
+    <thead><tr><th title="{{t "Worn"}}">{{t "short|Worn"}}</th><th></th><th class="l">{{t "col|Name"}}</th><th>{{t "col|Type"}}</th><th>DT</th><th>{{t "Covers"}}</th><th class="l hide-narrow">{{t "Effects"}}</th><th>Lb</th><th></th></tr></thead>
     <tbody>
     {{#each armor}}
       <tr data-item-id="{{id}}" class="{{#if equipped}}worn{{/if}}">
-        <td><a class="feat-toggle {{#if equipped}}on{{/if}}" data-action="toggleEquip" title="{{#if equipped}}Założony — kliknij, by zdjąć{{else}}Kliknij, by założyć{{/if}}"></a></td>
+        <td><a class="feat-toggle {{#if equipped}}on{{/if}}" data-action="toggleEquip" title="{{#if equipped}}{{t "Worn — click to take off"}}{{else}}{{t "Click to put on"}}{{/if}}"></a></td>
         <td><img class="icon" src="{{img}}" alt=""></td>
-        <td class="l nm">{{name}}{{#if powered}} <small class="sub">wspomagany{{#if builtInSaddle}} · {{builtInSaddle}}{{/if}}</small>{{/if}}{{#if untrained}} <small class="sub warn" title="Bez Power Armor Training: brak premii do atrybutów i umiejętności z pancerza">bez szkolenia</small>{{/if}}{{#if canRepair}} <a class="repair" data-action="repairArmor" title="Talizman naprawczy: 2 DT na każdej lokacji za jednostkę złomu"><i class="fa-solid fa-screwdriver-wrench"></i></a>{{/if}}{{#if canFix}} <a class="repair" data-action="fixArmor" title="Naprawa (s. 460): części z innego pancerza albo surowce (skóra, materiał, złom)"><i class="fa-solid fa-hammer"></i></a>{{/if}}</td>
+        <td class="l nm">{{name}}{{#if powered}} <small class="sub">{{t "armor|powered"}}{{#if builtInSaddle}} · {{builtInSaddle}}{{/if}}</small>{{/if}}{{#if untrained}} <small class="sub warn" title="{{t "Without Power Armor Training: no attribute and skill bonuses from the armor"}}">{{t "untrained"}}</small>{{/if}}{{#if canRepair}} <a class="repair" data-action="repairArmor" title="{{t "Repair talisman: 2 DT on every location per unit of scrap"}}"><i class="fa-solid fa-screwdriver-wrench"></i></a>{{/if}}{{#if canFix}} <a class="repair" data-action="fixArmor" title="{{t "Repair (p. 460): parts from another armor or materials (leather, cloth, scrap)"}}"><i class="fa-solid fa-hammer"></i></a>{{/if}}</td>
         <td>{{categoryLabel}}</td>
-        <td class="nw">{{dt}}{{#if wearText}}<small class="sub warn" title="Zużycie (degradacja)">{{wearText}}</small>{{/if}}</td>
+        <td class="nw">{{dt}}{{#if wearText}}<small class="sub warn" title="{{t "Wear (degradation)"}}">{{wearText}}</small>{{/if}}</td>
         <td>{{coverText}}</td>
         <td class="l fx hide-narrow">{{fxText}}</td>
         <td>{{weight}}</td>
-        <td class="ctl">{{#if canName}}<a data-action="nameItem" title="Pancerz nazwany (s. 206): 1+1d4 pkt na DT, wagę, atrybuty, umiejętności, AP"><i class="fa-solid fa-star"></i></a> {{/if}}{{#if named}}<i class="fa-solid fa-star named-mark" title="Pancerz nazwany"></i> {{/if}}<a data-action="giveItem" title="Wymiana: przekaż albo sprzedaj komuś obok, rzuć komuś w zasięgu (tylko tokeny na mapie)"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+        <td class="ctl">{{#if canName}}<a data-action="nameItem" title="{{t "Named armor (p. 206): 1+1d4 points for DT, weight, attributes, skills, AP"}}"><i class="fa-solid fa-star"></i></a> {{/if}}{{#if named}}<i class="fa-solid fa-star named-mark" title="{{t "Named armor"}}"></i> {{/if}}<a data-action="giveItem" title="{{t "Exchange: give or sell to someone next to you, throw to someone in range (map tokens only)"}}"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></td>
       </tr>
-    {{else}}<tr><td colspan="9" class="empty">Brak pancerza — wybierz go z katalogu.</td></tr>
+    {{else}}<tr><td colspan="9" class="empty">{{t "No armor — pick some from the catalog."}}</td></tr>
     {{/each}}
     </tbody>
   </table>
   </div>
-  {{#if layers.warn}}<p class="hint warn">Warstwy pancerza: {{layers.count}} ({{layers.names}}) → −{{layers.agi}} AGI{{#if layers.str}}, −{{layers.str}} STR{{/if}} (tymczasowo).</p>{{/if}}
-  <p class="hint">Założony pancerz sam daje DT na lokacjach, które osłania (liczy się najwyższe), i swoje premie. Z każdej kategorii (ubranie, lekki, średni, ciężki) można nosić jedną warstwę; każda kolejna warstwa to −1 AGI, a od trzeciej także −1 STR.</p>
+  {{#if layers.warn}}<p class="hint warn">{{t "Armor layers: {n} ({names}) → −{agi} AGI" n=layers.count names=layers.names agi=layers.agi}}{{#if layers.str}}, −{{layers.str}} STR{{/if}} {{t "(temporary)"}}.</p>{{/if}}
+  <p class="hint">{{t "Worn armor gives DT on the locations it covers (the highest counts) and its bonuses by itself. You can wear one layer from each category (clothing, light, medium, heavy); every further layer is −1 AGI, and from the third also −1 STR."}}</p>
 
-  <h3>Przedmioty
-    <a data-action="workshop" title="Warsztat (s. 198–199): naboje, ogniwa, ładunki miotające, proch, paliwo do miotacza"><i class="fa-solid fa-hammer"></i> Warsztat</a>
-    <a data-action="openCatalog" data-tab="gear" title="Katalog ekwipunku z podręcznika"><i class="fa-solid fa-boxes-stacked"></i> Katalog</a>
-    <a class="plus" data-action="createItem" data-type="gear" title="Pusty przedmiot"><i class="fa-solid fa-plus"></i></a>
+  <h3>{{t "Items"}}
+    <a data-action="workshop" title="{{t "Workshop (p. 198–199): rounds, cells, propellant, powder, flamer fuel"}}"><i class="fa-solid fa-hammer"></i> {{t "Workshop"}}</a>
+    <a data-action="openCatalog" data-tab="gear" title="{{t "Gear catalog from the rulebook"}}"><i class="fa-solid fa-boxes-stacked"></i> {{t "Catalog"}}</a>
+    <a class="plus" data-action="createItem" data-type="gear" title="{{t "Blank item"}}"><i class="fa-solid fa-plus"></i></a>
   </h3>
   {{#each gearGroups}}
     <h4 class="gear-cat">{{label}}</h4>
     <ul class="item-list gear">
     {{#each items}}
       <li data-item-id="{{id}}">
-        {{#if equippable}}<a class="feat-toggle {{#if equipped}}on{{/if}}" data-action="toggleGearEquip" title="{{#if equipped}}Założone — kliknij, by zdjąć{{else}}Kliknij, by założyć{{/if}}"></a>{{/if}}
+        {{#if equippable}}<a class="feat-toggle {{#if equipped}}on{{/if}}" data-action="toggleGearEquip" title="{{#if equipped}}{{t "n|Worn — click to take off"}}{{else}}{{t "Click to put on"}}{{/if}}"></a>{{/if}}
         <img class="icon" src="{{img}}" alt="">
-        <span class="nm" {{#if notes}}title="{{notes}}"{{/if}}>{{name}}{{#if reserve}} <small class="sub" title="Zawartość rezerwy (edytuj na karcie przedmiotu)">{{reserve}}</small>{{/if}}</span>
+        <span class="nm" {{#if notes}}title="{{notes}}"{{/if}}>{{name}}{{#if reserve}} <small class="sub" title="{{t "Reserve contents (edit on the item sheet)"}}">{{reserve}}</small>{{/if}}</span>
         <span class="qty"><a data-action="qty" data-d="-1" title="−1 (Shift: −10)"><i class="fa-solid fa-minus"></i></a><b>×{{qty}}</b><a data-action="qty" data-d="1" title="+1 (Shift: +10)"><i class="fa-solid fa-plus"></i></a></span>
-        {{#if usable}}<a class="use-btn" data-action="useProduct" title="{{useLabel}}"><i class="fa-solid fa-flask"></i> Użyj</a>{{/if}}
-        {{#if readable}}<span class="book-st" title="Postęp lektury tej postaci">{{bookStatus}}</span> <a class="use-btn" data-action="readBook" title="{{readTip}}"><i class="fa-solid fa-book-open"></i> Czytaj</a>{{/if}}
-        {{#if charges includeZero=true}}<span class="charges" title="Ładunki talizmanu">⚡{{charges}}</span>{{/if}}
+        {{#if usable}}<a class="use-btn" data-action="useProduct" title="{{useLabel}}"><i class="fa-solid fa-flask"></i> {{t "Use"}}</a>{{/if}}
+        {{#if readable}}<span class="book-st" title="{{t "This character's reading progress"}}">{{bookStatus}}</span> <a class="use-btn" data-action="readBook" title="{{readTip}}"><i class="fa-solid fa-book-open"></i> {{t "Read"}}</a>{{/if}}
+        {{#if charges includeZero=true}}<span class="charges" title="{{t "Talisman charges"}}">⚡{{charges}}</span>{{/if}}
         <span class="wt">{{weightLabel}}</span>
-        <span class="ctl"><a data-action="giveItem" title="Wymiana: przekaż albo sprzedaj komuś obok, rzuć komuś w zasięgu (tylko tokeny na mapie)"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></span>
+        <span class="ctl"><a data-action="giveItem" title="{{t "Exchange: give or sell to someone next to you, throw to someone in range (map tokens only)"}}"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></span>
       </li>
     {{/each}}
     </ul>
-  {{else}}<p class="empty">Pusto w jukach — zajrzyj do katalogu.</p>
+  {{else}}<p class="empty">{{t "Empty saddlebags — have a look in the catalog."}}</p>
   {{/each}}
 </section>

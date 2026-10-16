@@ -1,21 +1,21 @@
 <header class="foe-header">
-  <div class="pip-bar"><span>PIPBUCK 3000 · STABLE-TEC</span><span><a class="pip-creator" data-action="openCreator" title="Uruchom kreator {{#if isNpc}}NPC{{else}}postaci{{/if}}"><i class="fa-solid fa-user-gear"></i> KREATOR</a>{{#if isNpc}}{{#if isGM}} · <a class="pip-creator" data-action="searchBody" title="Przeszukaj ciało: łup z bestiariusza (albo nasze domyślne) i rzeczy, które NPC ma przy sobie — karta łupu na czacie{{#if looted}} (już przeszukane){{/if}}"><i class="fa-solid fa-sack-dollar"></i> ŁUP{{#if looted}} ✓{{/if}}</a>{{/if}}{{/if}} · {{#if isNpc}}NPC{{else}}POZ. {{system.level}}{{/if}}</span></div>
+  <div class="pip-bar"><span>PIPBUCK 3000 · STABLE-TEC</span><span><a class="pip-creator" data-action="openCreator" title="{{#if isNpc}}{{t "Open the NPC creator"}}{{else}}{{t "Open the character creator"}}{{/if}}"><i class="fa-solid fa-user-gear"></i> {{t "CREATOR"}}</a>{{#if isNpc}}{{#if isGM}} · <a class="pip-creator" data-action="searchBody" title="{{t "Search the body: loot from the bestiary (or our defaults) and the things the NPC carries — loot card in chat"}}{{#if looted}} {{t "(already searched)"}}{{/if}}"><i class="fa-solid fa-sack-dollar"></i> {{t "LOOT"}}{{#if looted}} ✓{{/if}}</a>{{/if}}{{/if}} · {{#if isNpc}}NPC{{else}}{{t "LVL"}} {{system.level}}{{/if}}</span></div>
   <div class="foe-id">
     <img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
-    <a class="cutie-mark {{#unless system.cutieMark}}empty{{/unless}}" data-action="cutieMark" title="{{#if system.cutieMarkText}}Znaczek: {{system.cutieMarkText}}{{else}}Znaczek — kliknij, żeby dodać obrazek i opis{{/if}}">{{#if system.cutieMark}}<img src="{{system.cutieMark}}" alt="Znaczek">{{else}}<span>ZNACZEK</span>{{/if}}</a>
+    <a class="cutie-mark {{#unless system.cutieMark}}empty{{/unless}}" data-action="cutieMark" title="{{#if system.cutieMarkText}}{{t "Cutie mark: {text}" text=system.cutieMarkText}}{{else}}{{t "Cutie mark — click to add an image and a description"}}{{/if}}">{{#if system.cutieMark}}<img src="{{system.cutieMark}}" alt="{{t "Cutie mark"}}">{{else}}<span>{{t "CUTIE MARK"}}</span>{{/if}}</a>
     <div class="identity">
-      <input class="name" type="text" name="name" value="{{actor.name}}" placeholder="Imię">
+      <input class="name" type="text" name="name" value="{{actor.name}}" placeholder="{{t "Name"}}">
       <div class="row">
-        <label>Rasa <input type="text" name="system.race" value="{{system.race}}"></label>
-        <label {{#if adv.lock}}title="Poziom zmienia MG"{{/if}}>Poziom <input type="number" name="system.level" value="{{system.level}}" {{#if adv.lock}}disabled{{/if}}></label>
-        {{#unless isNpc}}{{#if adv.useXp}}<label title="Punkty doświadczenia; następny poziom od {{adv.next}}{{#if adv.lock}} (przyznaje MG){{/if}}">PD <input type="number" name="system.xp" value="{{adv.xp}}" {{#if adv.lock}}disabled{{/if}}><small class="xp-next">/ {{adv.next}}</small></label>{{/if}}
+        <label>{{t "Race"}} <input type="text" name="system.race" value="{{system.race}}"></label>
+        <label {{#if adv.lock}}title="{{t "The GM changes the level"}}"{{/if}}>{{t "Level"}} <input type="number" name="system.level" value="{{system.level}}" {{#if adv.lock}}disabled{{/if}}></label>
+        {{#unless isNpc}}{{#if adv.useXp}}<label title="{{t "Experience points; next level at {n}" n=adv.next}}{{#if adv.lock}} {{t "(awarded by the GM)"}}{{/if}}">{{t "XP"}} <input type="number" name="system.xp" value="{{adv.xp}}" {{#if adv.lock}}disabled{{/if}}><small class="xp-next">/ {{adv.next}}</small></label>{{/if}}
         <span class="adv-btns">
-          {{#if adv.canLevel}}<a class="adv {{#if adv.ready}}ready{{/if}}" data-action="levelUp" title="Awans: punkty umiejętności i perk"><i class="fa-solid fa-arrow-up"></i> Awans</a>{{/if}}
-          {{#if adv.useXp}}{{#if adv.canAward}}<a data-action="awardXp" title="Dodaj PD (Horse Sense +10% liczy się samo)"><i class="fa-solid fa-star"></i> PD</a>{{/if}}{{/if}}
-          {{#if adv.canUndo}}<a data-action="undoLevel" title="Cofnij ostatni awans"><i class="fa-solid fa-rotate-left"></i></a>{{/if}}
+          {{#if adv.canLevel}}<a class="adv {{#if adv.ready}}ready{{/if}}" data-action="levelUp" title="{{t "Level up: skill points and a perk"}}"><i class="fa-solid fa-arrow-up"></i> {{t "Level up"}}</a>{{/if}}
+          {{#if adv.useXp}}{{#if adv.canAward}}<a data-action="awardXp" title="{{t "Award XP (Horse Sense +10% is counted automatically)"}}"><i class="fa-solid fa-star"></i> {{t "XP"}}</a>{{/if}}{{/if}}
+          {{#if adv.canUndo}}<a data-action="undoLevel" title="{{t "Undo the last level up"}}"><i class="fa-solid fa-rotate-left"></i></a>{{/if}}
         </span>{{/unless}}
         <label>Karma <input type="number" name="system.karma" value="{{system.karma}}"></label>
-        <label>Kapsle <input type="number" name="system.caps" value="{{system.caps}}"></label>
+        <label>{{t "Caps"}} <input type="number" name="system.caps" value="{{system.caps}}"></label>
       </div>
     </div>
   </div>
@@ -26,20 +26,20 @@
       <div class="meter"><span style="width: {{meters.sats}}%"></span></div>
     </div>
     <div class="res">
-      <span class="res-lbl" title="Karty szczęścia">Szczęście</span>
+      <span class="res-lbl" title="{{t "Luck cards"}}">{{t "Luck"}}</span>
       <span class="res-val"><input type="number" name="system.resources.luck.value" value="{{system.resources.luck.value}}"> / {{system.resources.luck.max}}</span>
       <div class="meter"><span style="width: {{meters.luck}}%"></span></div>
     </div>
     <div class="res">
       <span class="res-lbl">Strain</span>
-      <span class="res-val"><input type="number" name="system.resources.strain.value" value="{{system.resources.strain.value}}"> / {{#if system.caster}}<span title="END + INT + {{#if system.alicorn}}5{{else}}2{{/if}} + cechy">{{system.strainMax}}</span>{{else}}<input type="number" name="system.resources.strain.max" value="{{system.resources.strain.max}}">{{#if extra.strainBonus}}<span class="fxb" title="Z cech">{{extra.strainBonus}}</span>{{/if}}{{/if}}</span>
+      <span class="res-val"><input type="number" name="system.resources.strain.value" value="{{system.resources.strain.value}}"> / {{#if system.caster}}<span title="END + INT + {{#if system.alicorn}}5{{else}}2{{/if}} + {{t "features"}}">{{system.strainMax}}</span>{{else}}<input type="number" name="system.resources.strain.max" value="{{system.resources.strain.max}}">{{#if extra.strainBonus}}<span class="fxb" title="{{t "From features"}}">{{extra.strainBonus}}</span>{{/if}}{{/if}}</span>
       <div class="meter"><span style="width: {{meters.strain}}%"></span></div>
     </div>
     <div class="res">
-      <span class="res-lbl">Rady</span>
+      <span class="res-lbl">{{t "Rads"}}</span>
       <span class="res-val"><input type="number" name="system.resources.rads.value" value="{{system.resources.rads.value}}"> / {{system.resources.rads.max}}</span>
       <div class="meter alert"><span style="width: {{meters.rads}}%"></span></div>
     </div>
-    <button type="button" data-action="newSession" title="Odnów karty szczęścia i SATS"><i class="fa-solid fa-rotate"></i> Nowa sesja</button>
+    <button type="button" data-action="newSession" title="{{t "Restore Luck cards and SATS"}}"><i class="fa-solid fa-rotate"></i> {{t "New session"}}</button>
   </div>
 </header>

@@ -14,10 +14,10 @@ import { t, N_, tmap, tfields } from "./i18n.mjs";
 
 export const TERMINAL_KINDS = tfields({
   office: { label: N_("Office (green terminal)"), brand: "M.A.S. TERMLINK PROTOCOL v2.1" },
-  stabletec: { label: "Stable-Tec", brand: "STABLE-TEC UNIFIED OPERATING SYSTEM" },
+  stabletec: { label: "Stable-Tec", brand: "STABLE-TEC UNIFIED OPERATING SYSTEM" },   // en=pl
   military: { label: N_("Military / ministry"), brand: "MINISTRY OF WARTIME TECHNOLOGY — SECURE TERMLINK" },
   cloud: { label: N_("Cloud (Enclave)"), brand: "ENCLAVE CLOUD TERMINAL // SKY-LINK" },
-  unics: { label: "Unics", brand: "UNICS 3.4 — MULTI-USER SYSTEM" },
+  unics: { label: "Unics", brand: "UNICS 3.4 — MULTI-USER SYSTEM" },   // en=pl
   portable: { label: N_("Portable"), brand: "PORTABLE TERMINAL — SPARK BATTERY MODE" }
 }, ["label"]);
 
@@ -35,7 +35,7 @@ export const ACCESS_LABELS = tmap({ public: N_("public"), user: N_("after login"
 export const TRAP_EXPLOSIVES = tfields({
   frag: { label: N_("Frag grenade (6d12)"), formula: "6d12", name: "Frag Grenade" },
   satchel: { label: N_("Satchel charge (10d12)"), formula: "10d12", name: "Satchel Charge" },
-  sparkle: { label: "Sparkle grenade (10d20)", formula: "10d20", name: "Sparkle Grenade" }
+  sparkle: { label: "Sparkle grenade (10d20)", formula: "10d20", name: "Sparkle Grenade" }   // en=pl
 }, ["label"]);
 export const COMMAND_KINDS = tmap({ door: N_("Door"), token: N_("Tokens (turrets, robots)"), message: N_("Chat message") });
 export const COMMAND_ACTIONS = {
@@ -216,8 +216,8 @@ export function remoteReach(actor, { powered = true } = {}) {
 
 // ---------- uruchamianie (animacja ASCII) ----------
 const MAKERS = tmap({
-  office: N_("MINISTRY OF ARCANE SCIENCE"), stabletec: "STABLE-TEC", military: N_("MINISTRY OF WARTIME TECHNOLOGY"),
-  cloud: N_("ENCLAVE — CLOUD SERVICES"), unics: "UNICS LABS", portable: "STABLE-TEC"
+  office: N_("MINISTRY OF ARCANE SCIENCE"), stabletec: "STABLE-TEC", military: N_("MINISTRY OF WARTIME TECHNOLOGY"),   // en=pl
+  cloud: N_("ENCLAVE — CLOUD SERVICES"), unics: "UNICS LABS", portable: "STABLE-TEC"   // en=pl
 });
 
 /** Linie wypisywane przy uruchamianiu terminala (przed paskiem ładowania). */

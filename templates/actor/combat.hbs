@@ -1,112 +1,112 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="combat">
   <div class="status-bar">
-    <span class="cs" title="Action Points w SATS: 40 + 5×AGI; w walce +5 na rundę">SATS <b>{{system.resources.sats.value}}/{{system.resources.sats.max}}</b> AP</span>
-    <span class="cs" title="4×END ran łącznie = utrata przytomności">Rany <b>{{system.totalWounds}}</b>/{{system.unconsciousAt}}</span>
-    <span class="cs">Obrażenia na ranę <b>{{system.dmgPerWound}}</b></span>
-    <a class="cs act" data-action="rollInitiative" title="Dołącz do walki na tej scenie i rzuć inicjatywę (d100 ± AGI ¼; niżej = szybciej)"><i class="fa-solid fa-dice-d20"></i> Inicjatywa</a>
-    <span class="cs">Ruch <b>{{system.speed}}</b> ft</span>
-    {{#if system.flier}}<span class="cs" title="Lot: 5×AGI ft na akcję">Lot <b>{{#if system.canFly}}{{system.flySpeed}} ft{{else}}{{system.flyNote}}{{/if}}</b>{{#if system.altitude}} · wys. {{system.altitude}} ft{{/if}}</span>{{/if}}
-    <span class="cs" title="Pogoda (ustawia MG w zakładce walki): {{weather.summary}}"><i class="fa-solid fa-cloud-sun-rain"></i> {{weather.label}}</span>
-    <a class="cs act" data-action="rollFall" title="Obrażenia od upadku: 1d20 na 10 ft, ignorują DT pancerza"><i class="fa-solid fa-person-falling"></i> Upadek</a>
-    {{#if system.dead}}<span class="cs alert">MARTWY</span>{{else if system.unconsciousRisk}}<span class="cs alert">TRACI PRZYTOMNOŚĆ — rzut END ¾ przy każdej akcji</span>{{/if}}
+    <span class="cs" title="{{t "Action Points in SATS: 40 + 5×AGI; +5 per round in combat"}}">SATS <b>{{system.resources.sats.value}}/{{system.resources.sats.max}}</b> AP</span>
+    <span class="cs" title="{{t "4×END wounds in total = unconsciousness"}}">{{t "Wounds"}} <b>{{system.totalWounds}}</b>/{{system.unconsciousAt}}</span>
+    <span class="cs">{{t "Damage per wound"}} <b>{{system.dmgPerWound}}</b></span>
+    <a class="cs act" data-action="rollInitiative" title="{{t "Join the combat on this scene and roll initiative (d100 ± AGI ¼; lower = faster)"}}"><i class="fa-solid fa-dice-d20"></i> {{t "Initiative"}}</a>
+    <span class="cs">{{t "Movement"}} <b>{{system.speed}}</b> ft</span>
+    {{#if system.flier}}<span class="cs" title="{{t "Flight: 5×AGI ft per action"}}">{{t "fx|Flight"}} <b>{{#if system.canFly}}{{system.flySpeed}} ft{{else}}{{system.flyNote}}{{/if}}</b>{{#if system.altitude}} · {{t "alt. {a} ft" a=system.altitude}}{{/if}}</span>{{/if}}
+    <span class="cs" title="{{t "Weather (set by the GM in the combat tab): {s}" s=weather.summary}}"><i class="fa-solid fa-cloud-sun-rain"></i> {{weather.label}}</span>
+    <a class="cs act" data-action="rollFall" title="{{t "Falling damage: 1d20 per 10 ft, ignores armor DT"}}"><i class="fa-solid fa-person-falling"></i> {{t "Fall"}}</a>
+    {{#if system.dead}}<span class="cs alert">{{t "DEAD"}}</span>{{else if system.unconsciousRisk}}<span class="cs alert">{{t "LOSING CONSCIOUSNESS — END ¾ roll on every action"}}</span>{{/if}}
   </div>
 
-  <h3>Broń
-    {{#if saddle.canVolley}}<a data-action="fireVolley" title="Wszystkie zamontowane bronie jedną akcją: −{{saddle.volleySteps}} {{saddle.stepsWord}} MFD; SATS: najdroższa broń +{{saddle.volleyAp}} AP"><i class="fa-solid fa-burst"></i> Salwa z siodła</a>{{/if}}
-    <a data-action="openCatalog" data-tab="weapons" title="Katalog broni z podręcznika"><i class="fa-solid fa-boxes-stacked"></i> Katalog</a>
-    <a class="plus" data-action="createItem" data-type="weapon" title="Pusta broń do uzupełnienia"><i class="fa-solid fa-plus"></i></a>
+  <h3>{{t "sec|Weapons"}}
+    {{#if saddle.canVolley}}<a data-action="fireVolley" title="{{t "All mounted weapons in one action: −{n} {steps} MFD; SATS: the most expensive weapon +{ap} AP" n=saddle.volleySteps steps=saddle.stepsWord ap=saddle.volleyAp}}"><i class="fa-solid fa-burst"></i> {{t "Saddle volley"}}</a>{{/if}}
+    <a data-action="openCatalog" data-tab="weapons" title="{{t "Weapon catalog from the rulebook"}}"><i class="fa-solid fa-boxes-stacked"></i> {{t "Catalog"}}</a>
+    <a class="plus" data-action="createItem" data-type="weapon" title="{{t "Blank weapon to fill in"}}"><i class="fa-solid fa-plus"></i></a>
   </h3>
-  {{#if saddle}}<p class="hint saddle-line"><b>{{saddle.label}}</b>{{#if saddle.builtIn}} (wbudowane: {{saddle.source}}){{/if}} · broń {{saddle.count}}/{{saddle.max}} · waga {{saddle.weight}}{{#if saddle.combined}}/{{saddle.combined}}{{/if}} lb · jedna broń do {{saddle.indiv}} lb{{#if saddle.acc}} · {{saddle.acc}}{{/if}}
+  {{#if saddle}}<p class="hint saddle-line"><b>{{saddle.label}}</b>{{#if saddle.builtIn}} {{t "(built-in: {s})" s=saddle.source}}{{/if}} · {{t "weapons {n}/{max}" n=saddle.count max=saddle.max}} · {{t "weight"}} {{saddle.weight}}{{#if saddle.combined}}/{{saddle.combined}}{{/if}} lb · {{t "one weapon up to {n} lb" n=saddle.indiv}}{{#if saddle.acc}} · {{saddle.acc}}{{/if}}
     {{#each saddle.warnings}}<br><span class="warn">{{this}}</span>{{/each}}</p>{{/if}}
   <div class="scroll-x">
   <table class="foe-table items weapons">
-    <thead><tr><th></th><th class="l">Nazwa</th><th class="hide-narrow">Umiejętność</th><th>Obrażenia</th><th title="Mnożnik krytyka">Kryt.</th><th title="Koszt ataku w SATS (AP)">SATS</th><th>Amunicja</th><th>Zasięg</th><th></th></tr></thead>
+    <thead><tr><th></th><th class="l">{{t "col|Name"}}</th><th class="hide-narrow">{{t "Skill"}}</th><th>{{t "Damage"}}</th><th title="{{t "Critical multiplier"}}">{{t "Crit."}}</th><th title="{{t "Attack cost in SATS (AP)"}}">SATS</th><th>{{t "Ammo"}}</th><th>{{t "Range"}}</th><th></th></tr></thead>
     <tbody>
     {{#each weapons}}
       <tr data-item-id="{{id}}">
         <td><img class="icon" src="{{img}}" alt=""></td>
-        <td class="l">{{#if canMount}}<a class="mount-toggle {{#if mounted}}on{{/if}}" data-action="toggleMount" title="{{#if mounted}}Na siodle bojowym — kliknij, by zdjąć{{else}}Zamontuj na siodle bojowym{{/if}}">S</a> {{/if}}<a class="rollable" data-action="rollWeapon" title="Atak: okno z SATS, odległością i celem">{{name}}</a>{{#if cond}} <small class="sub {{#if cond.bad}}warn{{/if}}" title="Degradacja (s. 458): kroki = kości obrażeń">stan {{cond.left}}/{{cond.total}}</small>{{#if cond.worn}} <a class="repair" data-action="fixWeapon" title="Naprawa: Repair wg tabeli XXIX + broń-dawca na części"><i class="fa-solid fa-screwdriver-wrench"></i></a>{{/if}}{{/if}}{{#if tags.length}}<div class="wtags">{{#each tags}}<span title="{{tip}}">{{label}}</span>{{/each}}</div>{{/if}}</td>
+        <td class="l">{{#if canMount}}<a class="mount-toggle {{#if mounted}}on{{/if}}" data-action="toggleMount" title="{{#if mounted}}{{t "On the battle saddle — click to remove"}}{{else}}{{t "Mount on the battle saddle"}}{{/if}}">S</a> {{/if}}<a class="rollable" data-action="rollWeapon" title="{{t "Attack: window with SATS, distance and target"}}">{{name}}</a>{{#if cond}} <small class="sub {{#if cond.bad}}warn{{/if}}" title="{{t "Degradation (p. 458): steps = damage dice"}}">{{t "condition {a}/{b}" a=cond.left b=cond.total}}</small>{{#if cond.worn}} <a class="repair" data-action="fixWeapon" title="{{t "Repair: Repair per table XXIX + a donor weapon for parts"}}"><i class="fa-solid fa-screwdriver-wrench"></i></a>{{/if}}{{/if}}{{#if tags.length}}<div class="wtags">{{#each tags}}<span title="{{tip}}">{{label}}</span>{{/each}}</div>{{/if}}</td>
         <td class="hide-narrow">{{skillLabel}}</td>
-        <td class="nw"><a class="rollable" data-action="rollDamage" title="Same obrażenia (Shift+klik: krytyk)">{{damage}}</a>{{#if burst}}<small class="sub">/{{burst}}</small>{{/if}}</td>
+        <td class="nw"><a class="rollable" data-action="rollDamage" title="{{t "Damage only (Shift+click: critical)"}}">{{damage}}</a>{{#if burst}}<small class="sub">/{{burst}}</small>{{/if}}</td>
         <td>{{crit}}</td>
         <td>{{satsCost}}</td>
         <td class="nw ammo">
           {{#if consumable}}<b>×{{qty}}</b>
-          {{else if ammo.max}}<b>{{ammo.value}}/{{ammo.max}}</b> <a class="reload" data-action="reload" title="Przeładuj ({{reloadLabel}})"><i class="fa-solid fa-rotate"></i></a>{{#if ammoType}}<small class="sub">{{ammoType}}{{#if ammoVariant}} · <b title="{{ammoVariantTip}}">{{ammoVariant}}</b>{{/if}}</small>{{/if}}
+          {{else if ammo.max}}<b>{{ammo.value}}/{{ammo.max}}</b> <a class="reload" data-action="reload" title="{{t "Reload ({r})" r=reloadLabel}}"><i class="fa-solid fa-rotate"></i></a>{{#if ammoType}}<small class="sub">{{ammoType}}{{#if ammoVariant}} · <b title="{{ammoVariantTip}}">{{ammoVariant}}</b>{{/if}}</small>{{/if}}
           {{else}}—{{/if}}
         </td>
         <td class="nw" {{#if rangeTip}}title="{{rangeTip}}"{{/if}}>{{rangeLabel}}</td>
-        <td class="ctl">{{#if canName}}<a data-action="nameItem" title="Broń nazwana (s. 204–206): 1+1d4 pkt na obrażenia, magazynek, SATS, efekty"><i class="fa-solid fa-star"></i></a> {{/if}}{{#if named}}<i class="fa-solid fa-star named-mark" title="Broń nazwana"></i> {{/if}}<a data-action="giveItem" title="Wymiana: przekaż albo sprzedaj komuś obok, rzuć komuś w zasięgu (tylko tokeny na mapie)"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a></td>
+        <td class="ctl">{{#if canName}}<a data-action="nameItem" title="{{t "Named weapon (p. 204–206): 1+1d4 points for damage, magazine, SATS, effects"}}"><i class="fa-solid fa-star"></i></a> {{/if}}{{#if named}}<i class="fa-solid fa-star named-mark" title="{{t "Named weapon"}}"></i> {{/if}}<a data-action="giveItem" title="{{t "Exchange: give or sell to someone next to you, throw to someone in range (map tokens only)"}}"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></td>
       </tr>
-    {{else}}<tr><td colspan="9" class="empty">Brak broni — wybierz ją z katalogu albo dodaj plusem.</td></tr>
+    {{else}}<tr><td colspan="9" class="empty">{{t "No weapons — pick one from the catalog or add one with the plus."}}</td></tr>
     {{/each}}
     </tbody>
   </table>
   </div>
-  <p class="hint">Kliknij nazwę broni, by zaatakować: w oknie zaznaczysz SATS (zużywa AP i znosi kary otoczenia), odległość, strzał celowany albo losową lokację. Atak sam odejmie amunicję, a karta trafienia ma przyciski obrażeń i nanoszenia ran.</p>
+  <p class="hint">{{t "Click a weapon's name to attack: in the window you mark SATS (uses AP and removes environment penalties), distance, a called shot or a random location. The attack deducts ammo by itself, and the hit card has buttons for damage and applying wounds."}}</p>
 
   {{#if conditions.length}}
-  <h3>Stany <a data-action="endRound" title="Zastosuj efekty końca rundy teraz (w walce dzieje się to samo przy zmianie rundy)"><i class="fa-solid fa-hourglass-end"></i> Koniec rundy</a></h3>
+  <h3>{{t "Conditions"}} <a data-action="endRound" title="{{t "Apply end-of-round effects now (in combat this happens by itself when the round changes)"}}"><i class="fa-solid fa-hourglass-end"></i> {{t "End of round"}}</a></h3>
   <ul class="item-list conditions">
     {{#each conditions}}
     <li data-cond="{{key}}"><span class="nm">{{label}}</span><span class="cdesc">{{detail}}</span>
       <span class="ctl">
-        {{#if extinguish}}<a data-action="extinguish" title="Rzut AGI ½ (2 akcje)"><i class="fa-solid fa-fire-extinguisher"></i> Ugaś</a>{{/if}}
-        {{#if resist}}<a data-action="resistParalysis" title="Rzut END ½"><i class="fa-solid fa-dice-d20"></i> Rzut END</a>{{/if}}
-        <a data-action="clearCondition" title="Usuń (antidotum, leczenie, decyzja MG)"><i class="fa-solid fa-xmark"></i></a>
+        {{#if extinguish}}<a data-action="extinguish" title="{{t "AGI ½ roll (2 actions)"}}"><i class="fa-solid fa-fire-extinguisher"></i> {{t "Put out"}}</a>{{/if}}
+        {{#if resist}}<a data-action="resistParalysis" title="{{t "END ½ roll"}}"><i class="fa-solid fa-dice-d20"></i> {{t "END roll"}}</a>{{/if}}
+        <a data-action="clearCondition" title="{{t "Remove (antidote, healing, GM's call)"}}"><i class="fa-solid fa-xmark"></i></a>
       </span></li>
     {{/each}}
   </ul>
   {{/if}}
 
-  <h3>Zdrowie, chemia i promieniowanie
-    <a data-action="rest" title="Naturalne leczenie: 1 rana na lokację za 8 h (MG przesuwa czas gry)"><i class="fa-solid fa-bed"></i> Odpoczynek</a>
-    <a data-action="setLimb" title="Nastawienie okaleczonej kończyny: Medicine ¾"><i class="fa-solid fa-bone"></i> Nastaw</a>
+  <h3>{{t "Health, chems and radiation"}}
+    <a data-action="rest" title="{{t "Natural healing: 1 wound per location per 8 h (the GM advances game time)"}}"><i class="fa-solid fa-bed"></i> {{t "Rest"}}</a>
+    <a data-action="setLimb" title="{{t "Setting a crippled limb: Medicine ¾"}}"><i class="fa-solid fa-bone"></i> {{t "Set limb"}}</a>
   </h3>
   {{#if body.any}}
   <ul class="item-list conditions body">
-    {{#if body.rad}}<li><span class="nm">Promieniowanie</span><span class="cdesc">{{body.rad}}: {{body.radFx}}</span></li>{{/if}}
+    {{#if body.rad}}<li><span class="nm">{{t "Radiation"}}</span><span class="cdesc">{{body.rad}}: {{body.radFx}}</span></li>{{/if}}
     {{#each body.active}}
-    <li data-chem="{{id}}"><span class="nm">{{name}}</span><span class="cdesc">{{fx}}{{#if note}} · {{note}}{{/if}}{{#if left}} · zostało {{left}}{{/if}}</span>
-      <span class="ctl"><a data-action="endChem" title="Zakończ działanie"><i class="fa-solid fa-xmark"></i></a></span></li>
+    <li data-chem="{{id}}"><span class="nm">{{name}}</span><span class="cdesc">{{fx}}{{#if note}} · {{note}}{{/if}}{{#if left}} · {{t "{n} left" n=left}}{{/if}}</span>
+      <span class="ctl"><a data-action="endChem" title="{{t "End the effect"}}"><i class="fa-solid fa-xmark"></i></a></span></li>
     {{/each}}
     {{#each body.addictions}}
-    <li data-group="{{group}}" class="{{#if on}}alert{{/if}}"><span class="nm">Uzależnienie: {{group}}</span>
-      <span class="cdesc">{{#if on}}ODSTAWIENIE: {{withdrawal}}{{else}}złagodzone (działa środek z grupy albo Fixer){{/if}}{{#if long}} · ponad miesiąc — tylko detoks{{/if}}</span>
-      <span class="ctl"><a data-action="cureAddiction" title="Wylecz (Cleanse Poison, wywar zebr, talizman, detoks)"><i class="fa-solid fa-xmark"></i></a></span></li>
+    <li data-group="{{group}}" class="{{#if on}}alert{{/if}}"><span class="nm">{{t "Addiction: {g}" g=group}}</span>
+      <span class="cdesc">{{#if on}}{{t "WITHDRAWAL: {w}" w=withdrawal}}{{else}}{{t "eased (a chem from the group or Fixer is active)"}}{{/if}}{{#if long}} · {{t "over a month — detox only"}}{{/if}}</span>
+      <span class="ctl"><a data-action="cureAddiction" title="{{t "Cure (Cleanse Poison, zebra brew, talisman, detox)"}}"><i class="fa-solid fa-xmark"></i></a></span></li>
     {{/each}}
   </ul>
-  {{else}}<p class="hint">Bez działających środków, uzależnień i choroby popromiennej. Leki i chemię zażywasz przyciskiem „Użyj” w Ekwipunku.</p>{{/if}}
+  {{else}}<p class="hint">{{t "No active chems, addictions or radiation sickness. You take medicine and chems with the “Use” button in the Inventory."}}</p>{{/if}}
 
   {{#if cyber.show}}
-  <h3>Cybernetyka
-    <a data-action="feedCyber" title="Zjedz klejnot: zasilanie protez i implantów (s. 178)"><i class="fa-solid fa-gem"></i> Zasilanie</a>
-    {{#if cyber.regen}}<a data-action="selfRepair" title="Talizman naprawczy (złom, 1 rana / 15 min) i regeneracja implantów"><i class="fa-solid fa-screwdriver-wrench"></i> Samonaprawa</a>{{/if}}
-    <a data-action="openCatalog" data-tab="cyber" title="Implanty i protezy z podręcznika"><i class="fa-solid fa-microchip"></i> Katalog</a>
+  <h3>{{t "Cybernetics"}}
+    <a data-action="feedCyber" title="{{t "Eat a gem: power for cyberlimbs and implants (p. 178)"}}"><i class="fa-solid fa-gem"></i> {{t "Power"}}</a>
+    {{#if cyber.regen}}<a data-action="selfRepair" title="{{t "Repair talisman (scrap, 1 wound / 15 min) and implant regeneration"}}"><i class="fa-solid fa-screwdriver-wrench"></i> {{t "Self-repair"}}</a>{{/if}}
+    <a data-action="openCatalog" data-tab="cyber" title="{{t "Implants and cyberlimbs from the rulebook"}}"><i class="fa-solid fa-microchip"></i> {{t "Catalog"}}</a>
   </h3>
-  <p class="hint cyber-line">Zużycie: <b>{{cyber.units}}</b> jedn.{{#if cyber.tracked}} · {{#if cyber.powered}}zasilanie jeszcze <b>{{cyber.hoursLeft}} h</b>{{else}}<span class="warn">BEZ ZASILANIA — implanty nie działają{{#if cyber.offline}}, protezy jak okaleczone: {{cyber.offline}}{{/if}}</span>{{/if}}{{else}} · zasilanie nie jest śledzone (ustawienie świata){{/if}}</p>
+  <p class="hint cyber-line">{{t "Usage:"}} <b>{{cyber.units}}</b> {{t "units"}}{{#if cyber.tracked}} · {{#if cyber.powered}}{{t "power left"}} <b>{{cyber.hoursLeft}} h</b>{{else}}<span class="warn">{{t "NO POWER — implants don't work"}}{{#if cyber.offline}}{{t ", cyberlimbs as crippled: {list}" list=cyber.offline}}{{/if}}</span>{{/if}}{{else}} · {{t "power is not tracked (world setting)"}}{{/if}}</p>
   <ul class="item-list cyber">
     {{#each cyber.items}}
     <li data-item-id="{{id}}" class="{{#unless active}}inactive{{/unless}}">
       <img class="icon" src="{{img}}" alt="">
       <span class="nm">{{name}}</span>
-      <span class="cdesc">{{kindLabel}}{{#if loc}} · {{loc}}{{/if}}{{#if fx}} · {{fx}}{{/if}}{{#if talisman}} · talizman naprawczy{{/if}}{{#if reservoir}} · magazyn {{reservoir}} pkt{{/if}}</span>
+      <span class="cdesc">{{kindLabel}}{{#if loc}} · {{loc}}{{/if}}{{#if fx}} · {{fx}}{{/if}}{{#if talisman}} · {{t "repair talisman"}}{{/if}}{{#if reservoir}} · {{t "reservoir {r} pts" r=reservoir}}{{/if}}</span>
       <span class="ctl">
-        {{#if reservoir}}<a data-action="chargeReservoir" title="Przelej ogniwa z ekwipunku"><i class="fa-solid fa-bolt"></i></a>{{/if}}
-        <a data-action="toggleFeature" title="Włącz / wyłącz"><i class="fa-solid fa-power-off"></i></a>
-        <a data-action="editItem" title="Edytuj"><i class="fa-solid fa-pen"></i></a>
-        <a data-action="deleteItem" title="Usuń"><i class="fa-solid fa-trash"></i></a>
+        {{#if reservoir}}<a data-action="chargeReservoir" title="{{t "Transfer cells from the inventory"}}"><i class="fa-solid fa-bolt"></i></a>{{/if}}
+        <a data-action="toggleFeature" title="{{t "On / off"}}"><i class="fa-solid fa-power-off"></i></a>
+        <a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a>
+        <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a>
       </span>
     </li>
-    {{else}}<li class="empty">Cecha Cyberpony bez osobnych protez — dodaj je z katalogu („Cybernetyka”).</li>
+    {{else}}<li class="empty">{{t "Cyberpony trait without separate cyberlimbs — add them from the catalog (“Cybernetics”)."}}</li>
     {{/each}}
   </ul>
   {{/if}}
 
-  <h3>Rany, okaleczenia i DT</h3>
+  <h3>{{t "Wounds, crippling and DT"}}</h3>
   {{#if bodyMap}}
   <div class="body-map">
-    <svg class="pip-body" viewBox="{{bodyMap.viewBox}}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stan części ciała">
+    <svg class="pip-body" viewBox="{{bodyMap.viewBox}}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{t "Body part status"}}">
       <g class="vats" transform="translate(0,{{bodyMap.dy}})">
         <circle cx="{{bodyMap.cx}}" cy="{{bodyMap.cy}}" r="150"/><circle cx="{{bodyMap.cx}}" cy="{{bodyMap.cy}}" r="104"/>
         <path d="M{{bodyMap.cx}},14 L{{bodyMap.cx}},34 M{{bodyMap.cx}},306 L{{bodyMap.cx}},326 M226,{{bodyMap.cy}} L246,{{bodyMap.cy}} M514,{{bodyMap.cy}} L534,{{bodyMap.cy}}"/>
@@ -126,13 +126,13 @@
       </g>
       {{/each}}
     </svg>
-    <p class="hint">Klik na część ciała albo jej opis: +1 rana · prawy przycisk (albo Shift+klik): −1. Kolory: żółty — ranna, czerwony — blisko okaleczenia, pulsujący — okaleczona, miga — utracona. Przerywany obrys — część osłania pancerz; ⚙ — proteza. Najedź, by zobaczyć progi i źródła DT.</p>
+    <p class="hint">{{t "Click a body part or its label: +1 wound · right button (or Shift+click): −1. Colors: yellow — wounded, red — close to crippled, pulsing — crippled, blinking — maimed. Dashed outline — the part is covered by armor; ⚙ — cyberlimb. Hover to see thresholds and DT sources."}}</p>
   </div>
-  <details class="locs-details"><summary>Tabela lokacji (edycja ran, DT, okaleczeń)</summary>
+  <details class="locs-details"><summary>{{t "Location table (editing wounds, DT, crippling)"}}</summary>
   {{/if}}
   <div class="scroll-x">
   <table class="foe-table locs">
-    <thead><tr><th class="l">Lokacja</th><th title="Rany / Endurance">Rany</th><th>Stan</th><th title="Najwyższe DT założonego pancerza (warstwy się nie sumują)">Pancerz</th><th title="Naturalne DT, perki, cechy — dodaje się do pancerza">Inne DT</th><th title="DT razem">DT</th><th title="Okaleczenie: zaznacza się samo od ran (połowa END w lokacji) i znika, gdy rany spadną poniżej progu; ręcznie — inne przyczyny (wada, decyzja MG)">Okal.</th></tr></thead>
+    <thead><tr><th class="l">{{t "Location"}}</th><th title="{{t "Wounds / Endurance"}}">{{t "Wounds"}}</th><th>{{t "Status"}}</th><th title="{{t "Highest DT of worn armor (layers don't stack)"}}">{{t "Armor"}}</th><th title="{{t "Natural DT, perks, traits — added to armor"}}">{{t "Other DT"}}</th><th title="{{t "Total DT"}}">DT</th><th title="{{t "Crippling: checks itself from wounds (half END in the location) and clears when wounds drop below the threshold; manually — other causes (hindrance, GM's call)"}}">{{t "Crip."}}</th></tr></thead>
     <tbody>
     {{#each locations}}
       <tr class="st-{{status}}">
@@ -140,7 +140,7 @@
         <td class="nw"><input type="number" name="system.locations.{{key}}.wounds" value="{{wounds}}" min="0"><small class="sub">/{{limit}}</small></td>
         <td class="status">{{statusLabel}}</td>
         <td {{#if armorName}}title="{{armorName}}"{{/if}}>{{#if armorName}}{{armorDt}}{{else}}—{{/if}}</td>
-        <td class="nw"><input type="number" name="system.locations.{{key}}.dt" value="{{dt}}">{{#if dtFxLabel}}<span class="fxb" title="Z cech">{{dtFxLabel}}</span>{{/if}}</td>
+        <td class="nw"><input type="number" name="system.locations.{{key}}.dt" value="{{dt}}">{{#if dtFxLabel}}<span class="fxb" title="{{t "From features"}}">{{dtFxLabel}}</span>{{/if}}</td>
         <td class="tn">{{dtTotal}}</td>
         <td class="crip"><input type="checkbox" name="system.locations.{{key}}.crippled" {{checked cripChecked}} {{#if cripLocked}}disabled{{/if}} title="{{cripTitle}}"></td>
       </tr>
@@ -150,7 +150,7 @@
   </div>
   {{#if bodyMap}}</details>{{/if}}
   {{#if stateFx.length}}
-  <div class="state-fx"><span>Kary z ran i obciążenia (liczą się same w rzutach)</span><ul>{{#each stateFx}}<li>{{this}}</li>{{/each}}</ul></div>
+  <div class="state-fx"><span>{{t "Penalties from wounds and load (applied to rolls automatically)"}}</span><ul>{{#each stateFx}}<li>{{this}}</li>{{/each}}</ul></div>
   {{/if}}
-  <p class="hint">Okaleczenie od {{crippleAt}} ran, {{endT}} ran w głowie albo tułowiu to śmierć, w kończynie — jej utrata. DT pancerza bierze się z założonych pancerzy (zakładka Ekwipunek); „Inne DT” (naturalne, perki) się do niego dodaje.</p>
+  <p class="hint">{{t "Crippled at {a} wounds; {b} wounds in the head or torso is death, in a limb — its loss. Armor DT comes from worn armor (Inventory tab); “Other DT” (natural, perks) is added to it." a=crippleAt b=endT}}</p>
 </section>

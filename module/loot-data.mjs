@@ -6,6 +6,7 @@
  *   - stwory bez łupu w podręczniku: nasze domyślne (zwierzęta — mięso z katalogu, roboty — złom, frakcje — kapsle),
  *   - rzeczy przy NPC: broń z katalogu (bez naturalnej: kły, pazury, kopyta), pancerz, ekwipunek.
  */
+import { t } from "./i18n.mjs";
 
 /** Podział po „;” poza nawiasami. */
 export function splitTop(s) {
@@ -25,15 +26,15 @@ export function parseLoot(text) {
   const out = [];
   for (const part of splitTop(text)) {
     const sd = part.match(/^self[- ]destruct\.?\s*\((.*)\)\s*\.?$/i);
-    if (sd) { for (const e of parseLoot(sd[1])) out.push({ ...e, note: [e.note, "po samozniszczeniu"].filter(Boolean).join("; ") }); continue; }
+    if (sd) { for (const e of parseLoot(sd[1])) out.push({ ...e, note: [e.note, t("after self-destruct")].filter(Boolean).join("; ") }); continue; }
     if (/^(none|self[- ]destruct)\.?$/i.test(part)) continue;
     let p = part.replace(/\s+/g, " ").trim();
     const notes = [];
     let chance = 100, qty = null;
     const cm = p.match(/,?\s*\(?(\d{1,3})\s*%(?:\s*chance)?\)?/i);
     if (cm) { chance = Math.min(100, Number(cm[1])); p = `${p.slice(0, cm.index)}${p.slice(cm.index + cm[0].length)}`.trim(); }
-    p = p.replace(/\s*if present.*$/i, m => { notes.push(/pre-?encounter/i.test(m) ? "tylko jeśli go ma — MG rzuca przed spotkaniem" : "tylko jeśli go ma"); return ""; });
-    p = p.replace(/,\s*containers required/i, () => { notes.push("potrzebne pojemniki"); return ""; });
+    p = p.replace(/\s*if present.*$/i, m => { notes.push(/pre-?encounter/i.test(m) ? t("only if it has one — the GM rolls before the encounter") : t("only if it has one")); return ""; });
+    p = p.replace(/,\s*containers required/i, () => { notes.push(t("containers required")); return ""; });
     const lead = p.match(/^(\d+d\d+(?:\s*[x×*]\s*\d+)?|\d+)\s+(?=\D)/i);
     if (lead) { qty = lead[1]; p = p.slice(lead[0].length); }
     const paren = p.match(/\s*\((\d+d\d+)(?:\s+doses?)?\)/i);

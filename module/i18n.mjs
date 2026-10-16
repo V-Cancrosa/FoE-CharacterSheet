@@ -63,6 +63,9 @@ export function tn(n, one, many, data = {}) {
 /** Znacznik dla słownika: tekst zostaje po angielsku, a tłumaczy go t() przy wyświetleniu (stałe, etykiety). */
 export const N_ = s => s;
 
+/** Pole danych (data/*.json) w języku gracza: po polsku `obj[field + "_pl"]`, jeśli jest — inaczej angielskie `obj[field]`. */
+export const tdata = (obj, field) => (isPL() && obj?.[`${field}_pl`]) || obj?.[field];
+
 const getter = (out, k, v) => Object.defineProperty(out, k, { get: () => t(v), enumerable: true, configurable: true });
 
 /**
@@ -95,8 +98,8 @@ export function tfields(obj, fields = ["label", "desc"]) {
 
 /** Etykiety typów dokumentów (Foundry pokazuje je w oknie tworzenia i na listach). */
 const TYPE_LABELS = {
-  Actor: { character: "Character", npc: "NPC", vehicle: "Vehicle", terminal: "Terminal", casino: "Gaming table" },
-  Item: { weapon: "Weapon", armor: "Armor", gear: "Item", feature: "Feature", spell: "Spell" }
+  Actor: { character: N_("Character"), npc: N_("NPC"), vehicle: N_("Vehicle"), terminal: N_("Terminal"), casino: N_("Gaming table") },
+  Item: { weapon: N_("Weapon"), armor: N_("Armor"), gear: N_("Item"), feature: N_("Feature"), spell: N_("Spell") }
 };
 
 export function registerLanguageSetting() {

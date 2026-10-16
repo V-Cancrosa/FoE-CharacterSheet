@@ -7,6 +7,7 @@
  *   - dwunożni (minotaury, psy): postać z przodu (jej lewa strona po prawej stronie ekranu).
  */
 import { CALLED_SHOTS, HIT_TABLES } from "./combat.mjs";
+import { t, tn, tmap } from "./i18n.mjs";
 
 const VIEW_W = 760, VIEW_H = 336;
 const CX = VIEW_W / 2;
@@ -60,7 +61,7 @@ const BIPED = {
 const SLOTS_PONY = { horn: ["L", 0], flLeg: ["L", 1], wings: ["L", 2], rlLeg: ["L", 3], head: ["R", 0], frLeg: ["R", 1], torso: ["R", 2], rrLeg: ["R", 3] };
 const SLOTS_BIPED = { head: ["L", 0], frLeg: ["L", 1], rrLeg: ["L", 3], torso: ["R", 0], flLeg: ["R", 1], rlLeg: ["R", 3] };
 
-const STATUS_PL = { ok: "sprawna", wounded: "ranna", crippled: "OKALECZONA", maimed: "UTRACONA", dead: "ŚMIERĆ" };
+const STATUS = tmap({ ok: "loc|healthy", wounded: "loc|wounded", crippled: "CRIPPLED", maimed: "MAIMED", dead: "DEATH" });
 
 /** Poziom uszkodzenia do kolorów (styl V.A.T.S.): ok, light (żółty), heavy (czerwony), crippled (czerwony, pulsuje), lost (biały kontur, miga). */
 export function damageLevel(L) {
@@ -93,12 +94,12 @@ export function bodyMap(sys, locs, { table = "earth", labels = {}, cyber = new S
     const called = CALLED_SHOTS[k]?.steps ?? 0;
     const name = labels[k] ?? k;
     const title = [
-      `${name}: ${L.wounds}/${limit} ran (${STATUS_PL[status]})`,
-      `okaleczenie od ${L.crippleAt ?? "?"} ran, ${k === "head" || k === "torso" ? "śmierć" : "utrata"} od ${limit}`,
-      `DT ${L.dtTotal}${L.armorName ? ` — pancerz ${L.armorName} ${L.armorDt}` : ""}${L.naturalDt ? `, inne ${L.naturalDt}` : ""}`,
-      called ? `strzał celowany: ${called} kroki MFD` : "",
-      cyber.has(k) ? `proteza${L.offline ? " — bez zasilania" : ""}` : "",
-      "lewy klik: +1 rana · prawy klik: −1 rana"
+      t("{name}: {w}/{max} wounds ({status})", { name, w: L.wounds, max: limit, status: STATUS[status] }),
+      k === "head" || k === "torso" ? t("crippled at {at} wounds, death at {max}", { at: L.crippleAt ?? "?", max: limit }) : t("crippled at {at} wounds, loss at {max}", { at: L.crippleAt ?? "?", max: limit }),
+      `DT ${L.dtTotal}${L.armorName ? ` — ${t("armor {name} {dt}", { name: L.armorName, dt: L.armorDt })}` : ""}${L.naturalDt ? `, ${t("other {n}", { n: L.naturalDt })}` : ""}`,
+      called ? tn(called, "called shot: {n} MFD step", "called shot: {n} MFD steps") : "",
+      cyber.has(k) ? (L.offline ? t("cyberlimb — no power") : t("cyberlimb")) : "",
+      t("left click: +1 wound · right click: −1 wound")
     ].filter(Boolean).join("\n");
     parts.push({ key: k, ds: s.ds, under: !!s.under, cls: `dmg-${level}${L.armorDt > 0 ? " armored" : ""}${cyber.has(k) ? " cyber" : ""}`, title });
     const [side, row] = slots[k] ?? ["R", 0];
@@ -110,9 +111,9 @@ export function bodyMap(sys, locs, { table = "earth", labels = {}, cyber = new S
       lx1: side === "L" ? bx + BOX_W : bx, ly1: by + BOX_H / 2, lx2: ax, ly2: ay + dy,
       tx: bx + 7,
       name: `${name}${cyber.has(k) ? " ⚙" : ""}`,
-      line1: `Rany ${L.wounds}/${limit}${status !== "ok" ? ` · ${STATUS_PL[status]}` : ""}`,
+      line1: `${t("Wounds")} ${L.wounds}/${limit}${status !== "ok" ? ` · ${STATUS[status]}` : ""}`,
       line2: `DT ${L.dtTotal}${L.armorName ? ` · ${short(L.armorName)}` : ""}`,
-      line3: called ? `Cel ${called} kr. MFD` : "Cel bez kary",
+      line3: called ? t("Aim {n} MFD st.", { n: called }) : t("Aim: no penalty"),
       bar: Math.round(Math.min(1, L.wounds / limit) * (BOX_W - 14))
     });
   }

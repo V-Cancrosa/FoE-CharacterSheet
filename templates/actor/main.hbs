@@ -3,14 +3,14 @@
     <div class="col-attrs">
       <h3>S.P.E.C.I.A.L.</h3>
       <table class="foe-table">
-        <thead><tr><th class="l">Atrybut</th><th>Wart.</th><th>Mod</th><th title="MFD 1 (normalne)">1</th><th class="frac" title="MFD 3/4 (trudne)">3/4</th><th class="frac" title="MFD 1/2 (bardzo trudne)">1/2</th><th class="frac" title="MFD 1/4 (frustrująco trudne)">1/4</th></tr></thead>
+        <thead><tr><th class="l">{{t "Attribute"}}</th><th>{{t "Val."}}</th><th>Mod</th><th title="{{t "MFD 1 (normal)"}}">1</th><th class="frac" title="{{t "MFD 3/4 (hard)"}}">3/4</th><th class="frac" title="{{t "MFD 1/2 (very hard)"}}">1/2</th><th class="frac" title="{{t "MFD 1/4 (frustratingly hard)"}}">1/4</th></tr></thead>
         <tbody>
         {{#each attrs}}
           <tr>
-            <td class="l"><a class="rollable" data-action="rollAttr" data-key="{{key}}" title="Rzuć: {{label}} ×10"><span class="special-letter">{{letter}}</span>{{rest}}</a>{{#if rollLabel}} <span class="fxb" title="Rzuty atrybutu:
+            <td class="l"><a class="rollable" data-action="rollAttr" data-key="{{key}}" title="{{t "Roll: {label} ×10" label=label}}"><span class="special-letter">{{letter}}</span>{{rest}}</a>{{#if rollLabel}} <span class="fxb" title="{{t "Attribute rolls:"}}
 {{rollTip}}">{{rollLabel}}</span>{{/if}}</td>
-            <td class="nw"><input type="number" name="system.attributes.{{key}}.value" value="{{value}}">{{#if fxLabel}}<span class="fxb" title="Z cech:
-{{fxTip}}">{{fxLabel}}</span>{{/if}}{{#if tempLabel}}<span class="fxb temp" title="Zmiana tymczasowa (pancerz, warstwy) — liczy się do progu i wartości pochodnych, umiejętnościom daje ±5 za punkt:
+            <td class="nw"><input type="number" name="system.attributes.{{key}}.value" value="{{value}}">{{#if fxLabel}}<span class="fxb" title="{{t "From features:"}}
+{{fxTip}}">{{fxLabel}}</span>{{/if}}{{#if tempLabel}}<span class="fxb temp" title="{{t "Temporary change (armor, layers) — counts toward the target number and derived values, gives skills ±5 per point:"}}
 {{tempTip}}">{{tempLabel}}</span>{{/if}}</td>
             <td><input type="number" name="system.attributes.{{key}}.mod" value="{{mod}}"></td>
             <td class="tn">{{tn}}</td><td class="q">{{q3}}</td><td class="q">{{q2}}</td><td class="q">{{q1}}</td>
@@ -19,21 +19,21 @@
         </tbody>
       </table>
       <dl class="derived">
-        <dt>Udźwig</dt><dd>{{system.carry}} lb (niesiesz {{weight}}){{#if system.overload}} <span class="warn">przeciążenie +{{system.overload}}</span>{{/if}}</dd>
-        <dt>Ruch</dt><dd>{{system.speed}} ft / akcję {{#if system.flier}}(lot {{#if system.canFly}}{{system.flySpeed}} ft{{else}}— {{system.flyNote}}{{/if}}){{else}}{{#if digSpeed}}(kopanie {{system.flySpeed}} ft){{/if}}{{/if}}{{#each system.speedNotes}}<small class="sub warn">{{this}}</small>{{/each}}</dd>
-        <dt>Obrażenia na ranę</dt><dd>{{system.dmgPerWound}} <input type="number" name="system.woundBonus" value="{{system.woundBonus}}" title="Modyfikator (Large +2, Pipsqueak −2…)"></dd>
-        <dt><a class="rollable" data-action="rollInitiative" title="Dołącz do walki i rzuć inicjatywę (d100, potem wybierasz ± AGI)"><i class="fa-solid fa-dice-d20"></i> Inicjatywa</a></dt><dd>d100 ± {{system.initAgi}}{{#if extra.initFx}} {{extra.initFx}}{{/if}} (niżej = szybciej; ± wybierasz po rzucie)</dd>
-        <dt>Krytyki</dt><dd>sukces 1–{{extra.crit.success}} · porażka {{extra.critFailFrom}}–100</dd>
-        {{#if extra.dodge}}<dt>Uniki</dt><dd title="{{extra.dodgeTip}}">{{extra.dodge}} (do rzutu na unik)</dd>{{/if}}
-        {{#if extra.damage}}<dt>Obrażenia z cech</dt><dd>{{extra.damage}}</dd>{{/if}}
-        <dt>Odp. na promieniowanie</dt><dd><input type="number" name="system.radResist" value="{{system.radResist}}"> %{{#if system.fx.radResist}} <span class="fxb" title="Z cech">razem {{system.radResistTotal}}%</span>{{/if}}</dd>
+        <dt>{{t "Carry weight"}}</dt><dd>{{system.carry}} lb ({{t "carrying {w}" w=weight}}){{#if system.overload}} <span class="warn">{{t "overload +{n}" n=system.overload}}</span>{{/if}}</dd>
+        <dt>{{t "Movement"}}</dt><dd>{{system.speed}} {{t "ft / action"}} {{#if system.flier}}({{t "fx|flight"}} {{#if system.canFly}}{{system.flySpeed}} ft{{else}}— {{system.flyNote}}{{/if}}){{else}}{{#if digSpeed}}({{t "digging {n} ft" n=system.flySpeed}}){{/if}}{{/if}}{{#each system.speedNotes}}<small class="sub warn">{{this}}</small>{{/each}}</dd>
+        <dt>{{t "Damage per wound"}}</dt><dd>{{system.dmgPerWound}} <input type="number" name="system.woundBonus" value="{{system.woundBonus}}" title="{{t "Modifier (Large +2, Pipsqueak −2…)"}}"></dd>
+        <dt><a class="rollable" data-action="rollInitiative" title="{{t "Join the combat and roll initiative (d100, then you choose ± AGI)"}}"><i class="fa-solid fa-dice-d20"></i> {{t "Initiative"}}</a></dt><dd>d100 ± {{system.initAgi}}{{#if extra.initFx}} {{extra.initFx}}{{/if}} ({{t "lower = faster; you choose ± after the roll"}})</dd>
+        <dt>{{t "Criticals"}}</dt><dd>{{t "success 1–{n}" n=extra.crit.success}} · {{t "failure {n}–100" n=extra.critFailFrom}}</dd>
+        {{#if extra.dodge}}<dt>{{t "Dodge"}}</dt><dd title="{{extra.dodgeTip}}">{{extra.dodge}} ({{t "to the dodge roll"}})</dd>{{/if}}
+        {{#if extra.damage}}<dt>{{t "Damage from features"}}</dt><dd>{{extra.damage}}</dd>{{/if}}
+        <dt>{{t "Rad resistance"}}</dt><dd><input type="number" name="system.radResist" value="{{system.radResist}}"> %{{#if system.fx.radResist}} <span class="fxb" title="{{t "From features"}}">{{t "total {n}%" n=system.radResistTotal}}</span>{{/if}}</dd>
       </dl>
     </div>
     <div class="col-skills">
-      <h3>Umiejętności</h3>
+      <h3>{{t "Skills"}}</h3>
       <div class="scroll-x">
       <table class="foe-table skills">
-        <thead><tr><th class="l">Umiejętność</th><th>Atr</th><th title="Tag skill: +15">Tag</th><th class="hide-narrow">Baza</th><th title="Punkty z awansów">Pkt</th><th title="Rasa, cechy, perki">Bonus</th><th>Ranga</th><th title="Stały modyfikator rzutu">Mod</th><th title="Próg przy MFD 1 (normalne)">MFD 1</th><th class="frac hide-narrow" title="Próg przy MFD 1/2">1/2</th></tr></thead>
+        <thead><tr><th class="l">{{t "Skill"}}</th><th>{{t "Attr"}}</th><th title="Tag skill: +15">Tag</th><th class="hide-narrow">{{t "Base"}}</th><th title="{{t "Points from level-ups"}}">{{t "Pts"}}</th><th title="{{t "Race, traits, perks"}}">Bonus</th><th>{{t "Rank"}}</th><th title="{{t "Permanent roll modifier"}}">Mod</th><th title="{{t "Target number at MFD 1 (normal)"}}">MFD 1</th><th class="frac hide-narrow" title="{{t "Target number at MFD 1/2"}}">1/2</th></tr></thead>
         <tbody>
         {{#each skills}}
           <tr class="{{#if racial}}racial{{/if}}">
@@ -43,9 +43,9 @@
             <td class="q hide-narrow">{{base}}</td>
             <td><input type="number" name="system.skills.{{key}}.points" value="{{points}}"></td>
             <td><input type="number" name="system.skills.{{key}}.bonus" value="{{bonus}}"></td>
-            <td class="nw"><b>{{rank}}</b>{{#if rankFx}}<span class="fxb" title="Ranga z cech:
+            <td class="nw"><b>{{rank}}</b>{{#if rankFx}}<span class="fxb" title="{{t "Rank from features:"}}
 {{rankTip}}">{{rankFx}}</span>{{/if}}</td>
-            <td class="nw"><input type="number" name="system.skills.{{key}}.mod" value="{{mod}}">{{#if rollFx}}<span class="fxb" title="Rzuty z cech:
+            <td class="nw"><input type="number" name="system.skills.{{key}}.mod" value="{{mod}}">{{#if rollFx}}<span class="fxb" title="{{t "Rolls from features:"}}
 {{rollTip}}">{{rollFx}}</span>{{/if}}</td>
             <td class="tn">{{tnShown}}</td><td class="q hide-narrow">{{q2}}</td>
           </tr>
@@ -53,7 +53,7 @@
         </tbody>
       </table>
       </div>
-      <p class="hint">Kursywą umiejętności rasowe. Kliknij nazwę (▸), by rzucić. Małe liczby obok rangi i modyfikatora to efekty cech, wad i perków (najedź, by zobaczyć źródło); MFD 1 już je uwzględnia.</p>
+      <p class="hint">{{t "Racial skills in italics. Click a name (▸) to roll. The small numbers next to rank and modifier are effects of traits, hindrances and perks (hover to see the source); MFD 1 already includes them."}}</p>
     </div>
   </div>
 </section>

@@ -4,6 +4,7 @@
  *   - każdy tekst z t("…"), tn(n, "…", "…"), N_("…") w module/ i {{t "…"}}/{{tn x "…" "…"}} w templates/ ma wpis
  *     w lang/pl.mjs, z tymi samymi wstawkami {nazwa},
  *   - w kodzie i szablonach nie zostały polskie napisy poza słownikiem (linie z komentarzem „pl-ok” — pomijane),
+ *   - teksty w tmap()/tfields() też są kluczami (bez liter, skróty i linie z komentarzem „en=pl” — nie muszą mieć wpisu),
  *   - wpisy słownika, których nikt nie używa (ostrzeżenie).
  * Użycie: node tools/i18n-check.mjs [--unused] [--quiet]
  */
@@ -17,55 +18,66 @@ const args = new Set(process.argv.slice(2));
 const PLCH = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/;
 const PLWORDS = /\b(nie|jest|się|albo|oraz|tylko|przy|brak|Brak|zaznacz|Zaznacz|kliknij|Kliknij|rzut|Rzut|postać|karta|karty|gracz|gracza|MG)\b/;
 
-/** Literały napisów w kodzie JS: [{ kind: "str"|"tpl", value, start, end, line }] — bez komentarzy i wyrażeń regularnych. */
+/**
+ * Literały napisów w kodzie JS: [{ kind: "str"|"tpl", value, start, end, line }] — bez komentarzy i wyrażeń regularnych.
+ * Wyrażenia ${…} w szablonach `…` są skanowane tak samo (t() wewnątrz szablonu też się liczy).
+ */
 function scanJs(src) {
   const out = [];
-  let i = 0, line = 1, prev = "";
+  let line = 1, prev = "";
   const regexOk = () => !prev || /[(,=:[!&|?{};+\-*%<>~^]$/.test(prev) || /\b(return|typeof|case|of|in|do|else|void|delete|throw|new|yield|await)$/.test(prev);
-  while (i < src.length) {
-    const c = src[i], d = src[i + 1];
-    if (c === "\n") { line++; i++; continue; }
-    if (/\s/.test(c)) { i++; continue; }
-    if (c === "/" && d === "/") { while (i < src.length && src[i] !== "\n") i++; continue; }
-    if (c === "/" && d === "*") { const e = src.indexOf("*/", i + 2); for (let k = i; k < (e < 0 ? src.length : e + 2); k++) if (src[k] === "\n") line++; i = e < 0 ? src.length : e + 2; continue; }
-    if (c === "/" && regexOk()) {
-      let k = i + 1, cls = false;
-      while (k < src.length && src[k] !== "\n") {
-        if (src[k] === "\\") { k += 2; continue; }
-        if (src[k] === "[") cls = true; else if (src[k] === "]") cls = false; else if (src[k] === "/" && !cls) break;
-        k++;
+  // skanuje kod od i; w trybie wyrażenia (inExpr) kończy na niesparowanym „}” i zwraca jego indeks
+  function code(i, inExpr) {
+    let depth = 0;
+    while (i < src.length) {
+      const c = src[i], d = src[i + 1];
+      if (c === "\n") { line++; i++; continue; }
+      if (/\s/.test(c)) { i++; continue; }
+      if (c === "/" && d === "/") { while (i < src.length && src[i] !== "\n") i++; continue; }
+      if (c === "/" && d === "*") { const e = src.indexOf("*/", i + 2); for (let k = i; k < (e < 0 ? src.length : e + 2); k++) if (src[k] === "\n") line++; i = e < 0 ? src.length : e + 2; continue; }
+      if (c === "/" && regexOk()) {
+        let k = i + 1, cls = false;
+        while (k < src.length && src[k] !== "\n") {
+          if (src[k] === "\\") { k += 2; continue; }
+          if (src[k] === "[") cls = true; else if (src[k] === "]") cls = false; else if (src[k] === "/" && !cls) break;
+          k++;
+        }
+        k++; while (/[a-z]/i.test(src[k] ?? "")) k++;
+        prev = "/re/"; i = k; continue;
       }
-      k++; while (/[a-z]/i.test(src[k] ?? "")) k++;
-      prev = "/re/"; i = k; continue;
-    }
-    if (c === '"' || c === "'") {
-      let k = i + 1, v = "";
-      while (k < src.length && src[k] !== c && src[k] !== "\n") { if (src[k] === "\\") { v += src[k] + src[k + 1]; k += 2; continue; } v += src[k++]; }
-      out.push({ kind: "str", value: JSON.parse(`"${v.replace(/\\'/g, "'").replace(/(^|[^\\])"/g, '$1\\"')}"`), start: i, end: k + 1, line });
-      prev = "str"; i = k + 1; continue;
-    }
-    if (c === "`") {
-      let k = i + 1, depth = 0, v = "";
-      const startLine = line;
-      while (k < src.length) {
-        const ch = src[k];
-        if (ch === "\\") { v += ch + src[k + 1]; k += 2; continue; }
-        if (ch === "\n") line++;
-        if (depth === 0 && ch === "`") break;
-        if (ch === "$" && src[k + 1] === "{") { depth++; v += "${"; k += 2; continue; }
-        if (depth > 0 && ch === "{") depth++;
-        if (depth > 0 && ch === "}") depth--;
-        v += ch; k++;
+      if (c === '"' || c === "'") {
+        let k = i + 1, v = "";
+        while (k < src.length && src[k] !== c && src[k] !== "\n") { if (src[k] === "\\") { v += src[k] + src[k + 1]; k += 2; continue; } v += src[k++]; }
+        out.push({ kind: "str", value: JSON.parse(`"${v.replace(/\\'/g, "'").replace(/(^|[^\\])"/g, '$1\\"')}"`), start: i, end: k + 1, line });
+        prev = "str"; i = k + 1; continue;
       }
-      out.push({ kind: "tpl", value: v, start: i, end: k + 1, line: startLine });
-      prev = "tpl"; i = k + 1; continue;
+      if (c === "`") {
+        let k = i + 1, v = "";
+        const startLine = line;
+        const item = { kind: "tpl", value: "", start: i, end: 0, line: startLine };
+        out.push(item);
+        while (k < src.length) {
+          const ch = src[k];
+          if (ch === "\\") { v += ch + src[k + 1]; k += 2; continue; }
+          if (ch === "\n") line++;
+          if (ch === "`") break;
+          if (ch === "$" && src[k + 1] === "{") { prev = "{"; const e = code(k + 2, true); v += "${}"; k = e + 1; continue; }
+          v += ch; k++;
+        }
+        item.value = v; item.end = k + 1;
+        prev = "tpl"; i = k + 1; continue;
+      }
+      if (c === "{") depth++;
+      if (c === "}") { if (inExpr && depth === 0) return i; depth--; }
+      // zwykły token
+      let k = i;
+      if (/[\w$]/.test(c)) { while (k < src.length && /[\w$]/.test(src[k])) k++; } else k = i + 1;
+      prev = src.slice(i, k); i = k;
     }
-    // zwykły token
-    let k = i;
-    if (/[\w$]/.test(c)) { while (k < src.length && /[\w$]/.test(src[k])) k++; } else k = i + 1;
-    prev = src.slice(i, k); i = k;
+    return i;
   }
-  return out;
+  code(0, false);
+  return out.sort((a, b) => a.start - b.start);
 }
 
 const placeholders = s => [...String(s).matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort().join(",");
@@ -95,6 +107,24 @@ for (const f of fs.readdirSync(path.join(ROOT, "module")).filter(f => f.endsWith
     if (ch) { let e = ch.index + ch[0].length, dd = 1; while (e < body.length && dd) { if (body[e] === "{") dd++; else if (body[e] === "}") dd--; e++; } choices = [m.index + ch.index, m.index + e]; }
     spans.push({ start: m.index, end: k, choices });
   }
+  // tmap({ k: "Text" }) i tfields({ k: { label: "Text" } }, ["label"]) — teksty pól tłumaczonych przy odczycie
+  const maps = [];
+  for (const m of src.matchAll(/(?:^|[^\w$.])(tmap|tfields)\(/g)) {
+    let k = m.index + m[0].length, depth = 1;
+    while (k < src.length && depth) { const ch = src[k]; if (ch === "(" || ch === "{" || ch === "[") depth++; else if (ch === ")" || ch === "}" || ch === "]") depth--; k++; }
+    const body = src.slice(m.index, k);
+    let fields = null;
+    if (m[1] === "tfields") {
+      const fm = /\]\s*\)\s*$/.test(body) ? /,\s*\[([^\]]*)\]\s*\)\s*$/.exec(body) : null;
+      fields = fm ? [...fm[1].matchAll(/["'](\w+)["']/g)].map(x => x[1]) : ["label", "desc"];
+    }
+    maps.push({ start: m.index, end: k, fields });
+  }
+  const mapKey = L => maps.some(mp => L.start > mp.start && L.end < mp.end && (() => {
+    const key = /(?:(\w+)|"(\w+)")\s*:\s*$/.exec(src.slice(Math.max(0, L.start - 40), L.start));
+    if (!key) return false;
+    return !mp.fields || mp.fields.includes(key[1] ?? key[2]);
+  })());
   const regKey = L => spans.some(sp => L.start > sp.start && L.end < sp.end && (
     /(?:name|hint|label)\s*:\s*$/.test(src.slice(Math.max(0, L.start - 12), L.start)) ||
     (sp.choices && L.start > sp.choices[0] && L.end < sp.choices[1] && /:\s*$/.test(src.slice(Math.max(0, L.start - 4), L.start)))));
@@ -103,6 +133,12 @@ for (const f of fs.readdirSync(path.join(ROOT, "module")).filter(f => f.endsWith
     const before = src.slice(Math.max(0, L.start - 40), L.start);
     const where = `module/${f}:${L.line}`;
     if (L.kind === "str" && regKey(L)) { need(L.value, where); continue; }
+    if (L.kind === "str" && L.value && mapKey(L)) {
+      // bez liter, skróty (DT, AP) i nazwy własne oznaczone „en=pl” — takie same w obu językach
+      const same = !/[a-z]/i.test(L.value) || /^[A-Z]{1,4}$/.test(L.value) || /en=pl/.test(lines[L.line - 1] ?? "");
+      if (!(same && PL[L.value] === undefined)) need(L.value, where);
+      continue;
+    }
     if (/(?:^|[^\w$.])(?:t|N_)\(\s*$/.test(before)) {
       if (L.kind === "tpl") errors.push(`${where}: t(\`…\`) — klucz musi być zwykłym napisem`);
       else need(L.value, where);

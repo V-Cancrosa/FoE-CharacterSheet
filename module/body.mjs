@@ -5,16 +5,17 @@
  *   - choroba popromienna według pochłoniętych radów (kary do END, AGI, STR — progi jak na karcie postaci).
  * Czas: game.time.worldTime (w walce rośnie z każdą rundą).
  */
+import { t, tfields } from "./i18n.mjs";
 const F = "foe-rpg";
 
 /** Progi choroby popromiennej: kary tymczasowe do atrybutów (s. 16, 483). */
-export const RAD_LEVELS = [
-  { min: 1000, label: "śmiertelna dawka", fx: { end: -3, agi: -2, str: -2 } },
-  { min: 800, label: "śmiertelna choroba popromienna", fx: { end: -3, agi: -2, str: -2 } },
-  { min: 600, label: "krytyczna choroba popromienna", fx: { end: -3, agi: -2, str: -1 } },
-  { min: 400, label: "zaawansowana choroba popromienna", fx: { end: -2, agi: -1 } },
-  { min: 200, label: "lekka choroba popromienna", fx: { end: -1 } }
-];
+export const RAD_LEVELS = tfields([
+  { min: 1000, label: "fatal dose", fx: { end: -3, agi: -2, str: -2 } },
+  { min: 800, label: "fatal radiation sickness", fx: { end: -3, agi: -2, str: -2 } },
+  { min: 600, label: "critical radiation sickness", fx: { end: -3, agi: -2, str: -1 } },
+  { min: 400, label: "advanced radiation sickness", fx: { end: -2, agi: -1 } },
+  { min: 200, label: "minor radiation sickness", fx: { end: -1 } }
+], ["label"]);
 
 export const worldTime = () => globalThis.game?.time?.worldTime ?? 0;
 
@@ -50,7 +51,7 @@ export function bodyEffects(actor) {
     const extra = a.level || 0;   // Mint-als: kary rosną o 1 po każdym użyciu w uzależnieniu
     for (const [j, e] of (a.wfx ?? []).entries()) {
       const v = e.type === "tempAttr" && extra ? e.value - extra : e.value;
-      out.push({ ...e, value: v, source: `Odstawienie: ${a.group}`, id: `wd.${i}.${j}` });
+      out.push({ ...e, value: v, source: t("Withdrawal: {w}", { w: a.group }), id: `wd.${i}.${j}` });
     }
   }
   const rads = actor.system.resources?.rads?.value ?? 0;
@@ -59,7 +60,7 @@ export function bodyEffects(actor) {
   let radsOn = true;
   try { radsOn = globalThis.game?.settings?.get?.(F, "radiationPenalties") !== false; } catch { radsOn = true; }
   if (lvl && !ghoul && radsOn && !(lvl.min < 400 && hasFeature(actor, /rad tolerance/i))) {
-    for (const [k, v] of Object.entries(lvl.fx)) out.push({ type: "tempAttr", target: k, value: v, when: "", source: `${lvl.label} (${rads} radów)`, id: `rad.${k}` });
+    for (const [k, v] of Object.entries(lvl.fx)) out.push({ type: "tempAttr", target: k, value: v, when: "", source: t("{label} ({n} rads)", { label: lvl.label, n: rads }), id: `rad.${k}` });
   }
   return out;
 }
