@@ -12,6 +12,7 @@ import { rollActorInitiative } from "./tracker.mjs";
 import { rangeIncrement, reloadInfo, specialList, SPECIALS } from "./combat.mjs";
 import { VEHICLE_SIZES, VEHICLE_KINDS, VEHICLE_POWER, CREW_ROLES, vehicleAreas, defaultStructure, defaultPilotSkill, evasiveActive } from "./vehicle-data.mjs";
 import { addCrew, removeCrew, setCrewRole, driveVehicle, fireVehicleWeapon, ramWithVehicle, crashVehicle, repairVehicle } from "./vehicle.mjs";
+import { t } from "./i18n.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -60,11 +61,11 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const opt = (obj, cur) => Object.entries(obj).map(([value, label]) => ({ value, label, sel: value === cur }));
     ctx.kinds = opt(VEHICLE_KINDS, v.kind);
     ctx.powers = opt(VEHICLE_POWER, v.power);
-    ctx.sizes = VEHICLE_SIZES.map(s => ({ value: s.key, label: `${s.label} (D/W ${s.dw}${s.steps ? `, +${s.steps} kr. do trafienia` : ""})`, sel: s.key === String(v.size) }));
+    ctx.sizes = VEHICLE_SIZES.map(s => ({ value: s.key, label: `${s.label} (D/W ${s.dw}${s.steps ? `, ${t("+{n} st. to hit", { n: s.steps })}` : ""})`, sel: s.key === String(v.size) }));
     const pilotKey = v.pilotSkill || "";
     ctx.pilotOptions = [
-      { value: "", label: `wg rodzaju (${v.kind === "sky" ? "Flight" : "Agility"})`, sel: !pilotKey },
-      ...Object.entries(ATTRS).map(([k, l]) => ({ value: k, label: `${l} (atrybut)`, sel: pilotKey === k })),
+      { value: "", label: t("by type ({s})", { s: v.kind === "sky" ? "Flight" : "Agility" }), sel: !pilotKey },
+      ...Object.entries(ATTRS).map(([k, l]) => ({ value: k, label: t("{name} (attribute)", { name: l }), sel: pilotKey === k })),
       ...Object.entries(SKILLS).map(([k, s]) => ({ value: k, label: s.label, sel: pilotKey === k }))
     ];
     ctx.sky = v.kind === "sky";
@@ -74,7 +75,7 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       dw: sys.dmgPerWound, structure: sys.structure, crippleAt: sys.locations.torso.crippleAt, defaultStructure: defaultStructure(v.size),
       speed: sys.speed, speedNotes: sys.speedNotes ?? [], hitSteps: sys.size.steps, dodge: sys.size.dodge, evasive,
       dead: sys.dead, falling: sys.falling, weight: sys.weight, carry: sys.carry, overload: sys.overload,
-      pilot: sys.crewList?.find(c => c.role === "pilot" && c.actor)?.actor?.name ?? "załoga pojazdu",
+      pilot: sys.crewList?.find(c => c.role === "pilot" && c.actor)?.actor?.name ?? t("vehicle crew"),
       pilotSkill: ATTRS[sys.pilotSkill] ?? SKILLS[sys.pilotSkill]?.label ?? sys.pilotSkill
     };
     const STATUS_CLS = { destroyed: "dead", crippled: "crippled", wounded: "wounded", ok: "" };
@@ -88,7 +89,7 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const inc = rangeIncrement(w, 0);
       return {
         id: i.id, name: i.name, img: i.img, ...w, skillLabel: SKILLS[w.skill]?.label ?? w.skill, burst: w.shots > 1 ? w.shots : 0,
-        reloadLabel: w.reload ? `${w.reload}: ${reloadInfo(w.reload, { energy: w.skill === "energy" }).ap} AP w SATS` : "przeładuj",
+        reloadLabel: w.reload ? t("{reload}: {ap} AP in SATS", { reload: w.reload, ap: reloadInfo(w.reload, { energy: w.skill === "energy" }).ap }) : t("reload"),
         rangeLabel: inc ? `${inc} ft` : w.range || "—",
         tags: specialList(w.specials).map(k => ({ label: SPECIALS[k].label, tip: SPECIALS[k].desc }))
       };
@@ -98,7 +99,7 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.crew = (sys.crewList ?? []).map(c => ({
       index: c.index, name: c.actor?.name ?? c.name ?? "?", img: c.actor?.img ?? "icons/svg/mystery-man.svg", missing: !c.actor,
       roles: Object.entries(CREW_ROLES).filter(([k]) => k !== "puller" || ctx.pulled || c.role === "puller").map(([value, label]) => ({ value, label, sel: value === c.role })),
-      info: c.actor ? (c.role === "puller" ? `${ctx.sky ? `lot ${c.actor.system.canFly ? `${c.actor.system.flySpeed} ft` : c.actor.system.flyNote || "nie lata"}` : `ruch ${c.actor.system.speed} ft`}` : "") : "aktor usunięty"
+      info: c.actor ? (c.role === "puller" ? (ctx.sky ? `${t("fx|flight")} ${c.actor.system.canFly ? `${c.actor.system.flySpeed} ft` : c.actor.system.flyNote || t("doesn't fly")}` : t("move {n} ft", { n: c.actor.system.speed })) : "") : t("actor deleted")
     }));
     ctx.crewWarnings = sys.crewWarnings ?? [];
     ctx.crewCount = sys.crewCount;
@@ -158,8 +159,8 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onCreateItem(event, target) {
     const type = target.dataset.type;
-    const names = { weapon: "Nowa broń pokładowa", gear: "Nowy ładunek" };
-    const [item] = await this.document.createEmbeddedDocuments("Item", [{ name: names[type] ?? "Nowy przedmiot", type, ...(type === "weapon" ? { system: { skill: "bigGuns", mounted: true } } : {}) }]);
+    const names = { weapon: t("New mounted weapon"), gear: t("New cargo") };
+    const [item] = await this.document.createEmbeddedDocuments("Item", [{ name: names[type] ?? t("New item"), type, ...(type === "weapon" ? { system: { skill: "bigGuns", mounted: true } } : {}) }]);
     item?.sheet.render(true);
   }
 
@@ -170,7 +171,7 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const item = this.#item(target);
     if (!item) return;
     const ok = await foundry.applications.api.DialogV2.confirm({
-      window: { title: "Usuń przedmiot" }, content: `<p>Usunąć <b>${foundry.utils.escapeHTML(item.name)}</b>?</p>`
+      window: { title: t("Delete item") }, content: `<p>${t("Delete {name}?", { name: `<b>${foundry.utils.escapeHTML(item.name)}</b>` })}</p>`
     });
     if (ok) item.delete();
   }
@@ -179,9 +180,9 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /** Dodaje do załogi zaznaczone tokeny (albo własną postać gracza). */
   static async #onAddCrew() {
-    const picked = (canvas?.tokens?.controlled ?? []).map(t => t.actor).filter(a => a && a.type !== "vehicle");
+    const picked = (canvas?.tokens?.controlled ?? []).map(tk => tk.actor).filter(a => a && a.type !== "vehicle");
     const list = picked.length ? picked : game.user?.character ? [game.user.character] : [];
-    if (!list.length) return ui.notifications.warn("Zaznacz tokeny postaci na scenie albo przeciągnij aktora z zakładki aktorów na kartę pojazdu.");
+    if (!list.length) return ui.notifications.warn(t("Select character tokens on the scene or drag an actor from the actors tab onto the vehicle sheet."));
     for (const a of list) await addCrew(this.document, a);
   }
 

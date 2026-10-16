@@ -10,6 +10,7 @@
  *   - ceny (Tabela XXXI, s. 471–472): co 5 rang skutecznego Mercantile — 5% lepiej; sprzedaż kupcowi za
  *     (ranga/5, w dół)×5 % wartości, kupno od kupca za 200% minus tyle samo.
  */
+import { t, isPL, tmap } from "./i18n.mjs";
 
 /** Odstęp na jednej osi w polach: 0 — rzuty się nakładają, 1 — stykają się (sąsiednie pola), 2 — jedno pole przerwy… */
 function axisCells(a0, a1, b0, b1, size) {
@@ -69,7 +70,7 @@ export function throwProfile({ str = 0, int = 0, weight = 0, heave = false, oops
     limit = lift / 4;
     light = w < lift / 8;
     inc = Math.floor((Number(int) || 0) / 4) * 5 * (light ? 2 : 1);
-    if (!inc) return { ok: false, inc: 0, max: 0, limit, light, reason: "za słaba telekineza (INT poniżej 4) — nie rzucisz nią niczego" };
+    if (!inc) return { ok: false, inc: 0, max: 0, limit, light, reason: t("telekinesis too weak (INT below 4) — you can't throw anything with it") };
   } else {
     const s = Number(str) || 0;
     limit = Math.floor(s / 2);
@@ -77,14 +78,14 @@ export function throwProfile({ str = 0, int = 0, weight = 0, heave = false, oops
     inc = Math.max(5, Math.floor(s / (light ? 2 : 4)) * 5);
   }
   if (!(w < limit)) {
-    return { ok: false, inc: 0, max: 0, limit, light, reason: `za ciężkie: ${tk ? "telekinezą" : "kopytem"} rzucisz rzecz lżejszą niż ${fmt(limit)} lb (to waży ${fmt(w)} lb)` };
+    return { ok: false, inc: 0, max: 0, limit, light, reason: tk ? t("too heavy: with telekinesis you can throw something lighter than {limit} lb (this weighs {w} lb)", { limit: fmt(limit), w: fmt(w) }) : t("too heavy: with a hoof you can throw something lighter than {limit} lb (this weighs {w} lb)", { limit: fmt(limit), w: fmt(w) }) };
   }
   if (heave) inc += 5;
   if (oops) inc = Math.max(5, inc - 5);
   return { ok: true, inc, max: 4 * inc, limit, light, reason: "" };
 }
 
-const fmt = n => String(Math.round(n * 100) / 100).replace(".", ",");
+const fmt = n => (isPL() ? String(Math.round(n * 100) / 100).replace(".", ",") : String(Math.round(n * 100) / 100));
 
 /** Kara za odległość: ile przedziałów po pierwszym (każdy = 1 krok MFD trudniej); null — poza zasięgiem. */
 export function throwSteps(dist, inc) {
@@ -102,7 +103,7 @@ export function missedSteps(targetIdx, achievedIdx) {
 
 /** Kierunki k8 (1 = północ, dalej zgodnie z ruchem wskazówek zegara). */
 const DIRS = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
-export const DIR_NAMES = ["na północ", "na północny wschód", "na wschód", "na południowy wschód", "na południe", "na południowy zachód", "na zachód", "na północny zachód"];
+export const DIR_NAMES = tmap({ 0: "to the north", 1: "to the northeast", 2: "to the east", 3: "to the southeast", 4: "to the south", 5: "to the southwest", 6: "to the west", 7: "to the northwest" });
 
 /**
  * Gdzie upada chybiony przedmiot: pole (px, lewy górny róg) `cells` pól od krawędzi tokenu w kierunku k8 (1–8),
@@ -142,8 +143,8 @@ export const buyPct = eff => Math.max(10, 200 - sellPct(eff));
  */
 export function suggestPrice({ value = 0, qty = 1, sellerPC = true, buyerPC = false, sellerEff = 0, buyerEff = 0 } = {}) {
   const base = Math.max(0, Number(value) || 0) * Math.max(1, Number(qty) || 1);
-  let pct = 100, rule = "wartość z podręcznika";
-  if (sellerPC && !buyerPC) { pct = sellPct(sellerEff); rule = `Mercantile ${Math.floor(Number(sellerEff) || 0)} → ${pct}% wartości`; }
-  else if (!sellerPC && buyerPC) { pct = buyPct(buyerEff); rule = `Mercantile kupującego ${Math.floor(Number(buyerEff) || 0)} → ${pct}% wartości`; }
+  let pct = 100, rule = t("rulebook value");
+  if (sellerPC && !buyerPC) { pct = sellPct(sellerEff); rule = t("Mercantile {n} → {p}% of the value", { n: Math.floor(Number(sellerEff) || 0), p: pct }); }
+  else if (!sellerPC && buyerPC) { pct = buyPct(buyerEff); rule = t("buyer's Mercantile {n} → {p}% of the value", { n: Math.floor(Number(buyerEff) || 0), p: pct }); }
   return { price: Math.floor(base * pct / 100), pct, rule };
 }

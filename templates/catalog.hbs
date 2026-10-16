@@ -6,17 +6,17 @@
     {{#each tabs}}<button type="button" class="{{#if active}}active{{/if}}" data-action="setTab" data-tab="{{id}}"><i class="{{icon}}"></i> {{label}} <small>{{count}}</small></button>{{/each}}
   </nav>
   <div class="cat-tools">
-    <select name="kind" title="Rodzaj">
-      <option value="">Wszystkie rodzaje</option>
+    <select name="kind" title="{{t "col|Type"}}">
+      <option value="">{{t "All types"}}</option>
       {{#each kinds}}<option value="{{v}}" {{#if sel}}selected{{/if}}>{{label}} ({{n}})</option>{{/each}}
     </select>
-    <input type="search" name="search" value="{{search}}" placeholder="Szukaj po nazwie…" autocomplete="off">
+    <input type="search" name="search" value="{{search}}" placeholder="{{t "Search by name…"}}" autocomplete="off">
     <span class="cat-count"></span>
-    {{#if actor}}<span class="cat-caps"><i class="fa-solid fa-coins"></i> Kapsle: <b>{{caps}}</b></span>{{/if}}
+    {{#if actor}}<span class="cat-caps"><i class="fa-solid fa-coins"></i> {{t "Caps:"}} <b>{{caps}}</b></span>{{/if}}
   </div>
   <div class="cat-scroll">
     <table class="foe-table cat-table">
-      <thead><tr><th></th><th class="l">Nazwa</th>{{#each head}}<th>{{this}}</th>{{/each}}<th></th></tr></thead>
+      <thead><tr><th></th><th class="l">{{t "col|Name"}}</th>{{#each head}}<th>{{this}}</th>{{/each}}<th></th></tr></thead>
       <tbody>
       {{#each rows}}
         <tr data-i="{{i}}" data-kind="{{kind}}" data-name="{{search}}">
@@ -24,9 +24,9 @@
           <td class="l nm" {{#if notes}}title="{{notes}}"{{/if}}>{{name}}{{#if notes}} <i class="fa-solid fa-circle-info"></i>{{/if}}</td>
           {{#each cols}}<td>{{this}}</td>{{/each}}
           <td class="buy">
-            {{#if qty}}<input type="number" name="qty" value="{{qty}}" min="1" title="Ilość">{{/if}}
-            {{#if ../lockAdd}}{{#if noBuy}}<small class="cat-gm" title="Za darmo dodaje tylko MG (ustawienie świata)">przez MG</small>{{/if}}{{else}}<button type="button" data-action="add" title="Dodaj za darmo"><i class="fa-solid fa-plus"></i> Dodaj</button>{{/if}}
-            {{#if ../actor}}{{#unless noBuy}}<button type="button" data-action="buy" title="Kup — cena × ilość zostanie odjęta od kapsli"><i class="fa-solid fa-coins"></i> Kup</button>{{/unless}}{{/if}}
+            {{#if qty}}<input type="number" name="qty" value="{{qty}}" min="1" title="{{t "Quantity"}}">{{/if}}
+            {{#if ../lockAdd}}{{#if noBuy}}<small class="cat-gm" title="{{t "Only the GM adds for free (world setting)"}}">{{t "via the GM"}}</small>{{/if}}{{else}}<button type="button" data-action="add" title="{{t "Add for free"}}"><i class="fa-solid fa-plus"></i> {{t "Add"}}</button>{{/if}}
+            {{#if ../actor}}{{#unless noBuy}}<button type="button" data-action="buy" title="{{t "Buy — price × quantity will be deducted from the caps"}}"><i class="fa-solid fa-coins"></i> {{t "Buy"}}</button>{{/unless}}{{/if}}
           </td>
         </tr>
       {{/each}}
@@ -34,20 +34,17 @@
     </table>
   </div>
   {{#if isBestiary}}
-  <p class="hint">„Dodaj” tworzy aktora NPC w folderze „Bestiariusz FoE” (zakładka aktorów) i otwiera jego kartę — potem przeciągnij go na scenę.
-    Statystyki, strefy trafień z DT i MFD celowania, broń, zdolności i łup są z podręcznika (s. 490–576); „tylko opis” — podręcznik v1.22 nie podaje statystyk.</p>
+  <p class="hint">{{t "“Add” creates an NPC actor in the “FoE Bestiary” folder (actors tab) and opens its sheet — then drag it onto the scene. Statistics, hit areas with DT and called-shot MFD, weapons, abilities and loot are from the rulebook (p. 490–576); “description only” — the v1.22 rulebook gives no statistics."}}</p>
   {{else if isAmmo}}
-  <p class="hint">{{#if ammoOff}}<b class="warn">Zasada opcjonalna „Amunicja specjalna” jest wyłączona (ustawienia świata) — amunicję można kupić, ale nie działa.</b> {{/if}}Amunicja specjalna z podręcznika (s. 202–203): „Kup”/„Dodaj” pyta o kaliber, cena to cena zwykłej amunicji × mnożnik. Rodzaj ładujesz przy przeładowaniu broni; zmiana rodzaju wyjmuje resztę naboi do ekwipunku. Przy włączonej zasadzie zwykłe naboje i amunicja energetyczna ignorują 5 DT.</p>
+  <p class="hint">{{#if ammoOff}}<b class="warn">{{t "The optional “Special ammo” rule is off (world settings) — you can buy the ammo, but it doesn't work."}}</b> {{/if}}{{t "Special ammo from the rulebook (p. 202–203): “Buy”/“Add” asks for the caliber, the price is the regular ammo price × the multiplier. You load the type when reloading the weapon; changing the type ejects the remaining rounds into the inventory. With the rule on, regular rounds and energy ammo ignore 5 DT."}}</p>
   {{else if isCyber}}
-  <p class="hint">„Dodaj” montuje implant albo protezę w postaci (zapyta o nogę lub atrybut i ostrzeże o przeciwwskazaniach: Zebra Augmented, Bone Strengthening Brew, alikorny). Efekty z podręcznika (cecha Cyberpony i tabela IX implantów, s. 104–107) liczą się same; opisowe działanie jest w notatce.
-    Podręcznik nie podaje cen — wszczepia lekarz albo Auto-Doc, MG decyduje o koszcie.</p>
+  <p class="hint">{{t "“Add” installs an implant or a cyberlimb in the character (asks for the leg or attribute and warns about contraindications: Zebra Augmented, Bone Strengthening Brew, alicorns). Effects from the rulebook (the Cyberpony trait and table IX of implants, p. 104–107) are counted automatically; the descriptive effect is in the note. The rulebook gives no prices — a doctor or an Auto-Doc installs them, the GM decides the cost."}}</p>
   {{else if isVehicles}}
-  <p class="hint">„Dodaj” tworzy pojazd w folderze „Pojazdy FoE” (zakładka aktorów) razem z bronią pokładową z katalogu. Potem przeciągnij go na scenę i dodaj załogę (przeciągnij postacie na kartę pojazdu).
-    Rozmiar i obrażenia na ranę są z tabeli XLI podręcznika; DT, prędkości i załoga to propozycje do zmiany na karcie (podręcznik v1.22 nie ma statystyk pojazdów).</p>
+  <p class="hint">{{t "“Add” creates a vehicle in the “FoE Vehicles” folder (actors tab) together with its mounted weapons from the catalog. Then drag it onto the scene and add the crew (drag characters onto the vehicle sheet). Size and damage per wound are from the rulebook's table XLI; DT, speeds and crew are suggestions you can change on the sheet (the v1.22 rulebook has no vehicle statistics)."}}</p>
   {{else}}
   <p class="hint">
-    {{#if actor}}„Dodaj” daje przedmiot za darmo, „Kup” odejmuje cenę (× ilość) od kapsli postaci. Ten sam ekwipunek łączy się w stos.{{else}}„Dodaj” tworzy przedmiot w zakładce Przedmioty — potem przeciągnij go na postać.{{/if}}
-    Najedź na <i class="fa-solid fa-circle-info"></i>, by przeczytać uwagi z podręcznika. Broń trafia od razu naładowana, pancerz — zdjęty (załóż go w zakładce Ekwipunek).
+    {{#if actor}}{{t "“Add” gives the item for free, “Buy” deducts the price (× quantity) from the character's caps. The same gear stacks."}}{{else}}{{t "“Add” creates the item in the Items tab — then drag it onto a character."}}{{/if}}
+    {{t "Hover over"}} <i class="fa-solid fa-circle-info"></i> {{t "to read the rulebook notes. Weapons arrive loaded, armor — taken off (put it on in the Inventory tab)."}}
   </p>
   {{/if}}
   {{/if}}

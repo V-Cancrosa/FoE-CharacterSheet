@@ -13,14 +13,15 @@ import { promptMfd, rollTest, threshold } from "./rolls.mjs";
 import { rollContext } from "./effects.mjs";
 import { rangeBands } from "./combat.mjs";
 import { MFD_STEPS } from "./data.mjs";
+import { t } from "./i18n.mjs";
 
 const MISC = `systems/${F}/icons/misc.svg`;
 const hasFeature = (actor, re) => (actor?.items ?? []).some(i => i.type === "feature" && i.system?.active !== false && re.test(i.name));
 
 export function registerThrowSettings() {
   game.settings.register(F, "groundMarkers", {
-    name: "Rzut przedmiotem: znacznik na mapie",
-    hint: "Gdy rzut się nie uda, w miejscu upadku pojawia się kafelek z obrazkiem przedmiotu; znika, gdy ktoś go podniesie.",
+    name: "Thrown item: map marker",
+    hint: "When a throw fails, a tile with the item's picture appears where it landed; it disappears when someone picks it up.",
     scope: "world", config: true, type: Boolean, default: true
   });
 }
@@ -45,35 +46,35 @@ export function throwInfo(actor, item, qty = 1, tk = false) {
  * Okno MFD z odległością, potem karta testu; wynik rozstrzyga hak createChatMessage.
  */
 export async function throwItem(source, { item = null, caps = 0, qty = 1, target, tk = false } = {}) {
-  if (!source?.isOwner) return warn(`Nie jesteś właścicielem: ${source?.name ?? "?"}.`);
+  if (!source?.isOwner) return warn(t("You don't own: {name}.", { name: source?.name ?? "?" }));
   const sk = source.system?.skills?.explosives;
-  if (!sk) return warn(`${source.name}: brak umiejętności Explosives.`);
-  if (!target?.token || target.dist === null || target.dist === undefined) return warn("Rzucić można tylko do kogoś, kogo widać na mapie.");
+  if (!sk) return warn(t("{name}: no Explosives skill.", { name: source.name }));
+  if (!target?.token || target.dist === null || target.dist === undefined) return warn(t("You can throw only to someone visible on the map."));
   const n = item ? (stacks(item) ? Math.min(qtyOf(item), Math.max(1, Number(qty) || 1)) : 1) : Math.min(capsOf(source), Math.max(1, Number(caps) || 1));
-  if (!n) return warn("Nie ma czego rzucić.");
+  if (!n) return warn(t("There's nothing to throw."));
   const prof = throwInfo(source, item, n, tk);
   if (!prof.ok) return warn(`${source.name}: ${prof.reason}.`);
   const steps = throwSteps(target.dist, prof.inc);
-  if (steps === null) return warn(`${target.name} jest za daleko: ${target.dist} ft, a rzut sięga ${prof.max} ft.`);
+  if (steps === null) return warn(t("{name} is too far: {d} ft, and the throw reaches {max} ft.", { name: target.name, d: target.dist, max: prof.max }));
   const dst = await fromUuid(target.uuid).catch(() => null);
-  if (!dst) return warn("Tego celu już nie ma.");
-  if (!game.users.activeGM && !dst.isOwner) return warn("Rzut do cudzej postaci wymaga zalogowanego MG.");
+  if (!dst) return warn(t("That target is gone."));
+  if (!game.users.activeGM && !dst.isOwner) return warn(t("Throwing to someone else's character requires a logged-in GM."));
 
   const label = item ? `${item.name}${n > 1 ? ` ×${n}` : ""}` : capsText(n);
   const bands = rangeBands(prof.inc, 4);
   const extraHtml = `
     <div class="atk-info">
-      <div>${esc(label)} → <b>${esc(target.name)}</b> · ${target.dist} ft · przedział zasięgu ${prof.inc} ft${tk ? " (telekineza)" : ""}</div>
-      <div>Udany — cel łapie; chybiony — upada obok celu, 5 ft dalej za każdy brakujący krok MFD.</div>
+      <div>${esc(label)} → <b>${esc(target.name)}</b> · ${target.dist} ft · ${t("range increment {n} ft", { n: prof.inc })}${tk ? ` (${t("telekinesis")})` : ""}</div>
+      <div>${t("Success — the target catches it; failure — it falls next to the target, 5 ft further for each missing MFD step.")}</div>
     </div>
-    <label class="atk-row">Odległość <select name="range">${bands.map(b => `<option value="${b.steps}" ${-b.steps === steps ? "selected" : ""}>${b.label}${b.steps ? ` (${b.steps} kr.)` : ""}</option>`).join("")}</select></label>`;
+    <label class="atk-row">${t("Distance")} <select name="range">${bands.map(b => `<option value="${b.steps}" ${-b.steps === steps ? "selected" : ""}>${b.label}${b.steps ? ` (${b.steps} ${t("st.")})` : ""}</option>`).join("")}</select></label>`;
   const rc = rollContext(source, { kind: "attack", skill: "explosives", skillAttr: sk.attr }, { manualMod: sk.mod });
-  const r = await promptMfd(`Rzut: ${label} → ${target.name}`, sk.tn, rc, {
+  const r = await promptMfd(t("Throw: {label} → {name}", { label, name: target.name }), sk.tn, rc, {
     defaultStep: "1", extraHtml,
     readExtra: form => {
       const sel = form.querySelector("select[name=range]");
       const v = Number(sel?.value) || 0;
-      return { steps: v, mod: 0, notes: v ? [`Odległość ${sel.selectedOptions[0]?.textContent.split(" (")[0]}`] : [], data: null };
+      return { steps: v, mod: 0, notes: v ? [t("Distance {d}", { d: sel.selectedOptions[0]?.textContent.split(" (")[0] })] : [], data: null };
     }
   });
   if (!r) return null;
@@ -82,7 +83,7 @@ export async function throwItem(source, { item = null, caps = 0, qty = 1, target
     id: foundry.utils.randomID(), from: source.uuid, to: target.uuid, token: target.token, toName: target.name,
     itemId: item?.id ?? null, caps: item ? 0 : n, qty: n, label, dist: target.dist, tk: !!tk, fromElev: Number(tokenOf(source)?.elevation) || 0
   };
-  return rollTest(source, { label: `Rzut przedmiotem (Explosives): ${label} → ${target.name}`, baseTn: sk.tn, ...roll, throwing });
+  return rollTest(source, { label: t("Item throw (Explosives): {label} → {name}", { label, name: target.name }), baseTn: sk.tn, ...roll, throwing });
 }
 
 // ======================================================================
@@ -108,11 +109,11 @@ function inOrder(id, fn) {
 
 /** O ile kroków MFD chybiono (z karty testu). */
 function missedOf(msg) {
-  const t = msg.flags[F].test;
-  const target = Math.max(0, MFD_STEPS.findIndex(s => s.key === t.step));
+  const tst = msg.flags[F].test;
+  const target = Math.max(0, MFD_STEPS.findIndex(s => s.key === tst.step));
   const total = Number(msg.rolls?.[0]?.total);
   let ach = -1;
-  if (t.result !== "crit-fail" && Number.isFinite(total)) MFD_STEPS.forEach((s, i) => { if (total <= threshold(t.baseTn, s, t.mod ?? 0)) ach = i; });
+  if (tst.result !== "crit-fail" && Number.isFinite(total)) MFD_STEPS.forEach((s, i) => { if (total <= threshold(tst.baseTn, s, tst.mod ?? 0)) ach = i; });
   return missedSteps(target, ach);
 }
 
@@ -129,7 +130,7 @@ async function resolveThrow(msg) {
   if (ok) {
     // przerzut po chybieniu: przedmiot już leży — cel go łapie, jeśli nikt go nie podniósł
     if (ground) return ground.flags[F].ground.taken ? null : collect(ground, th.to, { caught: true, name: th.toName });
-    return transfer({ op: th.caps ? "caps" : "item", from: th.from, itemId: th.itemId, to: th.to, toName: th.toName, qty: th.caps || th.qty, user: author?.id, tag: "rzut — złapane" });
+    return transfer({ op: th.caps ? "caps" : "item", from: th.from, itemId: th.itemId, to: th.to, toName: th.toName, qty: th.caps || th.qty, user: author?.id, tag: t("throw — caught") });
   }
   if (ground) return null;   // już leży (przerzut też chybił)
   return drop(msg, th, src);
@@ -167,7 +168,7 @@ async function drop(msg, th, src) {
         [tile] = await scene.createEmbeddedDocuments("Tile", [{
           texture: { src: entry.img }, x: spot.x + pad, y: spot.y + pad, width: k, height: k, flags: { [F]: { ground: th.id } }
         }]);
-      } catch (err) { console.warn(`${F} | znacznik przedmiotu`, err); }
+      } catch (err) { console.warn(`${F} | item marker`, err); }
     }
   }
   const ground = {
@@ -181,9 +182,9 @@ async function drop(msg, th, src) {
 
 function groundCard(g) {
   return `<div class="foe-card foe-ground">
-    <div class="fc-tag"><span>PIPBUCK // RZUT</span><span>nie złapane</span></div>
-    <h3>${esc(g.label)} — na ziemi</h3>
-    <div class="fc-calc">${esc(g.from)} → ${esc(g.toName)}: leży ok. ${g.ft} ft ${esc(g.dir)} od celu.</div>
+    <div class="fc-tag"><span>${t("PIPBUCK // THROW")}</span><span>${t("not caught")}</span></div>
+    <h3>${t("{label} — on the ground", { label: esc(g.label) })}</h3>
+    <div class="fc-calc">${t("{from} → {to}: lies about {ft} ft {dir} of the target.", { from: esc(g.from), to: esc(g.toName), ft: g.ft, dir: esc(g.dir) })}</div>
     <div class="foe-ground-act"></div>
   </div>`;
 }
@@ -194,7 +195,7 @@ function groundCard(g) {
 
 /** Kto podnosi: zaznaczony własny token, potem postać gracza. */
 function pickerActor() {
-  const own = (canvas?.tokens?.controlled ?? []).map(t => t.actor).find(a => a?.isOwner && ["character", "npc"].includes(a.type));
+  const own = (canvas?.tokens?.controlled ?? []).map(tk => tk.actor).find(a => a?.isOwner && ["character", "npc"].includes(a.type));
   return own ?? game.user.character ?? null;
 }
 
@@ -212,17 +213,17 @@ function spotOf(g, scene) {
 /** „Podnieś” z karty przedmiotu na ziemi (postać musi stać obok znacznika; MG — bez sprawdzania). */
 export async function pickUp(message) {
   const g = message.flags?.[F]?.ground;
-  if (!g || g.taken) return warn("Ktoś już to podniósł.");
+  if (!g || g.taken) return warn(t("Someone has already picked it up."));
   const actor = pickerActor();
-  if (!actor) return warn("Zaznacz token swojej postaci (albo przypisz postać do gracza), żeby podnieść przedmiot.");
+  if (!actor) return warn(t("Select your character's token (or assign a character to the player) to pick up the item."));
   if (!game.user.isGM && g.scene) {
-    if (canvas?.scene?.id !== g.scene) return warn("Przedmiot leży na innej scenie.");
+    if (canvas?.scene?.id !== g.scene) return warn(t("The item is on another scene."));
     const tok = tokenOf(actor);
-    if (!tok) return warn(`${actor.name} nie ma tokena na tej scenie.`);
+    if (!tok) return warn(t("{name} has no token on this scene.", { name: actor.name }));
     const grid = gridOf(canvas.scene);
     const spot = spotOf(g, canvas.scene);
     if (spot && !isAdjacent(rectOf(tok, grid.size), spot, grid, [tok.elevation, g.elevation])) {
-      return warn(`${actor.name} musi stanąć obok przedmiotu (znacznik na mapie), żeby go podnieść.`);
+      return warn(t("{name} must stand next to the item (the marker on the map) to pick it up.", { name: actor.name }));
     }
   }
   return viaGM({ kind: "throw", op: "pickup", messageId: message.id, picker: actor.uuid }, pickupOp);
@@ -267,14 +268,14 @@ function decorate(message, html) {
   const box = root?.querySelector(".foe-ground-act");
   if (!box) return;
   if (g.taken) {
-    box.innerHTML = `<div class="fc-meta">${g.caught ? "Złapane po przerzucie" : "Podniósł"}: <b>${esc(g.taken)}</b></div>`;
+    box.innerHTML = `<div class="fc-meta">${g.caught ? t("Caught after a reroll") : t("Picked up by")}: <b>${esc(g.taken)}</b></div>`;
     return;
   }
-  box.innerHTML = `<button type="button" class="foe-luck" data-foe-ground="pick"><i class="fa-solid fa-hand"></i> Podnieś</button>
-    <div class="fc-meta">Stań tokenem obok przedmiotu (znacznik na mapie), zaznacz swój token i kliknij.</div>`;
+  box.innerHTML = `<button type="button" class="foe-luck" data-foe-ground="pick"><i class="fa-solid fa-hand"></i> ${t("Pick up")}</button>
+    <div class="fc-meta">${t("Stand with your token next to the item (the marker on the map), select your token and click.")}</div>`;
   box.querySelector("[data-foe-ground=pick]")?.addEventListener("click", ev => {
     ev.preventDefault();
-    pickUp(message).catch(err => { console.error(`${F} | podnoszenie`, err); ui.notifications.error(`Podnoszenie: ${err.message}`); });
+    pickUp(message).catch(err => { console.error(`${F} | pick up`, err); ui.notifications.error(t("Picking up: {msg}", { msg: err.message })); });
   });
 }
 
@@ -282,13 +283,13 @@ export function registerThrowHooks() {
   Hooks.once("ready", () => {
     game.socket.on(SOCKET, payload => {
       if (payload?.kind !== "throw" || !game.users.activeGM?.isSelf) return;
-      pickupOp(payload).catch(err => console.error(`${F} | podnoszenie`, err));
+      pickupOp(payload).catch(err => console.error(`${F} | pick up`, err));
     });
   });
   Hooks.on("createChatMessage", msg => {
     const th = msg.flags?.[F]?.test?.throwing;
     if (!th?.id || !isExecutor(msg)) return;
-    inOrder(th.id, () => resolveThrow(msg)).catch(err => console.error(`${F} | rzut przedmiotem`, err));
+    inOrder(th.id, () => resolveThrow(msg)).catch(err => console.error(`${F} | item throw`, err));
   });
   // usunięta karta przedmiotu na ziemi — znika też znacznik z mapy
   Hooks.on("deleteChatMessage", msg => {
@@ -297,6 +298,6 @@ export function registerThrowHooks() {
     game.scenes?.get(g.scene)?.tiles?.get(g.tile)?.delete().catch(() => null);
   });
   Hooks.on("renderChatMessageHTML", (message, html) => {
-    try { decorate(message, html); } catch (err) { console.warn(`${F} | karta rzutu`, err); }
+    try { decorate(message, html); } catch (err) { console.warn(`${F} | throw card`, err); }
   });
 }

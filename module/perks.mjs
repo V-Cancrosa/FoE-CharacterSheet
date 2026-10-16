@@ -9,6 +9,7 @@
 import { ATTRS, SKILLS } from "./data.mjs";
 import { shortFx } from "./effects.mjs";
 import { canLevelUp, canAwardXp } from "./permissions.mjs";
+import { t, N_, tfields } from "./i18n.mjs";
 
 const F = "foe-rpg";
 const { DialogV2 } = foundry.applications.api;
@@ -29,8 +30,8 @@ export function xpProgression() {
 }
 /** Ile PD trzeba mieć na dany poziom (null — bez PD albo poza tabelą). */
 export function xpFor(level, prog = xpProgression()) {
-  const t = XP_TABLES[prog];
-  return t && level >= 1 && level <= t.length ? t[level - 1] : null;
+  const tbl = XP_TABLES[prog];
+  return tbl && level >= 1 && level <= tbl.length ? tbl[level - 1] : null;
 }
 
 // ---------- efekty perków ----------
@@ -46,82 +47,82 @@ const ACC = (t, v, when) => fx("accuracy", t, v, when);
  * choose: { kind: "attr" | "skill" | "attrOf", n, label, value, type, options } — wybór gracza przy dodawaniu.
  * floor: podnosi atrybuty poniżej wartości (No Weaknesses, Almost Perfect).
  */
-export const PERK_FX = {
-  "Canterlot Gourmet": { fx: [AROLL("int,end", 5, "Opór przed uzależnieniem")] },
-  "Clever Prancer": { fx: [fx("critSuccess", "attack", 5)], note: "tylko w lekkim pancerzu, ubraniu albo bez pancerza" },
-  "Daddy’s/Momma’s Filly/Colt": { choose: { kind: "skill", n: 2, value: 5, type: "skillRank", label: "Dwie umiejętności rodzica (+5 do rangi)" } },
+export const PERK_FX = tfields({
+  "Canterlot Gourmet": { fx: [AROLL("int,end", 5, N_("Resisting addiction"))] },
+  "Clever Prancer": { fx: [fx("critSuccess", "attack", 5)], note: "only in light armor, clothing or without armor" },
+  "Daddy’s/Momma’s Filly/Colt": { choose: { kind: "skill", n: 2, value: 5, type: "skillRank", label: "Two of the parent's skills (+5 to rank)" } },
   "Gun Nut": { fx: [RANK("smallGuns,repair", 5)] },
   "High Ho Silver, Away!": { fx: [fx("speed", "all", 5)] },
-  "Hind Leg Stance": { fx: [ROLL("science,repair", 5, "W postawie na tylnych nogach")] },
+  "Hind Leg Stance": { fx: [ROLL("science,repair", 5, N_("In a hind-leg stance"))] },
   "Horse Sense": { fx: [fx("xpPct", "all", 10)] },
-  "Hunter": { fx: [DMG("all", 10, "Przeciw zwierzętom")] },
-  "Intense Training": { choose: { kind: "attr", n: 1, value: 1, type: "attr", label: "Atrybut (+1 na stałe, maks. 10)" } },
+  "Hunter": { fx: [DMG("all", 10, N_("Against animals"))] },
+  "Intense Training": { choose: { kind: "attr", n: 1, value: 1, type: "attr", label: "Attribute (+1 permanently, max. 10)" } },
   "Little Leaguer": { fx: [RANK("explosives,melee", 5)] },
-  "Lunar Courtier": { fx: [AROLL("per", 10, "Percepcja wzrokowa w półmroku")] },
-  "Retention": { fx: [AROLL("int", 10, "Przypominanie faktów")] },
-  "Sleight of Hoof": { fx: [RANK("sneak,lockpick", 5)], rankFx: { 2: [fx("mfdStep", "sneak", 1, "Kradzież kieszonkowa na oczach ofiary")] } },
+  "Lunar Courtier": { fx: [AROLL("per", 10, N_("Visual perception in dim light"))] },
+  "Retention": { fx: [AROLL("int", 10, N_("Recalling facts"))] },
+  "Sleight of Hoof": { fx: [RANK("sneak,lockpick", 5)], rankFx: { 2: [fx("mfdStep", "sneak", 1, N_("Pickpocketing in plain sight of the victim"))] } },
   "Survivalist": { fx: [RANK("survival", 10)] },
   "Egghead": { fx: [fx("skillPoints", "all", 3)] },
-  "Foal at Heart": { fx: [fx("tempAttr", "cha", 2, "Wobec młodszych")] },
-  "A Little Dash": { fx: [fx("speed", "all", 5)], note: "tylko w lekkim pancerzu albo bez pancerza; dotyczy też lotu i skradania" },
-  "Rhyme Time": { fx: [ROLL("all", 5, "Mówiąc rymem (zerwany rym: −3)")] },
-  "Scoundrel": { fx: [RANK("speech,mercantile", 5)], rankFx: { 2: [fx("mfdStep", "sneak", 1, "Kradzież")] } },
+  "Foal at Heart": { fx: [fx("tempAttr", "cha", 2, N_("Toward younger ones"))] },
+  "A Little Dash": { fx: [fx("speed", "all", 5)], note: "only in light armor or without armor; also applies to flight and sneaking" },
+  "Rhyme Time": { fx: [ROLL("all", 5, N_("Speaking in rhyme (broken rhyme: −3)"))] },
+  "Scoundrel": { fx: [RANK("speech,mercantile", 5)], rankFx: { 2: [fx("mfdStep", "sneak", 1, N_("Stealing"))] } },
   "Steel Hooves": { fx: [DMG("unarmed", 5)] },
   "Bloody Mess": { fx: [DMG("all", 3)] },
   "Demolitions Pony": { fx: [DMG("explosives", 5)] },
-  "Gunslinger": { fx: [ACC("smallGuns,energy", 10, "SATS, broń trzymana w pysku")] },
+  "Gunslinger": { fx: [ACC("smallGuns,energy", 10, N_("SATS, mouth-held weapon"))] },
   "The Power of Metal": { fx: [DMG("unarmed", 5)] },
-  "The Professional": { fx: [DMG("smallGuns", 5, "Krytyk z zaskoczenia (pistolety, SMG)")] },
-  "Spell Synergy": { fx: [ACC("magic", 10, "Celowanie zaklęciem w SATS")] },
+  "The Professional": { fx: [DMG("smallGuns", 5, N_("Sneak attack critical (pistols, SMGs)"))] },
+  "Spell Synergy": { fx: [ACC("magic", 10, N_("Aiming a spell in SATS"))] },
   "Tough Hide": { fx: [fx("dt", "all", 3)] },
-  "Wonderbolt Wannabe": { fx: [fx("mfdStep", "flight", 1, "Manewr bez obrażeń")] },
-  "Commando": { fx: [ACC("all", 10, "SATS, broń nie do trzymania w pysku")] },
-  "Cowpony": { fx: [DMG("all", 5, "Dynamit, toporki, noże, rewolwery, broń dźwigniowa")] },
-  "Grunt": { fx: [DMG("all", 5, "Standardowa broń wojskowa Equestrii")] },
-  "Impartial Mediation": { fx: [ROLL("speech", 15, "Karma między −25 a +25")] },
-  "Living Anatomy": { fx: [DMG("all", 3, "Przeciw koniowatym i ghulom")] },
+  "Wonderbolt Wannabe": { fx: [fx("mfdStep", "flight", 1, N_("A maneuver without damage"))] },
+  "Commando": { fx: [ACC("all", 10, N_("SATS, weapon not held in the mouth"))] },
+  "Cowpony": { fx: [DMG("all", 5, N_("Dynamite, hatchets, knives, revolvers, lever-action weapons"))] },
+  "Grunt": { fx: [DMG("all", 5, N_("Standard Equestrian military weapons"))] },
+  "Impartial Mediation": { fx: [ROLL("speech", 15, N_("Karma between −25 and +25"))] },
+  "Living Anatomy": { fx: [DMG("all", 3, N_("Against equines and ghouls"))] },
   "Rad Resistance": { fx: [fx("radResist", "all", 20)] },
-  "Size Matters": { fx: [DMG("all", 5, "Broń ważąca 15 lb lub więcej")] },
-  "Sneering Imperialist": { fx: [DMG("all", 5, "Przeciw plemiennym i rabusiom"), ACC("all", 5, "SATS przeciw plemiennym i rabusiom")] },
-  "The Stare": { fx: [ROLL("speech", 5, "Zastraszanie wzrokiem")] },
+  "Size Matters": { fx: [DMG("all", 5, N_("Weapons weighing 15 lb or more"))] },
+  "Sneering Imperialist": { fx: [DMG("all", 5, N_("Against tribals and raiders")), ACC("all", 5, N_("SATS against tribals and raiders"))] },
+  "The Stare": { fx: [ROLL("speech", 5, N_("Intimidating with a stare"))] },
   "Strong Back": { fx: [fx("carry", "all", 50)] },
-  "Tribal Wisdom": { fx: [AROLL("end", 10, "Opór przed trucizną")] },
-  "Dressed for Success": { fx: [fx("tempAttr", "cha", 1, "Pokojowa rozmowa, w ubraniu albo lekkiej szytej bardzie")] },
-  "MoA Agent": { fx: [ACC("all", 10, "Siodło bojowe, broń o przedziale zasięgu > 50 ft")] },
+  "Tribal Wisdom": { fx: [AROLL("end", 10, N_("Resisting poison"))] },
+  "Dressed for Success": { fx: [fx("tempAttr", "cha", 1, N_("Peaceful conversation, in clothing or light sewn barding"))] },
+  "MoA Agent": { fx: [ACC("all", 10, N_("Battle saddle, weapon with a range increment > 50 ft"))] },
   "Stable Shot": { fx: [fx("critSuccess", "attack", 5)] },
-  "Toss Targeter": { fx: [ACC("explosives,magic", 5, "Rzucanie (granaty, mikstury)")] },
-  "Touched by Luna": { fx: [fx("tempAttr", "int,per", 2, "W nocy")] },
-  "Awareness": { fx: [fx("tempAttr", "per", 2, "W bezruchu, bez bezpośredniego zagrożenia")] },
-  "Ferrier": { fx: [ACC("all", 25, "SATS, strzał w nogi")] },
-  "Pyromaniac": { fx: [DMG("all", 5, "Broń z efektem ognia")] },
-  "Robotics Expert": { fx: [DMG("all", 5, "Przeciw robotom i cyborgom")] },
-  "Sniper Pony": { fx: [ACC("all", 10, "SATS, strzał w głowę")] },
-  "Violent Vigilante": { fx: [DMG("all", 10, "Przeciw gangom i przestępcom"), ACC("all", 5, "SATS przeciw gangom i przestępcom")] },
-  "Center of Mass": { fx: [DMG("all", 5, "Strzał w tułów")] },
-  "Purifier": { fx: [DMG("all", 5, "Przeciw stworzeniom skażenia")] },
+  "Toss Targeter": { fx: [ACC("explosives,magic", 5, N_("Throwing (grenades, potions)"))] },
+  "Touched by Luna": { fx: [fx("tempAttr", "int,per", 2, N_("At night"))] },
+  "Awareness": { fx: [fx("tempAttr", "per", 2, N_("Standing still, with no immediate threat"))] },
+  "Ferrier": { fx: [ACC("all", 25, N_("SATS, a shot to the legs"))] },
+  "Pyromaniac": { fx: [DMG("all", 5, N_("Weapons with a fire effect"))] },
+  "Robotics Expert": { fx: [DMG("all", 5, N_("Against robots and cyborgs"))] },
+  "Sniper Pony": { fx: [ACC("all", 10, N_("SATS, a head shot"))] },
+  "Violent Vigilante": { fx: [DMG("all", 10, N_("Against gangs and criminals")), ACC("all", 5, N_("SATS against gangs and criminals"))] },
+  "Center of Mass": { fx: [DMG("all", 5, N_("A torso shot"))] },
+  "Purifier": { fx: [DMG("all", 5, N_("Against taint creatures"))] },
   "Action Colt/Stallion/Filly/Mare": { fx: [fx("sats", "all", 15)] },
-  "Clockwork Heart": { fx: [ROLL("speech", 10, "Wobec sztucznych inteligencji")] },
-  "D. A. R. E. ing Do": { choose: { kind: "attrOf", n: 1, value: 20, type: "attrRoll", when: "Opór przed uzależnieniem", options: ["end", "int"], label: "Atrybut (+20 do oporu przed uzależnieniem)" } },
-  "Tag!": { choose: { kind: "skill", n: 1, value: 15, type: "skillRank", label: "Czwarta umiejętność tag (+15 do rangi)" } },
-  "Ghoulfriend": { note: "+1d10 obrażeń przeciw ghulom (dolicz ręcznie)" },
+  "Clockwork Heart": { fx: [ROLL("speech", 10, N_("Toward artificial intelligences"))] },
+  "D. A. R. E. ing Do": { choose: { kind: "attrOf", n: 1, value: 20, type: "attrRoll", when: N_("Resisting addiction"), options: ["end", "int"], label: "Attribute (+20 to resisting addiction)" } },
+  "Tag!": { choose: { kind: "skill", n: 1, value: 15, type: "skillRank", label: "A fourth tag skill (+15 to rank)" } },
+  "Ghoulfriend": { note: "+1d10 damage against ghouls (add it manually)" },
   "Ninjapony": { fx: [fx("critSuccess", "melee", 15)] },
-  "The Power of Celestia": { fx: [fx("tempAttr", "str", 2, "W słońcu")] },
+  "The Power of Celestia": { fx: [fx("tempAttr", "str", 2, N_("In sunlight"))] },
   "Laser Commander": { fx: [DMG("energy", 5), fx("critSuccess", "energy", 10)] },
-  "Scent": { fx: [AROLL("per", 5, "Węch, bezwietrznie (z wiatrem +10)")] },
+  "Scent": { fx: [AROLL("per", 5, N_("Smell, no wind (downwind +10)"))] },
   "Karmic Balance": { karma: 0 },
   "Ray of Sunshine": { karma: 500 },
   "Road to Nightmare": { karma: -500 },
   "No Weaknesses": { floor: 5 },
   "Cooler Under Fire": { fx: [fx("satsRegen", "all", 10)] },
-  "Cyberpony": { fx: [fx("dt", "all", 3), fx("fireDt", "all", 10), fx("radResist", "all", 10), AROLL("end", 10, "Opór przed trucizną")] },
+  "Cyberpony": { fx: [fx("dt", "all", 3), fx("fireDt", "all", 10), fx("radResist", "all", 10), AROLL("end", 10, N_("Resisting poison"))] },
   "Adamantium Bone Lacing": { fx: [fx("limbMult", "all", 2)] },
   "Bone Strengthening Brew": { fx: [fx("limbMult", "all", 2)] },
-  "Implant Enhancement": { note: "ulepszenie jednego implantu — ustal z MG i dopisz efekt w implancie (zakładka Cechy)" },
-  "Monster Hunter": { fx: [DMG("all", 10, "Przeciw mutantom większym od alikorna"), AROLL("end", 10, "Opór przed trucizną")] },
-  "Zebra Augmented": { fx: [fx("dt", "all", 3), fx("fireDt", "all", 10), fx("radResist", "all", 10), AROLL("end", 10, "Opór przed trucizną")] },
+  "Implant Enhancement": { note: "an upgrade of one implant — agree with the GM and add the effect in the implant (Traits tab)" },
+  "Monster Hunter": { fx: [DMG("all", 10, N_("Against mutants larger than an alicorn")), AROLL("end", 10, N_("Resisting poison"))] },
+  "Zebra Augmented": { fx: [fx("dt", "all", 3), fx("fireDt", "all", 10), fx("radResist", "all", 10), AROLL("end", 10, N_("Resisting poison"))] },
   "Almost Perfect": { floor: 9 },
   "Burden to Bear": { fx: [fx("carry", "all", 50)] }
-};
+}, ["when", "note", "label"]);
 
 // ---------- wymagania ----------
 const ATTR_ALIASES = { str: "str", strength: "str", per: "per", perception: "per", end: "end", endurance: "end", cha: "cha", charisma: "cha",
@@ -147,9 +148,9 @@ export function reqView(actor, ranks = null) {
 }
 
 function term(raw, num, view) {
-  let t = raw.trim().replace(/^either\s+/i, "").replace(/\.$/, "");
-  const m = t.match(/^(.*?)\s*(<|>|≥)?\s*(\d+)$/);
-  let name = t, op = ">=", n = num;
+  const s = raw.trim().replace(/^either\s+/i, "").replace(/\.$/, "");
+  const m = s.match(/^(.*?)\s*(<|>|≥)?\s*(\d+)$/);
+  let name = s, op = ">=", n = num;
   if (m) { name = m[1].trim(); op = m[2] === "<" ? "<" : ">="; n = Number(m[3]); }
   const key = name.toLowerCase();
   const perk = key.match(/^(.*?)\s+(perk|trait)$/);
@@ -157,7 +158,7 @@ function term(raw, num, view) {
     const has = view.features.some(f => f.startsWith(perk[1]));
     return { ok: has, unknown: false, text: `${name}` };
   }
-  if (n === null || n === undefined) return { ok: false, unknown: true, text: t };
+  if (n === null || n === undefined) return { ok: false, unknown: true, text: s };
   if (ATTR_ALIASES[key]) {
     const v = view.attrs[ATTR_ALIASES[key]] ?? 0;
     return { ok: op === "<" ? v < n : v >= n, unknown: false, text: `${ATTR_SHORT[ATTR_ALIASES[key]]} ${op === "<" ? "<" : ""}${n}` };
@@ -166,7 +167,7 @@ function term(raw, num, view) {
     const k = SKILL_ALIASES[key];
     return { ok: (view.ranks[k] ?? 0) >= n, unknown: false, text: `${SKILLS[k].label.split(" / ").pop()} ${n}` };
   }
-  return { ok: false, unknown: true, text: t };
+  return { ok: false, unknown: true, text: s };
 }
 
 /**
@@ -187,11 +188,11 @@ export function checkRequirements(text, view) {
       const res = pieces.map(p => term(p, num, view));
       if (res.every(r => r.ok)) { any = true; break; }
       if (res.some(r => r.unknown) && !res.some(r => !r.ok && !r.unknown)) unknown = true;
-      failText.push(res.filter(r => !r.ok).map(r => r.text).join(" i "));
+      failText.push(res.filter(r => !r.ok).map(r => r.text).join(` ${t("conj|and")} `));
     }
     if (any) continue;
     if (unknown) out.check.push(clause);
-    else out.missing.push(failText.join(" albo "));
+    else out.missing.push(failText.join(` ${t("conj|or")} `));
   }
   out.status = out.missing.length ? "fail" : out.check.length ? "unknown" : "ok";
   return out;
@@ -214,18 +215,18 @@ export const perkRank = (actor, name) => perkItems(actor, name).length;
 /** Wymagany poziom dla kolejnej rangi (Tough Hide: +4 za każdą). */
 export const perkLevelFor = (e, rank) => e.level + (/^Tough Hide$/.test(e.name) ? 4 * (rank - 1) : 0);
 
-/** Opis automatycznych efektów po polsku (do katalogu i karty). */
+/** Opis automatycznych efektów w języku gracza (do katalogu i karty). */
 const DEFAULT_LABELS = () => ({
   ...ATTR_SHORT, ...Object.fromEntries(Object.entries(SKILLS).map(([k, v]) => [k, v.label.split(" / ").pop()])),
-  all: "wszystko", attack: "ataki", melee: "wręcz", ranged: "dystans"
+  all: t("fx|all"), attack: t("fx|attacks"), melee: t("fx|melee"), ranged: t("fx|ranged")
 });
 export function autoSummary(name, labels = DEFAULT_LABELS()) {
   const d = PERK_FX[name];
   if (!d) return "";
   const parts = (d.fx ?? []).map(e => shortFx(e, labels));
-  if (d.choose) parts.push(`wybór: ${d.choose.label}`);
+  if (d.choose) parts.push(t("choice: {c}", { c: d.choose.label }));
   if (d.karma !== undefined) parts.push(`karma = ${d.karma}`);
-  if (d.floor) parts.push(`atrybuty poniżej ${d.floor} rosną do ${d.floor}`);
+  if (d.floor) parts.push(t("attributes below {n} rise to {n}", { n: d.floor }));
   if (d.note) parts.push(d.note);
   return parts.join(" · ");
 }
@@ -238,7 +239,7 @@ export function perkStatus(actor, e, view = reqView(actor), level = actor.system
   const levelOk = level >= needLevel;
   const maxed = rank >= (e.ranks || 1);
   const status = maxed ? "taken" : !levelOk || req.status === "fail" ? "fail" : req.status;
-  const missing = [...(levelOk ? [] : [`poziom ${needLevel}`]), ...req.missing];
+  const missing = [...(levelOk ? [] : [t("level {n}", { n: needLevel })]), ...req.missing];
   return { status, missing, check: req.check, rank, max: e.ranks || 1, needLevel };
 }
 
@@ -248,11 +249,11 @@ async function promptChoice(actor, e, c) {
   const opts = c.kind === "skill"
     ? Object.entries(SKILLS).filter(([k]) => sys.skills[k]?.known !== false).map(([k, s]) => [k, `${s.label} (${sys.skills[k].rank})`])
     : (c.options ?? Object.keys(ATTRS)).map(k => [k, `${ATTRS[k]} (${sys.attributes[k].base ?? sys.attributes[k].value})`]);
-  const selects = Array.from({ length: c.n }, (_, i) => `<label class="atk-row">${c.n > 1 ? `Wybór ${i + 1}` : "Wybór"} <select name="c${i}">${opts.map(([v, l], j) => `<option value="${v}" ${j === i ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`).join("");
+  const selects = Array.from({ length: c.n }, (_, i) => `<label class="atk-row">${c.n > 1 ? t("Choice {n}", { n: i + 1 }) : t("Choice")} <select name="c${i}">${opts.map(([v, l], j) => `<option value="${v}" ${j === i ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`).join("");
   return DialogV2.wait({
-    window: { title: `${e.name}: wybór` }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 420 }, rejectClose: false,
+    window: { title: t("{name}: choice", { name: e.name }) }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 420 }, rejectClose: false,
     content: `<div class="foe-dialog"><p>${esc(c.label)}</p>${selects}</div>`,
-    buttons: [{ action: "ok", label: "Wybierz", icon: "fa-solid fa-check", default: true,
+    buttons: [{ action: "ok", label: t("Choose"), icon: "fa-solid fa-check", default: true,
       callback: (ev, btn) => [...new Set(Array.from({ length: c.n }, (_, i) => btn.form.elements[`c${i}`].value))] }]
   });
 }
@@ -267,7 +268,7 @@ export function perkItemData(e, rank = 1, effects = null) {
     name: rank > 1 ? `${e.name} (${rank})` : e.name, type: "feature", img: "systems/foe-rpg/icons/perk.svg",
     system: {
       kind: "perk", active: true, effects: fxList,
-      description: `${auto ? `<p><b>Automatycznie:</b> ${esc(auto)}</p>` : ""}<p><b>Wymagania:</b> poziom ${e.level}${e.requires ? `; ${esc(e.requires)}` : ""}</p><p>${esc(e.desc)}</p>`
+      description: `${auto ? `<p><b>${t("Automatically:")}</b> ${esc(auto)}</p>` : ""}<p><b>${t("Requirements:")}</b> ${t("level {n}", { n: e.level })}${e.requires ? `; ${esc(e.requires)}` : ""}</p><p>${esc(e.desc)}</p>`
     },
     flags: { [F]: { perk: { name: e.name, rank } } }
   };
@@ -279,7 +280,7 @@ export function perkItemData(e, rank = 1, effects = null) {
  */
 export async function addPerk(actor, e, { level = actor.system.level, view = null, quiet = false } = {}) {
   const st = perkStatus(actor, e, view ?? reqView(actor), level);
-  if (st.status === "taken") return warn(`${actor.name} ma już ${e.name}${st.max > 1 ? ` (${st.rank}/${st.max})` : ""}.`);
+  if (st.status === "taken") return warn(t("{name} already has {perk}.", { name: actor.name, perk: `${e.name}${st.max > 1 ? ` (${st.rank}/${st.max})` : ""}` }));
   const rank = st.rank + 1;
   const d = PERK_FX[e.name] ?? {};
   let effects = null;
@@ -287,7 +288,7 @@ export async function addPerk(actor, e, { level = actor.system.level, view = nul
     const picked = await promptChoice(actor, e, d.choose);
     if (!picked) return null;
     const c = d.choose;
-    if (c.kind === "attr" && picked.some(k => (actor.system.attributes[k].base ?? 0) >= 10)) ui.notifications.warn(`${e.name}: ten perk nie podnosi atrybutu powyżej 10.`);
+    if (c.kind === "attr" && picked.some(k => (actor.system.attributes[k].base ?? 0) >= 10)) ui.notifications.warn(t("{name}: this perk doesn't raise an attribute above 10.", { name: e.name }));
     effects = [{ type: c.type, target: picked.join(","), value: c.value, when: c.when ?? "" }];
   }
   if (d.floor) {
@@ -298,8 +299,8 @@ export async function addPerk(actor, e, { level = actor.system.level, view = nul
   const [item] = await actor.createEmbeddedDocuments("Item", [data]);
   if (d.karma !== undefined) await actor.update({ "system.karma": d.karma });
   if (!quiet) {
-    const w = [...st.missing, ...st.check.map(c => `sprawdź: ${c}`)];
-    ui.notifications[st.status === "ok" ? "info" : "warn"](`${actor.name}: dodano perk ${data.name}${w.length ? ` (uwaga: ${w.join("; ")})` : ""}.`);
+    const w = [...st.missing, ...st.check.map(c => t("check: {c}", { c }))];
+    ui.notifications[st.status === "ok" ? "info" : "warn"](w.length ? t("{name}: perk {perk} added (note: {w}).", { name: actor.name, perk: data.name, w: w.join("; ") }) : t("{name}: perk {perk} added.", { name: actor.name, perk: data.name }));
   }
   return item;
 }
@@ -310,10 +311,10 @@ export function skillPointsPerLevel(actor) {
   const sys = actor.system;
   const has = re => actor.items.some(i => i.type === "feature" && i.system?.active !== false && re.test(i.name));
   const parts = [["10 + INT/2", 10 + Math.floor(sys.attributes.int.total / 2)]];
-  if (sys.fx?.skillPoints) parts.push(["perki", sys.fx.skillPoints]);
+  if (sys.fx?.skillPoints) parts.push([t("perks"), sys.fx.skillPoints]);
   if (/ziemsk|earth/i.test(sys.race ?? "")) parts.push(["Earth Pony Dedication", 1]);
   if (has(/touched by the sun/i)) parts.push(["Touched by the Sun", -1]);
-  return { total: Math.max(0, parts.reduce((t, [, v]) => t + v, 0)), parts };
+  return { total: Math.max(0, parts.reduce((sum, [, v]) => sum + v, 0)), parts };
 }
 
 const STATUS_MARK = { ok: "✓", unknown: "?", fail: "✗" };
@@ -323,12 +324,12 @@ export async function levelUp(actor) {
   const can = canLevelUp(actor);
   if (!can.ok) return warn(can.why);
   const sys = actor.system;
-  if (sys.level >= MAX_LEVEL) return warn(`${actor.name}: osiągnięto maksymalny poziom ${MAX_LEVEL}.`);
+  if (sys.level >= MAX_LEVEL) return warn(t("{name}: the maximum level {n} has been reached.", { name: actor.name, n: MAX_LEVEL }));
   const newLevel = sys.level + 1;
   const loophole = actor.items.some(i => i.type === "feature" && /eternity.s loophole/i.test(i.name)) && newLevel > 20;
   const pts = loophole ? { total: 0, parts: [["Eternity’s Loophole", 0]] } : skillPointsPerLevel(actor);
   let perks = [];
-  try { perks = await loadPerks(); } catch { ui.notifications.warn("Nie udało się wczytać listy perków — awans bez wyboru perka."); }
+  try { perks = await loadPerks(); } catch { ui.notifications.warn(t("Couldn't load the perk list — level-up without choosing a perk.")); }
   const known = Object.entries(SKILLS).filter(([k]) => sys.skills[k]?.known !== false);
   const baseRanks = Object.fromEntries(known.map(([k]) => [k, sys.skills[k].rank]));
   const xpNext = xpFor(newLevel);
@@ -338,18 +339,18 @@ export async function levelUp(actor) {
   const perkOpts = perks.filter(e => e.level <= newLevel).sort((a, b) => b.level - a.level || a.name.localeCompare(b.name));
   const content = `
     <div class="foe-dialog lvl-up">
-      <div class="lvl-head">Poziom <b>${sys.level}</b> → <b>${newLevel}</b>${xpNext !== null ? ` <small>(PD ${sys.xp}/${xpNext})</small>` : ""}</div>
-      <div class="lvl-pts">Punkty umiejętności: <b class="left">${pts.total}</b> z ${pts.total} <small>(${pts.parts.map(([l, v]) => `${l}: ${v}`).join(", ")})</small></div>
-      <div class="lvl-scroll"><table class="foe-table lvl-skills"><thead><tr><th class="l">Umiejętność</th><th>Ranga</th><th>+</th><th>Nowa</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="lvl-head">${t("Level {a} → {b}", { a: `<b>${sys.level}</b>`, b: `<b>${newLevel}</b>` })}${xpNext !== null ? ` <small>(${t("XP {v}/{max}", { v: sys.xp, max: xpNext })})</small>` : ""}</div>
+      <div class="lvl-pts">${t("Skill points: {left} of {n}", { left: `<b class="left">${pts.total}</b>`, n: pts.total })} <small>(${pts.parts.map(([l, v]) => `${l}: ${v}`).join(", ")})</small></div>
+      <div class="lvl-scroll"><table class="foe-table lvl-skills"><thead><tr><th class="l">${t("Skill")}</th><th>${t("Rank")}</th><th>+</th><th>${t("New")}</th></tr></thead><tbody>${rows}</tbody></table></div>
       <label class="atk-row">Perk <select name="perk">
-        <option value="">— bez perka (np. zaklęcie, receptura albo wybiorę później) —</option>
-        ${loophole ? "" : perkOpts.map(e => `<option value="${esc(e.name)}" data-i="${perks.indexOf(e)}">${esc(e.name)} (poz. ${e.level})</option>`).join("")}
+        <option value="">${t("— no perk (e.g. a spell, a recipe, or I'll choose later) —")}</option>
+        ${loophole ? "" : perkOpts.map(e => `<option value="${esc(e.name)}" data-i="${perks.indexOf(e)}">${esc(e.name)} ${t("(lvl {n})", { n: e.level })}</option>`).join("")}
       </select></label>
       <div class="lvl-perk"></div>
       <ul class="lvl-notes">
-        ${newLevel % 3 === 0 ? "<li>+1 obrażeń na ranę (co 3 poziomy) — liczy się samo.</li>" : ""}
-        ${loophole ? "<li>Eternity’s Loophole: po 20. poziomie bez perków i punktów umiejętności.</li>" : ""}
-        <li>Niewydane punkty przepadają. Ranga nie przekracza 100.</li>
+        ${newLevel % 3 === 0 ? `<li>${t("+1 damage per wound (every 3 levels) — counted automatically.")}</li>` : ""}
+        ${loophole ? `<li>${t("Eternity’s Loophole: after level 20 no perks and no skill points.")}</li>` : ""}
+        <li>${t("Unspent points are lost. A rank doesn't exceed 100.")}</li>
       </ul>
     </div>`;
 
@@ -358,7 +359,7 @@ export async function levelUp(actor) {
     for (const [k] of known) r[k] = Math.min(100, baseRanks[k] + Math.max(0, Number(form.elements[`sk-${k}`]?.value) || 0));
     return r;
   };
-  const spent = form => known.reduce((t, [k]) => t + Math.max(0, Number(form.elements[`sk-${k}`]?.value) || 0), 0);
+  const spent = form => known.reduce((sum, [k]) => sum + Math.max(0, Number(form.elements[`sk-${k}`]?.value) || 0), 0);
   const render = (event, dialog) => {
     const root = dialog?.element ?? event?.target?.element ?? document.querySelector(".lvl-up")?.closest(".application");
     const form = root?.querySelector("form") ?? root;
@@ -375,7 +376,7 @@ export async function levelUp(actor) {
       for (const o of form.querySelectorAll("select[name=perk] option[data-i]")) {
         const e = perks[Number(o.dataset.i)];
         const st = perkStatus(actor, e, view, newLevel);
-        o.textContent = `${st.status === "taken" ? "■" : STATUS_MARK[st.status]} ${e.name} (poz. ${st.needLevel})${st.max > 1 ? ` [${st.rank}/${st.max}]` : ""}${st.missing.length ? ` — brak: ${st.missing.join(", ")}` : ""}`;
+        o.textContent = `${st.status === "taken" ? "■" : STATUS_MARK[st.status]} ${e.name} ${t("(lvl {n})", { n: st.needLevel })}${st.max > 1 ? ` [${st.rank}/${st.max}]` : ""}${st.missing.length ? ` — ${t("missing: {list}", { list: st.missing.join(", ") })}` : ""}`;
         o.disabled = st.status === "taken";
       }
       const sel = form.elements.perk.selectedOptions[0];
@@ -384,8 +385,8 @@ export async function levelUp(actor) {
         const e = perks[Number(sel.dataset.i)];
         const st = perkStatus(actor, e, view, newLevel);
         const auto = autoSummary(e.name);
-        box.innerHTML = `<div><b>Wymagania:</b> ${e.requires ? esc(e.requires) : "brak"}${st.check.length ? ` <span class="warn">(sprawdź: ${esc(st.check.join("; "))})</span>` : ""}</div>
-          ${auto ? `<div><b>Automatycznie:</b> ${esc(auto)}</div>` : ""}<div class="desc">${esc(e.desc)}</div>`;
+        box.innerHTML = `<div><b>${t("Requirements:")}</b> ${e.requires ? esc(e.requires) : t("none")}${st.check.length ? ` <span class="warn">(${t("check: {c}", { c: esc(st.check.join("; ")) })})</span>` : ""}</div>
+          ${auto ? `<div><b>${t("Automatically:")}</b> ${esc(auto)}</div>` : ""}<div class="desc">${esc(e.desc)}</div>`;
       } else box.innerHTML = "";
       const btn = root.querySelector("[data-action=up]");
       if (btn) btn.disabled = left < 0;
@@ -396,9 +397,9 @@ export async function levelUp(actor) {
   };
 
   const result = await DialogV2.wait({
-    window: { title: `Awans: ${actor.name}` }, classes: ["foe-rpg", "foe-roll-dialog", "foe-levelup"], position: { width: 560 },
+    window: { title: t("Level up: {name}", { name: actor.name }) }, classes: ["foe-rpg", "foe-roll-dialog", "foe-levelup"], position: { width: 560 },
     content, render, rejectClose: false,
-    buttons: [{ action: "up", label: `Awansuj na poziom ${newLevel}`, icon: "fa-solid fa-arrow-up", default: true,
+    buttons: [{ action: "up", label: t("Level up to {n}", { n: newLevel }), icon: "fa-solid fa-arrow-up", default: true,
       callback: (ev, btn) => {
         const f = btn.form;
         const alloc = {};
@@ -407,7 +408,7 @@ export async function levelUp(actor) {
       } }]
   });
   if (!result) return null;
-  if (result.left < 0) return warn("Rozdano więcej punktów, niż przysługuje — awans anulowany.");
+  if (result.left < 0) return warn(t("More points were assigned than available — level-up cancelled."));
 
   const update = { "system.level": newLevel };
   for (const [k, v] of Object.entries(result.alloc)) update[`system.skills.${k}.points`] = (sys.skills[k].points || 0) + v;
@@ -423,17 +424,17 @@ export async function levelUp(actor) {
   const log = [...(actor.getFlag(F, "levelLog") ?? []), { level: newLevel, alloc: result.alloc, perkId: perkItem?.id ?? null, perk: perkItem?.name ?? null }];
   await actor.setFlag(F, "levelLog", log);
 
-  const flightNote = sys.flier && Math.floor((result.ranks.flight ?? 0) / 10) > Math.floor((baseRanks.flight ?? 0) / 10) ? "Nowy manewr lotu do wyboru (ranga Flight / 10)." : "";
+  const flightNote = sys.flier && Math.floor((result.ranks.flight ?? 0) / 10) > Math.floor((baseRanks.flight ?? 0) / 10) ? t("A new flight maneuver to choose (Flight rank / 10).") : "";
   const lines = Object.entries(result.alloc).map(([k, v]) => `${SKILLS[k].label.split(" / ").pop()} +${v} → ${actor.system.skills[k].rank}`);
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content: `
     <div class="foe-card spell success">
-      <div class="fc-tag"><span>PIPBUCK // AWANS</span><span>poziom ${newLevel}</span></div>
+      <div class="fc-tag"><span>PIPBUCK // ${t("LEVEL UP")}</span><span>${t("level {n}", { n: newLevel })}</span></div>
       <h3>${esc(actor.name)}</h3>
-      <div class="fc-calc">Poziom ${newLevel}</div>
-      <div class="fc-meta">${lines.length ? esc(lines.join(" · ")) : "Bez nowych punktów umiejętności."}${result.left > 0 ? ` <span class="warn">(przepadło ${result.left})</span>` : ""}</div>
-      <div class="fc-meta">Perk: <b>${perkItem ? esc(perkItem.name) : "—"}</b>${newLevel % 3 === 0 ? " · +1 obrażeń na ranę" : ""}</div>
+      <div class="fc-calc">${t("Level {n}", { n: newLevel })}</div>
+      <div class="fc-meta">${lines.length ? esc(lines.join(" · ")) : t("No new skill points.")}${result.left > 0 ? ` <span class="warn">${t("({n} lost)", { n: result.left })}</span>` : ""}</div>
+      <div class="fc-meta">Perk: <b>${perkItem ? esc(perkItem.name) : "—"}</b>${newLevel % 3 === 0 ? ` · ${t("+1 damage per wound")}` : ""}</div>
       ${flightNote ? `<div class="fc-meta">${flightNote}</div>` : ""}
     </div>`
   });
@@ -441,13 +442,13 @@ export async function levelUp(actor) {
 
 /** Cofa ostatni awans zapisany w dzienniku (punkty, perk, poziom). */
 export async function undoLevelUp(actor) {
-  if (!canAwardXp()) return warn("Cofnąć awans może tylko MG.");
+  if (!canAwardXp()) return warn(t("Only the GM can undo a level-up."));
   const log = [...(actor.getFlag(F, "levelLog") ?? [])];
   const last = log.pop();
-  if (!last) return warn("Brak zapisanych awansów do cofnięcia.");
+  if (!last) return warn(t("No recorded level-ups to undo."));
   const ok = await DialogV2.confirm({
-    window: { title: "Cofnij awans" },
-    content: `<p>Cofnąć awans na poziom <b>${last.level}</b>${last.perk ? ` (perk <b>${esc(last.perk)}</b>)` : ""} i zabrać rozdane punkty umiejętności?</p>`
+    window: { title: t("Undo level-up") },
+    content: `<p>${last.perk ? t("Undo the level-up to level {n} (perk {perk}) and take back the assigned skill points?", { n: `<b>${last.level}</b>`, perk: `<b>${esc(last.perk)}</b>` }) : t("Undo the level-up to level {n} and take back the assigned skill points?", { n: `<b>${last.level}</b>` })}</p>`
   });
   if (!ok) return null;
   const sys = actor.system;
@@ -456,29 +457,29 @@ export async function undoLevelUp(actor) {
   await actor.update(update, { foeAdvance: true });
   if (last.perkId && actor.items.get(last.perkId)) await actor.deleteEmbeddedDocuments("Item", [last.perkId]);
   await actor.setFlag(F, "levelLog", log);
-  ui.notifications.info(`${actor.name}: cofnięto awans na poziom ${last.level}.`);
+  ui.notifications.info(t("{name}: level-up to level {n} undone.", { name: actor.name, n: last.level }));
   return true;
 }
 
 /** Przyznaje PD (z premią Horse Sense) i informuje, gdy postać może awansować. */
 export async function awardXp(actor, amount) {
-  if (!canAwardXp()) return warn("PD przyznaje MG.");
+  if (!canAwardXp()) return warn(t("The GM awards XP."));
   const pct = actor.system.fx?.xpPct ?? 0;
   const gain = Math.floor(amount * (100 + pct) / 100);
   const xp = Math.max(0, (actor.system.xp || 0) + gain);
   await actor.update({ "system.xp": xp }, { foeAdvance: true });
   const next = xpFor(actor.system.level + 1);
   const ready = next !== null && xp >= next;
-  ui.notifications.info(`${actor.name}: +${gain} PD${pct ? ` (w tym ${pct}% z perków)` : ""} → ${xp}${ready ? " — można awansować!" : "."}`);
+  ui.notifications.info(`${t("{name}: +{n} XP", { name: actor.name, n: gain })}${pct ? ` ${t("(including {p}% from perks)", { p: pct })}` : ""} → ${xp}${ready ? ` — ${t("ready to level up!")}` : "."}`);
   return gain;
 }
 
 export async function promptAwardXp(actor) {
-  if (!canAwardXp()) return warn("PD przyznaje MG.");
+  if (!canAwardXp()) return warn(t("The GM awards XP."));
   const n = await DialogV2.wait({
-    window: { title: `Doświadczenie: ${actor.name}` }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 360 }, rejectClose: false,
-    content: `<div class="foe-dialog"><label class="atk-row">Ile PD dodać (ujemne odejmują) <input type="number" name="xp" value="100" step="10" autofocus></label></div>`,
-    buttons: [{ action: "ok", label: "Dodaj PD", icon: "fa-solid fa-star", default: true, callback: (ev, btn) => Number(btn.form.elements.xp.value) || 0 }]
+    window: { title: t("Experience: {name}", { name: actor.name }) }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 360 }, rejectClose: false,
+    content: `<div class="foe-dialog"><label class="atk-row">${t("How much XP to add (negative subtracts)")} <input type="number" name="xp" value="100" step="10" autofocus></label></div>`,
+    buttons: [{ action: "ok", label: t("Add XP"), icon: "fa-solid fa-star", default: true, callback: (ev, btn) => Number(btn.form.elements.xp.value) || 0 }]
   });
   if (!n) return null;
   return awardXp(actor, n);
@@ -486,10 +487,10 @@ export async function promptAwardXp(actor) {
 
 export function registerPerkSettings() {
   game.settings.register(F, "xpProgression", {
-    name: "Tempo awansu (PD)",
-    hint: "Tabela XII: wolna albo szybka progresja doświadczenia. „Bez PD” — MG daje awanse ręcznie (np. po sesji).",
+    name: "Advancement pace (XP)",
+    hint: "Table XII: slow or fast experience progression. “No XP” — the GM grants level-ups manually (e.g. after a session).",
     scope: "world", config: true, type: String, default: "slow",
-    choices: { slow: "Wolna (1000, 3000, 6000…)", fast: "Szybka (200, 550, 1050…)", none: "Bez PD — awans z decyzji MG" },
+    choices: { slow: "Slow (1000, 3000, 6000…)", fast: "Fast (200, 550, 1050…)", none: "No XP — level-ups by GM decision" },
     onChange: () => { for (const app of foundry.applications.instances.values()) if (app.document?.documentName === "Actor") app.render(); }
   });
 }

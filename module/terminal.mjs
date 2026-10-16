@@ -16,6 +16,7 @@ import {
 import { gridOf, rectOf, tokenOf as tokenDocOf } from "./give.mjs";
 import { isAdjacent, tokenDistance } from "./trade-data.mjs";
 import { powerState } from "./cyber-data.mjs";
+import { t } from "./i18n.mjs";
 
 const F = "foe-rpg";
 const SOCKET = `system.${F}`;
@@ -35,18 +36,18 @@ export const bootAnimOn = () => { try { return game.settings.get(F, "terminalBoo
 
 export function registerTerminalSettings() {
   game.settings.register(F, "terminalMinigame", {
-    name: "Terminale: minigra hakowania (zasada domowa)",
-    hint: "Zamiast rzutu Science gracz zgaduje hasło ze zrzutu pamięci jak w grach Fallout: 4 próby, podobieństwo liter, a Science daje podpowiedzi (usunięcie atrapy). Wyczerpanie prób blokuje terminal jak krytyczna porażka.",
+    name: "Terminals: hacking minigame (house rule)",
+    hint: "Instead of a Science roll the player guesses the password from a memory dump like in the Fallout games: 4 attempts, letter likeness, and Science gives hints (removing a dud). Running out of attempts locks the terminal like a critical failure.",
     scope: "world", config: true, type: Boolean, default: false
   });
   game.settings.register(F, "terminalReach", {
-    name: "Terminale: obsługa tylko z bliska",
-    hint: "Gracz korzysta z terminala tylko, gdy token jego postaci stoi obok tokenu terminala (jak przy wymianie). Dalej — z kablem Cabling, Universal (10 ft), implantem Console Matrix Remote Control Talisman (20 ft) albo Wire, Spark (25 ft). Terminal bez tokenu na oglądanej scenie działa jak dotąd.",
+    name: "Terminals: use only up close",
+    hint: "A player can use a terminal only while their character's token stands next to the terminal's token (as for trading). From further away — with a Cabling, Universal cable (10 ft), a Console Matrix Remote Control Talisman implant (20 ft) or Wire, Spark (25 ft). A terminal without a token on the viewed scene works as before.",
     scope: "world", config: true, type: Boolean, default: true
   });
   game.settings.register(F, "terminalBootAnim", {
-    name: "Terminale: animacja uruchamiania",
-    hint: "Krótka animacja ASCII (tekst startowy i pasek ładowania), gdy terminal się włącza. Kliknięcie ją pomija.",
+    name: "Terminals: boot animation",
+    hint: "A short ASCII animation (boot text and a loading bar) when a terminal turns on. A click skips it.",
     scope: "client", config: true, type: Boolean, default: true
   });
 }
@@ -61,9 +62,9 @@ export function terminalReach(actor, terminal) {
   const scene = canvas?.ready ? canvas.scene : null;
   const terms = scene && terminal ? (terminal.isToken ? [terminal.token].filter(t => t?.parent?.id === scene.id) : (terminal.getActiveTokens?.(false, true) ?? [])) : [];
   if (!terms.length) return { ok: true };
-  if (!actor) return { ok: false, why: "zaznacz swój token" };
+  if (!actor) return { ok: false, why: t("select your token") };
   const me = tokenDocOf(actor);
-  if (!me) return { ok: false, why: `${actor.name} nie ma tokena na tej scenie` };
+  if (!me) return { ok: false, why: t("{name} has no token on this scene", { name: actor.name }) };
   const grid = gridOf(scene);
   const mine = rectOf(me, grid.size);
   let dist = Infinity, adjacent = false;
@@ -75,14 +76,14 @@ export function terminalReach(actor, terminal) {
   if (adjacent) return { ok: true, dist };
   const rem = remoteReach(actor, { powered: powerState(actor).powered });
   if (rem.ft && dist <= rem.ft) return { ok: true, dist, via: rem.label };
-  return { ok: false, dist, why: `za daleko (${dist} ft) — podejdź do terminala${rem.ft ? ` albo na ${rem.ft} ft (${rem.label})` : ""}` };
+  return { ok: false, dist, why: `${t("too far ({dist} ft) — walk up to the terminal", { dist })}${rem.ft ? ` ${t("or to {ft} ft ({label})", { ft: rem.ft, label: rem.label })}` : ""}` };
 }
 
 /** Ostrzeżenie, gdy postać gracza nie sięga terminala; zwraca true, gdy może działać. */
 function inReach(terminal, actor = userActor()) {
   const r = terminalReach(actor, terminal);
   if (r.ok) return true;
-  ui.notifications.warn(`${actor?.name ?? "Postać"}: ${r.why}.`);
+  ui.notifications.warn(`${actor?.name ?? t("Character")}: ${r.why}.`);
   return false;
 }
 
@@ -95,7 +96,7 @@ export async function request(terminal, op, data = {}) {
   const payload = { kind: "terminal", op, uuid: terminal.uuid, data, user: game.user.id };
   if (game.user.isGM) return applyOp(payload);
   if (!inReach(terminal)) return null;
-  if (!game.users.activeGM) return warn("Terminal działa tylko, gdy MG jest zalogowany.");
+  if (!game.users.activeGM) return warn(t("The terminal works only while the GM is logged in."));
   game.socket.emit(SOCKET, payload);
   return true;
 }
@@ -132,8 +133,8 @@ export function registerTerminalHooks() {
 async function applyOp({ op, uuid, data, user }) {
   const terminal = await fromUuid(uuid);
   if (!terminal || terminal.type !== "terminal") return;
-  const t = terminal.system;
-  const st = t.state;
+  const ts = terminal.system;
+  const st = ts.state;
   const who = esc(data.who ?? game.users.get(user)?.name ?? "?");
   const upd = {};
   let log = [...(st.log ?? [])];
@@ -141,56 +142,56 @@ async function applyOp({ op, uuid, data, user }) {
 
   switch (op) {
     case "boot": {
-      if (t.trap.armed) {
+      if (ts.trap.armed) {
         upd["system.trap.armed"] = false;
         upd["system.state.booted"] = true;
         upd["system.powered"] = false;
-        say(`> ${who}: włączanie…`, "> !!! BŁĄD ZASILANIA — ŁADUNEK !!!");
+        say(t("> {who}: booting…", { who }), t("> !!! POWER FAULT — CHARGE !!!"));
         await explode(terminal, data.token);
       } else {
         upd["system.state.booted"] = true;
-        say(`> ${who}: uruchomiono terminal`);
+        say(t("> {who}: terminal started", { who }));
       }
       break;
     }
     case "trap": {
       // wynik oględzin / rozbrajania
       if (data.step === "inspect") {
-        if (data.result === "crit-fail" && t.trap.armed) { upd["system.trap.armed"] = false; upd["system.state.booted"] = true; upd["system.powered"] = false; await explode(terminal, data.token); say(`> ${who}: obudowa poruszona — WYBUCH`); }
-        else if (["success", "crit-success"].includes(data.result)) { upd["system.state.trapFound"] = true; if (!t.trap.armed) say(`> ${who}: obudowa czysta — brak ładunku`); }
+        if (data.result === "crit-fail" && ts.trap.armed) { upd["system.trap.armed"] = false; upd["system.state.booted"] = true; upd["system.powered"] = false; await explode(terminal, data.token); say(t("> {who}: casing disturbed — EXPLOSION", { who })); }
+        else if (["success", "crit-success"].includes(data.result)) { upd["system.state.trapFound"] = true; if (!ts.trap.armed) say(t("> {who}: casing clean — no charge", { who })); }
       } else if (data.step === "disarm") {
-        if (["success", "crit-success"].includes(data.result)) { upd["system.trap.armed"] = false; say(`> ${who}: ładunek rozbrojony`); }
-        else if (data.result === "crit-fail") { upd["system.trap.armed"] = false; upd["system.state.booted"] = true; upd["system.powered"] = false; await explode(terminal, data.token); say(`> ${who}: rozbrajanie nieudane — WYBUCH`); }
+        if (["success", "crit-success"].includes(data.result)) { upd["system.trap.armed"] = false; say(t("> {who}: charge disarmed", { who })); }
+        else if (data.result === "crit-fail") { upd["system.trap.armed"] = false; upd["system.state.booted"] = true; upd["system.powered"] = false; await explode(terminal, data.token); say(t("> {who}: disarming failed — EXPLOSION", { who })); }
       }
       break;
     }
     case "login": {
       if ((st.lockouts ?? 0) >= 2) break;
-      const lvl = loginOutcome(t, data.password);
-      if (lvl) { upd["system.state.access"] = lvl; say(`> LOGON ${who}`, lvl === "admin" ? "> DOSTĘP ADMINISTRATORA" : "> DOSTĘP PRZYZNANY"); }
-      else say(`> LOGON ${who}`, "> BŁĘDNE HASŁO");
+      const lvl = loginOutcome(ts, data.password);
+      if (lvl) { upd["system.state.access"] = lvl; say(`> LOGON ${who}`, lvl === "admin" ? t("> ADMINISTRATOR ACCESS") : t("> ACCESS GRANTED")); }
+      else say(`> LOGON ${who}`, t("> WRONG PASSWORD"));
       break;
     }
     case "hack": {
-      const out = hackOutcome(data.result, { kind: t.kind, tech: !!data.tech });
+      const out = hackOutcome(data.result, { kind: ts.kind, tech: !!data.tech });
       if (out.lockout) {
         upd["system.state.lockouts"] = (st.lockouts ?? 0) + 1;
         upd["system.state.game"] = null;
-        say(`> ${who}: włamanie — KRYTYCZNY BŁĄD`, (st.lockouts ?? 0) + 1 >= 2 ? "> TERMINAL ZABLOKOWANY NA STAŁE" : "> TERMINAL ZABLOKOWANY");
+        say(t("> {who}: hack — CRITICAL ERROR", { who }), (st.lockouts ?? 0) + 1 >= 2 ? t("> TERMINAL LOCKED FOR GOOD") : t("> TERMINAL LOCKED"));
       } else if (out.access) {
         if ((({ none: 0, user: 1, admin: 2 })[st.access] ?? 0) < (out.access === "admin" ? 2 : 1)) upd["system.state.access"] = out.access;
         upd["system.state.game"] = null;
-        say(`> ${who}: włamanie udane`, out.access === "admin" ? "> DOSTĘP ADMINISTRATORA" : "> DOSTĘP PRZYZNANY");
-      } else say(`> ${who}: włamanie nieudane`);
+        say(t("> {who}: hack successful", { who }), out.access === "admin" ? t("> ADMINISTRATOR ACCESS") : t("> ACCESS GRANTED"));
+      } else say(t("> {who}: hack failed", { who }));
       break;
     }
     case "startGame": {
       if (st.game?.words?.length) break;
-      const g = newGame(await words(), t.security, { scienceRank: data.rank ?? 0, seed: Math.floor(Math.random() * 2 ** 31) });
+      const g = newGame(await words(), ts.security, { scienceRank: data.rank ?? 0, seed: Math.floor(Math.random() * 2 ** 31) });
       if (!g) break;
       g.tech = !!data.tech;
       upd["system.state.game"] = g;
-      say(`> ${who}: ładowanie zrzutu pamięci…`, `> PRÓBY: ${g.tries} · PODPOWIEDZI: ${g.hints}`);
+      say(t("> {who}: loading memory dump…", { who }), t("> ATTEMPTS: {tries} · HINTS: {hints}", { tries: g.tries, hints: g.hints }));
       break;
     }
     case "guess": {
@@ -200,16 +201,16 @@ async function applyOp({ op, uuid, data, user }) {
       say(`> ${String(data.word).toUpperCase()}`);
       if (r.correct) {
         upd["system.state.game"] = null;
-        const lvl = t.kind === "stabletec" && (g.tech || data.tech) ? "admin" : "user";
+        const lvl = ts.kind === "stabletec" && (g.tech || data.tech) ? "admin" : "user";
         if ((({ none: 0, user: 1, admin: 2 })[st.access] ?? 0) < (lvl === "admin" ? 2 : 1)) upd["system.state.access"] = lvl;
-        say("> HASŁO PRZYJĘTE", lvl === "admin" ? "> DOSTĘP ADMINISTRATORA" : "> DOSTĘP PRZYZNANY");
+        say(t("> PASSWORD ACCEPTED"), lvl === "admin" ? t("> ADMINISTRATOR ACCESS") : t("> ACCESS GRANTED"));
       } else if (r.lockout) {
         upd["system.state.game"] = null;
         upd["system.state.lockouts"] = (st.lockouts ?? 0) + 1;
-        say("> ODMOWA DOSTĘPU", `> PODOBIEŃSTWO=${r.likeness}`, (st.lockouts ?? 0) + 1 >= 2 ? "> TERMINAL ZABLOKOWANY NA STAŁE" : "> TERMINAL ZABLOKOWANY");
+        say(t("> ACCESS DENIED"), t("> LIKENESS={n}", { n: r.likeness }), (st.lockouts ?? 0) + 1 >= 2 ? t("> TERMINAL LOCKED FOR GOOD") : t("> TERMINAL LOCKED"));
       } else {
         upd["system.state.game"] = { ...g, tries: r.tries, removed: [...(g.removed ?? []), String(data.word).toUpperCase()] };
-        say("> ODMOWA DOSTĘPU", `> PODOBIEŃSTWO=${r.likeness}`);
+        say(t("> ACCESS DENIED"), t("> LIKENESS={n}", { n: r.likeness }));
       }
       break;
     }
@@ -219,34 +220,34 @@ async function applyOp({ op, uuid, data, user }) {
       const dud = pickDud(g);
       if (!dud) break;
       upd["system.state.game"] = { ...g, hints: g.hints - 1, removed: [...(g.removed ?? []), dud] };
-      say("> ATRAPA USUNIĘTA");
+      say(t("> DUD REMOVED"));
       break;
     }
     case "analyze": {
       const g = st.game;
       if (!g?.words?.length || g.analyzed) break;
       const out = analyzeOutcome(g, data.result);
-      say(`> ${who}: analiza zrzutu (Science)`, ...out.lines);
+      say(t("> {who}: dump analysis (Science)", { who }), ...out.lines);
       if (out.lockout) {
         upd["system.state.game"] = null;
         upd["system.state.lockouts"] = (st.lockouts ?? 0) + 1;
-        say((st.lockouts ?? 0) + 1 >= 2 ? "> TERMINAL ZABLOKOWANY NA STAŁE" : "> TERMINAL ZABLOKOWANY");
+        say((st.lockouts ?? 0) + 1 >= 2 ? t("> TERMINAL LOCKED FOR GOOD") : t("> TERMINAL LOCKED"));
       } else upd["system.state.game"] = out.game;
       break;
     }
     case "abortGame": {
       upd["system.state.game"] = null;
-      say(`> ${who}: przerwano`);
+      say(t("> {who}: aborted", { who }));
       break;
     }
     case "logout": {
       upd["system.state.access"] = "none";
-      say(`> ${who}: wylogowano`);
+      say(t("> {who}: logged out", { who }));
       break;
     }
     case "command": {
-      const c = t.commands.find(x => x.id === data.id);
-      if (!c || !canSee(c.access, effectiveState(t))) break;
+      const c = ts.commands.find(x => x.id === data.id);
+      if (!c || !canSee(c.access, effectiveState(ts))) break;
       say(`> ${who}: ${String(c.label).toUpperCase()}`, ...(await runCommand(terminal, c)));
       break;
     }
@@ -268,9 +269,9 @@ async function runCommand(terminal, c) {
   if (c.kind === "message") {
     await ChatMessage.create({
       speaker: { alias: terminal.name },
-      content: `<div class="foe-card spell"><div class="fc-tag"><span>TERMINAL // ${esc(terminal.name)}</span><span>komunikat</span></div><h3>${esc(c.label)}</h3>${c.text ? `<div class="fc-meta">${esc(c.text)}</div>` : ""}</div>`
+      content: `<div class="foe-card spell"><div class="fc-tag"><span>TERMINAL // ${esc(terminal.name)}</span><span>${t("message")}</span></div><h3>${esc(c.label)}</h3>${c.text ? `<div class="fc-meta">${esc(c.text)}</div>` : ""}</div>`
     });
-    return ["> WYSŁANO"];
+    return [t("> SENT")];
   }
   let ok = 0;
   for (const u of c.targets ?? []) {
@@ -288,7 +289,7 @@ async function runCommand(terminal, c) {
       ok++;
     }
   }
-  out.push(ok ? `> WYKONANO (${ok})` : "> BRAK POŁĄCZENIA Z URZĄDZENIEM");
+  out.push(ok ? t("> DONE ({n})", { n: ok }) : t("> NO CONNECTION TO THE DEVICE"));
   return out;
 }
 
@@ -301,14 +302,14 @@ async function explode(terminal, tokenUuid) {
     rolls: [roll],
     content: `
     <div class="foe-card damage">
-      <div class="fc-tag"><span>PIPBUCK // PUŁAPKA</span><span>${esc(ex.formula)}</span></div>
-      <h3>${esc(terminal.name)}: terminal-pułapka</h3>
-      <div class="fc-main"><div class="fc-roll">${roll.total}<small>OBR.</small></div><div class="fc-outcome">Wybuch</div><div class="fc-sum">${esc(roll.formula)}</div></div>
-      <div class="fc-meta"><div>${esc(ex.label)} — jak ${esc(ex.name)} (s. 597). Wybuch: każda odsłonięta lokacja osobno. Inni w promieniu — MG.</div></div>
-      <button type="button" class="foe-luck" data-action="foeApply"><i class="fa-solid fa-heart-crack"></i> Nanieś obrażenia</button>
+      <div class="fc-tag"><span>${t("PIPBUCK // TRAP")}</span><span>${esc(ex.formula)}</span></div>
+      <h3>${esc(t("{name}: rigged terminal", { name: terminal.name }))}</h3>
+      <div class="fc-main"><div class="fc-roll">${roll.total}<small>${t("DMG")}</small></div><div class="fc-outcome">${t("Explosion")}</div><div class="fc-sum">${esc(roll.formula)}</div></div>
+      <div class="fc-meta"><div>${esc(t("{label} — like {name} (p. 597). Explosion: each exposed location separately. Others in the radius — the GM.", { label: ex.label, name: ex.name }))}</div></div>
+      <button type="button" class="foe-luck" data-action="foeApply"><i class="fa-solid fa-heart-crack"></i> ${t("Apply damage")}</button>
     </div>`,
     flags: { [F]: { damage: {
-      specials: {}, shockWounds: 0, actorUuid: null, itemUuid: null, itemName: `${terminal.name}: pułapka`, total: roll.total, pre: roll.total,
+      specials: {}, shockWounds: 0, actorUuid: null, itemUuid: null, itemName: t("{name}: trap", { name: terminal.name }), total: roll.total, pre: roll.total,
       critMult: 1, crit: false, aoe: true, loc: null, called: null, table: null, ignoreDT: 0, targets: tokenUuid ? [tokenUuid] : []
     } } }
   });
@@ -343,10 +344,10 @@ export async function bootTerminal(terminal) {
 
 export async function inspectTrap(terminal, step = "inspect") {
   const actor = userActor();
-  if (!actor) return warn("Zaznacz swój token albo przypisz postać do gracza.");
+  if (!actor) return warn(t("Select your token or assign a character to the player."));
   if (!inReach(terminal, actor)) return null;
   const mfd = terminal.system.trap.noticeMfd || "3/4";
-  const result = await skillRoll(actor, "explosives", mfd, step === "inspect" ? `Oględziny terminala: ${terminal.name}` : `Rozbrajanie ładunku: ${terminal.name}`);
+  const result = await skillRoll(actor, "explosives", mfd, step === "inspect" ? t("Inspecting the terminal: {name}", { name: terminal.name }) : t("Disarming the charge: {name}", { name: terminal.name }));
   if (!result) return null;
   return request(terminal, "trap", { step, result, who: actor.name, token: tokenOf(actor) });
 }
@@ -358,15 +359,15 @@ export async function login(terminal, password) {
 
 export async function hackTerminal(terminal) {
   const actor = userActor();
-  if (!actor) return warn("Zaznacz swój token albo przypisz postać do gracza.");
+  if (!actor) return warn(t("Select your token or assign a character to the player."));
   if (!inReach(terminal, actor)) return null;
-  const t = terminal.system;
-  const acc = terminalAccess(actor, t);
-  if (!acc.hack) return warn(`${actor.name}: ${acc.why.join("; ") || "nie można hakować"}.`);
+  const ts = terminal.system;
+  const acc = terminalAccess(actor, ts);
+  if (!acc.hack) return warn(`${actor.name}: ${acc.why.join("; ") || t("cannot hack")}.`);
   const tech = hasPipbuckTech(actor);
   if (minigameOn()) return request(terminal, "startGame", { who: actor.name, rank: actor.system.skills?.science?.rank ?? 0, tech });
-  const mfd = TERMINAL_SECURITY[t.security]?.mfd ?? "3/4";
-  const result = await skillRoll(actor, "science", mfd, `Hakowanie: ${terminal.name}`);
+  const mfd = TERMINAL_SECURITY[ts.security]?.mfd ?? "3/4";
+  const result = await skillRoll(actor, "science", mfd, t("Hacking: {name}", { name: terminal.name }));
   if (!result) return null;
   return request(terminal, "hack", { result, who: actor.name, tech });
 }
@@ -376,13 +377,13 @@ export const guess = (terminal, word) => request(terminal, "guess", { word, who:
 /** Analiza zrzutu w minigrze: rzut Science z trudnością terminala, raz na grę (analyzeOutcome). */
 export async function analyzeDump(terminal) {
   const actor = userActor();
-  if (!actor) return warn("Zaznacz swój token albo przypisz postać do gracza.");
+  if (!actor) return warn(t("Select your token or assign a character to the player."));
   if (!inReach(terminal, actor)) return null;
   const g = terminal.system.state.game;
   if (!g?.words?.length) return null;
-  if (g.analyzed) return warn("Ten zrzut pamięci już przeanalizowano.");
+  if (g.analyzed) return warn(t("This memory dump has already been analyzed."));
   const mfd = TERMINAL_SECURITY[terminal.system.security]?.mfd ?? "1";
-  const result = await skillRoll(actor, "science", mfd, `Analiza zrzutu pamięci: ${terminal.name}`);
+  const result = await skillRoll(actor, "science", mfd, t("Memory dump analysis: {name}", { name: terminal.name }));
   if (!result) return null;
   return request(terminal, "analyze", { result, who: actor.name });
 }
@@ -401,19 +402,19 @@ export function isBlankHolotape(i) {
 /** Zgraj wpis na holotaśmę: zużywa pustą „Holotape” z ekwipunku i tworzy przedmiot z treścią. */
 export async function downloadEntry(terminal, entryId) {
   const actor = userActor();
-  if (!actor) return warn("Zaznacz swój token albo przypisz postać do gracza.");
+  if (!actor) return warn(t("Select your token or assign a character to the player."));
   if (!inReach(terminal, actor)) return null;
   const e = terminal.system.entries.find(x => x.id === entryId);
   if (!e || !canSee(e.access, effectiveState(terminal.system))) return null;
   const blank = actor.items.find(isBlankHolotape);
-  if (!blank) return warn(`${actor.name}: potrzebna pusta holotaśma („Holotape” z katalogu). Nagrane holotaśmy nie są nadpisywane.`);
+  if (!blank) return warn(t("{name}: you need a blank holotape (“Holotape” from the catalog). Recorded holotapes are not overwritten.", { name: actor.name }));
   if ((Number(blank.system.qty) || 0) > 1) await blank.update({ "system.qty": blank.system.qty - 1 });
   else await blank.delete();
   const body = String(e.body ?? "").split(/\n/).map(l => `<p>${esc(l)}</p>`).join("");
   await actor.createEmbeddedDocuments("Item", [{
-    name: `Holotaśma: ${e.title}`, type: "gear", img: blank.img, flags: { [F]: { holotape: { terminal: terminal.name, entry: e.id, title: e.title } } },
+    name: t("Holotape: {title}", { title: e.title }), type: "gear", img: blank.img, flags: { [F]: { holotape: { terminal: terminal.name, entry: e.id, title: e.title } } },
     system: { category: blank.system.category ?? "misc", qty: 1, weight: blank.system.weight ?? 0, value: 0, description: `<p><b>${esc(terminal.name)}</b></p>${body}` }
   }]);
-  ui.notifications.info(`${actor.name}: zgrano „${e.title}” na holotaśmę.`);
+  ui.notifications.info(t("{name}: “{title}” copied to a holotape.", { name: actor.name, title: e.title }));
   return true;
 }

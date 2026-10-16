@@ -9,14 +9,15 @@
 import { SKILLS, LOCATIONS } from "./data.mjs";
 import { armorItem } from "./catalog-data.mjs";
 import { vehicleAreas } from "./vehicle-data.mjs";
+import { t, tmap } from "./i18n.mjs";
 
 const F = "foe-rpg";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
 
-export const BESTIARY_KINDS = {
-  animal: "Zwierzęta i mutanty", plant: "Rośliny", magic: "Magiczne stworzenia", robot: "Roboty i wieżyczki",
-  faction: "Kucyki i frakcje", ghoul: "Ghule", other: "Alikorny, piekielne psy, podmieńcy"
-};
+export const BESTIARY_KINDS = tmap({
+  animal: "Animals and mutants", plant: "Plants", magic: "Magical creatures", robot: "Robots and turrets",
+  faction: "Ponies and factions", ghoul: "Ghouls", other: "Alicorns, hellhounds, changelings"
+});
 
 // ---------- strefy trafień ----------
 /** Nazwa strefy z bloku → klucz lokacji systemu. */
@@ -66,12 +67,12 @@ const SKILL_KEYS = Object.fromEntries(Object.entries(SKILLS).flatMap(([k, s]) =>
 
 /** Formuła obrażeń z bloku → { damage, shots, splash }: „5d8/3+7” → seria 3, „6d12/6d12” → wybuch z drugim promieniem. */
 function parseDamage(s) {
-  const t = String(s ?? "").replace(/\s+/g, "");
-  let m = t.match(/^(\d+d\d+)\/(\d+d\d+)(.*)$/);
+  const f = String(s ?? "").replace(/\s+/g, "");
+  let m = f.match(/^(\d+d\d+)\/(\d+d\d+)(.*)$/);
   if (m) return { damage: `${m[1]}${m[3]}`, shots: 1, splash: m[2] };
-  m = t.match(/^(\d+d\d+)\/(\d+)(.*)$/);
+  m = f.match(/^(\d+d\d+)\/(\d+)(.*)$/);
   if (m) return { damage: `${m[1]}${m[3]}`, shots: Number(m[2]), splash: "" };
-  return { damage: t.replace(/\+/g, " + ") || "0", shots: 1, splash: "" };
+  return { damage: f.replace(/\+/g, " + ") || "0", shots: 1, splash: "" };
 }
 
 function weaponSkill(w, explicit, catalogW) {
@@ -108,16 +109,16 @@ const norm = s => String(s ?? "").toLowerCase().replace(/\(.*?\)/g, "").replace(
 export function buildNpc(e, { catalog = {}, spells = [], maneuvers = [], spellItemData = null, maneuverItemData = null } = {}) {
   const has = !!e.a;
   const notes = [
-    `<p><i>${esc(BESTIARY_KINDS[e.kind] ?? "")}${e.group && e.group !== e.name ? ` · ${esc(e.group)}` : ""}${e.p ? ` · podręcznik s. ${e.p}` : ""}${e.lvl ? ` · poziom trudności ${esc(e.lvl)}` : ""}</i></p>`,
+    `<p><i>${esc(BESTIARY_KINDS[e.kind] ?? "")}${e.group && e.group !== e.name ? ` · ${esc(e.group)}` : ""}${e.p ? ` · ${t("rulebook p. {p}", { p: e.p })}` : ""}${e.lvl ? ` · ${t("difficulty level {l}", { l: esc(e.lvl) })}` : ""}</i></p>`,
     `<p>${esc(e.desc)}</p>`,
-    e.ab ? `<h3>Zdolności</h3><p>${esc(e.ab)}</p>` : "",
-    e.mv ? `<p><b>Ruch:</b> ${Object.entries(e.mv).map(([k, v]) => `${{ ground: "ziemia", fly: "lot", dig: "kopanie", swim: "pływanie", sneak: "skradanie" }[k] ?? k} ${v} ft`).join(", ")}</p>` : "",
-    e.loot ? `<p><b>Łup:</b> ${esc(e.loot)}</p>` : "",
-    e.eqAlt?.length ? `<p><b>Pancerz zamiennie:</b> ${esc(e.eqAlt.join(", "))}</p>` : "",
-    has ? "" : `<p><b>Podręcznik v1.22 nie podaje statystyk tego stworzenia</b> — uzupełnij je albo użyj kreatora NPC (przycisk KREATOR na karcie).</p>`
+    e.ab ? `<h3>${t("Abilities")}</h3><p>${esc(e.ab)}</p>` : "",
+    e.mv ? `<p><b>${t("Movement:")}</b> ${Object.entries(e.mv).map(([k, v]) => `${{ ground: t("mv|ground"), fly: t("fx|flight"), dig: t("mv|digging"), swim: t("mv|swimming"), sneak: t("mv|sneaking") }[k] ?? k} ${v} ft`).join(", ")}</p>` : "",
+    e.loot ? `<p><b>${t("Loot:")}</b> ${esc(e.loot)}</p>` : "",
+    e.eqAlt?.length ? `<p><b>${t("Alternative armor:")}</b> ${esc(e.eqAlt.join(", "))}</p>` : "",
+    has ? "" : `<p><b>${t("The v1.22 rulebook gives no statistics for this creature")}</b> — ${t("fill them in or use the NPC creator (the CREATOR button on the sheet).")}</p>`
   ].filter(Boolean).join("");
 
-  const system = { notes, race: e.race ?? (e.pony ? "Kucyk ziemski / jednorożec (Earth Pony / Unicorn)" : e.group ?? e.name) };
+  const system = { notes, race: e.race ?? (e.pony ? t("Earth pony / unicorn") : e.group ?? e.name) };
   const items = [];
   const flags = { [F]: { bestiary: e.name } };
   if (!has) return { actor: { name: e.name, type: "npc", system, flags, prototypeToken: { disposition: -1, actorLink: false } }, items };
@@ -190,10 +191,10 @@ export function buildNpc(e, { catalog = {}, spells = [], maneuvers = [], spellIt
   for (const n of e.spells ?? []) {
     const s = spells.find(x => norm(x.name) === norm(n));
     if (s && spellItemData) items.push(spellItemData(s));
-    else items.push({ name: n, type: "feature", system: { kind: "spell", active: true, effects: [], description: `<p>Zaklęcie z bloku statystyk (s. ${e.p}).</p>` } });
+    else items.push({ name: n, type: "feature", system: { kind: "spell", active: true, effects: [], description: `<p>${t("Spell from the stat block (p. {p}).", { p: e.p })}</p>` } });
   }
   for (const [n, mfd, cost, desc] of e.sp ?? []) {
-    items.push({ name: n, type: "feature", system: { kind: "spell", active: true, effects: [], description: `<p>${mfd ? `MFD ${esc(mfd)}` : ""}${cost ? ` · koszt ${esc(cost)}` : ""}</p><p>${esc(desc)}</p>` } });
+    items.push({ name: n, type: "feature", system: { kind: "spell", active: true, effects: [], description: `<p>${mfd ? `MFD ${esc(mfd)}` : ""}${cost ? ` · ${t("cost {c}", { c: esc(cost) })}` : ""}</p><p>${esc(desc)}</p>` } });
   }
   for (const [n, mfd] of e.mn ?? []) {
     const m = maneuvers.find(x => norm(x.name) === norm(n));
@@ -204,7 +205,7 @@ export function buildNpc(e, { catalog = {}, spells = [], maneuvers = [], spellIt
       items.push(d);
     }
   }
-  if (e.ab) items.push({ name: "Zdolności (bestiariusz)", type: "feature", system: { kind: "other", active: true, effects: [], description: `<p>${esc(e.ab)}</p>` } });
+  if (e.ab) items.push({ name: t("Abilities (bestiary)"), type: "feature", system: { kind: "other", active: true, effects: [], description: `<p>${esc(e.ab)}</p>` } });
 
   return { actor: { name: e.name, type: "npc", system, flags, prototypeToken: { disposition: -1, actorLink: false, name: e.name } }, items };
 }
@@ -217,17 +218,17 @@ export function loadBestiary() {
   return cache;
 }
 
-/** Tworzy NPC w świecie (folder „Bestiariusz FoE”) i otwiera kartę. */
+/** Tworzy NPC w świecie (folder „FoE Bestiary” / „Bestiariusz FoE”) i otwiera kartę. */
 export async function importCreature(e, deps) {
-  if (!game.user.can("ACTOR_CREATE")) return ui.notifications.warn("Tylko MG (albo gracz z uprawnieniem tworzenia aktorów) może dodawać stworzenia z bestiariusza.");
+  if (!game.user.can("ACTOR_CREATE")) return ui.notifications.warn(t("Only the GM (or a player allowed to create actors) can add creatures from the bestiary."));
   const { actor, items } = buildNpc(e, deps);
-  let folder = game.folders?.find(f => f.type === "Actor" && f.name === "Bestiariusz FoE");
-  if (!folder && game.user.isGM) folder = await Folder.create({ name: "Bestiariusz FoE", type: "Actor", color: "#1f6b3f" });
+  let folder = game.folders?.find(f => f.type === "Actor" && (f.getFlag?.(F, "bestiary") || ["Bestiariusz FoE", "FoE Bestiary"].includes(f.name))); // pl-ok: dawna nazwa folderu
+  if (!folder && game.user.isGM) folder = await Folder.create({ name: t("FoE Bestiary"), type: "Actor", color: "#1f6b3f", flags: { [F]: { bestiary: true } } });
   actor.folder = folder?.id ?? null;
   const created = await Actor.implementation.create(actor);
   if (!created) return null;
   if (items.length) await created.createEmbeddedDocuments("Item", items);
-  ui.notifications.info(`Bestiariusz: dodano ${created.name}${e.a ? "" : " (bez statystyk — tylko opis)"}. Przeciągnij aktora na scenę.`);
+  ui.notifications.info(e.a ? t("Bestiary: added {name}. Drag the actor onto the scene.", { name: created.name }) : t("Bestiary: added {name} (no statistics — description only). Drag the actor onto the scene.", { name: created.name }));
   created.sheet.render(true);
   return created;
 }

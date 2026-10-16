@@ -3,6 +3,7 @@ import { LAYER_CATEGORIES, defaultCover, layerPenalties, overloadSpeed, sneakWei
 import { iconFor } from "./catalog-data.mjs";
 import { unpoweredLocs, powerState, isCyborg, LIMB_LOCS } from "./cyber-data.mjs";
 import { sizeRow, defaultStructure, defaultPilotSkill, vehicleSpeed, VEHICLE_LOCS, AREA_EFFECTS, AREA_STATUS } from "./vehicle-data.mjs";
+import { t, N_, tmap, tfields } from "./i18n.mjs";
 
 const F = foundry.data.fields;
 
@@ -33,20 +34,20 @@ export const SKILLS = {
 };
 
 // Kroki MFD od najłatwiejszego do najtrudniejszego
-export const MFD_STEPS = [
-  { key: "2",    name: "2",    desc: "bardzo łatwe",        f: 2 },
-  { key: "1.5",  name: "1,5",   desc: "łatwe",               f: 1.5 },
-  { key: "1",    name: "1",    desc: "normalne",            f: 1 },
-  { key: "3/4",  name: "3/4",    desc: "trudne",              f: 0.75 },
-  { key: "1/2",  name: "1/2",    desc: "bardzo trudne",       f: 0.5 },
-  { key: "1/4",  name: "1/4",    desc: "frustrująco trudne",  f: 0.25 },
-  { key: "1/10", name: "1/10", desc: "ekstremalne",         f: 0.1 }
-];
+export const MFD_STEPS = tfields([
+  { key: "2",    name: "2",         desc: N_("very easy"),          f: 2 },
+  { key: "1.5",  name: N_("1.5"),   desc: N_("easy"),               f: 1.5 },
+  { key: "1",    name: "1",         desc: N_("normal"),             f: 1 },
+  { key: "3/4",  name: "3/4",       desc: N_("hard"),               f: 0.75 },
+  { key: "1/2",  name: "1/2",       desc: N_("very hard"),          f: 0.5 },
+  { key: "1/4",  name: "1/4",       desc: N_("frustratingly hard"), f: 0.25 },
+  { key: "1/10", name: "1/10",      desc: N_("extreme"),            f: 0.1 }
+], ["name", "desc"]);
 
-export const LOCATIONS = {
-  head: "Głowa", torso: "Tułów", flLeg: "Przednia lewa", frLeg: "Przednia prawa",
-  rlLeg: "Tylna lewa", rrLeg: "Tylna prawa", wings: "Skrzydła", horn: "Róg"
-};
+export const LOCATIONS = tmap({
+  head: N_("Head"), torso: N_("Torso"), flLeg: N_("Left foreleg"), frLeg: N_("Right foreleg"),
+  rlLeg: N_("Left hindleg"), rrLeg: N_("Right hindleg"), wings: N_("Wings"), horn: N_("Horn")
+});
 
 const num = (initial = 0, opts = {}) =>
   new F.NumberField({ required: true, nullable: false, integer: true, initial, ...opts });
@@ -134,7 +135,7 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       // a umiejętnościom dają ±5 za punkt — ale nie zmieniają rang (s. 17)
       const layerPen = pen[k] ?? 0;
       att.temp = sum("tempAttr", e => hits(e.target, k)) - layerPen;
-      att.tempSources = [...src("tempAttr", e => hits(e.target, k)), ...(layerPen ? [`Warstwy pancerza (${layers.length}) −${layerPen}`] : [])];
+      att.tempSources = [...src("tempAttr", e => hits(e.target, k)), ...(layerPen ? [t("Armor layers ({n}) −{p}", { n: layers.length, p: layerPen })] : [])];
       att.base = Math.max(0, att.value + att.mod + att.fx);
       att.total = Math.max(0, att.base + att.temp);
       att.tn = att.total * 10;
@@ -260,37 +261,37 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
     if (LEGS.length - badLegs <= 1) speed = 0;
     this.speed = Math.max(0, speed);
     this.speedNotes = [
-      badLegs ? `okaleczone nogi: −${5 * badLegs} ft` : "",
-      LEGS.length - badLegs <= 1 ? "≤ 1 sprawna noga: bez pomocy nie idzie" : "",
-      overSpeed ? `przeciążenie: −${overSpeed} ft` : ""
+      badLegs ? t("crippled legs: −{n} ft", { n: 5 * badLegs }) : "",
+      LEGS.length - badLegs <= 1 ? t("≤ 1 working leg: can't walk without help") : "",
+      overSpeed ? t("overloaded: −{n} ft", { n: overSpeed }) : ""
     ].filter(Boolean);
     this.flySpeed = Math.floor((5 * agi * (100 + pct("fly")) / 100) / 5) * 5;
     // Lot (s. 379, 444): wymaga rasowej umiejętności Flight; przeciążenie uziemia, okaleczone skrzydła nie niosą
     const flightless = items.some(i => i.type === "feature" && i.system?.active !== false && /flightless|stubby little/i.test(i.name));
     this.flier = this.skills.flight?.known !== false;
     this.canFly = this.flier && !flightless && !L.wings.isCrippled && this.overload <= 0;
-    this.flyNote = !this.flier ? "" : flightless ? "nie lata (wada)" : L.wings.isCrippled ? "skrzydła okaleczone" : this.overload > 0 ? "przeciążenie — uziemiony" : "";
+    this.flyNote = !this.flier ? "" : flightless ? t("can't fly (flaw)") : L.wings.isCrippled ? t("wings crippled") : this.overload > 0 ? t("overloaded — grounded") : "";
     this.flightLoad = Math.max(0, Math.round(this.weight - 100));
 
     // Efekty stanu → rzuty (effects.mjs → actorEffects): okaleczenia (s. 443–446, 462) i ciężar przy skradaniu
     const st = [];
     const add = (type, target, value, source) => { if (value) st.push({ type, target, value, when: "", source, id: `state.${st.length}` }); };
-    if (L.head.isCrippled) { add("basedStep", "int,per,cha", -2, "Okaleczona głowa"); add("mfdStep", "attack", -1, "Okaleczona głowa (celność)"); }
-    if (L.torso.isCrippled) add("basedStep", "end,str,agi", -2, "Okaleczony tułów");
+    if (L.head.isCrippled) { add("basedStep", "int,per,cha", -2, t("Crippled head")); add("mfdStep", "attack", -1, t("Crippled head (accuracy)")); }
+    if (L.torso.isCrippled) add("basedStep", "end,str,agi", -2, t("Crippled torso"));
     if (badLegs) {
-      add("mfdStep", "sneak", -badLegs, `Okaleczone nogi (${badLegs})`);
-      add("mfdStep", "bigGuns", -badLegs, `Okaleczone nogi (${badLegs}) — siodło bojowe`);
+      add("mfdStep", "sneak", -badLegs, t("Crippled legs ({n})", { n: badLegs }));
+      add("mfdStep", "bigGuns", -badLegs, t("Crippled legs ({n}) — battle saddle", { n: badLegs }));
     }
-    if (L.wings.isCrippled) add("mfdStep", "flight", -2, "Okaleczone skrzydła");
-    add("skillRoll", "flight", -this.flightLoad, `Ciężar ponad 100 lb (${this.weight} lb)`);
+    if (L.wings.isCrippled) add("mfdStep", "flight", -2, t("Crippled wings"));
+    add("skillRoll", "flight", -this.flightLoad, t("Weight over 100 lb ({w} lb)", { w: this.weight }));
     const otherCrippled = Object.keys(L).filter(k => k !== "horn" && L[k].isCrippled).length;
-    add("mfdStep", "magic", -(L.horn.isCrippled ? 2 : 0) - otherCrippled, "Okaleczenia (zaklęcia)");
-    add("skillRoll", "sneak", -this.sneakPenalty, `Obciążenie ${this.weight} lb`);
+    add("mfdStep", "magic", -(L.horn.isCrippled ? 2 : 0) - otherCrippled, t("Crippled limbs (spells)"));
+    add("skillRoll", "sneak", -this.sneakPenalty, t("Load {w} lb", { w: this.weight }));
     // Podtrzymywane zaklęcia: −1 krok celności i rzutów INT/AGI za każde (s. 244)
     const held = this.maintained.length;
     if (held) {
-      add("basedStep", "int,agi", -held, `Podtrzymywane zaklęcia (${held})`);
-      add("mfdStep", "attack", -held, `Podtrzymywane zaklęcia (${held}) — celność`);
+      add("basedStep", "int,agi", -held, t("Maintained spells ({n})", { n: held }));
+      add("mfdStep", "attack", -held, t("Maintained spells ({n}) — accuracy", { n: held }));
     }
     // pojazd: stany stref liczy VehicleData (kabina to nie głowa kucyka)
     this.stateFx = this.parent?.type === "vehicle" ? [] : st;
@@ -318,7 +319,7 @@ export class VehicleData extends BaseActorData {
   static defineSchema() {
     return {
       ...super.defineSchema(),
-      race: new F.StringField({ initial: "Pojazd" }),
+      race: new F.StringField({ initial: "Vehicle" }),
       vehicle: new F.SchemaField({
         kind: new F.StringField({ initial: "ground" }),        // ground | sky | water | rail
         power: new F.StringField({ initial: "pulled" }),       // pulled | motor
@@ -359,7 +360,7 @@ export class VehicleData extends BaseActorData {
       L.autoCrippled = L.wounds > 0 && L.wounds >= crip;
       L.isCrippled = L.crippled || L.autoCrippled || L.lethal;
       L.status = L.lethal ? "destroyed" : L.isCrippled ? "crippled" : L.wounds ? "wounded" : "ok";
-      L.statusText = L.lethal ? AREA_STATUS[k] : L.isCrippled ? "USZKODZONA" : L.wounds ? "draśnięta" : "";
+      L.statusText = L.lethal ? AREA_STATUS[k] : L.isCrippled ? t("DAMAGED") : L.wounds ? t("scratched") : "";
       L.effect = L.lethal ? AREA_EFFECTS[k].lethal : L.isCrippled ? AREA_EFFECTS[k].crippled : "";
       state[k] = L.lethal ? "lethal" : L.isCrippled ? "crippled" : "ok";
     }
@@ -391,10 +392,10 @@ export class VehicleData extends BaseActorData {
     const count = r => this.crewList.filter(c => c.role === r).length;
     this.crewCount = { pilot: count("pilot"), gunner: count("gunner"), puller: count("puller"), passenger: count("passenger") };
     this.crewWarnings = [
-      count("pilot") + count("gunner") > v.crewMax ? `załoga ${count("pilot") + count("gunner")}/${v.crewMax}` : "",
-      count("passenger") > v.passengers ? `pasażerowie ${count("passenger")}/${v.passengers}` : "",
-      count("puller") > v.harness && v.power === "pulled" ? `zaprzęg ${count("puller")}/${v.harness}` : "",
-      count("pilot") > 1 ? "więcej niż jeden kierowca — steruje pierwszy" : ""
+      count("pilot") + count("gunner") > v.crewMax ? t("crew {n}/{max}", { n: count("pilot") + count("gunner"), max: v.crewMax }) : "",
+      count("passenger") > v.passengers ? t("passengers {n}/{max}", { n: count("passenger"), max: v.passengers }) : "",
+      count("puller") > v.harness && v.power === "pulled" ? t("harness {n}/{max}", { n: count("puller"), max: v.harness }) : "",
+      count("pilot") > 1 ? t("more than one driver — the first one steers") : ""
     ].filter(Boolean);
   }
 }
@@ -465,9 +466,9 @@ export class WeaponData extends FoeItemData {
   }
 }
 
-export const ARMOR_CATEGORIES = {
-  clothing: "Ubranie", light: "Lekki", medium: "Średni", heavy: "Ciężki", helmet: "Hełm / nakrycie głowy", accessory: "Akcesorium"
-};
+export const ARMOR_CATEGORIES = tmap({
+  clothing: N_("Clothing"), light: N_("Light"), medium: N_("Medium"), heavy: N_("Heavy"), helmet: N_("Helmet / headgear"), accessory: N_("Accessory")
+});
 
 export class ArmorData extends FoeItemData {
   static defineSchema() {
@@ -502,11 +503,11 @@ export class ArmorData extends FoeItemData {
   }
 }
 
-export const GEAR_CATEGORIES = {
-  misc: "Różne", ammo: "Amunicja", food: "Jedzenie i picie", medical: "Leczenie", drug: "Leki i używki", book: "Książki i magazyny",
-  pipbuck: "PipBuck", saddle: "Siodło bojowe i dodatki",
-  ingredient: "Składniki zebr", potion: "Mikstury i wywary zebr", talisman: "Talizmany i fetysze"
-};
+export const GEAR_CATEGORIES = tmap({
+  misc: N_("Miscellaneous"), ammo: N_("Ammunition"), food: N_("Food and drink"), medical: N_("Medical"), drug: N_("Chems and drugs"), book: N_("Books and magazines"),
+  pipbuck: N_("PipBuck"), saddle: N_("Battle saddle and add-ons"),
+  ingredient: N_("Zebra ingredients"), potion: N_("Zebra potions and brews"), talisman: N_("Talismans and fetishes")
+});
 
 export class GearData extends FoeItemData {
   static defineSchema() {

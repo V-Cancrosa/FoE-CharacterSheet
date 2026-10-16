@@ -8,22 +8,23 @@ import {
 import { wieldLimit } from "./saddle.mjs";
 import { loadedVariant, ammoIgnoreDT, shiftDice, dieOf } from "./ammo-data.mjs";
 import { degradationOn } from "./craft-data.mjs";
+import { t, tn, isPL } from "./i18n.mjs";
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
-const num = n => String(n).replace(".", ",");
+const num = n => (isPL() ? String(n).replace(".", ",") : String(n));
 export const threshold = (baseTn, step, mod) => Math.floor(baseTn * step.f) + mod;
 const elementOf = x => (x instanceof HTMLElement ? x : x?.element instanceof HTMLElement ? x.element : null);
 
 export const stepIndex = key => Math.max(0, MFD_STEPS.findIndex(s => s.key === key));
 // steps > 0 ułatwia (bliżej MFD 2), steps < 0 utrudnia (bliżej 1/10)
 export const shiftStep = (i, steps) => Math.max(0, Math.min(MFD_STEPS.length - 1, i - steps));
-const stepsLabel = v => `${signed(v)} ${Math.abs(v) === 1 ? "krok" : "kroki"} MFD`;
+const stepsLabel = v => tn(v, "{s} MFD step", "{s} MFD steps", { s: signed(v) });
 
 /** Nazwa lokacji (u dwunożnych przednie nogi to ramiona). */
 export function locationName(loc, table = null) {
   if (HIT_TABLES[table]?.biped && BIPED_LABELS[loc]) return BIPED_LABELS[loc];
-  if (table === "vehicle") return { head: "Kabina", torso: "Kadłub", wings: "Napęd", horn: "Uzbrojenie" }[loc] ?? loc;
+  if (table === "vehicle") return { head: t("Cabin"), torso: t("Hull"), wings: t("Propulsion"), horn: t("Weapons") }[loc] ?? loc;
   return LOCATIONS[loc] ?? loc;
 }
 
@@ -56,12 +57,12 @@ export async function promptMfd(title, baseTn, rc = {}, opts = {}) {
     </label>`).join("");
   const content = `
     <div class="foe-dialog">
-      <div class="dlg-base">Próg bazowy (MFD 1): <b>${baseTn}</b></div>
+      <div class="dlg-base">${t("Base target number (MFD 1):")} <b>${baseTn}</b></div>
       ${opts.extraHtml ?? ""}
-      ${fixedList ? `<div class="dlg-fixed"><span>Stałe modyfikatory (już wliczone)</span><ul>${fixedList}</ul></div>` : ""}
-      ${sitList ? `<div class="dlg-sit"><span>Sytuacyjne — zaznacz, jeśli dotyczą tego rzutu</span>${sitList}</div>` : ""}
+      ${fixedList ? `<div class="dlg-fixed"><span>${t("Fixed modifiers (already included)")}</span><ul>${fixedList}</ul></div>` : ""}
+      ${sitList ? `<div class="dlg-sit"><span>${t("Situational — tick them if they apply to this roll")}</span>${sitList}</div>` : ""}
       <div class="mfd-pick">${rows}</div>
-      <label class="mod-row">Dodatkowy modyfikator (+ ułatwia, − utrudnia) <input type="number" name="mod" value="0" step="1"></label>
+      <label class="mod-row">${t("Extra modifier (+ easier, − harder)")} <input type="number" name="mod" value="0" step="1"></label>
     </div>`;
 
   const read = form => {
@@ -102,7 +103,7 @@ export async function promptMfd(title, baseTn, rc = {}, opts = {}) {
     render,
     rejectClose: false,
     buttons: [{
-      action: "roll", label: "Rzuć d100", icon: "fa-solid fa-dice-d20", default: true,
+      action: "roll", label: t("Roll d100"), icon: "fa-solid fa-dice-d20", default: true,
       callback: (event, button) => {
         const form = button.form;
         const r = read(form);
@@ -113,7 +114,7 @@ export async function promptMfd(title, baseTn, rc = {}, opts = {}) {
           ...steps.map(m => `${m.label} ${stepsLabel(m.value)}`),
           ...r.picked.map(g => `${g.label} ${[g.mod ? signed(g.mod) : "", g.steps ? stepsLabel(g.steps) : ""].filter(Boolean).join(", ")}`),
           ...(r.ex.notes ?? []),
-          ...(r.extra ? [`Dodatkowy ${signed(r.extra)}`] : [])
+          ...(r.extra ? [t("Extra {v}", { v: signed(r.extra) })] : [])
         ];
         const out = { step, chosen, steps: r.steps, mod: r.mod, notes, crit: rc.crit ?? { success: 0, fail: 0 } };
         if (r.ex.data) out.extra = r.ex.data;
@@ -160,13 +161,13 @@ export async function rollTest(actor, data) {
   const roll = await new Roll("1d100").evaluate();
   const r = roll.total;
   let outcome, cls;
-  if (r <= critS) { outcome = "Krytyczny sukces"; cls = "crit-success"; }
-  else if (r >= critF) { outcome = "Krytyczna porażka"; cls = "crit-fail"; }
-  else if (r <= tn) { outcome = "Sukces"; cls = "success"; }
-  else { outcome = "Porażka"; cls = "fail"; }
+  if (r <= critS) { outcome = t("Critical success"); cls = "crit-success"; }
+  else if (r >= critF) { outcome = t("Critical failure"); cls = "crit-fail"; }
+  else if (r <= tn) { outcome = t("Success"); cls = "success"; }
+  else { outcome = t("Failure"); cls = "fail"; }
 
   markCrit(roll, cls);
-  tint(roll, rerolls ? "luck" : data.attack?.sats ? "sats" : /^(Zaklęcie|Celowanie)/.test(data.label ?? "") ? "magic" : "test");   // efekt Dice So Nice na krytyk (jeśli moduł jest włączony)
+  tint(roll, rerolls ? "luck" : data.attack?.sats ? "sats" : data.magic || /^(Zaklęcie|Celowanie)/.test(data.label ?? "") ? "magic" : "test");   // pl-ok: stare przerzuty   // efekt Dice So Nice na krytyk (jeśli moduł jest włączony)
   // Krytyczna porażka nie osiąga żadnego poziomu
   const ach = cls === "crit-fail" ? null : achievedStep(r, data.baseTn, data.mod);
   const failed = cls === "fail" || cls === "crit-fail";
@@ -189,58 +190,58 @@ export async function rollTest(actor, data) {
 
   // Drabinka: wszystkie poziomy MFD z progami; zaznaczony wymagany (CEL) i osiągnięty (WYNIK)
   const ladder = MFD_STEPS.map(s => {
-    const t = threshold(data.baseTn, s, data.mod);
-    const pass = r <= t;
+    const thr = threshold(data.baseTn, s, data.mod);
+    const pass = r <= thr;
     const classes = [pass ? "pass" : "", s === step ? "target" : "", s === ach ? "achieved" : ""].join(" ");
-    const tags = [s === step ? `<span class="badge">CEL</span>` : "", s === ach ? `<span class="badge">WYNIK</span>` : ""].join(" ");
-    return `<tr class="${classes}"><td class="k" title="${s.desc}">${s.name}</td><td class="t">≤ ${t}</td><td class="m">${pass ? "✓" : "×"}</td><td class="tg">${tags}</td></tr>`;
+    const tags = [s === step ? `<span class="badge">${t("TARGET")}</span>` : "", s === ach ? `<span class="badge">${t("RESULT")}</span>` : ""].join(" ");
+    return `<tr class="${classes}"><td class="k" title="${s.desc}">${s.name}</td><td class="t">≤ ${thr}</td><td class="m">${pass ? "✓" : "×"}</td><td class="tg">${tags}</td></tr>`;
   }).join("");
 
   const chosenStep = data.chosen && data.chosen !== step.key ? MFD_STEPS.find(s => s.key === data.chosen) : null;
   const meta = [
-    chosenStep ? `Wybrano MFD ${chosenStep.name}, po krokach z modyfikatorów: MFD ${step.name}` : "",
-    `Krytyki: 1–${critS} / ${critF}–100`,
-    rerolls ? `Przerzut nr ${rerolls}` : ""
+    chosenStep ? t("Chosen MFD {a}, after the modifier steps: MFD {b}", { a: chosenStep.name, b: step.name }) : "",
+    t("Crits: 1–{s} / {f}–100", { s: critS, f: critF }),
+    rerolls ? t("Reroll #{n}", { n: rerolls }) : ""
   ].filter(Boolean).join(" · ");
 
   const atkLines = [];
   if (atk?.hit) {
     const h = atk.hit;
     const m = locationMultiplier(h.loc, h.called);
-    const mult = m !== 1 ? ` · obrażenia ×${num(m)}` : "";
-    atkLines.push(h.area ? `Cel: <b>${esc(h.area)}</b>${mult}` : h.called
-      ? `Cel: <b>${esc(CALLED_SHOTS[h.called]?.label ?? locationName(h.loc))}</b>`
-      : `Trafienie: <b>${esc(atk.areaLabels?.[h.loc] ?? locationName(h.loc, atk.table))}</b> (k20: ${h.roll}${atk.melee ? " +1 wręcz" : ""}${h.rerolls ? `, przerzutów: ${h.rerolls}` : ""})${mult}`);
+    const mult = m !== 1 ? ` · ${t("damage ×{m}", { m: num(m) })}` : "";
+    atkLines.push(h.area ? `${t("Target:")} <b>${esc(h.area)}</b>${mult}` : h.called
+      ? `${t("Target:")} <b>${esc(CALLED_SHOTS[h.called]?.label ?? locationName(h.loc))}</b>`
+      : `${t("Hit:")} <b>${esc(atk.areaLabels?.[h.loc] ?? locationName(h.loc, atk.table))}</b> (${t("d20")}: ${h.roll}${atk.melee ? ` ${t("+1 melee")}` : ""}${h.rerolls ? `, ${t("rerolls: {n}", { n: h.rerolls })}` : ""})${mult}`);
   }
-  if (atk?.aoe && !failed) atkLines.push("Wybuch: obrażenia trafiają każdą odsłoniętą lokację (DT liczone osobno).");
+  if (atk?.aoe && !failed) atkLines.push(t("Explosion: the damage hits every exposed location (DT counted separately)."));
   const atkMeta = atk ? [
-    atk.used ? `${atk.consumable ? "zużyto sztuk" : "zużyto amunicji"}: ${atk.used}` : "",
-    atk.lacking ? `niepełna seria: ${atk.formula}` : ""
+    atk.used ? (atk.consumable ? t("items used: {n}", { n: atk.used }) : t("ammo used: {n}", { n: atk.used })) : "",
+    atk.lacking ? t("partial burst: {f}", { f: atk.formula }) : ""
   ].filter(Boolean).join(" · ") : "";
 
   const content = `
   <div class="foe-card test ${cls}">
-    <div class="fc-tag"><span>PIPBUCK // ${atk ? (atk.sats ? "SATS" : "ATAK") : "TEST"}</span><span>d100</span></div>
+    <div class="fc-tag"><span>PIPBUCK // ${atk ? (atk.sats ? "SATS" : t("ATTACK")) : t("TEST")}</span><span>d100</span></div>
     <h3>${esc(data.label)}</h3>
     <div class="fc-main">
-      <div class="fc-roll">${r}<small>RZUT</small></div>
+      <div class="fc-roll">${r}<small>${t("ROLL")}</small></div>
       <div class="fc-outcome">${outcome}</div>
       <div class="fc-sum">${r} ${r <= tn ? "≤" : ">"} ${tn}</div>
     </div>
     <dl class="fc-mfd">
-      <dt>Cel</dt><dd><b>MFD ${step.name}</b><span class="t">≤ ${tn}</span><span class="d">${step.desc}</span></dd>
-      <dt>Wynik</dt><dd>${ach ? `<b>MFD ${ach.name}</b><span class="t">≤ ${threshold(data.baseTn, ach, data.mod)}</span><span class="d">${ach.desc}</span>` : `<b>brak</b><span class="t"></span><span class="d">żaden poziom</span>`}</dd>
+      <dt>${t("Target")}</dt><dd><b>MFD ${step.name}</b><span class="t">≤ ${tn}</span><span class="d">${step.desc}</span></dd>
+      <dt>${t("Result")}</dt><dd>${ach ? `<b>MFD ${ach.name}</b><span class="t">≤ ${threshold(data.baseTn, ach, data.mod)}</span><span class="d">${ach.desc}</span>` : `<b>${t("none")}</b><span class="t"></span><span class="d">${t("no level")}</span>`}</dd>
     </dl>
     ${atkLines.length ? `<div class="fc-hit">${atkLines.map(l => `<div>${l}</div>`).join("")}</div>` : ""}
     <table class="fc-ladder"><tbody>${ladder}</tbody></table>
     <div class="fc-meta">
-      ${data.notes?.length ? `<div>Modyfikatory: ${data.notes.map(esc).join(" · ")}${data.mod ? ` (razem ${signed(data.mod)})` : ""}</div>` : data.mod ? `<div>Modyfikator ${signed(data.mod)}</div>` : ""}
+      ${data.notes?.length ? `<div>${t("Modifiers:")} ${data.notes.map(esc).join(" · ")}${data.mod ? ` ${t("(total {v})", { v: signed(data.mod) })}` : ""}</div>` : data.mod ? `<div>${t("Modifier {v}", { v: signed(data.mod) })}</div>` : ""}
       ${atkMeta ? `<div>${esc(atkMeta)}</div>` : ""}
       <div>${meta}</div>
-      ${cls === "crit-fail" ? `<div>Kartą szczęścia + rzutem na Luck×10 można zamienić krytyczną porażkę w zwykłą.</div>` : ""}
+      ${cls === "crit-fail" ? `<div>${t("A Luck card plus a Luck×10 roll can turn a critical failure into a regular one.")}</div>` : ""}
     </div>
-    ${data.itemUuid && !failed ? `<button type="button" class="foe-luck" data-action="foeDamage"><i class="fa-solid fa-burst"></i> ${cls === "crit-success" ? "Obrażenia krytyczne" : "Rzuć obrażenia"}</button>` : ""}
-    ${canReroll ? `<button type="button" class="foe-luck" data-action="foeLuckReroll"><i class="fa-solid fa-clover"></i> Przerzuć za kartę szczęścia</button>` : ""}
+    ${data.itemUuid && !failed ? `<button type="button" class="foe-luck" data-action="foeDamage"><i class="fa-solid fa-burst"></i> ${cls === "crit-success" ? t("Critical damage") : t("Roll damage")}</button>` : ""}
+    ${canReroll ? `<button type="button" class="foe-luck" data-action="foeLuckReroll"><i class="fa-solid fa-clover"></i> ${t("Reroll with a Luck card")}</button>` : ""}
   </div>`;
 
   return ChatMessage.create({
@@ -273,11 +274,11 @@ export function spellWeapon(s, actor, layers = 0) {
 export function parseCrit(text) {
   const raw = String(text ?? "").trim();
   const spec = raw.toLowerCase().replace(",", ".");
-  if (!spec || spec === "max") return { maximize: true, note: "maksymalne obrażenia z kości" };
+  if (!spec || spec === "max") return { maximize: true, note: t("maximum dice damage") };
   const mult = spec.match(/^[x×*]\s*(\d+(?:\.\d+)?)$/);
-  if (mult) return { multiplier: Number(mult[1]), note: Number(mult[1]) === 1 ? "broń bez premii za krytyk (×1)" : `obrażenia ×${num(mult[1])}` };
-  if (spec.startsWith("+") && Roll.validate(spec.slice(1))) return { extra: spec.slice(1).trim(), note: `dodatkowo ${raw}` };
-  return { note: `efekt: ${raw}` };
+  if (mult) return { multiplier: Number(mult[1]), note: Number(mult[1]) === 1 ? t("weapon without a critical bonus (×1)") : t("damage ×{m}", { m: num(mult[1]) }) };
+  if (spec.startsWith("+") && Roll.validate(spec.slice(1))) return { extra: spec.slice(1).trim(), note: t("extra {v}", { v: raw }) };
+  return { note: t("effect: {v}", { v: raw }) };
 }
 
 /** Rzucana mikstura zebr jako „broń” (obrażenia z receptury, bez krytyków i premii za STR). */
@@ -307,7 +308,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   // degradacja (s. 458): −1 kość za każdy utracony krok
   const worn = item.type === "weapon" && degradationOn() ? Number(w.wear) || 0 : 0;
   const df = damageFormula({ ...w, damage: shiftDice(attack?.formula || w.damage, (ammoV?.dice ?? 0) - worn) }, { str, rank, overWield });
-  if (worn) df.notes.push(`zużycie −${worn} ${worn === 1 ? "kość" : "kości"}`);
+  if (worn) df.notes.push(tn(worn, "wear −{n} die", "wear −{n} dice"));
   let formula = df.formula;
   if (ammoV?.addDice) formula += ` + ${ammoV.addDice}`;
 
@@ -315,7 +316,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   const fxDamage = sumFx(fx, "damage", e => hitsAttack(e.target, w.skill));
   if (fxDamage) formula += ` + ${fxDamage}`;
   const sitDamage = fx.filter(e => e.type === "damage" && e.when && hitsAttack(e.target, w.skill))
-    .map(e => `${e.source}: ${signed(Number(e.value) || 0)} (${e.when})`);
+    .map(e => `${e.source}: ${signed(Number(e.value) || 0)} (${t(e.when)})`);
 
   // Krytyk: mnożnik broni; wręcz w SATS podwójny (s. 442); broń obszarowa nie ma krytyków (s. 456)
   const c = crit && !aoe ? parseCrit(w.crit) : {};
@@ -324,7 +325,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   try {
     roll = tint(await new Roll(formula, actor.getRollData?.() ?? {}).evaluate({ maximize: !!c.maximize || !!ammoV?.maxDamage }), item.type === "spell" ? "magic" : "damage");
   } catch (err) {
-    ui.notifications.error(`Nieprawidłowa formuła obrażeń „${formula}” — popraw ją w broni (${err.message}).`);
+    ui.notifications.error(t("Invalid damage formula “{f}” — fix it in the weapon ({e}).", { f: formula, e: err.message }));
     return null;
   }
   const rolled = ammoV?.noDamage ? 0 : roll.total;
@@ -337,15 +338,15 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   const total = Math.floor(pre * mult);
 
   const dice = roll.dice.flatMap(d => d.results.filter(x => x.active !== false).map(x => `<span>${x.result}</span>`)).join("");
-  const multParts = [critMult !== 1 ? `krytyk ×${num(critMult)}` : "", locMult !== 1 ? `${locationName(hit.loc)} ×${num(locMult)}` : ""].filter(Boolean).join(" + ");
+  const multParts = [critMult !== 1 ? t("critical ×{m}", { m: num(critMult) }) : "", locMult !== 1 ? `${locationName(hit.loc)} ×${num(locMult)}` : ""].filter(Boolean).join(" + ");
   const calc = [
-    `rzut ${rolled}`,
+    t("roll {n}", { n: rolled }),
     aoe ? `× ${Math.round(df.pct * 100)}%${df.flat ? ` + ${df.flat}` : ""} = ${pre}` : "",
     mult !== 1 ? `× ${num(mult)} (${multParts}) = ${total}` : ""
   ].filter(Boolean).join(" ");
   const critNote = aoe
-    ? "broń obszarowa nie zadaje krytyków — idealne trafienie (opcjonalnie: ignoruje DT celów w pierwszym promieniu)"
-    : `${c.note ?? ""}${satsDouble ? " · w SATS wręcz ×2" : ""}`;
+    ? t("area weapons don't deal criticals — a perfect hit (optional: ignores the DT of targets in the first radius)")
+    : `${c.note ?? ""}${satsDouble ? ` · ${t("melee in SATS ×2")}` : ""}`;
   const targets = attack?.targets?.length ? attack.targets : [...(game.user?.targets ?? [])].map(t => t.document?.uuid).filter(Boolean);
   // Specjalne efekty broni (s. 200–202): ogień/dezintegracja „crit” działają tylko przy krytyku
   const sp = { ...(w.specials ?? {}) };
@@ -371,32 +372,32 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   const active = ["fire", "electric", "rads", "disintegrate", "shock", "poison", "knockdown"].filter(k => sp[k]);
   const spLine = active.map(k => {
     if (k === "poison") return `${SPECIALS.poison.label}: ${POISONS[sp.poison] ?? sp.poison}`;
-    if (k === "shock" && shockWounds) return `${SPECIALS.shock.label}: krytyk +${shockWounds} ran`;
+    if (k === "shock" && shockWounds) return t("{label}: critical +{n} wounds", { label: SPECIALS.shock.label, n: shockWounds });
     return SPECIALS[k].label;
   });
-  const locLine = hit?.loc ? `Lokacja: <b>${esc(hit.area ?? (hit.called ? CALLED_SHOTS[hit.called]?.label ?? locationName(hit.loc) : attack?.areaLabels?.[hit.loc] ?? locationName(hit.loc, attack?.table)))}</b>`
-    : aoe ? "Wybuch: każda odsłonięta lokacja osobno (DT liczone dla każdej)" : "Lokacja: wybierz przy nanoszeniu (domyślnie tułów)";
+  const locLine = hit?.loc ? `${t("Location:")} <b>${esc(hit.area ?? (hit.called ? CALLED_SHOTS[hit.called]?.label ?? locationName(hit.loc) : attack?.areaLabels?.[hit.loc] ?? locationName(hit.loc, attack?.table)))}</b>`
+    : aoe ? t("Explosion: each exposed location separately (DT counted for each)") : t("Location: choose it when applying (torso by default)");
 
   const content = `
   <div class="foe-card damage ${crit ? "crit-success" : ""}">
-    <div class="fc-tag"><span>PIPBUCK // ${crit ? "KRYTYK" : "OBRAŻENIA"}</span><span>${esc(roll.formula)}</span></div>
+    <div class="fc-tag"><span>PIPBUCK // ${crit ? t("CRITICAL") : t("DAMAGE")}</span><span>${esc(roll.formula)}</span></div>
     <h3>${esc(item.name)}</h3>
     <div class="fc-main">
-      <div class="fc-roll">${total}<small>OBR.</small></div>
-      <div class="fc-outcome">${crit ? "Krytyczne" : "Obrażenia"}</div>
+      <div class="fc-roll">${total}<small>${t("DMG")}</small></div>
+      <div class="fc-outcome">${crit ? t("Critical") : t("Damage")}</div>
       <div class="fc-sum">${dice ? `<div class="fc-dice">${dice}</div>` : esc(roll.formula)}</div>
     </div>
     <div class="fc-calc">${esc(calc)}</div>
     <div class="fc-hit"><div>${locLine}</div></div>
-    ${crit ? `<div class="fc-crit">Krytyk: ${esc(critNote)}</div>` : ""}
+    ${crit ? `<div class="fc-crit">${t("Critical:")} ${esc(critNote)}</div>` : ""}
     ${spLine.length ? `<div class="fc-special">${spLine.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : ""}
     <div class="fc-meta">
-      ${df.notes.length || fxDamage ? `<div>Premie: ${[...df.notes, fxDamage ? `z cech ${signed(fxDamage)}` : ""].filter(Boolean).map(esc).join(" · ")}</div>` : ""}
-      ${sitDamage.length ? `<div>Sytuacyjnie (dolicz ręcznie): ${sitDamage.map(esc).join(" · ")}</div>` : ""}
-      ${ammoV ? `<div>Amunicja ${esc(ammoV.label)}: ${esc(ammoV.effect)}${machineBonus ? ` (przeciw maszynom +${machineBonus})` : ""}</div>` : ""}
-      ${(item.type === "weapon" ? ammoIgnoreDT(w) : w.ignoreDT) ? `<div>Ignoruje ${item.type === "weapon" ? ammoIgnoreDT(w) : w.ignoreDT} DT celu.</div>` : ""}
+      ${df.notes.length || fxDamage ? `<div>${t("Bonuses:")} ${[...df.notes, fxDamage ? t("from traits {v}", { v: signed(fxDamage) }) : ""].filter(Boolean).map(esc).join(" · ")}</div>` : ""}
+      ${sitDamage.length ? `<div>${t("Situational (add it yourself):")} ${sitDamage.map(esc).join(" · ")}</div>` : ""}
+      ${ammoV ? `<div>${esc(t("Ammo {label}: {effect}", { label: ammoV.label, effect: ammoV.effect }))}${machineBonus ? ` ${t("(vs. machines +{n})", { n: machineBonus })}` : ""}</div>` : ""}
+      ${(item.type === "weapon" ? ammoIgnoreDT(w) : w.ignoreDT) ? `<div>${t("Ignores {n} DT of the target.", { n: item.type === "weapon" ? ammoIgnoreDT(w) : w.ignoreDT })}</div>` : ""}
     </div>
-    <button type="button" class="foe-luck" data-action="foeApply"><i class="fa-solid fa-heart-crack"></i> Nanieś obrażenia</button>
+    <button type="button" class="foe-luck" data-action="foeApply"><i class="fa-solid fa-heart-crack"></i> ${t("Apply damage")}</button>
   </div>`;
 
   return ChatMessage.create({

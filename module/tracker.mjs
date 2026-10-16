@@ -8,6 +8,7 @@
 
 const { DialogV2 } = foundry.applications.api;
 import { clearFlag } from "./flags.mjs";
+import { t } from "./i18n.mjs";
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
@@ -26,21 +27,21 @@ async function chooseAgiMod(name, d100, q, fx) {
   const total = m => d100 + m - fx;
   const content = `
     <div class="foe-dialog">
-      <div class="atk-info"><div>${esc(name)}: d100 = <b>${d100}</b> · AGI ¼ = <b>${q}</b>${fx ? ` · cechy ${signed(-fx)}` : ""}</div></div>
-      <label class="mod-row">Własna wartość (od −${q} do +${q}) <input type="number" name="v" value="${-q}" min="${-q}" max="${q}"></label>
-      <p class="hint">Niższa inicjatywa działa wcześniej. Odejmij, żeby działać szybciej (zwykle najlepiej); dodaj, jeśli postać ma poczekać.</p>
+      <div class="atk-info"><div>${esc(name)}: d100 = <b>${d100}</b> · AGI ¼ = <b>${q}</b>${fx ? ` · ${t("traits {n}", { n: signed(-fx) })}` : ""}</div></div>
+      <label class="mod-row">${t("Custom value (from −{q} to +{q})", { q })} <input type="number" name="v" value="${-q}" min="${-q}" max="${q}"></label>
+      <p class="hint">${t("Lower initiative acts earlier. Subtract to act faster (usually the best); add if the character is to wait.")}</p>
     </div>`;
   const clamp = v => Math.max(-q, Math.min(q, Math.round(Number(v) || 0)));
   const r = await DialogV2.wait({
-    window: { title: `Inicjatywa: ${name}` },
+    window: { title: t("Initiative: {name}", { name }) },
     classes: ["foe-rpg", "foe-roll-dialog"],
     position: { width: 400 },
     content,
     rejectClose: false,
     buttons: [
-      { action: "sub", label: `Odejmij → ${total(-q)}`, icon: "fa-solid fa-forward", default: true, callback: () => -q },
-      { action: "add", label: `Dodaj → ${total(q)}`, icon: "fa-solid fa-backward", callback: () => q },
-      { action: "own", label: "Własna", icon: "fa-solid fa-pen", callback: (ev, btn) => clamp(btn.form.elements.v.value) }
+      { action: "sub", label: t("Subtract → {n}", { n: total(-q) }), icon: "fa-solid fa-forward", default: true, callback: () => -q },
+      { action: "add", label: t("Add → {n}", { n: total(q) }), icon: "fa-solid fa-backward", callback: () => q },
+      { action: "own", label: t("Custom"), icon: "fa-solid fa-pen", callback: (ev, btn) => clamp(btn.form.elements.v.value) }
     ]
   });
   return r ?? -q;
@@ -53,12 +54,12 @@ async function chooseAgiMod(name, d100, q, fx) {
  */
 export async function rollActorInitiative(actor) {
   const tokens = actor.getActiveTokens?.() ?? [];
-  if (!tokens.length) return ui.notifications.warn(`${actor.name}: postaw token tej postaci na scenie, żeby dołączyć do walki.`);
-  if (!game.combat && !game.user.isGM) return ui.notifications.warn("Nie ma jeszcze walki — MG rozpoczyna ją w zakładce walki (miecze) albo klikając tu „Inicjatywa”.");
+  if (!tokens.length) return ui.notifications.warn(t("{name}: place this character's token on the scene to join the combat.", { name: actor.name }));
+  if (!game.combat && !game.user.isGM) return ui.notifications.warn(t("There's no combat yet — the GM starts it in the combat tab (swords) or by clicking “Initiative” here."));
   const c = game.combat?.getCombatantsByActor?.(actor)?.[0];
   if (c && Number.isNumeric(c.initiative)) {
     const again = await foundry.applications.api.DialogV2.confirm({
-      window: { title: "Inicjatywa" }, content: `<p>${foundry.utils.escapeHTML(actor.name)} ma już inicjatywę <b>${c.initiative}</b>. Rzucić jeszcze raz?</p>`
+      window: { title: t("Initiative") }, content: `<p>${t("{name} already has initiative {n}. Roll again?", { name: foundry.utils.escapeHTML(actor.name), n: `<b>${c.initiative}</b>` })}</p>`
     });
     if (!again) return null;
   }
@@ -99,49 +100,49 @@ export class FoeCombat extends Combat {
         flavor: "",
         content: `
         <div class="foe-card test">
-          <div class="fc-tag"><span>PIPBUCK // INICJATYWA</span><span>d100</span></div>
+          <div class="fc-tag"><span>${t("PIPBUCK // INITIATIVE")}</span><span>d100</span></div>
           <h3>${esc(c.name)}</h3>
           <div class="fc-main">
-            <div class="fc-roll">${total}<small>INICJ.</small></div>
-            <div class="fc-outcome">${agiMod < 0 ? "Szybciej" : agiMod > 0 ? "Czeka" : "Inicjatywa"}</div>
-            <div class="fc-sum">d100 ${roll.total} ${agiMod < 0 ? "−" : "+"} ${Math.abs(agiMod)} (AGI)${fx ? ` ${signed(-fx)} (cechy)` : ""}</div>
+            <div class="fc-roll">${total}<small>${t("INIT.")}</small></div>
+            <div class="fc-outcome">${agiMod < 0 ? t("Faster") : agiMod > 0 ? t("Waits") : t("Initiative")}</div>
+            <div class="fc-sum">d100 ${roll.total} ${agiMod < 0 ? "−" : "+"} ${Math.abs(agiMod)} (AGI)${fx ? ` ${signed(-fx)} (${t("traits")})` : ""}</div>
           </div>
-          <div class="fc-meta">Niższa inicjatywa działa wcześniej.</div>
+          <div class="fc-meta">${t("Lower initiative acts earlier.")}</div>
         </div>`,
         ...messageOptions
       });
     }
     if (!updates.length) return this;
     await this.updateEmbeddedDocuments("Combatant", updates);
-    if (updateTurn && currentId) await this.update({ turn: this.turns.findIndex(t => t.id === currentId) });
+    if (updateTurn && currentId) await this.update({ turn: this.turns.findIndex(tr => tr.id === currentId) });
     return this;
   }
 }
 
 /** Odhacza akcje postaci w bieżącej walce (atak, przeładowanie, gaszenie). */
-export async function spendActions(actor, n = 1, what = "akcja") {
+export async function spendActions(actor, n = 1, what = t("action")) {
   const combat = game.combat;
   if (!combat?.started || !actor) return;
   const c = combat.getCombatantsByActor?.(actor)?.[0] ?? combat.combatants.find(x => x.actor === actor);
   if (!c?.isOwner) return;
   const max = maxActions(combat, c);
   const used = usedActions(c);
-  if (used + n > max) ui.notifications.warn(`${c.name}: ${what} — w tej rundzie zostało ${Math.max(0, max - used)} z ${max} akcji.`);
+  if (used + n > max) ui.notifications.warn(t("{name}: {what} — {left} of {max} actions left this round.", { name: c.name, what, left: Math.max(0, max - used), max }));
   await c.setFlag(F, "used", Math.min(max, used + n));
 }
 
 /** Okno rundy zaskoczenia: kto jest zaskoczony. */
 async function startSurprise(combat) {
   const rows = combat.combatants.contents.map(c =>
-    `<label class="atk-row atk-check"><input type="checkbox" name="s-${c.id}"><span>${esc(c.name)}</span><small>zaznacz, jeśli jest zaskoczony</small></label>`).join("");
+    `<label class="atk-row atk-check"><input type="checkbox" name="s-${c.id}"><span>${esc(c.name)}</span><small>${t("tick if surprised")}</small></label>`).join("");
   const picked = await DialogV2.wait({
-    window: { title: "Runda zaskoczenia" },
+    window: { title: t("Surprise round") },
     classes: ["foe-rpg", "foe-roll-dialog"],
     position: { width: 420 },
     content: `<div class="foe-dialog">${rows}
-      <p class="hint">Zaskoczeni nie działają i nie rzucają inicjatywy. Atakujący mają po 1 akcji. Gdy runda się skończy, wszyscy rzucają inicjatywę od nowa.</p></div>`,
+      <p class="hint">${t("The surprised don't act and don't roll initiative. Attackers have 1 action each. When the round ends, everyone rolls initiative again.")}</p></div>`,
     rejectClose: false,
-    buttons: [{ action: "ok", label: "Zacznij", icon: "fa-solid fa-eye-slash", default: true,
+    buttons: [{ action: "ok", label: t("btn|Start"), icon: "fa-solid fa-eye-slash", default: true,
       callback: (ev, btn) => combat.combatants.contents.filter(c => btn.form.elements[`s-${c.id}`]?.checked).map(c => c.id) }]
   });
   if (!picked) return;
@@ -151,8 +152,8 @@ async function startSurprise(combat) {
   })));
   await combat.setFlag(F, "surprise", true);
   if (!combat.started) await combat.startCombat();
-  ChatMessage.create({ content: `<div class="foe-card test"><div class="fc-tag"><span>PIPBUCK // ZASKOCZENIE</span><span>runda 1</span></div>
-    <div class="fc-meta">Zaskoczeni: ${picked.map(id => esc(combat.combatants.get(id)?.name)).join(", ") || "nikt"}. Atakujący mają po 1 akcji.</div></div>` });
+  ChatMessage.create({ content: `<div class="foe-card test"><div class="fc-tag"><span>${t("PIPBUCK // SURPRISE")}</span><span>${t("round {n}", { n: 1 })}</span></div>
+    <div class="fc-meta">${t("Surprised: {list}. Attackers have 1 action each.", { list: picked.map(id => esc(combat.combatants.get(id)?.name)).join(", ") || t("nobody") })}</div></div>` });
 }
 
 export function registerTrackerHooks() {
@@ -168,8 +169,8 @@ export function registerTrackerHooks() {
     if (endSurprise) {
       await clearFlag(combat, "surprise");
       await combat.resetAll();
-      ChatMessage.create({ content: `<div class="foe-card test"><div class="fc-tag"><span>PIPBUCK // KONIEC ZASKOCZENIA</span><span>runda ${changed.round}</span></div>
-        <div class="fc-meta">Wszyscy rzucają inicjatywę od nowa (ikonka kości przy nazwie w trackerze).</div></div>` });
+      ChatMessage.create({ content: `<div class="foe-card test"><div class="fc-tag"><span>${t("PIPBUCK // SURPRISE OVER")}</span><span>${t("round {n}", { n: changed.round })}</span></div>
+        <div class="fc-meta">${t("Everyone rolls initiative again (the dice icon next to the name in the tracker).")}</div></div>` });
     }
   });
 
@@ -193,14 +194,14 @@ export function registerTrackerHooks() {
       const box = document.createElement("div");
       box.className = "foe-ct";
       let html = "";
-      if (combat.getFlag(F, "surprise") && c.getFlag(F, "surprised")) html += `<span class="foe-ct-tag surprised">ZASKOCZONY</span>`;
+      if (combat.getFlag(F, "surprise") && c.getFlag(F, "surprised")) html += `<span class="foe-ct-tag surprised">${t("SURPRISED")}</span>`;
       else if (combat.started) {
-        html += `<span class="foe-ct-pips" title="Akcje w tej rundzie (kliknij, by odhaczyć)">${Array.from({ length: max }, (_, i) =>
+        html += `<span class="foe-ct-pips" title="${t("Actions this round (click to tick off)")}">${Array.from({ length: max }, (_, i) =>
           `<a class="foe-pip ${i < used ? "used" : ""}" data-i="${i}"></a>`).join("")}</span>`;
       }
       if (tens && Number.isNumeric(c.initiative)) {
         const g = Math.floor(c.initiative / 10);
-        if ((groups.get(g) ?? 0) > 1) html += `<span class="foe-ct-tag" title="Ten sam rząd dziesiątek — akcje jednocześnie">⇄ ${g * 10}–${g * 10 + 9}</span>`;
+        if ((groups.get(g) ?? 0) > 1) html += `<span class="foe-ct-tag" title="${t("Same tens — simultaneous actions")}">⇄ ${g * 10}–${g * 10 + 9}</span>`;
       }
       if (!html) continue;
       box.innerHTML = html;
@@ -220,8 +221,8 @@ export function registerTrackerHooks() {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "foe-surprise";
-      btn.title = "Runda zaskoczenia (s. 436)";
-      btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i> Zaskoczenie`;
+      btn.title = t("Surprise round (p. 436)");
+      btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i> ${t("Surprise")}`;
       btn.addEventListener("click", () => startSurprise(combat));
       const bar = root.querySelector(".combat-tracker-header") ?? root.querySelector("header") ?? root;
       bar.append(btn);
@@ -231,8 +232,8 @@ export function registerTrackerHooks() {
 
 export function registerTrackerSettings() {
   game.settings.register(F, "simultaneousTens", {
-    name: "Akcje jednoczesne (ta sama dziesiątka)",
-    hint: "Zasada opcjonalna (s. 436): walczący z inicjatywą z tego samego rzędu dziesiątek (np. 40–49) działają jednocześnie — tracker ich oznacza.",
+    name: "Simultaneous actions (same tens)",
+    hint: "Optional rule (p. 436): combatants with initiative in the same tens (e.g. 40–49) act simultaneously — the tracker marks them.",
     scope: "world",
     config: true,
     type: Boolean,

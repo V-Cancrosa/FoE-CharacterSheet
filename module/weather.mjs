@@ -5,27 +5,28 @@
  *   - skradanie: osobna kolumna (słońce utrudnia, burza ułatwia),
  *   - lot: manewry wykonuje się z modyfikatorem celności (wiatr też przeszkadza).
  */
+import { t, tfields } from "./i18n.mjs";
 const F = "foe-rpg";
 
 // acc: { steps, mod } — celność/percepcja; accOnly — nie dotyczy percepcji; sneak — kroki MFD skradania; vis — zasięg widzenia ×PER (ft)
-export const WEATHER = {
-  sunny: { label: "Słonecznie", acc: { steps: 1 }, sneak: -2, vis: 15 },
-  partly: { label: "Częściowe zachmurzenie", acc: {}, sneak: -1, vis: 10 },
-  overcast: { label: "Pochmurno (standard)", acc: {}, sneak: 0, vis: 10 },
-  drizzle: { label: "Mżawka", acc: { mod: -5 }, sneak: 1, vis: 10 },
-  rain: { label: "Burza (deszcz)", acc: { steps: -1 }, sneak: 1, vis: 5 },
-  typhoon: { label: "Tajfun / huragan", acc: { steps: -3 }, sneak: 2, vis: 5 },
-  hail: { label: "Grad", acc: { steps: -2 }, sneak: 1, vis: 5 },
-  snow: { label: "Burza śnieżna", acc: { steps: -1 }, sneak: 1, vis: 5 },
-  blizzard: { label: "Zamieć", acc: { steps: -3 }, sneak: 2, vis: 2 },
-  wind: { label: "Silny wiatr", acc: { steps: -1 }, accOnly: true, sneak: 0, vis: 10 },
-  mist: { label: "Mgiełka", acc: { mod: -5 }, sneak: 1, vis: 5 },
-  fog: { label: "Mgła / chmury / dym", acc: { steps: -1 }, sneak: 0, vis: 5 },
-  magicFog: { label: "Magiczna mgła / chmury", acc: { steps: -2 }, sneak: 1, vis: 3 },
-  eclipse: { label: "Zaćmienie", acc: { steps: -1 }, sneak: 2, vis: 3 },
-  dust: { label: "Burza pyłowa", acc: { steps: -2 }, sneak: 1, vis: 3 },
-  sand: { label: "Burza piaskowa", acc: { steps: -3 }, sneak: 3, vis: 1 }
-};
+export const WEATHER = tfields({
+  sunny: { label: "Sunny", acc: { steps: 1 }, sneak: -2, vis: 15 },
+  partly: { label: "Partly cloudy", acc: {}, sneak: -1, vis: 10 },
+  overcast: { label: "Overcast (standard)", acc: {}, sneak: 0, vis: 10 },
+  drizzle: { label: "Drizzle", acc: { mod: -5 }, sneak: 1, vis: 10 },
+  rain: { label: "Storm (rain)", acc: { steps: -1 }, sneak: 1, vis: 5 },
+  typhoon: { label: "Typhoon / hurricane", acc: { steps: -3 }, sneak: 2, vis: 5 },
+  hail: { label: "Hail", acc: { steps: -2 }, sneak: 1, vis: 5 },
+  snow: { label: "Snowstorm", acc: { steps: -1 }, sneak: 1, vis: 5 },
+  blizzard: { label: "Blizzard", acc: { steps: -3 }, sneak: 2, vis: 2 },
+  wind: { label: "Strong wind", acc: { steps: -1 }, accOnly: true, sneak: 0, vis: 10 },
+  mist: { label: "Mist", acc: { mod: -5 }, sneak: 1, vis: 5 },
+  fog: { label: "Fog / clouds / smoke", acc: { steps: -1 }, sneak: 0, vis: 5 },
+  magicFog: { label: "Magical fog / clouds", acc: { steps: -2 }, sneak: 1, vis: 3 },
+  eclipse: { label: "Eclipse", acc: { steps: -1 }, sneak: 2, vis: 3 },
+  dust: { label: "Dust storm", acc: { steps: -2 }, sneak: 1, vis: 3 },
+  sand: { label: "Sandstorm", acc: { steps: -3 }, sneak: 3, vis: 1 }
+}, ["label"]);
 
 export function currentWeather() {
   let k = "overcast";
@@ -33,15 +34,15 @@ export function currentWeather() {
   return WEATHER[k] ? { key: k, ...WEATHER[k] } : { key: "overcast", ...WEATHER.overcast };
 }
 
-const stepsText = n => `${n > 0 ? "+" : "−"}${Math.abs(n)} kr.`;
+const stepsText = n => `${n > 0 ? "+" : "−"}${Math.abs(n)} ${t("st.")}`;
 
-/** Krótki opis modyfikatorów pogody, np. „celność/percepcja −1 kr. · skradanie +1 kr. · widoczność 5×PER”. */
+/** Krótki opis modyfikatorów pogody, np. „accuracy, perception and flight −1 st. · sneaking +1 st. · visibility 5×PER ft”. */
 export function weatherSummary(w = currentWeather()) {
   const acc = w.acc.steps ? stepsText(w.acc.steps) : w.acc.mod ? `${w.acc.mod}` : "";
   return [
-    acc ? `${w.accOnly ? "celność i lot" : "celność, percepcja i lot"} ${acc}` : "",
-    w.sneak ? `skradanie ${stepsText(w.sneak)}` : "",
-    `widoczność ${w.vis}×PER ft`
+    acc ? `${w.accOnly ? t("accuracy and flight") : t("accuracy, perception and flight")} ${acc}` : "",
+    w.sneak ? t("sneaking {s}", { s: stepsText(w.sneak) }) : "",
+    t("visibility {n}×PER ft", { n: w.vis })
   ].filter(Boolean).join(" · ");
 }
 
@@ -57,14 +58,14 @@ export function weatherSituational(ctx) {
     steps = w.sneak;
   }
   if (!mod && !steps) return null;
-  return { id: "weather", label: `Pogoda: ${w.label}`, source: "na zewnątrz — odznacz w budynku", mod, steps, on: true };
+  return { id: "weather", label: t("Weather: {w}", { w: w.label }), source: t("outdoors — uncheck indoors"), mod, steps, on: true };
 }
 
 /** Ustawienie świata + wybór pogody w trackerze walki (MG) i podgląd dla graczy. */
 export function registerWeatherSettings() {
   game.settings.register(F, "weather", {
-    name: "Pogoda",
-    hint: "Modyfikatory pogody (s. 628) dodają się same do rzutów na celność, percepcję, skradanie i lot. Zmienisz ją też w zakładce walki.",
+    name: "Weather",
+    hint: "Weather modifiers (p. 628) are added automatically to accuracy, perception, sneaking and flight rolls. You can also change it in the combat tab.",
     scope: "world", config: true, type: String, default: "overcast",
     choices: Object.fromEntries(Object.entries(WEATHER).map(([k, v]) => [k, v.label])),
     onChange: () => {
@@ -75,7 +76,7 @@ export function registerWeatherSettings() {
 }
 
 export function setWeather(key) {
-  if (!WEATHER[key]) return ui.notifications.warn(`Nieznana pogoda: ${key}`);
+  if (!WEATHER[key]) return ui.notifications.warn(t("Unknown weather: {k}", { k: key }));
   return game.settings.set(F, "weather", key);
 }
 

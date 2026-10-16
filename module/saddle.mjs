@@ -11,15 +11,16 @@
  *     (Power Armor Training) brak premii do atrybutów i umiejętności, ze szkoleniem brak kar AGI z pancerza;
  *     talizman naprawczy: 2 DT na każdej lokacji za jednostkę złomu (metalu albo elektroniki).
  */
+import { t, tfields } from "./i18n.mjs";
 const F = "foe-rpg";
 
-export const SADDLE_KINDS = {
-  utility: { label: "Siodło użytkowe", weapons: 2, indiv: () => 3, combined: null, volley: 1, extraAp: 10 },
-  light: { label: "Lekkie siodło bojowe", weapons: 2, indiv: str => 2 * str, combined: str => 3 * str, volley: 1, extraAp: 10 },
-  medium: { label: "Średnie siodło bojowe", weapons: 2, indiv: str => 2 * str + 5, combined: str => 4 * str, volley: 1, extraAp: 10 },
-  heavy: { label: "Ciężkie siodło bojowe", weapons: 2, indiv: str => 4 * str, combined: null, volley: 1, extraAp: 10 },
-  four: { label: "Czteroramienne siodło bojowe", weapons: 4, indiv: str => 4 * str, combined: null, volley: 2, extraAp: 40 }
-};
+export const SADDLE_KINDS = tfields({
+  utility: { label: "Utility battle saddle", weapons: 2, indiv: () => 3, combined: null, volley: 1, extraAp: 10 },
+  light: { label: "Light battle saddle", weapons: 2, indiv: str => 2 * str, combined: str => 3 * str, volley: 1, extraAp: 10 },
+  medium: { label: "Medium battle saddle", weapons: 2, indiv: str => 2 * str + 5, combined: str => 4 * str, volley: 1, extraAp: 10 },
+  heavy: { label: "Heavy battle saddle", weapons: 2, indiv: str => 4 * str, combined: null, volley: 1, extraAp: 10 },
+  four: { label: "Four-pronged battle saddle", weapons: 4, indiv: str => 4 * str, combined: null, volley: 2, extraAp: 40 }
+}, ["label"]);
 
 /** Rodzaj siodła z nazwy przedmiotu. */
 export function saddleKindOf(name) {
@@ -54,10 +55,10 @@ export function reserveCapacity(name) {
 
 /** Punkty rezerwy energii na jeden nabój danej amunicji (null — nie energia). */
 export function energyCost(ammoType) {
-  const t = String(ammoType ?? "").toLowerCase();
-  if (/gem/.test(t)) return 1;
-  if (/mfc|fission|micro ?fusion/.test(t)) return 4;
-  if (/mec|me-?cell|energy cell|\bec\b|magical energy/.test(t)) return 2;
+  const a = String(ammoType ?? "").toLowerCase();
+  if (/gem/.test(a)) return 1;
+  if (/mfc|fission|micro ?fusion/.test(a)) return 4;
+  if (/mec|me-?cell|energy cell|\bec\b|magical energy/.test(a)) return 2;
   return null;
 }
 export const isFuel = ammoType => /flamer|fuel|paliw/i.test(String(ammoType ?? ""));
@@ -94,14 +95,14 @@ export function saddleState(actor) {
     if (a && !acc[a]) acc[a] = g;
   }
   const mounted = items.filter(i => i.type === "weapon" && i.system?.mounted);
-  const weight = mounted.reduce((t, i) => t + (Number(i.system.weight) || 0), 0);
+  const weight = mounted.reduce((sum, i) => sum + (Number(i.system.weight) || 0), 0);
   const combined = def.combined ? def.combined(str) : null;
   const indiv = def.indiv(str);
   const warnings = [];
-  if (mounted.length > def.weapons) warnings.push(`zamontowano ${mounted.length} broni, siodło mieści ${def.weapons}`);
-  if (combined !== null && weight > combined) warnings.push(`łączna waga ${weight} lb > ${combined} lb`);
-  if (best.kind === "utility") for (const w of mounted) if ((Number(w.system.weight) || 0) > 3) warnings.push(`${w.name}: siodło użytkowe uniesie broń do 3 lb`);
-  if (best.energyOnly) for (const w of mounted) if (w.system.skill !== "energy") warnings.push(`${w.name}: wbudowane siodło Enklawy przyjmuje tylko broń energetyczną`);
+  if (mounted.length > def.weapons) warnings.push(t("{n} weapons mounted, the saddle holds {max}", { n: mounted.length, max: def.weapons }));
+  if (combined !== null && weight > combined) warnings.push(t("total weight {w} lb > {max} lb", { w: weight, max: combined }));
+  if (best.kind === "utility") for (const w of mounted) if ((Number(w.system.weight) || 0) > 3) warnings.push(t("{name}: a utility saddle carries weapons up to 3 lb", { name: w.name }));
+  if (best.energyOnly) for (const w of mounted) if (w.system.skill !== "energy") warnings.push(t("{name}: the built-in Enclave saddle takes energy weapons only", { name: w.name }));
   const energyPts = acc.energy ? Number(acc.energy.system.charges) || 0 : 0;
   return {
     ...best, def, label: def.label, maxWeapons: def.weapons, indiv, combined, weight, mounted, warnings, acc,

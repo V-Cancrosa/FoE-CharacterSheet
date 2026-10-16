@@ -3,6 +3,7 @@ import { clearFlag } from "./flags.mjs";
 import { rollTest, locationName } from "./rolls.mjs";
 import { hitTableFor, tableLocations, effectiveDT, woundsFrom, isMetalArmor } from "./combat.mjs";
 import { spendActions } from "./tracker.mjs";
+import { t, tn, tfields } from "./i18n.mjs";
 
 /**
  * Stany z efektów specjalnych broni (s. 200–202), zapisane we flagach aktora `foe-rpg.conditions`:
@@ -12,12 +13,12 @@ import { spendActions } from "./tracker.mjs";
  *   paralyzed { ok, bad, locked }   — trucizna mantykory: paraliż, rzuty END ½ (3 sukcesy z rzędu znoszą)
  * Ikony tokenów to standardowe statusy Foundry.
  */
-export const CONDITIONS = {
-  burning: { label: "Płonie", status: "burning" },
-  shocked: { label: "Porażenie prądem", status: "shock" },
-  poisoned: { label: "Zatruty (radskorpion)", status: "poison" },
-  paralyzed: { label: "Sparaliżowany (mantykora)", status: "paralysis" }
-};
+export const CONDITIONS = tfields({
+  burning: { label: "Burning", status: "burning" },
+  shocked: { label: "Shocked", status: "shock" },
+  poisoned: { label: "Poisoned (radscorpion)", status: "poison" },
+  paralyzed: { label: "Paralyzed (manticore)", status: "paralysis" }
+}, ["label"]);
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 
@@ -70,8 +71,8 @@ async function damageAllLocations(actor, formula, mode) {
 }
 
 async function afterWounds(actor, notes) {
-  if (actor.system.dead) { await toggleStatus(actor, "dead", true); notes.push("MARTWY"); }
-  else if (actor.system.unconsciousRisk) notes.push("traci przytomność: przy każdej akcji rzut END ¾");
+  if (actor.system.dead) { await toggleStatus(actor, "dead", true); notes.push(t("DEAD")); }
+  else if (actor.system.unconsciousRisk) notes.push(t("losing consciousness: END ¾ roll on every action"));
 }
 
 /** Efekty końca rundy dla jednego aktora. Zwraca true, jeśli coś się stało. */
@@ -87,27 +88,27 @@ export async function endOfRound(actor) {
     const left = (c.burning.rounds ?? 1) - 1;
     if (left > 0) await actor.setFlag("foe-rpg", "conditions.burning.rounds", left);
     else await clearCondition(actor, "burning");
-    blocks.push({ title: `Ogień: 3d12 = ${roll.total}`, lines, note: left > 0 ? `płonie jeszcze ${left} ${left === 1 ? "rundę" : "rundy"}` : "ogień zgasł" });
+    blocks.push({ title: t("Fire: 3d12 = {n}", { n: roll.total }), lines, note: left > 0 ? tn(left, "burns for {n} more round", "burns for {n} more rounds") : t("the fire went out") });
   }
   if (c.shocked) {
     const { roll, lines } = await damageAllLocations(actor, c.shocked.dice || "3d12", "electric");
     rolls.push(roll);
     await clearCondition(actor, "shocked");
-    blocks.push({ title: `Elektryczność: ${c.shocked.dice || "3d12"} = ${roll.total}`, lines, note: "PipBuck i pancerz wspomagany wyłączają się (2 akcje na ponowne uruchomienie)" });
+    blocks.push({ title: t("Electricity: {dice} = {n}", { dice: c.shocked.dice || "3d12", n: roll.total }), lines, note: t("PipBuck and power armor shut down (2 actions to restart)") });
   }
   if (c.poisoned) {
     const sys = actor.system;
     if (sys.unconsciousRisk) {
       await toggleStatus(actor, "unconscious", true);
-      blocks.push({ title: "Trucizna radskorpiona", lines: [], note: "nieprzytomny — bez antidotum po godzinie rzut END ¾ o życie" });
+      blocks.push({ title: t("Radscorpion poison"), lines: [], note: t("unconscious — without an antidote, after an hour an END ¾ roll for their life") });
     } else {
       const loc = sys.locations.head.wounds <= sys.locations.torso.wounds ? "head" : "torso";
       await actor.update({ [`system.locations.${loc}.wounds`]: sys.locations[loc].wounds + 1 });
-      blocks.push({ title: "Trucizna radskorpiona", lines: [`${locationName(loc)}: +1 rana`], note: "antidotum albo antywenom przerywa działanie" });
+      blocks.push({ title: t("Radscorpion poison"), lines: [t("{loc}: +1 wound", { loc: locationName(loc) })], note: t("an antidote or antivenom stops it") });
     }
   }
   if (c.paralyzed) {
-    blocks.push({ title: "Paraliż (mantykora)", lines: [], note: c.paralyzed.locked ? "sparaliżowany na 1d4 godziny (antidotum pomaga)" : "przy każdej akcji rzut END ½ — 3 sukcesy z rzędu znoszą paraliż" });
+    blocks.push({ title: t("Paralysis (manticore)"), lines: [], note: c.paralyzed.locked ? t("paralyzed for 1d4 hours (an antidote helps)") : t("END ½ roll on every action — 3 successes in a row end the paralysis") });
   }
 
   const notes = [];
@@ -117,7 +118,7 @@ export async function endOfRound(actor) {
     rolls,
     content: `
     <div class="foe-card wounds">
-      <div class="fc-tag"><span>PIPBUCK // KONIEC RUNDY</span><span>${esc(actor.name)}</span></div>
+      <div class="fc-tag"><span>${t("PIPBUCK // END OF ROUND")}</span><span>${esc(actor.name)}</span></div>
       ${blocks.map(b => `<div class="dmg-res"><h4>${esc(b.title)}</h4>${b.lines.map(l => `<div>${esc(l)}</div>`).join("")}<div class="fc-meta">${esc(b.note)}</div></div>`).join("")}
       ${notes.length ? `<div class="fc-meta"><b class="warn">${esc(notes.join(" · "))}</b></div>` : ""}
     </div>`
@@ -134,21 +135,21 @@ const passed = r => r === "success" || r === "crit-success";
 
 /** Gaszenie się: AGI MFD ½ (dwie akcje), sukces gasi ogień. */
 export async function extinguish(actor) {
-  await spendActions(actor, 2, "gaszenie ognia");
-  const res = await quickTest(actor, "Gaszenie ognia (AGI, 2 akcje)", actor.system.attributes.agi.tn, "1/2");
-  if (passed(res)) { await clearCondition(actor, "burning"); ui.notifications.info(`${actor.name}: ogień ugaszony.`); }
+  await spendActions(actor, 2, t("putting out fire"));
+  const res = await quickTest(actor, t("Putting out fire (AGI, 2 actions)"), actor.system.attributes.agi.tn, "1/2");
+  if (passed(res)) { await clearCondition(actor, "burning"); ui.notifications.info(t("{name}: fire put out.", { name: actor.name })); }
 }
 
 /** Rzut przeciw paraliżowi mantykory: 3 sukcesy z rzędu znoszą, 3 porażki z rzędu = 1d4 godziny (krytyki liczą się podwójnie). */
 export async function resistParalysis(actor) {
   const c = conditionsOf(actor).paralyzed;
   if (!c) return;
-  const res = await quickTest(actor, "Opór przed paraliżem (END)", actor.system.attributes.end.tn, "1/2");
+  const res = await quickTest(actor, t("Resisting paralysis (END)"), actor.system.attributes.end.tn, "1/2");
   const step = res.startsWith("crit") ? 2 : 1;
   const next = passed(res) ? { ok: (c.ok ?? 0) + step, bad: 0 } : { ok: 0, bad: (c.bad ?? 0) + step };
   if (next.ok >= 3) {
     await clearCondition(actor, "paralyzed");
-    return ui.notifications.info(`${actor.name}: paraliż ustąpi w następnej rundzie.`);
+    return ui.notifications.info(t("{name}: the paralysis wears off next round.", { name: actor.name }));
   }
   await actor.setFlag("foe-rpg", "conditions.paralyzed", { ...next, locked: next.bad >= 3 });
 }
@@ -156,16 +157,16 @@ export async function resistParalysis(actor) {
 /** Pierwszy rzut przeciw truciźnie po trafieniu. */
 export async function poisonCheck(actor, type) {
   if (type === "radscorpion") {
-    const res = await quickTest(actor, "Odporność na truciznę radskorpiona (END)", actor.system.attributes.end.tn, "3/4");
+    const res = await quickTest(actor, t("Resisting radscorpion poison (END)"), actor.system.attributes.end.tn, "3/4");
     if (!passed(res)) await setCondition(actor, "poisoned", { type });
-    return passed(res) ? "oparł się truciźnie" : "zatruty: 1 rana na rundę";
+    return passed(res) ? t("resisted the poison") : t("poisoned: 1 wound per round");
   }
   if (type === "manticore") {
-    const res = await quickTest(actor, "Odporność na jad mantykory (END)", actor.system.attributes.end.tn, "1/2");
+    const res = await quickTest(actor, t("Resisting manticore venom (END)"), actor.system.attributes.end.tn, "1/2");
     if (!passed(res)) await setCondition(actor, "paralyzed", { ok: 0, bad: 1, locked: false });
-    return passed(res) ? "oparł się jadowi" : "sparaliżowany";
+    return passed(res) ? t("resisted the venom") : t("paralyzed");
   }
-  return "trucizna — efekt według opisu broni (MG)";
+  return t("poison — effect per the weapon's description (GM)");
 }
 
 /** Lista stanów do karty postaci. */
@@ -174,10 +175,10 @@ export function conditionRows(actor) {
   return Object.entries(c).filter(([k]) => CONDITIONS[k]).map(([k, v]) => ({
     key: k,
     label: CONDITIONS[k].label,
-    detail: k === "burning" ? `3d12 na każdą lokację na koniec rundy, zostało ${v.rounds ?? 1}`
-      : k === "shocked" ? `${v.dice || "3d12"} na każdą lokację na koniec rundy`
-      : k === "poisoned" ? "1 rana na rundę w głowę lub tułów aż do utraty przytomności"
-      : v.locked ? "sparaliżowany na 1d4 godziny" : `rzut END ½ przy każdej akcji (sukcesy z rzędu: ${v.ok ?? 0}/3, porażki: ${v.bad ?? 0}/3)`,
+    detail: k === "burning" ? t("3d12 to every location at the end of the round, {n} left", { n: v.rounds ?? 1 })
+      : k === "shocked" ? t("{dice} to every location at the end of the round", { dice: v.dice || "3d12" })
+      : k === "poisoned" ? t("1 wound per round to the head or torso until unconscious")
+      : v.locked ? t("paralyzed for 1d4 hours") : t("END ½ roll on every action (successes in a row: {ok}/3, failures: {bad}/3)", { ok: v.ok ?? 0, bad: v.bad ?? 0 }),
     extinguish: k === "burning",
     resist: k === "paralyzed" && !v.locked
   }));

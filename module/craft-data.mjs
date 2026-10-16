@@ -12,6 +12,7 @@
  *   talizmanem albo częściami z tego samego modelu.
  * Wytwarzanie (s. 198–199): naboje, ładunki miotające, proch, ogniwa energii, ładowanie zużytych ogniw, paliwo do miotacza.
  */
+import { t } from "./i18n.mjs";
 
 // ---------- jednostki w paczkach („(10)”, „10 units”) ----------
 /** Ile jednostek ma jedna sztuka przedmiotu: „Black Powder (10 oz. – 10 units)” → 10, „Brass Casings (10, …)” → 10. */
@@ -41,20 +42,20 @@ export function stackFor(name, units) {
 // ---------- amunicja ----------
 /** Łuski do kalibru: hulls (strzelby), .50, duże, małe; null — kaliber bez łusek. */
 export function casingFor(ammoType) {
-  const t = String(ammoType ?? "").toLowerCase();
-  if (/gauge/.test(t)) return { re: /^hulls/i, label: "Hulls (Spent Shotgun Shells, 10)" };
-  if (/\.50|12\.7/.test(t)) return { re: /brass casings.*\.50/i, label: "Brass Casings (10, .50 cal)" };
-  if (/\.308|\.45|\.44|\.357|5\.56|7\.62/.test(t)) return { re: /brass casings.*large/i, label: "Brass Casings (10, any large caliber)" };
-  if (/5mm|9mm|10mm|\.22|\.32/.test(t)) return { re: /brass casings.*small/i, label: "Brass Casings (10, any small caliber)" };
+  const a = String(ammoType ?? "").toLowerCase();
+  if (/gauge/.test(a)) return { re: /^hulls/i, label: "Hulls (Spent Shotgun Shells, 10)" };
+  if (/\.50|12\.7/.test(a)) return { re: /brass casings.*\.50/i, label: "Brass Casings (10, .50 cal)" };
+  if (/\.308|\.45|\.44|\.357|5\.56|7\.62/.test(a)) return { re: /brass casings.*large/i, label: "Brass Casings (10, any large caliber)" };
+  if (/5mm|9mm|10mm|\.22|\.32/.test(a)) return { re: /brass casings.*small/i, label: "Brass Casings (10, any small caliber)" };
   return null;
 }
 /** Kryształowy pył na ogniwo (s. 199): 1 pył = 5 gem cells, 3 ogniwa energii albo 1 MFC; SPC nie da się zrobić. */
 export function dustPerCell(ammoType) {
-  const t = String(ammoType ?? "").toLowerCase();
-  if (/spc|star/.test(t)) return null;
-  if (/gem/.test(t)) return 1 / 5;
-  if (/mfc|fusion/.test(t)) return 1;
-  if (/me-?cell|energy cell/.test(t)) return 1 / 3;
+  const a = String(ammoType ?? "").toLowerCase();
+  if (/spc|star/.test(a)) return null;
+  if (/gem/.test(a)) return 1 / 5;
+  if (/mfc|fusion/.test(a)) return 1;
+  if (/me-?cell|energy cell/.test(a)) return 1 / 3;
   return null;
 }
 export const DRAINED = [
@@ -82,10 +83,10 @@ export const MATCH = {
 
 /** Wynik rzutu wytwarzania → mnożnik produktu i strata materiałów. */
 export function craftOutcome(result, { failHalf = true, critDouble = true } = {}) {
-  if (result === "crit-success") return { mult: critDouble ? 2 : 1, waste: 1, note: critDouble ? "krytyk: podwójnie" : "krytyk" };
+  if (result === "crit-success") return { mult: critDouble ? 2 : 1, waste: 1, note: critDouble ? t("critical: double") : t("critical") };
   if (result === "success") return { mult: 1, waste: 1, note: "" };
-  if (result === "crit-fail") return { mult: 0, waste: 1, note: "krytyczna porażka: nic nie wychodzi" };
-  return { mult: failHalf ? 0.5 : 0, waste: 1, note: failHalf ? "porażka: połowa" : "porażka: nic" };
+  if (result === "crit-fail") return { mult: 0, waste: 1, note: t("critical failure: nothing comes out") };
+  return { mult: failHalf ? 0.5 : 0, waste: 1, note: failHalf ? t("failure: half") : t("failure: nothing") };
 }
 
 // ---------- degradacja broni ----------
@@ -152,7 +153,7 @@ export const armorDonorPoints = (donorDt, rank) => Math.max(1, Math.floor((Numbe
 export function armorMaterial(a) {
   if (a.powered) return null;
   if (["medium", "heavy", "helmet"].includes(a.category)) return { re: /^scrap metal$/i, label: "Scrap Metal", tools: [{ re: /^hammer$/i, label: "Hammer" }] };
-  return { re: /leather|hide,|bolt of cloth/i, label: "skóra albo materiał (Hide, Leather Belt, Bolt of Cloth)", tools: [{ re: /^needle$/i, label: "Needle" }, { re: /spool of thread/i, label: "Spool of Thread" }] };
+  return { re: /leather|hide,|bolt of cloth/i, label: t("leather or cloth (Hide, Leather Belt, Bolt of Cloth)"), tools: [{ re: /^needle$/i, label: "Needle" }, { re: /spool of thread/i, label: "Spool of Thread" }] };
 }
 export const minutesPerDt = a => (["medium", "heavy"].includes(a.category) || a.powered ? 30 : 10);
 

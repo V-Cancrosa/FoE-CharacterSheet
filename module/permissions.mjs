@@ -7,6 +7,7 @@
  * Ustawienia świata pozwalają oddać te rzeczy graczom.
  */
 import { xpFor, xpProgression } from "./perks.mjs";
+import { t } from "./i18n.mjs";
 
 const F = "foe-rpg";
 const get = k => { try { return !!game.settings.get(F, k); } catch { return false; } };
@@ -22,10 +23,10 @@ export const canEditAdvancement = () => isGM() || playerAdvancement();
 export function canLevelUp(actor) {
   if (isGM() || playerAdvancement()) return { ok: true };
   const prog = xpProgression();
-  if (prog === "none") return { ok: false, why: "Awans bez PD (kamienie milowe) przyznaje MG — poproś MG, żeby kliknął „Awans” na twojej karcie." };
+  if (prog === "none") return { ok: false, why: t("Level-ups without XP (milestones) are granted by the GM — ask the GM to click “Level up” on your sheet.") };
   const next = xpFor(actor.system.level + 1, prog);
   if (next !== null && (actor.system.xp ?? 0) >= next) return { ok: true };
-  return { ok: false, why: `Za mało PD do awansu: ${actor.system.xp ?? 0}/${next}. PD przyznaje MG.` };
+  return { ok: false, why: t("Not enough XP to level up: {xp}/{next}. The GM awards XP.", { xp: actor.system.xp ?? 0, next }) };
 }
 
 /** Zakładki katalogu, z których gracz dodaje za darmo tylko za zgodą MG. */
@@ -34,18 +35,18 @@ export const canFreeAdd = tab => isGM() || get("playerFreeItems") || !FREE_ADD_T
 
 export function registerPermissionSettings() {
   game.settings.register(F, "playerAdvancement", {
-    name: "Gracze sami przyznają PD i awansują",
-    hint: "Wyłączone (zalecane): PD, poziom i cofanie awansu zmienia MG; gracz klika „Awans” sam, gdy zbierze PD do progu. Włączone: gracze mają pełną kontrolę.",
+    name: "Players award XP and level up themselves",
+    hint: "Off (recommended): XP, level and undoing a level-up are changed by the GM; a player clicks “Level up” on their own once they have the XP for it. On: players have full control.",
     scope: "world", config: true, type: Boolean, default: false
   });
   game.settings.register(F, "playerFreeItems", {
-    name: "Gracze dodają z katalogu za darmo",
-    hint: "Wyłączone (zalecane): gracz kupuje broń, pancerze i ekwipunek za kapsle; „Dodaj” za darmo (także implanty i perki) ma tylko MG. Zaklęcia, receptury i manewry gracz dodaje zawsze.",
+    name: "Players add from the catalog for free",
+    hint: "Off (recommended): a player buys weapons, armor and gear for caps; free “Add” (implants and perks too) is GM-only. Players can always add spells, recipes and maneuvers.",
     scope: "world", config: true, type: Boolean, default: false
   });
   game.settings.register(F, "npcRollsPrivate", {
-    name: "Ukryte rzuty MG za przeciwników",
-    hint: "Rzuty MG za postacie, których nie ma żaden gracz (potwory, NPC, pojazdy wrogów), trafiają na czat jako „rzut MG”, nawet przy publicznym trybie rzutu. Tryb rzutu zawsze zmienisz też przełącznikiem nad czatem.",
+    name: "Hidden GM rolls for opponents",
+    hint: "GM rolls for characters no player owns (monsters, NPCs, enemy vehicles) go to chat as a “GM roll”, even in public roll mode. You can always change the roll mode with the switch above the chat too.",
     scope: "world", config: true, type: Boolean, default: false
   });
 }
@@ -98,8 +99,8 @@ export function registerPermissionHooks() {
     if (!sys) return;
     const blocked = [];
     for (const k of ["xp", "level"]) {
-      if (k in sys && Number(sys[k]) !== Number(actor.system[k])) { delete sys[k]; blocked.push(k === "xp" ? "PD" : "poziom"); }
+      if (k in sys && Number(sys[k]) !== Number(actor.system[k])) { delete sys[k]; blocked.push(k === "xp" ? t("XP") : t("level")); }
     }
-    if (blocked.length) ui.notifications.warn(`${blocked.join(" i ")} zmienia MG (ustawienie świata „Gracze sami przyznają PD i awansują”).`);
+    if (blocked.length) ui.notifications.warn(t("{list}: the GM changes this (world setting “Players award XP and level up themselves”).", { list: blocked.join(` ${t("conj|and")} `) }));
   });
 }

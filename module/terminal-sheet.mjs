@@ -11,6 +11,7 @@ import {
   terminalReach, reachOn, bootAnimOn
 } from "./terminal.mjs";
 import { MFD_STEPS } from "./data.mjs";
+import { t } from "./i18n.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -62,26 +63,26 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
     const actor = this.document;
-    const t = actor.system;
-    const st = t.state;
+    const ts = actor.system;
+    const st = ts.state;
     ctx.actor = actor;
-    ctx.t = t;
+    ctx.t = ts;
     ctx.isGM = game.user.isGM;
     ctx.config = this.#config;
     if (ctx.config) {
-      ctx.kinds = opt(TERMINAL_KINDS, t.kind);
-      ctx.security = opt(TERMINAL_SECURITY, t.security);
-      ctx.explosives = opt(TRAP_EXPLOSIVES, t.trap.explosive);
-      ctx.mfds = MFD_STEPS.map(s => ({ value: s.key, label: `MFD ${s.name} (${s.desc})`, sel: s.key === t.trap.noticeMfd }));
-      ctx.accessStates = opt({ none: "brak (ekran logowania)", user: "zalogowany", admin: "administrator" }, st.access);
-      ctx.entries = t.entries.map((e, i) => ({ ...e, i, access: opt(ACCESS_LABELS, e.access) }));
-      ctx.commands = t.commands.map((c, i) => ({
+      ctx.kinds = opt(TERMINAL_KINDS, ts.kind);
+      ctx.security = opt(TERMINAL_SECURITY, ts.security);
+      ctx.explosives = opt(TRAP_EXPLOSIVES, ts.trap.explosive);
+      ctx.mfds = MFD_STEPS.map(s => ({ value: s.key, label: `MFD ${s.name} (${s.desc})`, sel: s.key === ts.trap.noticeMfd }));
+      ctx.accessStates = opt({ none: t("none (login screen)"), user: t("logged in"), admin: t("administrator") }, st.access);
+      ctx.entries = ts.entries.map((e, i) => ({ ...e, i, access: opt(ACCESS_LABELS, e.access) }));
+      ctx.commands = ts.commands.map((c, i) => ({
         ...c, i,
         kinds: opt(COMMAND_KINDS, c.kind), actions: opt(COMMAND_ACTIONS[c.kind] ?? {}, c.action), access: opt(ACCESS_LABELS, c.access),
         isMessage: c.kind === "message",
         targetNames: (c.targets ?? []).map(u => {
           const d = fromUuidSync(u);
-          return d ? (d.name || (d.documentName === "Wall" ? `drzwi ${d.id}` : d.id)) : "(usunięte)";
+          return d ? (d.name || (d.documentName === "Wall" ? t("door {id}", { id: d.id }) : d.id)) : t("(deleted)");
         }).join(", ")
       }));
       ctx.minigame = minigameOn();
@@ -93,16 +94,16 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   #screenContext() {
-    const t = this.document.system;
-    const st = effectiveState(t);
+    const ts = this.document.system;
+    const st = effectiveState(ts);
     const actor = userActor();
-    const acc = terminalAccess(actor, t);
+    const acc = terminalAccess(actor, ts);
     const s = {
-      brand: t.brand || TERMINAL_KINDS[t.kind]?.brand || "TERMLINK", kind: t.kind, name: this.document.name, welcome: t.welcome,
-      log: st.log ?? [], who: actor?.name ?? (game.user.isGM ? "MG (zaznacz token postaci, żeby działać za nią)" : "brak postaci — zaznacz swój token"),
-      why: acc.why, canHack: acc.hack, minigame: minigameOn(), trapFound: st.trapFound && t.trap.armed, admin: st.access === "admin"
+      brand: ts.brand || TERMINAL_KINDS[ts.kind]?.brand || "TERMLINK", kind: ts.kind, name: this.document.name, welcome: ts.welcome,
+      log: st.log ?? [], who: actor?.name ?? (game.user.isGM ? t("GM (select a character token to act as that character)") : t("no character — select your token")),
+      why: acc.why, canHack: acc.hack, minigame: minigameOn(), trapFound: st.trapFound && ts.trap.armed, admin: st.access === "admin"
     };
-    if (!t.powered) s.mode = "off";
+    if (!ts.powered) s.mode = "off";
     else if ((st.lockouts ?? 0) >= 2) s.mode = "locked";
     else if (!acc.use) s.mode = "denied";
     else if (!st.booted) s.mode = "boot";
@@ -116,11 +117,11 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // oględziny obudowy (Explosives): bez napisu — ukryta śrubka, o której mówi MG
     s.canInspect = s.mode === "boot" && !st.trapFound;
     s.lockedOnce = (st.lockouts ?? 0) === 1;
-    s.entries = t.entries.filter(e => canSee(e.access, st)).map(e => ({ id: e.id, title: e.title, access: e.access }));
-    s.commands = t.commands.filter(c => canSee(c.access, st)).map(c => ({ id: c.id, label: c.label }));
+    s.entries = ts.entries.filter(e => canSee(e.access, st)).map(e => ({ id: e.id, title: e.title, access: e.access }));
+    s.commands = ts.commands.filter(c => canSee(c.access, st)).map(c => ({ id: c.id, label: c.label }));
     if (s.mode === "far") { s.entries = []; s.commands = []; }
     if (this.#entry) {
-      const e = t.entries.find(x => x.id === this.#entry && canSee(x.access, st));
+      const e = ts.entries.find(x => x.id === this.#entry && canSee(x.access, st));
       if (e && ["menu", "login"].includes(s.mode)) { s.entry = { ...e, lines: String(e.body ?? "").split(/\n/) }; s.mode = "entry"; }
       else this.#entry = null;
     }
@@ -141,14 +142,14 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   #playBoot() {
     const host = this.element.querySelector(".window-content") ?? this.element;
     host.querySelector(".term-boot")?.remove();
-    const t = this.document.system;
-    const kind = t.kind;
+    const ts = this.document.system;
+    const kind = ts.kind;
     const box = document.createElement("div");
     box.className = `term-boot kind-${kind}`;
     box.innerHTML = `<pre></pre>`;
     host.append(box);
     const pre = box.querySelector("pre");
-    const lines = bootLines(kind, t.brand);
+    const lines = bootLines(kind, ts.brand);
     const text = lines.join("\n");
     let i = 0, pct = 0, tick = 0, timer = null;
     const done = () => { clearInterval(timer); box.classList.add("out"); setTimeout(() => box.remove(), 250); };
@@ -192,8 +193,8 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       a.addEventListener("mouseleave", () => parts().forEach(x => x.classList.remove("hover")));
     }
     // animacja uruchamiania: tylko gdy terminal właśnie się włączył (a postać stoi przy nim)
-    const t = this.document.system;
-    const on = !!(t.state.booted && t.powered);
+    const ts = this.document.system;
+    const on = !!(ts.state.booted && ts.powered);
     if (this.#config || !context.screen) this.#lastOn = null;
     else {
       if (on && this.#lastOn === false && context.screen.mode !== "far" && bootAnimOn()) this.#playBoot();
@@ -212,12 +213,12 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   _processFormData(event, form, formData) {
     const data = super._processFormData(event, form, formData);
     if (!this.#config) return {};
-    const t = this.document.system;
+    const ts = this.document.system;
     const te = data.te, tc = data.tc;
     delete data.te; delete data.tc;
     data.system ??= {};
-    if (te) data.system.entries = t.entries.map((e, i) => ({ ...e, ...(te[i] ?? {}) }));
-    if (tc) data.system.commands = t.commands.map((c, i) => {
+    if (te) data.system.entries = ts.entries.map((e, i) => ({ ...e, ...(te[i] ?? {}) }));
+    if (tc) data.system.commands = ts.commands.map((c, i) => {
       const n = { ...c, ...(tc[i] ?? {}) };
       if (n.kind !== c.kind) { n.action = Object.keys(COMMAND_ACTIONS[n.kind] ?? {})[0] ?? ""; n.targets = []; }
       return n;
@@ -228,14 +229,14 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   // ---------- MG ----------
   static #onToggleView() { this.#screen = !this.#screen; this.render(); }
   static #onAddEntry() {
-    return this.document.update({ "system.entries": [...this.document.system.entries, { id: foundry.utils.randomID(), title: "Nowy wpis", body: "", access: "user" }] });
+    return this.document.update({ "system.entries": [...this.document.system.entries, { id: foundry.utils.randomID(), title: t("New entry"), body: "", access: "user" }] });
   }
   static #onDelEntry(ev, el) {
     const i = Number(el.dataset.i);
     return this.document.update({ "system.entries": this.document.system.entries.filter((_, k) => k !== i) });
   }
   static #onAddCommand() {
-    return this.document.update({ "system.commands": [...this.document.system.commands, { id: foundry.utils.randomID(), label: "Otwórz drzwi", kind: "door", action: "open", access: "user", targets: [], text: "" }] });
+    return this.document.update({ "system.commands": [...this.document.system.commands, { id: foundry.utils.randomID(), label: t("Open the door"), kind: "door", action: "open", access: "user", targets: [], text: "" }] });
   }
   static #onDelCommand(ev, el) {
     const i = Number(el.dataset.i);
@@ -249,10 +250,10 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!c) return;
     const picked = c.kind === "door"
       ? (canvas?.walls?.controlled ?? []).filter(w => w.document.door > 0).map(w => w.document.uuid)
-      : (canvas?.tokens?.controlled ?? []).filter(t => t.actor !== this.document).map(t => t.document.uuid);
-    if (!picked.length) return ui.notifications.warn(c.kind === "door" ? "Zaznacz drzwi na scenie (warstwa ścian, klik z Shift dla kilku)." : "Zaznacz tokeny na scenie.");
+      : (canvas?.tokens?.controlled ?? []).filter(ts => ts.actor !== this.document).map(ts => ts.document.uuid);
+    if (!picked.length) return ui.notifications.warn(c.kind === "door" ? t("Select doors on the scene (walls layer, Shift-click for several).") : t("Select tokens on the scene."));
     c.targets = [...new Set([...(c.targets ?? []), ...picked])];
-    ui.notifications.info(`${c.label}: połączono ${picked.length}.`);
+    ui.notifications.info(t("{label}: linked {n}.", { label: c.label, n: picked.length }));
     return this.document.update({ "system.commands": cmds });
   }
   static #onClearTargets(ev, el) {

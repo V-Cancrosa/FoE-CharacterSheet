@@ -12,12 +12,13 @@ import { rollContext } from "./effects.mjs";
 import { promptMfd, rollTest, rollDamage, threshold, stepIndex, shiftStep } from "./rolls.mjs";
 import { attackWithWeapon } from "./attack.mjs";
 import { spendActions } from "./tracker.mjs";
+import { t, tn, tmap } from "./i18n.mjs";
 
 const F = "foe-rpg";
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const warn = msg => { ui.notifications.warn(msg); return null; };
 
-export const COST_LABELS = { 0: "specjalny", 1: "niski (1)", 2: "średni (2)", 3: "wysoki (3)", 4: "bardzo wysoki (4)" };
+export const COST_LABELS = tmap({ 0: "cost|special", 1: "low (1)", 2: "medium (2)", 3: "high (3)", 4: "very high (4)" });
 
 let cache = null;
 /** Lista zaklęć z podręcznika (data/spells.json). */
@@ -57,11 +58,11 @@ export function spellLimits(actor) {
 export async function castSpell(actor, spell) {
   const sys = actor.system;
   const s = spell.system;
-  if (s.tradition === "zebra") return warn(`${spell.name} to receptura zebr — przygotuj ją albo odprawiaj rytuał w zakładce Magia.`);
-  if (s.tradition === "flight") return warn(`${spell.name} to manewr lotu — wykonaj go w zakładce Magia (sekcja Lot).`);
-  if (!sys.caster) return warn(`${actor.name} nie rzuca zaklęć jednorożców (brak umiejętności Magic).`);
-  if (sys.burnout) return warn(`${actor.name}: magiczne wypalenie — bez zaklęć, nawet telekinezy (1d4 tygodnie).`);
-  if (sys.locations.horn?.status === "maimed") return warn(`${actor.name}: bez rogu nie da się rzucać zaklęć.`);
+  if (s.tradition === "zebra") return warn(t("{name} is a zebra recipe — prepare it or perform the ritual in the Magic tab.", { name: spell.name }));
+  if (s.tradition === "flight") return warn(t("{name} is a flight maneuver — perform it in the Magic tab (Flight section).", { name: spell.name }));
+  if (!sys.caster) return warn(t("{name} doesn't cast unicorn spells (no Magic skill).", { name: actor.name }));
+  if (sys.burnout) return warn(t("{name}: magical burnout — no spells, not even telekinesis (1d4 weeks).", { name: actor.name }));
+  if (sys.locations.horn?.status === "maimed") return warn(t("{name}: spells can't be cast without a horn.", { name: actor.name }));
   const magic = sys.skills.magic;
   const pool = sys.resources.strain.value;
   const held = sys.maintained.filter(m => m.id !== spell.id).length;
@@ -71,12 +72,12 @@ export async function castSpell(actor, spell) {
   const extraHtml = `
     <div class="dlg-attack">
       <div class="atk-info">
-        <div>Poziom ${s.level} · koszt ${esc(COST_LABELS[s.cost] ?? s.cost)}${s.maintained ? " · podtrzymywane" : ""}${s.targeted ? " · celowane" : ""}</div>
-        ${held ? `<div>Podtrzymujesz ${held} ${held === 1 ? "zaklęcie" : "zaklęcia"}: koszt ×${2 ** held}</div>` : ""}
+        <div>${t("Level {n} · cost {c}", { n: s.level, c: esc(COST_LABELS[s.cost] ?? s.cost) })}${s.maintained ? ` · ${t("spell|maintained")}` : ""}${s.targeted ? ` · ${t("spell|targeted")}` : ""}</div>
+        ${held ? `<div>${tn(held, "You maintain {n} spell: cost ×{x}", "You maintain {n} spells: cost ×{x}", { x: 2 ** held })}</div>` : ""}
         <div class="spell-cost"></div>
       </div>
       <label class="atk-row">Overglow <select name="layers">${Array.from({ length: maxLayers + 1 }, (_, i) =>
-        `<option value="${i}">${i ? `${i} ${i === 1 ? "warstwa" : "warstwy"} — efekty ×${2 ** i}` : "bez overglow"}</option>`).join("")}</select></label>
+        `<option value="${i}">${i ? tn(i, "{n} layer — effects ×{x}", "{n} layers — effects ×{x}", { x: 2 ** i }) : t("no overglow")}</option>`).join("")}</select></label>
       ${s.satsCost ? `<label class="atk-row atk-check"><input type="checkbox" name="sats"><span>SATS</span><small class="sats-cost"></small></label>` : ""}
     </div>`;
 
@@ -92,7 +93,7 @@ export async function castSpell(actor, spell) {
     const satsOn = !!form.elements.sats?.checked && c.satsOk;
     const notes = [];
     if (c.layers) notes.push(`Overglow ×${2 ** c.layers}`);
-    if (c.deficit) notes.push(`Brak strain: ${c.deficit} pkt ponad zero (−${c.deficit} kroki, ryzyko wypalenia)`);
+    if (c.deficit) notes.push(t("Out of strain: {n} points past zero (−{n} steps, burnout risk)", { n: c.deficit }));
     if (satsOn) notes.push(`SATS −${c.satsAp} AP`);
     return { steps: -c.deficit, mod: 0, notes, data: { ...c, sats: satsOn } };
   };
@@ -100,13 +101,13 @@ export async function castSpell(actor, spell) {
     const sync = () => {
       const c = calc(form);
       const el = form.querySelector(".spell-cost");
-      if (el) el.innerHTML = `Koszt: <b>${c.cost} strain</b> (masz ${pool})${c.deficit ? ` — <span class="warn">brakuje ${c.deficit}: rzut o ${c.deficit} kroki trudniejszy, porażka = wypalenie</span>` : ""}`;
+      if (el) el.innerHTML = `${t("Cost: {c} (you have {p})", { c: `<b>${c.cost} strain</b>`, p: pool })}${c.deficit ? ` — <span class="warn">${t("{n} short: the roll is {n} steps harder, failure = burnout", { n: c.deficit })}</span>` : ""}`;
       const box = form.elements.sats;
       if (box) {
         box.disabled = !c.satsOk;
         if (!c.satsOk) box.checked = false;
-        form.querySelector(".sats-cost").textContent = c.layers > 1 ? "przy 2+ warstwach nie da się w SATS (2 akcje)"
-          : `−${c.satsAp} AP${c.layers === 1 ? " (overglow ×3)" : ""} · masz ${sats.value}`;
+        form.querySelector(".sats-cost").textContent = c.layers > 1 ? t("not possible in SATS with 2+ layers (2 actions)")
+          : `−${c.satsAp} AP${c.layers === 1 ? " (overglow ×3)" : ""} · ${t("you have {n}", { n: sats.value })}`;
       }
     };
     form.elements.layers?.addEventListener("change", () => { sync(); update(); });
@@ -114,14 +115,14 @@ export async function castSpell(actor, spell) {
   };
 
   const rc = rollContext(actor, { kind: "skill", skill: "magic", skillAttr: magic.attr }, { manualMod: magic.mod });
-  const r = await promptMfd(`Zaklęcie: ${spell.name}`, magic.tn, rc, { extraHtml, readExtra, onRender });
+  const r = await promptMfd(t("Spell: {name}", { name: spell.name }), magic.tn, rc, { extraHtml, readExtra, onRender });
   if (!r) return null;
   const { extra: ex = {}, ...roll } = r;
 
   if (ex.sats) await actor.update({ "system.resources.sats.value": actor.system.resources.sats.value - ex.satsAp });
-  await spendActions(actor, ex.layers > 1 ? 2 : 1, "zaklęcie");
+  await spendActions(actor, ex.layers > 1 ? 2 : 1, t("spell"));
 
-  const msg = await rollTest(actor, { label: `Zaklęcie: ${spell.name} (Magic)`, baseTn: magic.tn, ...roll });
+  const msg = await rollTest(actor, { label: t("Spell: {name} (Magic)", { name: spell.name }), baseTn: magic.tn, magic: true, ...roll });
   const test = msg?.getFlag?.(F, "test") ?? msg?.flags?.[F]?.test ?? {};
   const total = msg?.rolls?.[0]?.total ?? 100;
   const res = test.result ?? "fail";
@@ -148,30 +149,30 @@ export async function castSpell(actor, spell) {
   if (cast) {
     const learn = Math.min(95, (s.learn ?? 0) + 1);
     if (spell.isOwner && spell.update) await spell.update({ "system.learn": learn });
-    if (s.precursorFor && total <= (s.learn ?? 0) + 5 * ex.layers) notes.push(`Rzut ≤ procent nauki — możesz nauczyć się jednego z: ${s.precursorFor}`);
+    if (s.precursorFor && total <= (s.learn ?? 0) + 5 * ex.layers) notes.push(t("Roll ≤ learning percentage — you may learn one of: {list}", { list: s.precursorFor }));
   }
   if (cast && s.maintained) {
     const list = sys.maintained.filter(m => m.id !== spell.id).concat({ id: spell.id, name: spell.name, cost: s.cost, layers });
     await actor.setFlag(F, "maintained", list);
-    notes.push(`Podtrzymywane: na początku każdej rundy ${s.cost + layers} strain`);
+    notes.push(t("Maintained: {n} strain at the start of every round", { n: s.cost + layers }));
   }
-  if (res === "crit-success" && cast && ex.layers < 3) notes.push("Krytyk: darmowa dodatkowa warstwa overglow");
+  if (res === "crit-success" && cast && ex.layers < 3) notes.push(t("Critical: a free extra overglow layer"));
 
-  const outcome = burnout ? (cast ? "Rzucone — WYPALENIE" : "Nie wyszło — WYPALENIE") : cast ? "Zaklęcie rzucone" : res === "crit-fail" ? "Nie wyszło (strain stracony)" : "Nie wyszło";
+  const outcome = burnout ? (cast ? t("Cast — BURNOUT") : t("Failed — BURNOUT")) : cast ? t("Spell cast") : res === "crit-fail" ? t("Failed (strain lost)") : t("spell|Failed");
   const buttons = cast && s.damage
     ? s.targeted
-      ? `<button type="button" class="foe-luck" data-action="foeSpellAim"><i class="fa-solid fa-crosshairs"></i> Wyceluj (Magic)</button>`
-      : `<button type="button" class="foe-luck" data-action="foeSpellDamage"><i class="fa-solid fa-burst"></i> Rzuć obrażenia</button>`
+      ? `<button type="button" class="foe-luck" data-action="foeSpellAim"><i class="fa-solid fa-crosshairs"></i> ${t("Aim (Magic)")}</button>`
+      : `<button type="button" class="foe-luck" data-action="foeSpellDamage"><i class="fa-solid fa-burst"></i> ${t("Roll damage")}</button>`
     : "";
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content: `
     <div class="foe-card spell ${cast ? "success" : "fail"}">
-      <div class="fc-tag"><span>PIPBUCK // MAGIA</span><span>${layers ? `overglow ${layers}` : `poziom ${s.level}`}</span></div>
+      <div class="fc-tag"><span>PIPBUCK // ${t("MAGIC")}</span><span>${layers ? `overglow ${layers}` : t("level {n}", { n: s.level })}</span></div>
       <h3>${esc(spell.name)}</h3>
       <div class="fc-calc">${outcome}</div>
-      <div class="fc-meta">Strain: −${spent} → ${Math.max(0, pool - spent)}/${sys.strainMax}${s.damage ? ` · obrażenia ${esc(s.damage)}${layers ? ` ×${2 ** layers}` : ""}` : ""}</div>
-      ${burnout ? `<div class="fc-special"><span>Wypalenie: bez magii 1d4 tygodnie (szybciej z pomocą innych jednorożców)</span></div>` : ""}
+      <div class="fc-meta">Strain: −${spent} → ${Math.max(0, pool - spent)}/${sys.strainMax}${s.damage ? ` · ${t("damage {d}", { d: esc(s.damage) })}${layers ? ` ×${2 ** layers}` : ""}` : ""}</div>
+      ${burnout ? `<div class="fc-special"><span>${t("Burnout: no magic for 1d4 weeks (faster with help from other unicorns)")}</span></div>` : ""}
       ${notes.map(n => `<div class="fc-meta">${esc(n)}</div>`).join("")}
       ${buttons}
     </div>`,
@@ -204,9 +205,9 @@ export async function maintainTick(actor) {
   await actor.setFlag(F, "maintained", kept);
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
-    content: `<div class="foe-card spell"><div class="fc-tag"><span>PIPBUCK // PODTRZYMANIE</span><span>${esc(actor.name)}</span></div>
-      <div class="fc-meta">${kept.length ? `Podtrzymane: ${kept.map(m => esc(m.name)).join(", ")} · strain ${pool}/${actor.system.strainMax}` : ""}</div>
-      ${dropped.length ? `<div class="fc-special"><span>Zgasło (brak strain): ${dropped.map(m => esc(m.name)).join(", ")}</span></div>` : ""}</div>`
+    content: `<div class="foe-card spell"><div class="fc-tag"><span>PIPBUCK // ${t("UPKEEP")}</span><span>${esc(actor.name)}</span></div>
+      <div class="fc-meta">${kept.length ? `${t("Maintained: {list}", { list: kept.map(m => esc(m.name)).join(", ") })} · strain ${pool}/${actor.system.strainMax}` : ""}</div>
+      ${dropped.length ? `<div class="fc-special"><span>${t("Faded (out of strain): {list}", { list: dropped.map(m => esc(m.name)).join(", ") })}</span></div>` : ""}</div>`
   });
 }
 
@@ -218,7 +219,7 @@ export async function endMaintained(actor, id) {
 export async function grantStartingSpells(actor, raceKey = "") {
   if (actor.system.zebraMage && !actor.items.some(i => i.type === "spell" && i.system.tradition === "zebra")) {
     const n = Math.min(5, Math.floor((actor.system.skills.magic?.rank ?? 0) / 10));
-    if (n) ui.notifications.info(`${actor.name}: wybierz w katalogu (zakładka Magia → Receptury zebr) ${n} receptur poziomu 0–1.`);
+    if (n) ui.notifications.info(tn(n, "{name}: pick {n} level 0–1 recipe in the catalog (Magic tab → Zebra recipes).", "{name}: pick {n} level 0–1 recipes in the catalog (Magic tab → Zebra recipes).", { name: actor.name }));
   }
   if (!actor.system.caster || actor.items.some(i => i.type === "spell" && (i.system.tradition ?? "unicorn") === "unicorn")) return;
   let list;
@@ -228,7 +229,7 @@ export async function grantStartingSpells(actor, raceKey = "") {
   const items = names.map(n => list.find(e => e.name === n)).filter(Boolean).map(spellItemData);
   if (!items.length) return;
   await actor.createEmbeddedDocuments("Item", items);
-  ui.notifications.info(`${actor.name}: dodano ${items.map(i => i.name).join(", ")}. Wybierz w katalogu (zakładka Magia) jedno zaklęcie poziomu 1 — i ewentualnie zaklęcie znaczka.`);
+  ui.notifications.info(t("{name}: added {list}. Pick one level 1 spell in the catalog (Magic tab) — and possibly a cutie mark spell.", { name: actor.name, list: items.map(i => i.name).join(", ") }));
 }
 
 export function registerMagicHooks() {
@@ -238,7 +239,7 @@ export function registerMagicHooks() {
     const get = async () => {
       const actor = await fromUuid(data.actorUuid);
       const spell = await fromUuid(data.spellUuid);
-      if (!actor?.isOwner || !spell) { ui.notifications.warn("Nie jesteś właścicielem tej postaci."); return null; }
+      if (!actor?.isOwner || !spell) { ui.notifications.warn(t("You don't own this character.")); return null; }
       return { actor, spell };
     };
     html.querySelector("[data-action=foeSpellAim]")?.addEventListener("click", async ev => {
@@ -249,7 +250,7 @@ export function registerMagicHooks() {
     html.querySelector("[data-action=foeSpellDamage]")?.addEventListener("click", async ev => {
       ev.preventDefault();
       const g = await get();
-      if (g) await rollDamage(g.actor, g.spell, { attack: { overglow: data.layers, targets: [...game.user.targets].map(t => t.document?.uuid).filter(Boolean) } });
+      if (g) await rollDamage(g.actor, g.spell, { attack: { overglow: data.layers, targets: [...game.user.targets].map(tk => tk.document?.uuid).filter(Boolean) } });
     });
   });
 
@@ -263,7 +264,7 @@ export function registerMagicHooks() {
       const a = c.actor;
       if (!a || seen.has(a.uuid)) continue;
       seen.add(a.uuid);
-      try { await maintainTick(a); } catch (err) { console.error("foe-rpg | podtrzymanie zaklęć", err); }
+      try { await maintainTick(a); } catch (err) { console.error("foe-rpg | spell upkeep", err); }
     }
   });
 }

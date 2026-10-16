@@ -8,17 +8,18 @@ import { parseLoot, genericKind, matchItem, defaultLoot, carriedLoot, ammoFor, w
 import { loadCatalog, addItemToActor } from "./catalog.mjs";
 import { weaponItem, armorItem, gearItem } from "./catalog-data.mjs";
 import { lootTables, lootWeight } from "./tables-data.mjs";
+import { t, tmap } from "./i18n.mjs";
 
 const F = "foe-rpg";
 const SOCKET = `system.${F}`;
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const warn = msg => { ui.notifications.warn(msg); return null; };
-const SRC = { npc: "przy sobie", book: "bestiariusz", house: "nasze" };
+const SRC = tmap({ npc: "carried", book: "bestiary", house: "house default" });
 
 export function registerLootSettings() {
   game.settings.register(F, "lootReminder", {
-    name: "Łup: przypomnienie po śmierci NPC",
-    hint: "Gdy NPC zginie, MG dostaje szeptem na czacie przypomnienie z przyciskiem „Przeszukaj” (łup z bestiariusza i rzeczy NPC).",
+    name: "Loot: reminder when an NPC dies",
+    hint: "When an NPC dies, the GM gets a whispered chat reminder with a “Search” button (loot from the bestiary and the NPC's things).",
     scope: "world", config: true, type: Boolean, default: true
   });
 }
@@ -52,7 +53,7 @@ async function resolve(entry, npc, catalog) {
   const qty = await rollQty(entry.qty);
   const val = e => Number(e.value) || 0;
   const pick = list => weightedPick(list);
-  if (g === "caps") return { kind: "caps", label: "Kapsle", qty };
+  if (g === "caps") return { kind: "caps", label: t("Caps"), qty };
   let name = null, type = "gear";
   if (g === "ammo") name = npcAmmo(npc, catalog) ?? pick(pools(catalog)["loot-ammo"] ?? [])?.item;
   else if (g === "food") name = pick(pools(catalog)["loot-food"] ?? [])?.item;
@@ -67,7 +68,7 @@ async function resolve(entry, npc, catalog) {
   return {
     kind: "own", label: entry.name, qty,
     data: { name: entry.name, type: "gear", img: `systems/${F}/icons/misc.svg`,
-      system: { category: "misc", qty, weight: 0, value: 0, description: `<p>Łup z bestiariusza: ${esc(entry.raw || entry.name)}</p>` } }
+      system: { category: "misc", qty, weight: 0, value: 0, description: `<p>${t("Bestiary loot: {x}", { x: esc(entry.raw || entry.name) })}</p>` } }
   };
 }
 
@@ -95,11 +96,11 @@ function carriedRows(npc, catalog) {
 
 /** Przeszukanie ciała: karta łupu na czacie, NPC oznaczony jako przeszukany. */
 export async function searchBody(npc) {
-  if (!game.user.isGM) return warn("Łup losuje MG.");
-  if (!npc || npc.type !== "npc") return warn("Przeszukać można tylko NPC.");
+  if (!game.user.isGM) return warn(t("The GM rolls the loot."));
+  if (!npc || npc.type !== "npc") return warn(t("Only an NPC can be searched."));
   if (npc.getFlag(F, "looted")) {
     const ok = await foundry.applications.api.DialogV2.confirm({
-      window: { title: `Łup: ${npc.name}` }, content: "<p>To ciało już przeszukano. Wylosować łup jeszcze raz?</p>", rejectClose: false
+      window: { title: t("Loot: {name}", { name: npc.name }) }, content: `<p>${t("This body has already been searched. Roll the loot again?")}</p>`, rejectClose: false
     });
     if (!ok) return null;
   }
@@ -129,10 +130,10 @@ export async function searchBody(npc) {
 /** Treść karty (zapasowa; przyciski i stan zabrania dorysowuje hak czatu). */
 function staticCard(loot) {
   return `<div class="foe-card foe-loot">
-    <div class="fc-tag"><span>PIPBUCK // ŁUP</span><span>przeszukanie</span></div>
+    <div class="fc-tag"><span>${t("PIPBUCK // LOOT")}</span><span>${t("search")}</span></div>
     <h3>${esc(loot.name)}</h3>
-    <ul class="foe-loot-list">${loot.rows.map(r => `<li><span class="nm">${esc(r.label)}${r.qty > 1 ? ` ×${r.qty}` : ""}</span></li>`).join("") || "<li><em>Nic.</em></li>"}</ul>
-    ${loot.missed.length ? `<div class="fc-meta">Nie znaleziono: ${esc(loot.missed.join(", "))}</div>` : ""}
+    <ul class="foe-loot-list">${loot.rows.map(r => `<li><span class="nm">${esc(r.label)}${r.qty > 1 ? ` ×${r.qty}` : ""}</span></li>`).join("") || `<li><em>${t("Nothing.")}</em></li>`}</ul>
+    ${loot.missed.length ? `<div class="fc-meta">${t("Not found: {list}", { list: esc(loot.missed.join(", ")) })}</div>` : ""}
   </div>`;
 }
 
@@ -142,7 +143,7 @@ function staticCard(loot) {
 
 /** Postać, która bierze: własny zaznaczony token (nie przeszukiwany NPC), potem postać gracza. */
 function userActor(exclude = null) {
-  const own = (canvas?.tokens?.controlled ?? []).map(t => t.actor).find(a => a?.isOwner && ["character", "npc"].includes(a.type) && a.uuid !== exclude);
+  const own = (canvas?.tokens?.controlled ?? []).map(tk => tk.actor).find(a => a?.isOwner && ["character", "npc"].includes(a.type) && a.uuid !== exclude);
   return own ?? game.user.character ?? null;
 }
 
@@ -152,7 +153,7 @@ async function give(actor, r, catalog) {
   if (r.kind === "catalog") {
     const list = { weapon: catalog.weapons, armor: catalog.armor, gear: catalog.gear }[r.type] ?? [];
     const e = list.find(x => x.name === r.name);
-    if (!e) return warn(`Nie ma „${r.name}” w katalogu.`);
+    if (!e) return warn(t("“{name}” isn't in the catalog.", { name: r.name }));
     data = r.type === "weapon" ? weaponItem(e) : r.type === "armor" ? armorItem(e) : gearItem(e, r.qty);
   } else data = foundry.utils.deepClone(r.data);
   const stacks = data.type === "gear" || (data.type === "weapon" && data.system?.consumable);
@@ -168,8 +169,8 @@ export async function takeLoot(message, indexes) {
   const loot = message.flags?.[F]?.loot;
   if (!loot) return null;
   const actor = userActor(loot.npc);
-  if (!actor) return warn("Zaznacz token swojej postaci (albo przypisz postać do gracza), żeby wziąć łup.");
-  if (!actor.isOwner) return warn(`Nie jesteś właścicielem: ${actor.name}.`);
+  if (!actor) return warn(t("Select your character's token (or assign a character to the player) to take the loot."));
+  if (!actor.isOwner) return warn(t("You don't own: {name}.", { name: actor.name }));
   const catalog = await loadCatalog();
   const given = [];
   for (const i of indexes) {
@@ -178,11 +179,11 @@ export async function takeLoot(message, indexes) {
     await give(actor, r, catalog);
     given.push(i);
   }
-  if (!given.length) return warn("Te rzeczy ktoś już zabrał.");
+  if (!given.length) return warn(t("Someone has already taken these things."));
   ui.notifications.info(`${actor.name}: ${given.map(i => `${loot.rows[i].label}${loot.rows[i].qty > 1 ? ` ×${loot.rows[i].qty}` : ""}`).join(", ")}.`);
   const payload = { kind: "loot", op: "take", messageId: message.id, idx: given, who: actor.name };
   if (game.user.isGM) return applyLootOp(payload);
-  if (!game.users.activeGM) return warn("MG jest offline — przedmioty dodano, ale karta łupu się nie zaktualizuje.");
+  if (!game.users.activeGM) return warn(t("The GM is offline — the items were added, but the loot card won't update."));
   game.socket.emit(SOCKET, payload);
   return true;
 }
@@ -217,7 +218,7 @@ function decorate(message, html) {
     b?.addEventListener("click", async ev => {
       ev.preventDefault();
       const npc = await fromUuid(flags.lootPrompt).catch(() => null);
-      if (!npc) return warn("Tego NPC już nie ma.");
+      if (!npc) return warn(t("That NPC is gone."));
       return searchBody(npc);
     });
   }
@@ -227,15 +228,15 @@ function decorate(message, html) {
   list.innerHTML = loot.rows.map((r, i) => `
     <li class="${r.taken ? "taken" : ""}">
       <span class="nm">${esc(r.label)}${r.qty > 1 ? ` ×${r.qty}` : ""}<small>${esc(SRC[r.src] ?? "")}${r.note ? ` · ${esc(r.note)}` : ""}</small></span>
-      ${r.taken ? `<em>wziął: ${esc(r.taken)}</em>` : `<button type="button" class="foe-luck" data-foe-loot="take" data-i="${i}"><i class="fa-solid fa-hand"></i> Weź</button>`}
-    </li>`).join("") || "<li><em>Nic — puste kieszenie.</em></li>";
+      ${r.taken ? `<em>${t("taken by: {name}", { name: esc(r.taken) })}</em>` : `<button type="button" class="foe-luck" data-foe-loot="take" data-i="${i}"><i class="fa-solid fa-hand"></i> ${t("Take")}</button>`}
+    </li>`).join("") || `<li><em>${t("Nothing — empty pockets.")}</em></li>`;
   const open = loot.rows.map((r, i) => (r.taken ? null : i)).filter(i => i !== null);
-  if (open.length > 1) list.insertAdjacentHTML("afterend", `<button type="button" class="foe-luck foe-loot-all" data-foe-loot="all"><i class="fa-solid fa-sack-dollar"></i> Weź wszystko (${open.length})</button>`);
-  if (loot.house) list.insertAdjacentHTML("afterend", `<div class="fc-meta">Podręcznik nie podaje łupu tego stwora — to nasze domyślne.</div>`);
+  if (open.length > 1) list.insertAdjacentHTML("afterend", `<button type="button" class="foe-luck foe-loot-all" data-foe-loot="all"><i class="fa-solid fa-sack-dollar"></i> ${t("Take all ({n})", { n: open.length })}</button>`);
+  if (loot.house) list.insertAdjacentHTML("afterend", `<div class="fc-meta">${t("The rulebook gives no loot for this creature — these are our defaults.")}</div>`);
   for (const b of root.querySelectorAll("[data-foe-loot=take], [data-foe-loot=all]")) b.addEventListener("click", ev => {
     ev.preventDefault();
     const idx = b.dataset.foeLoot === "all" ? open : [Number(b.dataset.i)];
-    takeLoot(message, idx).catch(err => { console.error(`${F} | łup`, err); ui.notifications.error(`Łup: ${err.message}`); });
+    takeLoot(message, idx).catch(err => { console.error(`${F} | loot`, err); ui.notifications.error(t("Loot: {name}", { name: err.message })); });
   });
 }
 
@@ -247,10 +248,10 @@ async function remind(actor) {
     speaker: { alias: actor.name },
     whisper: game.users.filter(u => u.isGM).map(u => u.id),
     content: `<div class="foe-card foe-loot">
-      <div class="fc-tag"><span>PIPBUCK // ŁUP</span><span>ciało</span></div>
-      <h3>${esc(actor.name)} nie żyje</h3>
-      <div class="fc-meta">Przeszukać ciało? Łup z bestiariusza i rzeczy, które NPC ma przy sobie — gracze wezmą je z karty.</div>
-      <button type="button" class="foe-luck" data-foe-loot="search"><i class="fa-solid fa-magnifying-glass"></i> Przeszukaj</button>
+      <div class="fc-tag"><span>${t("PIPBUCK // LOOT")}</span><span>${t("body")}</span></div>
+      <h3>${t("{name} is dead", { name: esc(actor.name) })}</h3>
+      <div class="fc-meta">${t("Search the body? Loot from the bestiary and the things the NPC carries — the players take them from the card.")}</div>
+      <button type="button" class="foe-luck" data-foe-loot="search"><i class="fa-solid fa-magnifying-glass"></i> ${t("btn|Search")}</button>
     </div>`,
     flags: { [F]: { lootPrompt: actor.uuid } }
   });
@@ -260,17 +261,17 @@ export function registerLootHooks() {
   Hooks.once("ready", () => {
     game.socket.on(SOCKET, payload => {
       if (payload?.kind !== "loot" || !game.users.activeGM?.isSelf) return;
-      applyLootOp(payload).catch(err => console.error(`${F} | łup`, err));
+      applyLootOp(payload).catch(err => console.error(`${F} | loot`, err));
     });
   });
   Hooks.on("renderChatMessageHTML", (message, html) => {
-    try { decorate(message, html); } catch (err) { console.warn(`${F} | karta łupu`, err); }
+    try { decorate(message, html); } catch (err) { console.warn(`${F} | loot card`, err); }
   });
   Hooks.on("createActiveEffect", effect => {
     if (!game.users.activeGM?.isSelf || !effect.statuses?.has?.("dead")) return;
     const actor = effect.parent;
     if (actor?.documentName !== "Actor" || actor.type !== "npc") return;
     try { if (!game.settings.get(F, "lootReminder")) return; } catch { return; }
-    remind(actor).catch(err => console.warn(`${F} | przypomnienie o łupie`, err));
+    remind(actor).catch(err => console.warn(`${F} | loot reminder`, err));
   });
 }

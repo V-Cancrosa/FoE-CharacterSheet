@@ -8,9 +8,9 @@ import { loadCatalog, addItemToActor } from "./catalog.mjs";
 import { importCreature } from "./bestiary.mjs";
 import { weaponItem, armorItem, gearItem } from "./catalog-data.mjs";
 import { ATTRS } from "./data.mjs";
+import { t } from "./i18n.mjs";
 
 const F = "foe-rpg";
-const FOLDER = "Tabele FoE";
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const warn = msg => { ui.notifications.warn(msg); return null; };
 
@@ -26,15 +26,15 @@ const loadBook = () => (BOOK ??= fetch(`systems/${F}/data/tables.json`).then(r =
 
 /** Tworzy albo aktualizuje tabele systemu w folderze „Tabele FoE” (bez dublowania). */
 export async function importTables() {
-  if (!game.user.isGM) return warn("Tabele FoE importuje MG.");
+  if (!game.user.isGM) return warn(t("The GM imports the FoE tables."));
   const [book, catalog] = await Promise.all([loadBook(), loadCatalog()]);
   const docs = allTableDocs(book, catalog);
-  let folder = game.folders?.find(f => f.type === "RollTable" && f.name === FOLDER);
-  folder ??= await Folder.create({ name: FOLDER, type: "RollTable", color: "#1f6b3f" });
+  let folder = game.folders?.find(f => f.type === "RollTable" && (f.getFlag?.(F, "tables") || ["Tabele FoE", "FoE Tables"].includes(f.name))); // pl-ok: dawna nazwa folderu
+  folder ??= await Folder.create({ name: t("FoE Tables"), type: "RollTable", color: "#1f6b3f", flags: { [F]: { tables: true } } });
   let created = 0, updated = 0;
   for (const d of docs) {
     const id = d.flags[F].tableId;
-    const existing = game.tables?.find(t => t.getFlag?.(F, "tableId") === id);
+    const existing = game.tables?.find(tb => tb.getFlag?.(F, "tableId") === id);
     if (existing) {
       const { results, ...data } = d;
       await existing.update({ ...data, folder: folder?.id ?? null });
@@ -47,7 +47,7 @@ export async function importTables() {
       created++;
     }
   }
-  ui.notifications.info(`Tabele FoE: utworzono ${created}, zaktualizowano ${updated} (folder „${FOLDER}”).`);
+  ui.notifications.info(t("FoE tables: {c} created, {u} updated (folder “{f}”).", { c: created, u: updated, f: folder?.name ?? t("FoE Tables") }));
   return { created, updated };
 }
 
@@ -72,7 +72,7 @@ export function registerRollTableClass() {
 
 /** Postać, której dotyczą przyciski: własny zaznaczony token, potem postać gracza. */
 function userActor() {
-  const own = (canvas?.tokens?.controlled ?? []).map(t => t.actor).find(a => a?.isOwner && !["terminal", "vehicle", "casino"].includes(a.type));
+  const own = (canvas?.tokens?.controlled ?? []).map(tk => tk.actor).find(a => a?.isOwner && !["terminal", "vehicle", "casino"].includes(a.type));
   return own ?? game.user.character ?? null;
 }
 
@@ -118,7 +118,7 @@ async function decorate(message, html) {
   content.dataset.foeTableCard = "1";
   content.classList.add("foe-card", "foe-table-card");
   const { table, results } = drawnResults(message);
-  content.insertAdjacentHTML("afterbegin", `<div class="fc-tag"><span>PIPBUCK // TABELA</span><span>${esc(table?.name ?? "")}</span></div>`);
+  content.insertAdjacentHTML("afterbegin", `<div class="fc-tag"><span>${t("PIPBUCK // TABLE")}</span><span>${esc(table?.name ?? "")}</span></div>`);
   if (!results.length) return;
   const data = await loadCatalog().catch(() => ({}));
   const canCreate = game.user.can?.("ACTOR_CREATE");
@@ -126,19 +126,19 @@ async function decorate(message, html) {
   for (const r of results) {
     const h = await hintsFor(r, data);
     const btns = [];
-    if (canCreate) for (const c of h.creatures ?? []) btns.push(button("creature", `Dodaj NPC: ${c}`, "fa-dragon", { name: c }));
-    if (canCreate && h.vehicle) btns.push(button("vehicle", `Dodaj pojazd: ${h.vehicle}`, "fa-truck-pickup", { name: h.vehicle }));
-    if (h.item) btns.push(button("item", `Dodaj do ekwipunku: ${h.item}${h.qty && h.qty !== "1" ? ` (${h.qty})` : ""}`, "fa-box-open", { name: h.item, type: h.itemType ?? "weapon", qty: h.qty ?? "1" }));
-    for (const it of h.items ?? []) btns.push(button("item", `Dodaj do ekwipunku: ${it.name}`, "fa-box-open", { name: it.name, type: it.itemType, qty: "1" }));
-    if (h.attr) btns.push(button("attr", `Zastosuj głód: ${ATTRS[h.attr] ?? h.attr} −1`, "fa-utensils", { attr: h.attr }));
-    if (h.again && table && (game.user.isGM || table.isOwner)) btns.push(button("again", "Rzuć ponownie", "fa-rotate", { table: table.uuid }));
+    if (canCreate) for (const c of h.creatures ?? []) btns.push(button("creature", t("Add NPC: {name}", { name: c }), "fa-dragon", { name: c }));
+    if (canCreate && h.vehicle) btns.push(button("vehicle", t("Add vehicle: {name}", { name: h.vehicle }), "fa-truck-pickup", { name: h.vehicle }));
+    if (h.item) btns.push(button("item", t("Add to inventory: {name}", { name: `${h.item}${h.qty && h.qty !== "1" ? ` (${h.qty})` : ""}` }), "fa-box-open", { name: h.item, type: h.itemType ?? "weapon", qty: h.qty ?? "1" }));
+    for (const it of h.items ?? []) btns.push(button("item", t("Add to inventory: {name}", { name: it.name }), "fa-box-open", { name: it.name, type: it.itemType, qty: "1" }));
+    if (h.attr) btns.push(button("attr", t("Apply starvation: {attr} −1", { attr: ATTRS[h.attr] ?? h.attr }), "fa-utensils", { attr: h.attr }));
+    if (h.again && table && (game.user.isGM || table.isOwner)) btns.push(button("again", t("Roll again"), "fa-rotate", { table: table.uuid }));
     if (btns.length) rows.push(btns.join(""));
   }
   if (!rows.length) return;
   content.insertAdjacentHTML("beforeend", `<div class="foe-table-actions">${rows.join("")}</div>`);
   for (const b of content.querySelectorAll("[data-foe-table]")) b.addEventListener("click", ev => {
     ev.preventDefault();
-    onButton(b.dataset).catch(err => { console.error(`${F} | tabela`, err); ui.notifications.error(`Tabela: ${err.message}`); });
+    onButton(b.dataset).catch(err => { console.error(`${F} | table`, err); ui.notifications.error(t("Table: {msg}", { msg: err.message })); });
   });
 }
 
@@ -146,14 +146,14 @@ async function onButton(ds) {
   const data = await loadCatalog();
   if (ds.foeTable === "creature") {
     const e = (data.bestiary ?? []).find(x => x.name === ds.name);
-    if (!e) return warn(`Nie ma „${ds.name}” w bestiariuszu.`);
+    if (!e) return warn(t("“{name}” isn't in the bestiary.", { name: ds.name }));
     const { spellItemData } = await import("./magic.mjs");
     const { maneuverItemData } = await import("./flight.mjs");
     return importCreature(e, { catalog: data, spells: data.spells ?? [], maneuvers: data.maneuvers ?? [], spellItemData, maneuverItemData });
   }
   if (ds.foeTable === "vehicle") {
     const e = (data.vehicles ?? []).find(x => x.name === ds.name) ?? (data.vehicles ?? []).find(x => x.name.includes(ds.name));
-    if (!e) return warn(`Nie ma pojazdu „${ds.name}”.`);
+    if (!e) return warn(t("There's no vehicle “{name}”.", { name: ds.name }));
     const { importVehicle } = await import("./vehicle.mjs");
     return importVehicle(e, data);
   }
@@ -162,12 +162,12 @@ async function onButton(ds) {
     return table?.draw?.();
   }
   const actor = userActor();
-  if (!actor) return warn("Zaznacz token postaci (albo przypisz postać do gracza), żeby dodać jej wynik.");
-  if (!actor.isOwner) return warn(`Nie jesteś właścicielem: ${actor.name}.`);
+  if (!actor) return warn(t("Select a character token (or assign a character to the player) to add the result to it."));
+  if (!actor.isOwner) return warn(t("You don't own: {name}.", { name: actor.name }));
   if (ds.foeTable === "item") {
     const list = { weapon: data.weapons, armor: data.armor, gear: data.gear }[ds.type] ?? [];
     const e = list.find(x => x.name === ds.name);
-    if (!e) return warn(`Nie ma „${ds.name}” w katalogu.`);
+    if (!e) return warn(t("“{name}” isn't in the catalog.", { name: ds.name }));
     const q = String(ds.qty || "1").trim();
     const qty = Math.max(1, /^\d+$/.test(q) ? Number(q) : (await new Roll(q).evaluate()).total);
     const item = ds.type === "weapon" ? weaponItem(e) : ds.type === "armor" ? armorItem(e) : gearItem(e, qty);
@@ -176,7 +176,7 @@ async function onButton(ds) {
       item.system.qty = qty;
       await addItemToActor(actor, item, qty);
     } else for (let i = 0; i < qty; i++) await addItemToActor(actor, foundry.utils.deepClone(item), 1);
-    return ui.notifications.info(`${actor.name}: dodano ${qty > 1 ? `${qty} × ` : ""}${e.name}.`);
+    return ui.notifications.info(t("{name}: added {what}.", { name: actor.name, what: `${qty > 1 ? `${qty} × ` : ""}${e.name}` }));
   }
   if (ds.foeTable === "attr") return applyStarvation(actor, ds.attr);
   return null;
@@ -194,12 +194,12 @@ export async function applyStarvation(actor, attr) {
     await feat.update({ "system.effects": effects });
   } else {
     await actor.createEmbeddedDocuments("Item", [{
-      name: "Głód", type: "feature", img: `systems/${F}/icons/food.svg`, flags: { [F]: { starvation: true } },
+      name: t("Starvation"), type: "feature", img: `systems/${F}/icons/food.svg`, flags: { [F]: { starvation: true } },
       system: { kind: "other", active: true, effects: [{ type: "tempAttr", target: attr, value: -1, when: "" }],
-        description: "<p>Tabela XXXII (s. 477): każdy dzień bez pełnego posiłku to −1 tymczasowo do losowego atrybutu. Usuń tę cechę, gdy postać się naje (pożywny posiłek); niepożywne jedzenie pozwala zignorować kary na 8 godzin.</p>" }
+        description: `<p>${t("Table XXXII (p. 477): every day without a full meal is −1 temporarily to a random attribute. Remove this feature when the character eats (a nourishing meal); non-nourishing food lets you ignore the penalties for 8 hours.")}</p>` }
     }]);
   }
-  return ui.notifications.info(`${actor.name}: głód — ${ATTRS[attr]} −1.`);
+  return ui.notifications.info(t("{name}: starvation — {attr} −1.", { name: actor.name, attr: ATTRS[attr] }));
 }
 
 export function registerTableHooks() {
@@ -210,13 +210,13 @@ export function registerTableHooks() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "foe-catalog-open foe-tables-import";
-    btn.title = "Tworzy albo aktualizuje folder „Tabele FoE”: spotkania losowe, głód, choroby, pułapki i łupy z katalogu. Zmiany w tych tabelach zostaną nadpisane — własne tabele rób osobno.";
-    btn.innerHTML = `<i class="fa-solid fa-table-list"></i> Tabele FoE`;
-    btn.addEventListener("click", () => importTables().catch(err => { console.error(`${F} | tabele`, err); ui.notifications.error(`Tabele FoE: ${err.message}`); }));
+    btn.title = t("Creates or updates the “FoE Tables” folder: random encounters, starvation, diseases, traps and loot from the catalog. Changes to these tables will be overwritten — make your own tables separately.");
+    btn.innerHTML = `<i class="fa-solid fa-table-list"></i> ${t("FoE Tables")}`;
+    btn.addEventListener("click", () => importTables().catch(err => { console.error(`${F} | tables`, err); ui.notifications.error(t("FoE tables: {msg}", { msg: err.message })); }));
     const bar = root.querySelector(".header-actions") ?? root.querySelector(".directory-header");
     (bar ?? root).append(btn);
   });
   Hooks.on("renderChatMessageHTML", (message, html) => {
-    decorate(message, html).catch(err => console.warn(`${F} | karta tabeli`, err));
+    decorate(message, html).catch(err => console.warn(`${F} | table card`, err));
   });
 }

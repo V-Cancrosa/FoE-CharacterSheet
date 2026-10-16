@@ -12,6 +12,7 @@
 import { F, SOCKET, esc, warn, capsOf, capsText, gridOf, rectOf, tokenOf } from "./give.mjs";
 import { isAdjacent } from "./trade-data.mjs";
 import * as C from "./casino-data.mjs";
+import { t } from "./i18n.mjs";
 
 /** Postacie, które mogą siadać przy stole (bez terminali, pojazdów i samych stołów). */
 const NOT_PLAYERS = ["terminal", "vehicle", "casino"];
@@ -27,13 +28,13 @@ const chatOn = () => { try { return game.settings.get(F, "casinoChat") !== false
 
 export function registerCasinoSettings() {
   game.settings.register(F, "casinoReach", {
-    name: "Stoły do gry: siadanie tylko z bliska",
-    hint: "Postać siada przy stole (blackjack, poker) tylko, gdy jej token stoi obok tokenu stołu — jak przy wymianie i terminalach. Stół bez tokenu na oglądanej scenie działa bez tego warunku.",
+    name: "Gaming tables: sit down only up close",
+    hint: "A character sits down at a table (blackjack, poker) only while its token stands next to the table's token — as for trading and terminals. A table without a token on the viewed scene works without this condition.",
     scope: "world", config: true, type: Boolean, default: true
   });
   game.settings.register(F, "casinoChat", {
-    name: "Stoły do gry: wyniki na czacie",
-    hint: "Po każdej rundzie blackjacka i każdym rozdaniu pokera krótka karta z wynikami na czacie.",
+    name: "Gaming tables: results in chat",
+    hint: "After every blackjack round and every poker hand, a short card with the results in chat.",
     scope: "world", config: true, type: Boolean, default: true
   });
 }
@@ -85,13 +86,13 @@ export function tableReach(actor, table) {
   const scene = canvas?.ready ? canvas.scene : null;
   const tables = scene && table ? (table.isToken ? [table.token].filter(t => t?.parent?.id === scene.id) : (table.getActiveTokens?.(false, true) ?? [])) : [];
   if (!tables.length) return { ok: true };
-  if (!actor) return { ok: false, why: "zaznacz swój token" };
+  if (!actor) return { ok: false, why: t("select your token") };
   const me = tokenOf(actor);
-  if (!me) return { ok: false, why: `${actor.name} nie ma tokena na tej scenie` };
+  if (!me) return { ok: false, why: t("{name} has no token on this scene", { name: actor.name }) };
   const grid = gridOf(scene);
   const mine = rectOf(me, grid.size);
   if (tables.some(t => isAdjacent(mine, rectOf(t, grid.size), grid, [me.elevation, t.elevation]))) return { ok: true };
-  return { ok: false, why: "podejdź do stołu (token obok tokenu stołu)" };
+  return { ok: false, why: t("walk up to the table (token next to the table's token)") };
 }
 
 // ======================================================================
@@ -107,7 +108,7 @@ function myKeys() {
     const pair = await subtle().generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveKey"]);
     const jwk = await subtle().exportKey("jwk", pair.publicKey);
     return { pair, jwk: { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y } };
-  })().catch(err => { console.warn(`${F} | kasyno: brak szyfrowania`, err); return null; });
+  })().catch(err => { console.warn(`${F} | casino: no encryption`, err); return null; });
   return MY_KEYS;
 }
 async function aesKey(theirs, usage) {
@@ -159,10 +160,10 @@ async function deliver(userId, msg) {
       const ct = await subtle().encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(JSON.stringify(msg)));
       game.socket.emit(SOCKET, { kind: "casino-hole", to: userId, gk: keys.jwk, iv: b64(iv), ct: b64(ct) });
       return;
-    } catch (err) { console.warn(`${F} | kasyno: szyfrowanie kart`, err); }
+    } catch (err) { console.warn(`${F} | casino: card encryption`, err); }
   }
   if (typeof user.query === "function" && CONFIG.queries?.[QUERY]) {
-    try { await user.query(QUERY, msg, { timeout: 8000 }); return; } catch (err) { console.warn(`${F} | kasyno: wysyłka kart`, err); }
+    try { await user.query(QUERY, msg, { timeout: 8000 }); return; } catch (err) { console.warn(`${F} | casino: sending cards`, err); }
   }
   game.socket.emit(SOCKET, { kind: "casino-hole", to: userId, plain: msg });
 }
@@ -177,7 +178,7 @@ async function receiveHole(p) {
       if (!key) return;
       const plain = await subtle().decrypt({ name: "AES-GCM", iv: unb64(p.iv) }, key, unb64(p.ct));
       msg = JSON.parse(new TextDecoder().decode(plain));
-    } catch (err) { console.warn(`${F} | kasyno: nie udało się odczytać kart`, err); return; }
+    } catch (err) { console.warn(`${F} | casino: could not read the cards`, err); return; }
   }
   receive(msg);
 }
@@ -231,7 +232,7 @@ export async function request(table, op, data = {}, { quiet = false } = {}) {
   const keys = await myKeys();
   const payload = { kind: "casino", op, uuid: table.uuid, user: game.user.id, data: { ...data, jwk: keys?.jwk ?? null } };
   if (game.users.activeGM?.isSelf) return enqueue(payload);
-  if (!game.users.activeGM) return quiet ? null : warn("Stół do gry działa tylko, gdy MG jest zalogowany.");
+  if (!game.users.activeGM) return quiet ? null : warn(t("The gaming table works only while the GM is logged in."));
   game.socket.emit(SOCKET, payload);
   return true;
 }
@@ -239,7 +240,7 @@ export async function request(table, op, data = {}, { quiet = false } = {}) {
 /** Operacje jednego stołu po kolei — każda czyta stan zapisany przez poprzednią. */
 function enqueue(payload) {
   const prev = CHAINS.get(payload.uuid) ?? Promise.resolve();
-  const next = prev.then(() => applyOp(payload)).catch(err => console.error(`${F} | kasyno`, err));
+  const next = prev.then(() => applyOp(payload)).catch(err => console.error(`${F} | casino`, err));
   CHAINS.set(payload.uuid, next);
   return next;
 }
@@ -291,7 +292,7 @@ export function registerCasinoHooks() {
     const g = foundry.utils.getProperty(changes, "system.game");
     if (g === undefined || g === actor.system.game) return;
     if (tableState(actor).seats.length) {
-      ui.notifications.warn(`${actor.name}: grę zmienisz, gdy nikt nie siedzi przy stole („Zamknij stół” zwraca kapsle).`);
+      ui.notifications.warn(t("{name}: you can change the game once nobody sits at the table (“Close the table” returns the caps).", { name: actor.name }));
       delete changes.system.game;
       return;
     }
@@ -300,7 +301,7 @@ export function registerCasinoHooks() {
   // usunięcie stołu z kapslami graczy: zwrot (wykonuje aktywny MG)
   Hooks.on("deleteActor", actor => {
     if (actor.type !== "casino" || !game.users.activeGM?.isSelf) return;
-    refundAll(tableState(actor)).catch(err => console.error(`${F} | kasyno: zwrot`, err));
+    refundAll(tableState(actor)).catch(err => console.error(`${F} | casino: refund`, err));
   });
   // twój ruch: krótka informacja, gdy okno stołu jest zamknięte
   const lastTurn = new Map();
@@ -313,7 +314,7 @@ export function registerCasinoHooks() {
     if (lastTurn.get(actor.uuid) === key) return;
     lastTurn.set(actor.uuid, key);
     if (actor.sheet?.rendered && !actor.sheet.minimized) return;
-    ui.notifications.info(`${actor.name}: twój ruch (${seat.name}).`);
+    ui.notifications.info(t("{table}: your turn ({name}).", { table: actor.name, name: seat.name }));
   });
 }
 
@@ -325,7 +326,7 @@ export function registerCasinoHooks() {
 async function addCaps(who, n) {
   if (!n) return;
   const a = typeof who === "string" ? await fromUuid(who).catch(() => null) : who;
-  if (!a) { console.warn(`${F} | kasyno: nie ma postaci ${who} — ${n} kapsli przepada`); return; }
+  if (!a) { console.warn(`${F} | casino: no actor ${who} — ${n} caps lost`); return; }
   await a.update({ "system.caps": Math.max(0, capsOf(a) + n) });
 }
 
@@ -367,7 +368,7 @@ async function voidHand(ctx, st) {
   }
   SECRETS.delete(ctx.table.uuid);
   ctx.dirty = true;
-  ctx.log.push("> ROZDANIE ANULOWANE — stawki wróciły do graczy");
+  ctx.log.push(t("> HAND VOIDED — the stakes went back to the players"));
   return st;
 }
 
@@ -395,11 +396,11 @@ function applyHe(ctx, r) {
 /** Miejsce, którym ten użytkownik może grać: gracz — swoje, MG — każde. */
 function seatFor(ctx, st, seatId) {
   const seat = st.seats.find(s => s.id === seatId && !s.leaving);
-  if (!seat) return fail(ctx, "Nie siedzisz przy tym stole.");
+  if (!seat) return fail(ctx, t("You're not sitting at this table."));
   if (ctx.user.isGM) return seat;
-  if (seat.npc) return fail(ctx, "Tym miejscem kieruje MG.");
+  if (seat.npc) return fail(ctx, t("The GM controls this seat."));
   if (seat.user === ctx.user.id || docSync(seat.actor)?.testUserPermission?.(ctx.user, "OWNER")) return seat;
-  return fail(ctx, "To nie twoje miejsce.");
+  return fail(ctx, t("That's not your seat."));
 }
 const seated = (ctx, st) => ctx.user.isGM || st.seats.some(s => !s.leaving && !s.npc && (s.user === ctx.user.id || docSync(s.actor)?.testUserPermission?.(ctx.user, "OWNER")));
 
@@ -421,7 +422,7 @@ async function unseat(ctx, st, seatId) {
   }
   seat = st.seats.find(s => s.id === seatId);
   seat.leaving = true;
-  ctx.log.push(`> ${seat.name} odchodzi od stołu`);
+  ctx.log.push(t("> {name} leaves the table", { name: seat.name }));
   return st;
 }
 
@@ -430,7 +431,7 @@ async function cleanup(ctx, st) {
   if (inPlay(st) || !st.seats.some(s => s.leaving)) return st;
   for (const s of st.seats.filter(x => x.leaving)) {
     const back = st.game === "holdem" ? s.stack : s.bet;
-    if (back > 0) { await addCaps(s.actor, back); ctx.log.push(`> ${s.name} zabiera ${capsText(back)}`); }
+    if (back > 0) { await addCaps(s.actor, back); ctx.log.push(t("> {name} collects {caps}", { name: s.name, caps: capsText(back) })); }
   }
   if (st.game === "holdem") {
     const btn = st.seats[st.button];
@@ -447,25 +448,25 @@ const OPS = {
 
   async sit(ctx, st, d) {
     const { sys, user } = ctx;
-    if (!sys.open) return fail(ctx, "Stół jest zamknięty.");
+    if (!sys.open) return fail(ctx, t("The table is closed."));
     const actor = await fromUuid(d.actor).catch(() => null);
-    if (!actor || NOT_PLAYERS.includes(actor.type)) return fail(ctx, "Wybierz postać, która usiądzie przy stole.");
-    if (!user.isGM && !actor.testUserPermission(user, "OWNER")) return fail(ctx, `${actor.name}: to nie twoja postać.`);
-    if (st.seats.some(s => s.actor === actor.uuid && !s.leaving)) return fail(ctx, `${actor.name} już siedzi przy tym stole.`);
-    if (st.seats.filter(s => !s.leaving).length >= C.MAX_SEATS) return fail(ctx, `Przy stole nie ma wolnych miejsc (${C.MAX_SEATS}).`);
+    if (!actor || NOT_PLAYERS.includes(actor.type)) return fail(ctx, t("Choose the character who will sit at the table."));
+    if (!user.isGM && !actor.testUserPermission(user, "OWNER")) return fail(ctx, t("{name}: that's not your character.", { name: actor.name }));
+    if (st.seats.some(s => s.actor === actor.uuid && !s.leaving)) return fail(ctx, t("{name} already sits at this table.", { name: actor.name }));
+    if (st.seats.filter(s => !s.leaving).length >= C.MAX_SEATS) return fail(ctx, t("There are no free seats at the table ({n}).", { n: C.MAX_SEATS }));
     const npc = !!(d.npc && user.isGM);
     const seat = { id: foundry.utils.randomID(8), actor: actor.uuid, name: actor.name, user: user.id, npc, leaving: false };
     if (st.game === "holdem") {
       const buy = Math.floor(Number(d.buyIn) || 0);
-      if (buy < sys.buyInMin || buy > sys.buyInMax) return fail(ctx, `Wpisowe: od ${sys.buyInMin} do ${sys.buyInMax} kapsli.`);
+      if (buy < sys.buyInMin || buy > sys.buyInMax) return fail(ctx, t("Buy-in: from {min} to {max} caps.", { min: sys.buyInMin, max: sys.buyInMax }));
       if (capsOf(actor) >= buy) await addCaps(actor, -buy);
-      else if (npc) ctx.log.push(`> ${actor.name}: kapsle na stół wykłada MG`);
-      else return fail(ctx, `${actor.name}: za mało kapsli (${capsOf(actor)}).`);
+      else if (npc) ctx.log.push(t("> {name}: the GM puts up the caps", { name: actor.name }));
+      else return fail(ctx, t("{name}: not enough caps ({n}).", { name: actor.name, n: capsOf(actor) }));
       Object.assign(seat, { stack: buy, bet: 0, contributed: 0, folded: false, allIn: false, acted: false, mayRaise: true, inHand: false, hole: null, lastAction: "", best: "" });
-      ctx.log.push(`> ${actor.name} siada do stołu (${capsText(buy)})`);
+      ctx.log.push(t("> {name} sits down at the table ({caps})", { name: actor.name, caps: capsText(buy) }));
     } else {
       Object.assign(seat, { bet: 0, lastBet: 0, hands: [], inRound: false });
-      ctx.log.push(`> ${actor.name} siada do stołu`);
+      ctx.log.push(t("> {name} sits down at the table", { name: actor.name }));
     }
     st.seats.push(seat);
     return st;
@@ -479,37 +480,37 @@ const OPS = {
   /** Blackjack: stawka przed rozdaniem (kapsle od razu na stół; 0 — wycofanie). */
   async bet(ctx, st, d) {
     const { sys } = ctx;
-    if (st.game !== "blackjack") return fail(ctx, "To nie stół do blackjacka.");
+    if (st.game !== "blackjack") return fail(ctx, t("This isn't a blackjack table."));
     const seat = seatFor(ctx, st, d.seat);
     if (!seat) return null;
-    if (st.phase !== "betting") return fail(ctx, "Poczekaj do końca rozdania.");
+    if (st.phase !== "betting") return fail(ctx, t("Wait until the round is over."));
     const amt = Math.floor(Number(d.amount) || 0);
-    if (amt && !sys.open) return fail(ctx, "Stół jest zamknięty.");
-    if (amt && (amt < sys.minBet || amt > sys.maxBet)) return fail(ctx, `Stawka od ${sys.minBet} do ${sys.maxBet} kapsli.`);
+    if (amt && !sys.open) return fail(ctx, t("The table is closed."));
+    if (amt && (amt < sys.minBet || amt > sys.maxBet)) return fail(ctx, t("Bet from {min} to {max} caps.", { min: sys.minBet, max: sys.maxBet }));
     const actor = await fromUuid(seat.actor).catch(() => null);
-    if (!actor) return fail(ctx, "Nie ma tej postaci.");
+    if (!actor) return fail(ctx, t("That character doesn't exist."));
     const diff = amt - seat.bet;
     // NPC bez kapsli: stawkę wykłada MG (jak wpisowe w pokerze)
     const house = diff > 0 && capsOf(actor) < diff && seat.npc && ctx.user.isGM;
-    if (diff > 0 && capsOf(actor) < diff && !house) return fail(ctx, `${seat.name}: za mało kapsli (${capsOf(actor)}).`);
+    if (diff > 0 && capsOf(actor) < diff && !house) return fail(ctx, t("{name}: not enough caps ({n}).", { name: seat.name, n: capsOf(actor) }));
     if (diff && !house) await addCaps(actor, -diff);
     seat.bet = amt;
-    ctx.log.push(amt ? `> ${seat.name} stawia ${amt}${house ? " (wykłada MG)" : ""}` : `> ${seat.name} wycofuje stawkę`);
+    ctx.log.push(amt ? `${t("> {name} bets {n}", { name: seat.name, n: amt })}${house ? ` ${t("(the GM puts it up)")}` : ""}` : t("> {name} withdraws the bet", { name: seat.name }));
     return st;
   },
 
   /** Blackjack: krupier rozdaje wszystkim, którzy postawili. */
   async deal(ctx, st) {
     const { sys } = ctx;
-    if (st.game !== "blackjack") return fail(ctx, "To nie stół do blackjacka.");
-    if (!seated(ctx, st)) return fail(ctx, "Najpierw usiądź przy stole.");
-    if (st.phase !== "betting") return fail(ctx, "Rozdanie już trwa.");
-    if (!sys.open) return fail(ctx, "Stół jest zamknięty.");
+    if (st.game !== "blackjack") return fail(ctx, t("This isn't a blackjack table."));
+    if (!seated(ctx, st)) return fail(ctx, t("Sit down at the table first."));
+    if (st.phase !== "betting") return fail(ctx, t("A round is already in progress."));
+    if (!sys.open) return fail(ctx, t("The table is closed."));
     const bets = st.seats.filter(s => s.bet > 0 && !s.leaving);
-    if (!bets.length) return fail(ctx, "Nikt nie postawił.");
+    if (!bets.length) return fail(ctx, t("Nobody has placed a bet."));
     if (!sys.bankUnlimited) {
       const need = bets.reduce((t, s) => t + Math.floor(s.bet * 1.5), 0);
-      if ((sys.bank ?? 0) < need) return fail(ctx, `Bank stołu (${sys.bank}) nie pokryje takich stawek — potrzeba ${need}.`);
+      if ((sys.bank ?? 0) < need) return fail(ctx, t("The table bank ({bank}) can't cover such bets — {need} needed.", { bank: sys.bank, need }));
     }
     const r = C.bjDeal(st, secretOf(ctx), { decks: sys.decks, rand, paid: Object.fromEntries(bets.map(s => [s.id, s.bet])) });
     if (!r.ok) return fail(ctx, r.why);
@@ -527,13 +528,13 @@ const OPS = {
       return applyHe(ctx, r);
     }
     const legal = C.bjLegal(st, seat.id);
-    if (!legal[d.action]) return fail(ctx, "To nie twój ruch albo ruch niedozwolony.");
+    if (!legal[d.action]) return fail(ctx, t("It's not your turn or the move isn't allowed."));
     let house = false;
     if (d.action === "double" || d.action === "split") {
       const actor = await fromUuid(seat.actor).catch(() => null);
       house = capsOf(actor) < legal.cost && seat.npc && ctx.user.isGM;
-      if (capsOf(actor) < legal.cost && !house) return fail(ctx, `${seat.name}: za mało kapsli (potrzeba ${legal.cost}).`);
-      if (!sys.bankUnlimited && (sys.bank ?? 0) < C.bjExposure(st, legal.cost)) return fail(ctx, "Bank stołu nie przyjmie wyższej stawki.");
+      if (capsOf(actor) < legal.cost && !house) return fail(ctx, t("{name}: not enough caps ({n} needed).", { name: seat.name, n: legal.cost }));
+      if (!sys.bankUnlimited && (sys.bank ?? 0) < C.bjExposure(st, legal.cost)) return fail(ctx, t("The table bank won't accept a higher stake."));
     }
     const r = C.bjAct(st, secretOf(ctx), seat.id, d.action);
     if (!r.ok) return fail(ctx, r.why);
@@ -544,9 +545,9 @@ const OPS = {
   /** Poker: nowe rozdanie (karty graczy idą do nich osobno). */
   async start(ctx, st) {
     const { sys } = ctx;
-    if (st.game !== "holdem") return fail(ctx, "To nie stół do pokera.");
-    if (!sys.open) return fail(ctx, "Stół jest zamknięty.");
-    if (!seated(ctx, st)) return fail(ctx, "Najpierw usiądź przy stole.");
+    if (st.game !== "holdem") return fail(ctx, t("This isn't a poker table."));
+    if (!sys.open) return fail(ctx, t("The table is closed."));
+    if (!seated(ctx, st)) return fail(ctx, t("Sit down at the table first."));
     const r = C.heStart(st, { sb: sys.smallBlind, bb: Math.max(sys.bigBlind, sys.smallBlind), rake: sys.rake, rand });
     if (!r.ok) return fail(ctx, r.why);
     ctx.holes = true;
@@ -556,19 +557,19 @@ const OPS = {
   /** Poker: dokupienie kapsli między rozdaniami (do górnej granicy wpisowego). */
   async rebuy(ctx, st, d) {
     const { sys } = ctx;
-    if (st.game !== "holdem") return fail(ctx, "To nie stół do pokera.");
+    if (st.game !== "holdem") return fail(ctx, t("This isn't a poker table."));
     const seat = seatFor(ctx, st, d.seat);
     if (!seat) return null;
-    if (inPlay(st) && seat.inHand) return fail(ctx, "Dokupić można między rozdaniami.");
+    if (inPlay(st) && seat.inHand) return fail(ctx, t("You can buy more between hands."));
     const amt = Math.floor(Number(d.amount) || 0);
-    if (amt <= 0) return fail(ctx, "Podaj, ile kapsli dokupić.");
-    if (seat.stack + amt > sys.buyInMax) return fail(ctx, `Na stole można mieć najwyżej ${sys.buyInMax} kapsli (masz ${seat.stack}).`);
+    if (amt <= 0) return fail(ctx, t("Enter how many caps to add."));
+    if (seat.stack + amt > sys.buyInMax) return fail(ctx, t("You can have at most {max} caps on the table (you have {n}).", { max: sys.buyInMax, n: seat.stack }));
     const actor = await fromUuid(seat.actor).catch(() => null);
     if (actor && capsOf(actor) >= amt) await addCaps(actor, -amt);
-    else if (seat.npc && ctx.user.isGM) ctx.log.push(`> ${seat.name}: kapsle dokłada MG`);
-    else return fail(ctx, `${seat.name}: za mało kapsli (${capsOf(actor)}).`);
+    else if (seat.npc && ctx.user.isGM) ctx.log.push(t("> {name}: the GM adds the caps", { name: seat.name }));
+    else return fail(ctx, t("{name}: not enough caps ({n}).", { name: seat.name, n: capsOf(actor) }));
     seat.stack += amt;
-    ctx.log.push(`> ${seat.name} dokupuje ${amt} (na stole ${seat.stack})`);
+    ctx.log.push(t("> {name} buys {n} more (on the table: {stack})", { name: seat.name, n: amt, stack: seat.stack }));
     return st;
   },
 
@@ -594,7 +595,7 @@ const OPS = {
     st.seats = [];
     if (st.game === "holdem") st.button = -1;
     ctx.upd["system.open"] = false;
-    ctx.log.push("> STÓŁ ZAMKNIĘTY — kapsle wróciły do graczy");
+    ctx.log.push(t("> TABLE CLOSED — the caps went back to the players"));
     return st;
   }
 };
@@ -640,7 +641,7 @@ async function sendHoles(table, st, only = null) {
 // Czat
 // ======================================================================
 
-const RESULT = { bj: "blackjack", win: "wygrana", push: "remis", lose: "przegrana", bust: "fura" };
+const result = r => ({ bj: "blackjack", win: t("win"), push: t("push"), lose: t("loss"), bust: t("bust") })[r] ?? "";
 /** Mała karta do wiadomości na czacie. */
 export function miniCard(code) {
   const c = C.cardInfo(code);
@@ -650,22 +651,22 @@ export function miniCard(code) {
 function bjSummary(st) {
   const d = st.dealer;
   const dTotal = C.bjValue(d.cards).total;
-  const rows = [`<div class="cz-row dealer"><b>Krupier</b><span>${d.cards.map(miniCard).join("")}</span><em>${d.cards.length === 2 && dTotal === 21 ? "blackjack" : dTotal > 21 ? `fura (${dTotal})` : dTotal}</em></div>`];
+  const rows = [`<div class="cz-row dealer"><b>${t("Dealer")}</b><span>${d.cards.map(miniCard).join("")}</span><em>${d.cards.length === 2 && dTotal === 21 ? "blackjack" : dTotal > 21 ? t("bust ({n})", { n: dTotal }) : dTotal}</em></div>`];
   for (const s of st.seats.filter(x => x.inRound)) {
     const net = s.hands.reduce((t, h) => t + h.payout - h.bet, 0);
-    rows.push(`<div class="cz-row ${net > 0 ? "win" : net < 0 ? "lose" : "push"}"><b>${esc(s.name)}</b><span>${s.hands.map(h => h.cards.map(miniCard).join("")).join(" · ")}</span><em>${s.hands.map(h => RESULT[h.result] ?? "").join(" / ")} ${net > 0 ? "+" : ""}${net}</em></div>`);
+    rows.push(`<div class="cz-row ${net > 0 ? "win" : net < 0 ? "lose" : "push"}"><b>${esc(s.name)}</b><span>${s.hands.map(h => h.cards.map(miniCard).join("")).join(" · ")}</span><em>${s.hands.map(h => result(h.result)).join(" / ")} ${net > 0 ? "+" : ""}${net}</em></div>`);
   }
-  return { tag: "BLACKJACK", sub: `runda ${st.round}`, body: rows.join("") };
+  return { tag: "BLACKJACK", sub: t("round {n}", { n: st.round }), body: rows.join("") };
 }
 
 function heSummary(st) {
   const L = st.last ?? { winners: [], shown: [] };
   const rows = [];
-  if (st.board.length) rows.push(`<div class="cz-row board"><b>Stół</b><span>${st.board.map(miniCard).join("")}</span></div>`);
+  if (st.board.length) rows.push(`<div class="cz-row board"><b>${t("Board")}</b><span>${st.board.map(miniCard).join("")}</span></div>`);
   for (const sh of L.shown) rows.push(`<div class="cz-row ${L.winners.some(w => w.id === sh.id) ? "win" : "lose"}"><b>${esc(sh.name)}</b><span>${(sh.hole ?? []).map(miniCard).join("")}</span><em>${esc(sh.hand)}</em></div>`);
-  for (const w of L.winners) rows.push(`<div class="cz-row win"><b>${esc(w.name)}</b><em>zgarnia ${capsText(w.amount)}${!L.shown.length ? " (reszta spasowała)" : ""}</em></div>`);
-  if (L.house) rows.push(`<div class="cz-row"><b>Prowizja kasyna</b><em>${L.house}</em></div>`);
-  return { tag: "TEXAS HOLD'EM", sub: `rozdanie ${st.hand}`, body: rows.join("") };
+  for (const w of L.winners) rows.push(`<div class="cz-row win"><b>${esc(w.name)}</b><em>${t("takes {caps}", { caps: capsText(w.amount) })}${!L.shown.length ? ` ${t("(everyone else folded)")}` : ""}</em></div>`);
+  if (L.house) rows.push(`<div class="cz-row"><b>${t("House rake")}</b><em>${L.house}</em></div>`);
+  return { tag: "TEXAS HOLD'EM", sub: t("hand {n}", { n: st.hand }), body: rows.join("") };
 }
 
 /** Wynik przy stole widzą wszyscy — jawnie, niezależnie od trybu rzutu wybranego u MG. */
@@ -673,7 +674,7 @@ function chatCard(table, c) {
   if (!chatOn()) return null;
   return ChatMessage.create({
     speaker: { alias: table.name },
-    content: `<div class="foe-card casino"><div class="fc-tag"><span>KASYNO // ${c.tag}</span><span>${esc(c.sub)}</span></div><h3>${esc(table.name)}</h3>${c.body}</div>`
+    content: `<div class="foe-card casino"><div class="fc-tag"><span>${t("CASINO")} // ${c.tag}</span><span>${esc(c.sub)}</span></div><h3>${esc(table.name)}</h3>${c.body}</div>`
   }, { messageMode: "public", rollMode: "publicroll" });
 }
 
@@ -684,14 +685,14 @@ function chatCard(table, c) {
 /** Usiądź postacią gracza (poker: z wpisowym). */
 export async function sitDown(table, buyIn) {
   const actor = userActor();
-  if (!actor) return warn("Zaznacz token swojej postaci albo przypisz postać do gracza.");
+  if (!actor) return warn(t("Select your character's token or assign a character to the player."));
   const reach = tableReach(actor, table);
   if (!reach.ok) return warn(`${actor.name}: ${reach.why}.`);
   const sys = table.system;
   if (sys.game === "holdem") {
     const n = Math.floor(Number(buyIn) || 0);
-    if (n < sys.buyInMin || n > sys.buyInMax) return warn(`Wpisowe: od ${sys.buyInMin} do ${sys.buyInMax} kapsli.`);
-    if (capsOf(actor) < n) return warn(`${actor.name}: za mało kapsli (${capsOf(actor)}).`);
+    if (n < sys.buyInMin || n > sys.buyInMax) return warn(t("Buy-in: from {min} to {max} caps.", { min: sys.buyInMin, max: sys.buyInMax }));
+    if (capsOf(actor) < n) return warn(t("{name}: not enough caps ({n}).", { name: actor.name, n: capsOf(actor) }));
     return request(table, "sit", { actor: actor.uuid, buyIn: n });
   }
   return request(table, "sit", { actor: actor.uuid });
@@ -700,7 +701,7 @@ export async function sitDown(table, buyIn) {
 /** MG: posadź NPC zaznaczonych na mapie (poker: z kapslami na stół — z ich karty, a gdy brak, od MG). */
 export async function seatNpcs(table, buyIn) {
   const actors = [...new Set((canvas?.tokens?.controlled ?? []).map(t => t.actor).filter(a => a && !NOT_PLAYERS.includes(a.type)))];
-  if (!actors.length) return warn("Zaznacz na mapie tokeny NPC, którzy mają usiąść przy stole.");
+  if (!actors.length) return warn(t("Select on the map the NPC tokens that should sit at the table."));
   for (const a of actors) await request(table, "sit", { actor: a.uuid, npc: true, buyIn });
   return true;
 }

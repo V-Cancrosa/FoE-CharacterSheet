@@ -18,73 +18,74 @@
  *   noWound       — nie rani; noDamage — nie zadaje obrażeń (Gas, Smoke, Cryo, Glue),
  *   shotgun       — tylko strzelby.
  */
+import { t, tmap, tfields } from "./i18n.mjs";
 const F = "foe-rpg";
 
-export const AMMO_GROUPS = { conventional: "Naboje (broń palna)", energy: "Amunicja broni energetycznej", explosive: "Amunicja wybuchowa" };
+export const AMMO_GROUPS = tmap({ conventional: "Cartridges (firearms)", energy: "Energy weapon ammo", explosive: "Explosive ammo" });
 
-export const SPECIAL_AMMO = {
+export const SPECIAL_AMMO = tfields({
   // ---- naboje ----
-  ap: { group: "conventional", label: "Armor Piercing (AP)", cost: 3, ignore: 40, halfUnarmored: true,
-    effect: "ignoruje do 40 DT", downside: "połowa obrażeń przeciw celom bez pancerza średniego lub ciężkiego" },
-  explosive: { group: "conventional", label: "Explosive", cost: 5, dice: 1,
-    effect: "+1 kość obrażeń; sąsiednie cele też obrywają (obszarowo, ½)", downside: "broń zużywa się 2× szybciej; zacięcie niszczy broń" },
-  incendiary: { group: "conventional", label: "Incendiary", cost: 3, addDice: "2d10", fire: true,
-    effect: "+2d10 obrażeń i efekt Ogień", downside: "zacięcie albo niewypał podpala resztę amunicji" },
-  spark: { group: "conventional", label: "Spark", cost: 5, ignore: 10, machineDice: 4, lowDtQuarter: 10,
-    effect: "ignoruje 10 DT, +4 kości przeciw maszynom, robotom, komputerom i pancerzom wspomaganym", downside: "¼ obrażeń przeciw celom z DT poniżej 10" },
-  glue: { group: "conventional", label: "Glue/Goo", cost: 1.5, noWound: true,
-    effect: "w kończyny: przykleja (STR ½, by się uwolnić); w pysk: może dusić", downside: "nie rani" },
-  gel: { group: "conventional", label: "Gel/Rubber/Beanbag", cost: 1.5, nonlethal: true, maxAbove20: true,
-    effect: "obrażenia nie zabijają", downside: "bez skutku przy DT lokacji powyżej 20" },
-  paint: { group: "conventional", label: "Paint", cost: 1, noWound: true,
-    effect: "cel o 1 krok MFD łatwiej wypatrzyć i trafić, nawet w ciemności", downside: "nie rani" },
-  hollow: { group: "conventional", label: "Hollow Point / Flechette", cost: 3, living4: true, dtMult: 3,
-    effect: "×4 obrażeń przeciw żywym celom i ghulom", downside: "DT celu liczy się potrójnie" },
-  slug: { group: "conventional", label: "Slugs (tylko strzelby)", cost: 2, shotgun: true, maxDamage: true, steps: -1,
-    effect: "maksymalne obrażenia na każdym dystansie", downside: "−1 krok MFD celności" },
-  dragon: { group: "conventional", label: "Dragon's Breath (tylko strzelby)", cost: 2, shotgun: true, fire: true,
-    effect: "obrażenia jak z miotacza ognia (efekt Ogień)", downside: "ładowane ręcznie po jednym — przeładowanie trwa 2× dłużej" },
-  bulk: { group: "conventional", label: "Bulk", cost: 0.5, dice: -1,
-    effect: "połowa ceny", downside: "1 kość obrażeń mniej, broń zużywa się 2× szybciej" },
+  ap: { group: "conventional", label: "Armor Piercing (AP)", cost: 3, ignore: 40, halfUnarmored: true,   // en=pl
+    effect: "ignores up to 40 DT", downside: "half damage against targets without medium or heavy armor" },
+  explosive: { group: "conventional", label: "Explosive", cost: 5, dice: 1,   // en=pl
+    effect: "+1 damage die; adjacent targets get hit too (area, ½)", downside: "the weapon wears out 2× faster; a jam destroys the weapon" },
+  incendiary: { group: "conventional", label: "Incendiary", cost: 3, addDice: "2d10", fire: true,   // en=pl
+    effect: "+2d10 damage and the Fire effect", downside: "a jam or a misfire ignites the rest of the ammo" },
+  spark: { group: "conventional", label: "Spark", cost: 5, ignore: 10, machineDice: 4, lowDtQuarter: 10,   // en=pl
+    effect: "ignores 10 DT, +4 dice against machines, robots, computers and power armor", downside: "¼ damage against targets with DT below 10" },
+  glue: { group: "conventional", label: "Glue/Goo", cost: 1.5, noWound: true,   // en=pl
+    effect: "on limbs: sticks (STR ½ to break free); on the muzzle: may suffocate", downside: "doesn't wound" },
+  gel: { group: "conventional", label: "Gel/Rubber/Beanbag", cost: 1.5, nonlethal: true, maxAbove20: true,   // en=pl
+    effect: "the damage doesn't kill", downside: "no effect when the location's DT is above 20" },
+  paint: { group: "conventional", label: "Paint", cost: 1, noWound: true,   // en=pl
+    effect: "the target is 1 MFD step easier to spot and hit, even in darkness", downside: "doesn't wound" },
+  hollow: { group: "conventional", label: "Hollow Point / Flechette", cost: 3, living4: true, dtMult: 3,   // en=pl
+    effect: "×4 damage against living targets and ghouls", downside: "the target's DT counts triple" },
+  slug: { group: "conventional", label: "Slugs (shotguns only)", cost: 2, shotgun: true, maxDamage: true, steps: -1,
+    effect: "maximum damage at any range", downside: "−1 MFD step to accuracy" },
+  dragon: { group: "conventional", label: "Dragon's Breath (shotguns only)", cost: 2, shotgun: true, fire: true,
+    effect: "damage like a flamethrower (the Fire effect)", downside: "loaded by hand one at a time — reloading takes 2× longer" },
+  bulk: { group: "conventional", label: "Bulk", cost: 0.5, dice: -1,   // en=pl
+    effect: "half the price", downside: "1 damage die less, the weapon wears out 2× faster" },
   // ---- energia ----
-  focused: { group: "energy", label: "Focused", cost: 5, ignore: 50, halfUnarmored: true,
-    effect: "ignoruje do 50 DT", downside: "połowa obrażeń przeciw celom bez pancerza średniego lub ciężkiego" },
-  stun: { group: "energy", label: "Stun", cost: 2, nonlethal: true, maxAbove20: true,
-    effect: "obrażenia nie zabijają", downside: "bez skutku przy DT lokacji powyżej 20" },
-  overcharged: { group: "energy", label: "Overcharged", cost: 2, dice: 1,
-    effect: "+1 kość obrażeń", downside: "broń zużywa się 2× szybciej" },
-  ebulk: { group: "energy", label: "Bulk (energia)", cost: 0.5, dice: -1,
-    effect: "połowa ceny", downside: "1 kość obrażeń mniej, broń zużywa się 2× szybciej" },
-  homemade: { group: "energy", label: "Home Made", cost: 0.5,
-    effect: "połowa ceny", downside: "broń zużywa się 4× szybciej" },
+  focused: { group: "energy", label: "Focused", cost: 5, ignore: 50, halfUnarmored: true,   // en=pl
+    effect: "ignores up to 50 DT", downside: "half damage against targets without medium or heavy armor" },
+  stun: { group: "energy", label: "Stun", cost: 2, nonlethal: true, maxAbove20: true,   // en=pl
+    effect: "the damage doesn't kill", downside: "no effect when the location's DT is above 20" },
+  overcharged: { group: "energy", label: "Overcharged", cost: 2, dice: 1,   // en=pl
+    effect: "+1 damage die", downside: "the weapon wears out 2× faster" },
+  ebulk: { group: "energy", label: "Bulk (energy)", cost: 0.5, dice: -1,
+    effect: "half the price", downside: "1 damage die less, the weapon wears out 2× faster" },
+  homemade: { group: "energy", label: "Home Made", cost: 0.5,   // en=pl
+    effect: "half the price", downside: "the weapon wears out 4× faster" },
   // ---- wybuchowa ----
-  xincendiary: { group: "explosive", label: "Incendiary (wybuchowa)", cost: 3, fire: true,
-    effect: "dodaje efekt Ogień", downside: "broń zużywa się 2× szybciej" },
-  he: { group: "explosive", label: "High Explosive", cost: 2, ignore: 30,
-    effect: "ignoruje 30 DT", downside: "spadek obrażeń z odległością od epicentrum jest podwojony" },
-  gas: { group: "explosive", label: "Gas", cost: 3, noDamage: true,
-    effect: "co rundę w promieniu: END MFD ½ albo utrata przytomności", downside: "nie zadaje obrażeń; promień −5 ft" },
-  smoke: { group: "explosive", label: "Smoke", cost: 5, noDamage: true,
-    effect: "chmura dymu: −1 krok MFD celności w niej i przez nią (SATS znosi)", downside: "nie zadaje obrażeń; promień 10 ft" },
-  xpaint: { group: "explosive", label: "Paint (wybuchowa)", cost: 1, noWound: true,
-    effect: "cel łatwiej wypatrzyć, nawet w ciemności", downside: "nie rani" },
-  xbeanbag: { group: "explosive", label: "Beanbag (wybuchowa)", cost: 1.5, nonlethal: true, maxAbove20: true,
-    effect: "obrażenia nie zabijają", downside: "bez skutku przy DT lokacji powyżej 20" },
-  cryo: { group: "explosive", label: "Cryo", cost: 5, noDamage: true,
-    effect: "efekt granatu Windigo (zamrożenie)", downside: "nie zadaje obrażeń; promień −5 ft" },
-  xspark: { group: "explosive", label: "Spark (wybuchowa)", cost: 5, ignore: 10, machineDice: 4, lowDtQuarter: 20,
-    effect: "ignoruje 10 DT, +4 kości przeciw maszynom i pancerzom wspomaganym", downside: "¼ obrażeń przeciw celom z DT poniżej 20" },
-  xglue: { group: "explosive", label: "Glue/Goo (wybuchowa)", cost: 1.5, noDamage: true,
-    effect: "w promieniu: STR MFD ½, by się ruszyć", downside: "nie zadaje obrażeń" }
-};
+  xincendiary: { group: "explosive", label: "Incendiary (explosive)", cost: 3, fire: true,
+    effect: "adds the Fire effect", downside: "the weapon wears out 2× faster" },
+  he: { group: "explosive", label: "High Explosive", cost: 2, ignore: 30,   // en=pl
+    effect: "ignores 30 DT", downside: "damage falloff with distance from the center is doubled" },
+  gas: { group: "explosive", label: "Gas", cost: 3, noDamage: true,   // en=pl
+    effect: "every round in the radius: END MFD ½ or unconsciousness", downside: "deals no damage; radius −5 ft" },
+  smoke: { group: "explosive", label: "Smoke", cost: 5, noDamage: true,   // en=pl
+    effect: "a smoke cloud: −1 MFD step to accuracy in it and through it (SATS negates)", downside: "deals no damage; radius 10 ft" },
+  xpaint: { group: "explosive", label: "Paint (explosive)", cost: 1, noWound: true,
+    effect: "the target is easier to spot, even in darkness", downside: "doesn't wound" },
+  xbeanbag: { group: "explosive", label: "Beanbag (explosive)", cost: 1.5, nonlethal: true, maxAbove20: true,
+    effect: "the damage doesn't kill", downside: "no effect when the location's DT is above 20" },
+  cryo: { group: "explosive", label: "Cryo", cost: 5, noDamage: true,   // en=pl
+    effect: "the effect of a Windigo grenade (freezing)", downside: "deals no damage; radius −5 ft" },
+  xspark: { group: "explosive", label: "Spark (explosive)", cost: 5, ignore: 10, machineDice: 4, lowDtQuarter: 20,
+    effect: "ignores 10 DT, +4 dice against machines and power armor", downside: "¼ damage against targets with DT below 20" },
+  xglue: { group: "explosive", label: "Glue/Goo (explosive)", cost: 1.5, noDamage: true,
+    effect: "in the radius: STR MFD ½ to move", downside: "deals no damage" }
+}, ["label", "effect", "downside"]);
 
 /** Grupa amunicji danego typu (null — bez wariantów: paliwo, strzały, złom, balefire…). */
 export function ammoGroup(ammoType) {
-  const t = String(ammoType ?? "").toLowerCase();
-  if (!t || /flamer|fuel|junk|cake|rock|arrow|bolt|dart|nail|spike|balefire/.test(t)) return null;
-  if (/grenade|missile|rocket|shell/.test(t)) return "explosive";
-  if (/gem|mfc|me-?cell|spc|solar|energy cell|\bec\b/.test(t)) return "energy";
-  if (/mm|cal|gauge|\.44|\.45|bb/.test(t)) return "conventional";
+  const a = String(ammoType ?? "").toLowerCase();
+  if (!a || /flamer|fuel|junk|cake|rock|arrow|bolt|dart|nail|spike|balefire/.test(a)) return null;
+  if (/grenade|missile|rocket|shell/.test(a)) return "explosive";
+  if (/gem|mfc|me-?cell|spc|solar|energy cell|\bec\b/.test(a)) return "energy";
+  if (/mm|cal|gauge|\.44|\.45|bb/.test(a)) return "conventional";
   return null;
 }
 export const isShotgunAmmo = ammoType => /gauge/i.test(String(ammoType ?? ""));
@@ -136,11 +137,11 @@ export const variantName = (ammoName, v) => `${ammoName} (${v.label.replace(/ \(
 export function ammoOnHit(a, { dmg, dt, armoredLoc = false, living = true }) {
   const notes = [];
   if (!a) return { dmg, dt, notes };
-  if (a.noDamage || a.noWound) return { dmg: 0, dt, notes: [a.noDamage ? "bez obrażeń" : "nie rani"] };
+  if (a.noDamage || a.noWound) return { dmg: 0, dt, notes: [a.noDamage ? t("no damage") : t("doesn't wound")] };
   if (a.dtMult) { dt *= a.dtMult; notes.push(`DT ×${a.dtMult}`); }
-  if (a.living4 && living) { dmg *= 4; notes.push("×4 przeciw żywym"); }
-  if (a.halfUnarmored && !armoredLoc) { dmg = Math.floor(dmg / 2); notes.push("½ — brak pancerza średniego/ciężkiego"); }
+  if (a.living4 && living) { dmg *= 4; notes.push(t("×4 vs. living")); }
+  if (a.halfUnarmored && !armoredLoc) { dmg = Math.floor(dmg / 2); notes.push(t("½ — no medium/heavy armor")); }
   if (a.lowDtQuarter && dt < a.lowDtQuarter) { dmg = Math.floor(dmg / 4); notes.push(`¼ — DT < ${a.lowDtQuarter}`); }
-  if (a.maxAbove20 && dt > 20) { dmg = 0; notes.push("bez skutku — DT > 20"); }
+  if (a.maxAbove20 && dt > 20) { dmg = 0; notes.push(t("no effect — DT > 20")); }
   return { dmg, dt, notes };
 }

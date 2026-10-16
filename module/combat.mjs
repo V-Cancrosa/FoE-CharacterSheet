@@ -2,6 +2,7 @@
  * Zasady walki z podręcznika v1.22 (rozdz. 4 i 7) jako czyste funkcje — bez zależności od Foundry,
  * żeby dało się je testować poza grą.
  */
+import { t, N_, tmap, tfields } from "./i18n.mjs";
 
 // ---------- Lokacje trafień ----------
 const span = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
@@ -12,19 +13,19 @@ const table = spec => {
 };
 
 /** Losowe lokacje trafień k20 wg rasy celu (s. 450). Dwunożni: ramiona = przednie nogi, nogi = tylne; 20 = przerzut. */
-export const HIT_TABLES = {
-  earth: { label: "Ziemskie, osły, zebry", rows: table({ head: span(1, 2), torso: [...span(3, 6), ...span(11, 16)], flLeg: span(7, 8), frLeg: span(9, 10), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
-  unicorn: { label: "Jednorożce", rows: table({ horn: [1], head: span(2, 3), torso: [...span(4, 6), ...span(11, 16)], flLeg: span(7, 8), frLeg: span(9, 10), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
-  pegasus: { label: "Pegazy, nietoperze, gryfy", rows: table({ head: span(1, 2), torso: [...span(3, 4), ...span(13, 16)], flLeg: span(5, 6), frLeg: span(7, 8), wings: span(9, 12), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
-  alicorn: { label: "Alikorny", rows: table({ horn: [1], head: span(2, 3), torso: [4, ...span(13, 16)], flLeg: span(5, 6), frLeg: span(7, 8), wings: span(9, 12), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
-  buffalo: { label: "Bizony", rows: table({ horn: [1], head: span(2, 3), torso: [...span(4, 6), ...span(11, 16)], flLeg: span(7, 8), frLeg: span(9, 10), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
-  biped: { label: "Dwunożni (minotaury, psy)", biped: true, rows: table({ head: span(1, 2), flLeg: span(3, 4), frLeg: span(5, 6), torso: span(7, 15), rlLeg: span(16, 17), rrLeg: span(18, 19) }) },
+export const HIT_TABLES = tfields({
+  earth: { label: N_("Earth ponies, donkeys, zebras"), rows: table({ head: span(1, 2), torso: [...span(3, 6), ...span(11, 16)], flLeg: span(7, 8), frLeg: span(9, 10), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
+  unicorn: { label: N_("Unicorns"), rows: table({ horn: [1], head: span(2, 3), torso: [...span(4, 6), ...span(11, 16)], flLeg: span(7, 8), frLeg: span(9, 10), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
+  pegasus: { label: N_("Pegasi, bat ponies, griffons"), rows: table({ head: span(1, 2), torso: [...span(3, 4), ...span(13, 16)], flLeg: span(5, 6), frLeg: span(7, 8), wings: span(9, 12), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
+  alicorn: { label: N_("Alicorns"), rows: table({ horn: [1], head: span(2, 3), torso: [4, ...span(13, 16)], flLeg: span(5, 6), frLeg: span(7, 8), wings: span(9, 12), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
+  buffalo: { label: N_("Buffalo"), rows: table({ horn: [1], head: span(2, 3), torso: [...span(4, 6), ...span(11, 16)], flLeg: span(7, 8), frLeg: span(9, 10), rlLeg: span(17, 18), rrLeg: span(19, 20) }) },
+  biped: { label: N_("Bipeds (minotaurs, diamond dogs)"), biped: true, rows: table({ head: span(1, 2), flLeg: span(3, 4), frLeg: span(5, 6), torso: span(7, 15), rlLeg: span(16, 17), rrLeg: span(18, 19) }) },
   // zasada domowa: kabina = głowa, kadłub = tułów, napęd = skrzydła, uzbrojenie = róg
-  vehicle: { label: "Pojazdy", rows: table({ head: span(1, 2), torso: span(3, 14), wings: span(15, 18), horn: span(19, 20) }) }
-};
+  vehicle: { label: N_("Vehicles"), rows: table({ head: span(1, 2), torso: span(3, 14), wings: span(15, 18), horn: span(19, 20) }) }
+}, ["label"]);
 
 /** Nazwy kończyn dwunożnych (dla kart trafień). */
-export const BIPED_LABELS = { flLeg: "Lewe ramię", frLeg: "Prawe ramię", rlLeg: "Lewa noga", rrLeg: "Prawa noga" };
+export const BIPED_LABELS = tmap({ flLeg: N_("Left arm"), frLeg: N_("Right arm"), rlLeg: N_("Left leg"), rrLeg: N_("Right leg") });
 
 /** Tabela trafień na podstawie wpisanej rasy (po polsku lub angielsku). */
 export function hitTableFor(race) {
@@ -55,19 +56,19 @@ export function hitLocation(tableKey, roll, { melee = false } = {}) {
 }
 
 /** Strzały celowane (s. 443–446): kara w krokach MFD i lokacja, do której trafiają rany. */
-export const CALLED_SHOTS = {
-  torso: { label: "Tułów (domyślnie)", steps: 0, loc: "torso" },
-  head: { label: "Głowa (×1,5 obrażeń)", steps: -2, loc: "head" },
-  flLeg: { label: "Przednia lewa noga", steps: -1, loc: "flLeg" },
-  frLeg: { label: "Przednia prawa noga", steps: -1, loc: "frLeg" },
-  rlLeg: { label: "Tylna lewa noga", steps: -1, loc: "rlLeg" },
-  rrLeg: { label: "Tylna prawa noga", steps: -1, loc: "rrLeg" },
-  wings: { label: "Skrzydła złożone", steps: -1, loc: "wings" },
-  wingsSpread: { label: "Skrzydła rozłożone", steps: 0, loc: "wings" },
-  horn: { label: "Róg (przerywa zaklęcia)", steps: -3, loc: "horn" },
-  eye: { label: "Oko (głowa, ×1,5)", steps: -4, loc: "head" },
-  heart: { label: "Serce (tułów, ×2)", steps: -4, loc: "torso", mult: 2 }
-};
+export const CALLED_SHOTS = tfields({
+  torso: { label: N_("Torso (default)"), steps: 0, loc: "torso" },
+  head: { label: N_("Head (×1.5 damage)"), steps: -2, loc: "head" },
+  flLeg: { label: N_("shot|Left foreleg"), steps: -1, loc: "flLeg" },
+  frLeg: { label: N_("shot|Right foreleg"), steps: -1, loc: "frLeg" },
+  rlLeg: { label: N_("shot|Left hindleg"), steps: -1, loc: "rlLeg" },
+  rrLeg: { label: N_("shot|Right hindleg"), steps: -1, loc: "rrLeg" },
+  wings: { label: N_("Wings (folded)"), steps: -1, loc: "wings" },
+  wingsSpread: { label: N_("Wings (spread)"), steps: 0, loc: "wings" },
+  horn: { label: N_("Horn (interrupts spells)"), steps: -3, loc: "horn" },
+  eye: { label: N_("Eye (head, ×1.5)"), steps: -4, loc: "head" },
+  heart: { label: N_("Heart (torso, ×2)"), steps: -4, loc: "torso", mult: 2 }
+}, ["label"]);
 
 /** Mnożnik obrażeń za lokację: głowa (i oko) ×1,5, serce ×2. */
 export function locationMultiplier(loc, called = null) {
@@ -115,7 +116,7 @@ export function rangeBands(inc, count = 6) {
   if (!(inc > 0)) return [];
   return Array.from({ length: count }, (_, i) => ({
     steps: -i,
-    label: i === 0 ? `do ${inc} ft` : `${inc * i}–${inc * (i + 1)} ft`
+    label: i === 0 ? t("up to {n} ft", { n: inc }) : `${inc * i}–${inc * (i + 1)} ft`
   }));
 }
 
@@ -159,7 +160,7 @@ export const aoeFlat = rank => (rank >= 100 ? 10 : 0);
 export function damageFormula(w, { str = 0, rank = 0, overWield = false } = {}) {
   const notes = [];
   // broń potworów z bestiariusza: obrażenia już zawierają premie
-  if (w?.flat) return { formula: String(w.damage || "0"), pct: 1, flat: 0, notes: ["obrażenia z bloku statystyk"] };
+  if (w?.flat) return { formula: String(w.damage || "0"), pct: 1, flat: 0, notes: [t("damage from the stat block")] };
   const close = isClose(w);
   const aoe = isAoe(w);
   const strVal = close ? (overWield ? 0 : str * strFactor(rank)) : str;
@@ -170,17 +171,17 @@ export function damageFormula(w, { str = 0, rank = 0, overWield = false } = {}) 
     .replace(/\bSTR\s*[*×x]\s*(\d+(?:\.\d+)?)/gi, (_, k) => String(Math.floor(Number(k) * strVal)))
     .replace(/\bSTR\b/gi, String(strVal));
   if (hasStr) {
-    if (close && overWield) notes.push("broń za ciężka — bez premii STR");
-    else if (close) notes.push(`STR ${str} × ${strFactor(rank)} (ranga ${rank})`);
+    if (close && overWield) notes.push(t("weapon too heavy — no STR bonus"));
+    else if (close) notes.push(t("STR {s} × {f} (rank {r})", { s: str, f: strFactor(rank), r: rank }));
     else notes.push(`STR ${str}`);
   }
   if (!aoe && ["smallGuns", "energy", "bigGuns"].includes(w?.skill)) {
     const b = Math.floor(rank / 10);
-    if (b) { formula += ` + ${b}`; notes.push(`ranga ${rank}/10 = +${b}`); }
+    if (b) { formula += ` + ${b}`; notes.push(t("rank {r}/10 = +{b}", { r: rank, b })); }
   }
   const pct = aoe ? aoePercent(rank) : 1;
   const flat = aoe ? aoeFlat(rank) : 0;
-  if (aoe) notes.push(`obszarowa: ${Math.round(pct * 100)}% z rzutu (ranga ${rank})${flat ? " +10" : ""}`);
+  if (aoe) notes.push(`${t("area: {p}% of the roll (rank {r})", { p: Math.round(pct * 100), r: rank })}${flat ? " +10" : ""}`);
   return { formula, pct, flat, notes };
 }
 
@@ -229,27 +230,27 @@ export const overloadSpeed = (weight, carry) => (weight > carry ? 5 * Math.ceil(
 export const sneakWeightPenalty = weight => (weight > 50 ? 5 * Math.ceil((weight - 50) / 10) : 0);
 
 // ---------- Specjalne efekty broni (s. 200–202) ----------
-export const SPECIALS = {
-  fire: { label: "Ogień", desc: "3d12 na każdą lokację na koniec rundy przez 1d4 rundy; ignoruje pancerz niemetalowy" },
-  electric: { label: "Elektryczność", desc: "na koniec rundy 3d12 na każdą lokację (maszyny 6d12); +6d12 dla robotów; wyłącza PipBucki i pancerze wspomagane" },
-  rads: { label: "Promieniowanie", desc: "25 radów za każde 10 zadanych obrażeń" },
-  disintegrate: { label: "Dezintegracja", desc: "rany na okaleczenie lokacji albo zabójcze trafienie zamieniają cel w popiół" },
-  shock: { label: "Ogłuszenie (shock)", desc: "nie zabija — zamiast śmierci utrata przytomności; krytyk +1d10 ran" },
-  poison: { label: "Trucizna", desc: "rzut END przeciw truciźnie" },
-  knockdown: { label: "Przewraca", desc: "trafienie z co najmniej 1 raną przewraca cel" },
-  concealable: { label: "Ukrywalna", desc: "+10 do Sneak przy ukrywaniu broni" },
-  scoped: { label: "Luneta", desc: "większy przedział zasięgu (już wliczony w broń z katalogu)" },
-  silenced: { label: "Tłumik", desc: "wykrycie strzelca o krok trudniejsze (MFD ½)" },
-  timed: { label: "Zapalnik czasowy", desc: "wybucha po ustawionym czasie" },
-  placed: { label: "Mina", desc: "wybucha, gdy ktoś podejdzie na 5 ft; rozbrojenie Explosives MFD ¾" }
-};
+export const SPECIALS = tfields({
+  fire: { label: N_("Fire"), desc: N_("3d12 to every location at the end of the round for 1d4 rounds; ignores non-metal armor") },
+  electric: { label: N_("Electricity"), desc: N_("at the end of the round 3d12 to every location (machines 6d12); +6d12 against robots; disables PipBucks and power armor") },
+  rads: { label: N_("Radiation"), desc: N_("25 rads for every 10 damage dealt") },
+  disintegrate: { label: N_("Disintegration"), desc: N_("wounds that cripple a location or a killing hit turn the target to ash") },
+  shock: { label: N_("Shock"), desc: N_("doesn't kill — unconsciousness instead of death; critical +1d10 wounds") },
+  poison: { label: N_("Poison"), desc: N_("END roll against the poison") },
+  knockdown: { label: N_("Knockdown"), desc: N_("a hit dealing at least 1 wound knocks the target down") },
+  concealable: { label: N_("Concealable"), desc: N_("+10 Sneak when hiding the weapon") },
+  scoped: { label: N_("Scope"), desc: N_("longer range increment (already included in catalog weapons)") },
+  silenced: { label: N_("Silencer"), desc: N_("spotting the shooter is one step harder (MFD ½)") },
+  timed: { label: N_("Timed fuse"), desc: N_("explodes after the set time") },
+  placed: { label: N_("Mine"), desc: N_("explodes when someone comes within 5 ft; disarming: Explosives MFD ¾") }
+});
 
-export const POISONS = {
-  "": "brak",
-  radscorpion: "Radskorpion (END ¾, 1 rana na rundę w głowę lub tułów)",
-  manticore: "Mantykora (END ½, paraliż)",
-  other: "Inna (opis broni / MG)"
-};
+export const POISONS = tmap({
+  "": N_("none"),
+  radscorpion: N_("Radscorpion (END ¾, 1 wound per round to the head or torso)"),
+  manticore: N_("Manticore (END ½, paralysis)"),
+  other: N_("Other (weapon description / GM)")
+});
 
 /** Lista aktywnych efektów broni do znaczników. */
 export function specialList(sp = {}) {

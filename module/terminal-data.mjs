@@ -10,37 +10,38 @@
  *   - holotaśmy: terminale je czytają, PipBuck kopiuje (s. 227).
  * Minigra ze zgadywaniem hasła (jak w grach Fallout) to zasada domowa — opcja świata.
  */
+import { t, N_, tmap, tfields } from "./i18n.mjs";
 
-export const TERMINAL_KINDS = {
-  office: { label: "Biurowy (zielony terminal)", brand: "M.A.S. TERMLINK PROTOCOL v2.1" },
-  stabletec: { label: "Stable-Tec", brand: "STABLE-TEC UNIFIED OPERATING SYSTEM" },
-  military: { label: "Wojskowy / ministerialny", brand: "MINISTRY OF WARTIME TECHNOLOGY — SECURE TERMLINK" },
-  cloud: { label: "Chmurowy (Enclave)", brand: "ENCLAVE CLOUD TERMINAL // SKY-LINK" },
-  unics: { label: "Unics", brand: "UNICS 3.4 — MULTI-USER SYSTEM" },
-  portable: { label: "Przenośny", brand: "PORTABLE TERMINAL — SPARK BATTERY MODE" }
-};
+export const TERMINAL_KINDS = tfields({
+  office: { label: N_("Office (green terminal)"), brand: "M.A.S. TERMLINK PROTOCOL v2.1" },
+  stabletec: { label: "Stable-Tec", brand: "STABLE-TEC UNIFIED OPERATING SYSTEM" },   // en=pl
+  military: { label: N_("Military / ministry"), brand: "MINISTRY OF WARTIME TECHNOLOGY — SECURE TERMLINK" },
+  cloud: { label: N_("Cloud (Enclave)"), brand: "ENCLAVE CLOUD TERMINAL // SKY-LINK" },
+  unics: { label: "Unics", brand: "UNICS 3.4 — MULTI-USER SYSTEM" },   // en=pl
+  portable: { label: N_("Portable"), brand: "PORTABLE TERMINAL — SPARK BATTERY MODE" }
+}, ["label"]);
 
 /** Zabezpieczenie: MFD hakowania i długość słów w minigrze. */
-export const TERMINAL_SECURITY = {
-  none: { label: "Brak (otwarty)", mfd: null, len: [4, 5], penalty: 0 },
-  "1": { label: "Łatwe (MFD 1)", mfd: "1", len: [4, 5], penalty: 0 },
-  "3/4": { label: "Przeciętne (MFD ¾)", mfd: "3/4", len: [6, 7], penalty: 1 },
-  "1/2": { label: "Trudne (MFD ½)", mfd: "1/2", len: [8, 9, 10], penalty: 2 },
-  "1/4": { label: "Bardzo trudne (MFD ¼)", mfd: "1/4", len: [11, 12], penalty: 3 }
-};
+export const TERMINAL_SECURITY = tfields({
+  none: { label: N_("None (open)"), mfd: null, len: [4, 5], penalty: 0 },
+  "1": { label: N_("Easy (MFD 1)"), mfd: "1", len: [4, 5], penalty: 0 },
+  "3/4": { label: N_("Average (MFD ¾)"), mfd: "3/4", len: [6, 7], penalty: 1 },
+  "1/2": { label: N_("Hard (MFD ½)"), mfd: "1/2", len: [8, 9, 10], penalty: 2 },
+  "1/4": { label: N_("Very hard (MFD ¼)"), mfd: "1/4", len: [11, 12], penalty: 3 }
+}, ["label"]);
 
 export const ACCESS = { none: 0, user: 1, admin: 2 };
-export const ACCESS_LABELS = { public: "publiczny", user: "po zalogowaniu", admin: "administrator" };
-export const TRAP_EXPLOSIVES = {
-  frag: { label: "Granat odłamkowy (6d12)", formula: "6d12", name: "Frag Grenade" },
-  satchel: { label: "Ładunek (10d12)", formula: "10d12", name: "Satchel Charge" },
-  sparkle: { label: "Sparkle grenade (10d20)", formula: "10d20", name: "Sparkle Grenade" }
-};
-export const COMMAND_KINDS = { door: "Drzwi", token: "Tokeny (wieżyczki, roboty)", message: "Komunikat na czacie" };
+export const ACCESS_LABELS = tmap({ public: N_("public"), user: N_("after login"), admin: N_("administrator") });
+export const TRAP_EXPLOSIVES = tfields({
+  frag: { label: N_("Frag grenade (6d12)"), formula: "6d12", name: "Frag Grenade" },
+  satchel: { label: N_("Satchel charge (10d12)"), formula: "10d12", name: "Satchel Charge" },
+  sparkle: { label: "Sparkle grenade (10d20)", formula: "10d20", name: "Sparkle Grenade" }   // en=pl
+}, ["label"]);
+export const COMMAND_KINDS = tmap({ door: N_("Door"), token: N_("Tokens (turrets, robots)"), message: N_("Chat message") });
 export const COMMAND_ACTIONS = {
-  door: { open: "otwórz", close: "zamknij", lock: "zarygluj", unlock: "odrygluj", toggle: "przełącz" },
-  token: { off: "wyłącz", on: "włącz", friendly: "przeciw wrogom (sojusznicze)", hostile: "wrogie" },
-  message: { say: "wyślij" }
+  door: tmap({ open: N_("open"), close: N_("close"), lock: N_("lock"), unlock: N_("unlock"), toggle: N_("toggle") }),
+  token: tmap({ off: N_("turn off"), on: N_("turn on"), friendly: N_("against enemies (friendly)"), hostile: N_("hostile") }),
+  message: tmap({ say: N_("send") })
 };
 
 const feature = (actor, re) => (actor?.items ?? []).some(i => i.type === "feature" && i.system?.active !== false && re.test(i.name));
@@ -63,15 +64,15 @@ export function terminalAccess(actor, term) {
   const st = term.state ?? {};
   const lockouts = Number(st.lockouts) || 0;
   let use = true, hack = true, login = true;
-  if (!term.powered) { use = false; why.push("terminal nie ma zasilania"); }
-  if (term.kind === "cloud" && actor && !actor.system?.flier) { use = false; why.push("terminal chmurowy — obsłużą go tylko latający"); }
-  if (lockouts >= 2) { use = false; why.push("terminal zablokowany na stałe"); }
+  if (!term.powered) { use = false; why.push(t("the terminal has no power")); }
+  if (term.kind === "cloud" && actor && !actor.system?.flier) { use = false; why.push(t("cloud terminal — only fliers can use it")); }
+  if (lockouts >= 2) { use = false; why.push(t("the terminal is locked for good")); }
   if (!use) return { use, hack: false, login: false, why };
   if (term.security === "none") { hack = false; }
-  if (isIlliterate(actor)) { hack = false; why.push("postać nie umie czytać (Illiterate)"); }
+  if (isIlliterate(actor)) { hack = false; why.push(t("the character can't read (Illiterate)")); }
   const rank = actor?.system?.skills?.science?.rank ?? 0;
-  if ((Number(term.scienceReq) || 0) > rank) { hack = false; why.push(`wymaga Science ${term.scienceReq} (postać: ${rank})`); }
-  if (lockouts === 1 && !hasComputerWhiz(actor)) { hack = false; why.push("terminal zablokowany po krytycznej porażce — tylko hasło (albo Computer Whiz)"); }
+  if ((Number(term.scienceReq) || 0) > rank) { hack = false; why.push(t("requires Science {req} (character: {rank})", { req: term.scienceReq, rank })); }
+  if (lockouts === 1 && !hasComputerWhiz(actor)) { hack = false; why.push(t("the terminal is locked after a critical failure — password only (or Computer Whiz)")); }
   return { use, hack, login, why };
 }
 
@@ -178,13 +179,13 @@ export function memoryDump(game, { rows = 24, width = 12 } = {}) {
  */
 export function analyzeOutcome(game, result) {
   const g = { ...game, analyzed: true };
-  if (result === "crit-success") return { game: { ...g, hints: (Number(g.hints) || 0) + 2, tries: 4 }, lines: ["> ANALIZA: +2 PODPOWIEDZI", "> PRÓBY PRZYWRÓCONE"], lockout: false };
-  if (result === "success") return { game: { ...g, hints: (Number(g.hints) || 0) + 1 }, lines: ["> ANALIZA: +1 PODPOWIEDŹ"], lockout: false };
+  if (result === "crit-success") return { game: { ...g, hints: (Number(g.hints) || 0) + 2, tries: 4 }, lines: [t("> ANALYSIS: +2 HINTS"), t("> ATTEMPTS RESTORED")], lockout: false };
+  if (result === "success") return { game: { ...g, hints: (Number(g.hints) || 0) + 1 }, lines: [t("> ANALYSIS: +1 HINT")], lockout: false };
   if (result === "crit-fail") {
     const tries = Math.max(0, (Number(g.tries) || 4) - 1);
-    return { game: { ...g, tries }, lines: ["> BŁĄD ANALIZY — UTRACONO PRÓBĘ"], lockout: tries <= 0 };
+    return { game: { ...g, tries }, lines: [t("> ANALYSIS ERROR — ATTEMPT LOST")], lockout: tries <= 0 };
   }
-  return { game: g, lines: ["> ANALIZA BEZ WYNIKU"], lockout: false };
+  return { game: g, lines: [t("> ANALYSIS INCONCLUSIVE")], lockout: false };
 }
 
 // ---------- zasięg obsługi ----------
@@ -214,10 +215,10 @@ export function remoteReach(actor, { powered = true } = {}) {
 }
 
 // ---------- uruchamianie (animacja ASCII) ----------
-const MAKERS = {
-  office: "MINISTERSTWO NAUK MAGICZNYCH", stabletec: "STABLE-TEC", military: "MINISTERSTWO TECHNOLOGII WOJENNEJ",
-  cloud: "ENKLAWA — SŁUŻBY CHMUROWE", unics: "UNICS LABS", portable: "STABLE-TEC"
-};
+const MAKERS = tmap({
+  office: N_("MINISTRY OF ARCANE SCIENCE"), stabletec: "STABLE-TEC", military: N_("MINISTRY OF WARTIME TECHNOLOGY"),   // en=pl
+  cloud: N_("ENCLAVE — CLOUD SERVICES"), unics: "UNICS LABS", portable: "STABLE-TEC"   // en=pl
+});
 
 /** Linie wypisywane przy uruchamianiu terminala (przed paskiem ładowania). */
 export function bootLines(kind = "office", brand = "") {
@@ -226,15 +227,15 @@ export function bootLines(kind = "office", brand = "") {
     head,
     `(C) ${MAKERS[kind] ?? MAKERS.office}`,
     "",
-    "> TEST PAMIĘCI ........... 64K OK",
-    "> MATRYCA ZAKLĘĆ ......... OK",
-    "> KRYSZTAŁY DANYCH ....... OK"
+    t("> MEMORY TEST ............ 64K OK"),
+    t("> SPELL MATRIX ........... OK"),
+    t("> DATA CRYSTALS .......... OK")
   ];
-  if (kind === "cloud") lines.push("> ŁĄCZE SKY-LINK ......... OK");
-  else if (kind === "military") lines.push("> SZYFROWANIE ............ AKTYWNE");
-  else if (kind === "portable") lines.push("> BATERIA ISKROWA ........ 37%");
-  else lines.push("> ŁĄCZE TERMLINK ......... OK");
-  lines.push("> ŁADOWANIE SYSTEMU");
+  if (kind === "cloud") lines.push(t("> SKY-LINK UPLINK ........ OK"));
+  else if (kind === "military") lines.push(t("> ENCRYPTION ............. ACTIVE"));
+  else if (kind === "portable") lines.push(t("> SPARK BATTERY .......... 37%"));
+  else lines.push(t("> TERMLINK UPLINK ........ OK"));
+  lines.push(t("> LOADING SYSTEM"));
   return lines;
 }
 
@@ -270,10 +271,10 @@ export function terminalDataClass() {
           noticeMfd: str("3/4")
         }),
         entries: new F.ArrayField(new F.SchemaField({
-          id: str(""), title: str("Nowy wpis"), body: str(""), access: str("user")
+          id: str(""), title: str("New entry"), body: str(""), access: str("user")
         })),
         commands: new F.ArrayField(new F.SchemaField({
-          id: str(""), label: str("Nowa komenda"), kind: str("door"), action: str("open"), access: str("user"),
+          id: str(""), label: str("New command"), kind: str("door"), action: str("open"), access: str("user"),
           targets: new F.ArrayField(new F.StringField()), text: str("")
         })),
         state: new F.SchemaField({

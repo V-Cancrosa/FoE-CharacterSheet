@@ -1,6 +1,20 @@
 # Fallout: Equestria RPG — system do Foundry VTT
 Nieoficjalny, fanowski. Zasady: Fallout: Equestria RPG System Core Rulebook v1.22.
 
+**English:** an unofficial fan system for Foundry VTT (v13/v14) based on the Fallout: Equestria RPG System Core Rulebook v1.22.
+The whole system is in English, with the rulebook's terms; a Polish translation can be switched on per player.
+Language: *Configure Settings → System Settings → “Language (Fallout: Equestria)”* — Same as Foundry / English / Polski
+(the page reloads after the change). Chat messages and created documents (items, actors, roll tables) stay in the language
+of whoever created them. The rest of this README is in Polish.
+
+## Język / Language
+System jest po angielsku, jak podręcznik; polskie tłumaczenie włącza każdy gracz u siebie:
+*Konfiguracja → Ustawienia systemu → „Language (Fallout: Equestria)”* — „Same as Foundry” (język z ustawień Foundry),
+„English” albo „Polski”. Po zmianie strona się odświeża. Nazwy z podręcznika (umiejętności, perki, cechy, broń, zaklęcia)
+zostają po angielsku w obu językach. Wiadomości na czacie i utworzone dokumenty (przedmioty, postacie, tabele) zostają
+w języku tego, kto je utworzył — np. tabele FoE zaimportowane po polsku zostaną po polsku, dopóki MG nie zaimportuje ich
+ponownie po angielsku. Tłumaczenie jest w pliku `lang/pl.mjs` (angielski tekst → polski).
+
 Co działa: S.P.E.C.I.A.L. z progami MFD, 17 umiejętności (baza = 2×ATR + Luck/2 + 2, min 5; tag +15; próg MFD 1 = ranga + ATR×5),
 rzut d100 pod próg z wyborem MFD (2 … 1/10) i modyfikatorem, krytyki 1–5 / 96–100, poziom osiągnięty do rzutów przeciwstawnych,
 przerzut za kartę szczęścia z czatu (+5% zakresu krytyków za każdy przerzut), SATS, karty szczęścia, strain, rady,

@@ -7,16 +7,21 @@
  * Stan stołu jest jawny (zapisany w aktorze), a tajemnice — but z kartami, zakryta karta krupiera, karty graczy w
  * pokerze — trzyma tylko przeglądarka MG (obiekt `secret`). Funkcje nie zmieniają argumentów: zwracają nowy stan.
  */
+import { t, isPL, N_, tmap } from "./i18n.mjs";
 
 export const RANKS = "23456789TJQKA";
 export const SUITS = ["S", "H", "D", "C"];
 export const SUIT_SYMBOL = { S: "♠", H: "♥", D: "♦", C: "♣" };
-export const SUIT_NAME = { S: "pik", H: "kier", D: "karo", C: "trefl" };
+export const SUIT_NAME = tmap({ S: N_("card|spades"), H: N_("card|hearts"), D: N_("card|diamonds"), C: N_("card|clubs") });
 export const QUEENS = { H: "Celestia", C: "Luna", D: "Cadance", S: "Nightmare Moon" };
-const RANK_SHORT = { T: "10", J: "W", Q: "D", K: "K", A: "A" };
-const RANK_NAME = { 2: "dwójka", 3: "trójka", 4: "czwórka", 5: "piątka", 6: "szóstka", 7: "siódemka", 8: "ósemka", 9: "dziewiątka", T: "dziesiątka", J: "walet", Q: "dama", K: "król", A: "as" };
-const RANK_PLURAL = { 2: "dwójki", 3: "trójki", 4: "czwórki", 5: "piątki", 6: "szóstki", 7: "siódemki", 8: "ósemki", 9: "dziewiątki", T: "dziesiątki", J: "walety", Q: "damy", K: "króle", A: "asy" };
-const RANK_LOCATIVE = { 2: "dwójkach", 3: "trójkach", 4: "czwórkach", 5: "piątkach", 6: "szóstkach", 7: "siódemkach", 8: "ósemkach", 9: "dziewiątkach", T: "dziesiątkach", J: "waletach", Q: "damach", K: "królach", A: "asach" };
+// figury: po angielsku J/Q/K, po polsku W(alet)/D(ama)/K(ról)
+const RANK_SHORT = { T: "10", J: "J", Q: "Q", K: "K", A: "A" };
+const RANK_SHORT_PL = { T: "10", J: "W", Q: "D", K: "K", A: "A" };
+const RANK_NAME = tmap({ 2: N_("card|two"), 3: N_("card|three"), 4: N_("card|four"), 5: N_("card|five"), 6: N_("card|six"), 7: N_("card|seven"), 8: N_("card|eight"), 9: N_("card|nine"), T: N_("card|ten"), J: N_("card|jack"), Q: N_("card|queen"), K: N_("card|king"), A: N_("card|ace") });
+const RANK_PLURAL_EN = { 2: "twos", 3: "threes", 4: "fours", 5: "fives", 6: "sixes", 7: "sevens", 8: "eights", 9: "nines", T: "tens", J: "jacks", Q: "queens", K: "kings", A: "aces" };
+// odmiana po polsku (mianownik l. mn. i miejscownik) — do nazw układów
+const RANK_PLURAL = { 2: "dwójki", 3: "trójki", 4: "czwórki", 5: "piątki", 6: "szóstki", 7: "siódemki", 8: "ósemki", 9: "dziewiątki", T: "dziesiątki", J: "walety", Q: "damy", K: "króle", A: "asy" };   // pl-ok
+const RANK_LOCATIVE = { 2: "dwójkach", 3: "trójkach", 4: "czwórkach", 5: "piątkach", 6: "szóstkach", 7: "siódemkach", 8: "ósemkach", 9: "dziewiątkach", T: "dziesiątkach", J: "waletach", Q: "damach", K: "królach", A: "asach" };   // pl-ok
 export const MAX_SEATS = 6;
 
 const clone = x => structuredClone(x);
@@ -25,10 +30,11 @@ const RCHAR = v => RANKS[v - 2];
 
 /** Opis karty do wyświetlenia: { code, rank, suit, red, title }. „??” — karta zakryta. */
 export function cardInfo(code) {
-  if (!code || code === "??") return { code: "??", rank: "", suit: "", red: false, hidden: true, queen: "", title: "karta zakryta" };
+  if (!code || code === "??") return { code: "??", rank: "", suit: "", red: false, hidden: true, queen: "", title: t("face-down card") };
   const r = code[0], s = code[1];
   const queen = r === "Q" ? ` — ${QUEENS[s]}` : "";
-  return { code, rank: RANK_SHORT[r] ?? r, suit: SUIT_SYMBOL[s], red: s === "H" || s === "D", hidden: false, queen: r === "Q" ? QUEENS[s] : "", title: `${RANK_NAME[r]} ${SUIT_NAME[s]}${queen}` };
+  const short = (isPL() ? RANK_SHORT_PL : RANK_SHORT)[r] ?? r;
+  return { code, rank: short, suit: SUIT_SYMBOL[s], red: s === "H" || s === "D", hidden: false, queen: r === "Q" ? QUEENS[s] : "", title: `${t("{rank} of {suit}", { rank: RANK_NAME[r], suit: SUIT_NAME[s] })}${queen}` };
 }
 
 export function newDeck(decks = 1) {
@@ -147,9 +153,9 @@ function bjFinish(state, secret, log, { dealerBJ = false } = {}) {
     paid += sum;
     if (sum) payouts.push({ seatId: s.id, actor: s.actor, amount: sum });
   }
-  log.push(dealerBJ ? "> KRUPIER: BLACKJACK" : `> KRUPIER: ${d.total > 21 ? `FURA (${d.total})` : d.total}`);
+  log.push(dealerBJ ? t("> DEALER: BLACKJACK") : d.total > 21 ? t("> DEALER: BUST ({n})", { n: d.total }) : t("> DEALER: {n}", { n: d.total }));
   for (const s of state.seats.filter(x => x.inRound)) {
-    const words = s.hands.map(h => ({ bj: "BLACKJACK", win: "wygrana", push: "remis", lose: "przegrana", bust: "fura" }[h.result]));
+    const words = s.hands.map(h => ({ bj: "BLACKJACK", win: t("win"), push: t("push"), lose: t("loss"), bust: t("bust") }[h.result]));
     const net = s.hands.reduce((t, h) => t + h.payout - h.bet, 0);
     log.push(`> ${s.name}: ${words.join(" / ")} (${net >= 0 ? "+" : ""}${net})`);
   }
@@ -166,14 +172,14 @@ function bjFinish(state, secret, log, { dealerBJ = false } = {}) {
 export function bjDeal(state0, secret0, { decks = 2, rand = Math.random, paid = {} } = {}) {
   const state = clone(state0), secret = { shoe: [...(secret0?.shoe ?? [])], hole: null };
   const log = [];
-  if (state.phase !== "betting") return { ok: false, why: "rozdanie już trwa" };
+  if (state.phase !== "betting") return { ok: false, why: t("a round is already in progress") };
   const players = state.seats.filter(s => (paid[s.id] ?? 0) > 0);
-  if (!players.length) return { ok: false, why: "nikt nie postawił" };
+  if (!players.length) return { ok: false, why: t("nobody has placed a bet") };
   const size = Math.max(1, decks) * 52;
   if (secret.shoe.length < Math.max(15, Math.floor(size * 0.25))) {
     secret.shoe = shuffle(newDeck(decks), rand);
     state.shoeSize = size;
-    log.push("> NOWY BUT — TASOWANIE");
+    log.push(t("> NEW SHOE — SHUFFLING"));
   }
   const draw = () => secret.shoe.shift();
   for (const s of state.seats) { s.hands = []; s.inRound = false; }
@@ -185,7 +191,7 @@ export function bjDeal(state0, secret0, { decks = 2, rand = Math.random, paid = 
   }
   state.round += 1;
   state.phase = "playing";
-  log.push(`> ROZDANIE ${state.round}: ${players.map(s => `${s.name} (${s.hands[0].bet})`).join(", ")}`);
+  log.push(t("> ROUND {n}: {players}", { n: state.round, players: players.map(s => `${s.name} (${s.hands[0].bet})`).join(", ") }));
   for (const s of players) if (bjNatural(s.hands[0])) { s.hands[0].done = true; log.push(`> ${s.name}: BLACKJACK!`); }
   // krupier zagląda pod kartę przy asie albo dziesiątce
   const up = state.dealer.cards[0];
@@ -211,7 +217,7 @@ export function bjDeal(state0, secret0, { decks = 2, rand = Math.random, paid = 
 export function bjAct(state0, secret0, seatId, action) {
   const state = clone(state0), secret = { shoe: [...(secret0?.shoe ?? [])], hole: secret0?.hole ?? null };
   const legal = bjLegal(state, seatId);
-  if (!legal[action]) return { ok: false, why: "to nie Twój ruch albo ruch niedozwolony" };
+  if (!legal[action]) return { ok: false, why: t("it's not your turn or the move isn't allowed") };
   const log = [];
   const seat = state.seats[state.turn.seat];
   const hand = seat.hands[state.turn.hand];
@@ -221,16 +227,16 @@ export function bjAct(state0, secret0, seatId, action) {
   if (action === "hit") {
     hand.cards.push(draw());
     const v = closeIf21(hand);
-    log.push(`> ${seat.name}: dobiera — ${v > 21 ? `FURA (${v})` : v}`);
+    log.push(t("> {name}: hits — {v}", { name: seat.name, v: v > 21 ? t("BUST ({n})", { n: v }) : v }));
   } else if (action === "stand") {
     hand.done = true;
-    log.push(`> ${seat.name}: stoi na ${bjValue(hand.cards).total}`);
+    log.push(t("> {name}: stands on {n}", { name: seat.name, n: bjValue(hand.cards).total }));
   } else if (action === "double") {
     charge = hand.bet;
     hand.bet *= 2; hand.doubled = true;
     hand.cards.push(draw());
     hand.done = true;
-    log.push(`> ${seat.name}: podwaja — ${bjValue(hand.cards).total}`);
+    log.push(t("> {name}: doubles — {n}", { name: seat.name, n: bjValue(hand.cards).total }));
   } else if (action === "split") {
     charge = hand.bet;
     const [a, b] = hand.cards;
@@ -239,7 +245,7 @@ export function bjAct(state0, secret0, seatId, action) {
     const h2 = { ...newHand(hand.bet, [b, draw()]), split: true, splitAces: aces };
     seat.hands = [h1, h2];
     for (const h of seat.hands) { if (aces) h.done = true; else closeIf21(h); }
-    log.push(`> ${seat.name}: rozdziela${aces ? " asy (po jednej karcie)" : ""}`);
+    log.push(aces ? t("> {name}: splits aces (one card each)", { name: seat.name }) : t("> {name}: splits", { name: seat.name }));
   }
   state.turn = bjFindTurn(state);
   if (!state.turn) {
@@ -255,10 +261,10 @@ export function bjAct(state0, secret0, seatId, action) {
 export function bjStandOut(state0, secret0, seatId) {
   const state = clone(state0), secret = { shoe: [...(secret0?.shoe ?? [])], hole: secret0?.hole ?? null };
   const seat = state.seats.find(s => s.id === seatId);
-  if (!seat) return { ok: false, why: "nie ma takiego miejsca" };
+  if (!seat) return { ok: false, why: t("no such seat") };
   if (state.phase !== "playing" || !seat.inRound || seat.hands.every(h => h.done)) return { ok: true, state, secret, log: [] };
   for (const h of seat.hands) h.done = true;
-  const log = [`> ${seat.name}: stoi`];
+  const log = [t("> {name}: stands", { name: seat.name })];
   state.turn = bjFindTurn(state);
   if (!state.turn) {
     const fin = bjFinish(state, secret, log);
@@ -271,8 +277,6 @@ export function bjStandOut(state0, secret0, seatId) {
 // ======================================================================
 // Texas Hold'em
 // ======================================================================
-
-export const HAND_NAMES = ["Wysoka karta", "Para", "Dwie pary", "Trójka", "Strit", "Kolor", "Full", "Kareta", "Poker"];
 
 /** Ocena 5 kart: [kategoria, …rozstrzygające] (większe lepsze). */
 export function evaluate5(cards) {
@@ -322,20 +326,38 @@ export function evaluateBest(cards) {
   return best ? { ...best, name: handName(best.score) } : null;
 }
 
-/** Nazwa układu po polsku, np. „Dwie pary: króle i siódemki”, „Full: asy na dziesiątkach”. */
+/**
+ * Nazwa układu w języku gracza: „Two pair, kings and sevens”, „Full house, aces over tens” —
+ * po polsku „Dwie pary: króle i siódemki”, „Full: asy na dziesiątkach”.
+ */
 export function handName(score) {
   const [cat, a, b] = score;
-  const P = v => RANK_PLURAL[RCHAR(v)], LOC = v => RANK_LOCATIVE[RCHAR(v)], S = v => RANK_SHORT[RCHAR(v)] ?? RCHAR(v);
+  if (!isPL()) {
+    const P = v => RANK_PLURAL_EN[RCHAR(v)], N = v => RANK_NAME[RCHAR(v)];
+    switch (cat) {
+      case 8: return a === 14 ? "Royal flush" : `Straight flush, ${N(a)} high`;
+      case 7: return `Four of a kind, ${P(a)}`;
+      case 6: return `Full house, ${P(a)} over ${P(b)}`;
+      case 5: return `Flush, ${N(a)} high`;
+      case 4: return `Straight, ${N(a)} high`;
+      case 3: return `Three of a kind, ${P(a)}`;
+      case 2: return `Two pair, ${P(a)} and ${P(b)}`;
+      case 1: return `Pair of ${P(a)}`;
+      default: return `High card, ${N(a)}`;
+    }
+  }
+  const P = v => RANK_PLURAL[RCHAR(v)], LOC = v => RANK_LOCATIVE[RCHAR(v)], S = v => RANK_SHORT_PL[RCHAR(v)] ?? RCHAR(v);
+  // pl-ok — nazwy układów po polsku
   switch (cat) {
-    case 8: return a === 14 ? "Poker królewski" : `Poker do ${S(a)}`;
-    case 7: return `Kareta: ${P(a)}`;
-    case 6: return `Full: ${P(a)} na ${LOC(b)}`;
-    case 5: return `Kolor do ${S(a)}`;
-    case 4: return `Strit do ${S(a)}`;
-    case 3: return `Trójka: ${P(a)}`;
-    case 2: return `Dwie pary: ${P(a)} i ${P(b)}`;
-    case 1: return `Para: ${P(a)}`;
-    default: return `Wysoka karta: ${S(a)}`;
+    case 8: return a === 14 ? "Poker królewski" : `Poker do ${S(a)}`;   // pl-ok
+    case 7: return `Kareta: ${P(a)}`;   // pl-ok
+    case 6: return `Full: ${P(a)} na ${LOC(b)}`;   // pl-ok
+    case 5: return `Kolor do ${S(a)}`;   // pl-ok
+    case 4: return `Strit do ${S(a)}`;   // pl-ok
+    case 3: return `Trójka: ${P(a)}`;   // pl-ok
+    case 2: return `Dwie pary: ${P(a)} i ${P(b)}`;   // pl-ok
+    case 1: return `Para: ${P(a)}`;   // pl-ok
+    default: return `Wysoka karta: ${S(a)}`;   // pl-ok
   }
 }
 
@@ -422,9 +444,9 @@ export function heLegal(st, seatId) {
  */
 export function heStart(st0, { sb = 5, bb = 10, rake = 0, rand = Math.random } = {}) {
   const st = clone(st0);
-  if (st.phase !== "waiting") return { ok: false, why: "rozdanie trwa" };
+  if (st.phase !== "waiting") return { ok: false, why: t("a hand is in progress") };
   const ids = st.seats.filter(s => s.stack > 0 && !s.leaving).map(s => s.id);
-  if (ids.length < 2) return { ok: false, why: "potrzeba co najmniej dwóch graczy z kapslami na stole" };
+  if (ids.length < 2) return { ok: false, why: t("at least two players with caps on the table are needed") };
   const log = [];
   for (const s of st.seats) Object.assign(s, { bet: 0, contributed: 0, folded: false, allIn: false, acted: false, mayRaise: true, inHand: ids.includes(s.id), hole: null, lastAction: "", best: "" });
   st.board = []; st.pot = 0; st.sb = sb; st.bb = bb; st.last = null;
@@ -433,8 +455,8 @@ export function heStart(st0, { sb = 5, bb = 10, rake = 0, rand = Math.random } =
   const heads = ids.length === 2;
   const sbIdx = heads ? st.button : nextIdx(st, st.button, s => s.inHand);
   const bbIdx = nextIdx(st, sbIdx, s => s.inHand);
-  pay(st.seats[sbIdx], sb); st.seats[sbIdx].lastAction = `mała ciemna ${st.seats[sbIdx].bet}`;
-  pay(st.seats[bbIdx], bb); st.seats[bbIdx].lastAction = `duża ciemna ${st.seats[bbIdx].bet}`;
+  pay(st.seats[sbIdx], sb); st.seats[sbIdx].lastAction = t("small blind {n}", { n: st.seats[sbIdx].bet });
+  pay(st.seats[bbIdx], bb); st.seats[bbIdx].lastAction = t("big blind {n}", { n: st.seats[bbIdx].bet });
   st.toCall = bb; st.minRaise = bb;
   const deck = shuffle(newDeck(1), rand);
   const holes = {};
@@ -444,7 +466,7 @@ export function heStart(st0, { sb = 5, bb = 10, rake = 0, rand = Math.random } =
   }
   st.hand += 1;
   st.phase = "preflop";
-  log.push(`> ROZDANIE ${st.hand}: rozdaje ${st.seats[st.button].name}; ciemne ${sb}/${bb}`);
+  log.push(t("> HAND {n}: {name} deals; blinds {sb}/{bb}", { n: st.hand, name: st.seats[st.button].name, sb, bb }));
   const secret = { deck, holes };
   // pierwszy ruch: pierwszy po dużej ciemnej (heads-up to rozdający z małą ciemną); duża ciemna ma głos na końcu
   st.turn = bbIdx;
@@ -458,23 +480,23 @@ export function heAct(st0, secret0, seatId, action, amount = 0) {
   const secret = { deck: [...(secret0?.deck ?? [])], holes: { ...(secret0?.holes ?? {}) } };
   const legal = heLegal(st, seatId);
   const seat = st.seats[st.turn ?? -1];
-  if (!seat || seat.id !== seatId) return { ok: false, why: "to nie Twój ruch" };
+  if (!seat || seat.id !== seatId) return { ok: false, why: t("it's not your turn") };
   const log = [];
-  if (action === "fold") { seat.folded = true; seat.lastAction = "pas"; }
-  else if (action === "check") { if (!legal.check) return { ok: false, why: "nie można czekać — trzeba sprawdzić albo spasować" }; seat.lastAction = "czeka"; }
+  if (action === "fold") { seat.folded = true; seat.lastAction = t("folds"); }
+  else if (action === "check") { if (!legal.check) return { ok: false, why: t("you can't check — call or fold") }; seat.lastAction = t("checks"); }
   else if (action === "call") {
-    if (!legal.call) return { ok: false, why: "nie ma czego sprawdzać" };
+    if (!legal.call) return { ok: false, why: t("there is nothing to call") };
     const p = pay(seat, legal.callAmount);
-    seat.lastAction = seat.allIn ? `va banque ${p}` : `sprawdza ${p}`;
+    seat.lastAction = seat.allIn ? t("all-in {n}", { n: p }) : t("calls {n}", { n: p });
   } else if (action === "raise" || action === "allin") {
-    if (!legal[action === "allin" ? "allIn" : "raise"]) return { ok: false, why: action === "allin" ? "va banque niedozwolone" : "nie można podbić" };
+    if (!legal[action === "allin" ? "allIn" : "raise"]) return { ok: false, why: action === "allin" ? t("all-in is not allowed") : t("you can't raise") };
     let to = action === "allin" ? seat.bet + seat.stack : Math.floor(Number(amount) || 0);
     to = Math.min(to, seat.bet + seat.stack);
-    if (action === "raise" && to < legal.minRaiseTo) return { ok: false, why: `podbicie co najmniej do ${legal.minRaiseTo}` };
+    if (action === "raise" && to < legal.minRaiseTo) return { ok: false, why: t("raise at least to {n}", { n: legal.minRaiseTo }) };
     if (to <= st.toCall || !legal.raise) {
       // va banque za nie więcej niż do sprawdzenia — to sprawdzenie za wszystko
       const p = pay(seat, Math.min(to - seat.bet, legal.callAmount));
-      seat.lastAction = `va banque ${p}`;
+      seat.lastAction = t("all-in {n}", { n: p });
     } else {
       const prevTo = st.toCall;
       pay(seat, to - seat.bet);
@@ -486,9 +508,9 @@ export function heAct(st0, secret0, seatId, action, amount = 0) {
       for (const o of st.seats) if (o !== seat && canAct(o)) {
         if (full) { o.acted = false; o.mayRaise = true; } else if (o.bet < to) o.acted = false;
       }
-      seat.lastAction = seat.allIn ? `va banque do ${to}` : `podbija do ${to}`;
+      seat.lastAction = seat.allIn ? t("all-in to {n}", { n: to }) : t("raises to {n}", { n: to });
     }
-  } else return { ok: false, why: "nieznana akcja" };
+  } else return { ok: false, why: t("unknown action") };
   seat.acted = true;
   seat.mayRaise = false;
   log.push(`> ${seat.name}: ${seat.lastAction}`);
@@ -500,11 +522,11 @@ export function heFoldOut(st0, secret0, seatId) {
   const st = clone(st0);
   const secret = { deck: [...(secret0?.deck ?? [])], holes: { ...(secret0?.holes ?? {}) } };
   const seat = st.seats.find(s => s.id === seatId);
-  if (!seat) return { ok: false, why: "nie ma takiego miejsca" };
+  if (!seat) return { ok: false, why: t("no such seat") };
   if (!HE_PLAYING.includes(st.phase) || !canAct(seat)) return { ok: true, state: st, secret, log: [] };
   const wasTurn = st.seats[st.turn] === seat;
-  seat.folded = true; seat.acted = true; seat.lastAction = "pas";
-  return { ok: true, ...heResolve(st, secret, [`> ${seat.name}: pas`], { keep: !wasTurn }) };
+  seat.folded = true; seat.acted = true; seat.lastAction = t("folds");
+  return { ok: true, ...heResolve(st, secret, [t("> {name}: folds", { name: seat.name })], { keep: !wasTurn }) };
 }
 
 /** Po ruchu: wygrana przez pasy, następny gracz, koniec rundy licytacji, kolejna ulica albo pokazanie kart. */
@@ -530,13 +552,13 @@ function heResolve(st, secret, log, { keep = false } = {}) {
   const runOut = live(st).filter(s => !s.allIn).length <= 1;
   if (runOut) {
     while (st.phase !== "river") { const [ph, n] = { preflop: ["flop", 3], flop: ["turn", 1], turn: ["river", 1] }[st.phase]; deal(n); st.phase = ph; }
-    log.push(`> STÓŁ: ${st.board.map(c => cardInfo(c).rank + cardInfo(c).suit).join(" ")}`);
+    log.push(t("> BOARD: {cards}", { cards: st.board.map(c => cardInfo(c).rank + cardInfo(c).suit).join(" ") }));
     return heShowdown(st, secret, log);
   }
   deal(next[1]);
   st.phase = next[0];
   log.push(`> ${{ flop: "FLOP", turn: "TURN", river: "RIVER" }[st.phase]}: ${st.board.map(c => cardInfo(c).rank + cardInfo(c).suit).join(" ")}`);
-  for (const s of st.seats) if (s.inHand && !s.folded) s.lastAction = s.allIn ? "va banque" : "";
+  for (const s of st.seats) if (s.inHand && !s.folded) s.lastAction = s.allIn ? t("all-in") : "";
   st.turn = nextIdx(st, st.button, canAct);
   return { state: st, secret, log };
 }
@@ -558,7 +580,7 @@ function heWinByFold(st, secret, log, winner) {
   winner.stack += amount;
   st.pot = 0;
   st.last = { winners: [{ id: winner.id, name: winner.name, amount, hand: "" }], shown: [], house };
-  log.push(`> ${winner.name} zgarnia ${amount} (reszta spasowała)${house ? ` · prowizja kasyna ${house}` : ""}`);
+  log.push(`${t("> {name} takes {n} (everyone else folded)", { name: winner.name, n: amount })}${house ? ` · ${t("house rake {n}", { n: house })}` : ""}`);
   heEnd(st);
   return { state: st, secret, log, done: true, house };
 }
@@ -614,9 +636,9 @@ export function heShowdown(st, secret, log = []) {
     house
   };
   for (const s of L) log.push(`> ${s.name}: ${(s.hole ?? []).map(c => cardInfo(c).rank + cardInfo(c).suit).join(" ")} — ${s.best}`);
-  for (const w of st.last.winners) log.push(`> ${w.name} zgarnia ${w.amount}${w.hand ? ` (${w.hand})` : ""}`);
-  for (const b of st.last.returned) log.push(`> ${b.name}: zwrot niesprawdzonej nadwyżki ${b.amount}`);
-  if (house) log.push(`> prowizja kasyna: ${house}`);
+  for (const w of st.last.winners) log.push(`${t("> {name} takes {n}", { name: w.name, n: w.amount })}${w.hand ? ` (${w.hand})` : ""}`);
+  for (const b of st.last.returned) log.push(t("> {name}: uncalled bet returned {n}", { name: b.name, n: b.amount }));
+  if (house) log.push(t("> house rake: {n}", { n: house }));
   heEnd(st);
   return { state: st, secret, log, done: true, house };
 }

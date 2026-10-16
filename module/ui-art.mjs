@@ -3,6 +3,7 @@
  * na wyświetlaczu siedmiosegmentowym — nie zależy od czcionek) i linie ekranu powitalnego.
  * Wszystko rysowane od zera; żadnych logo z gier ani z Foundry.
  */
+import { t } from "./i18n.mjs";
 
 /** Segmenty cyfr: a (góra), b (prawa górna), c (prawa dolna), d (dół), e (lewa dolna), f (lewa górna), g (środek). */
 const SEGMENTS = { 0: "abcdef", 1: "bc", 2: "abged", 3: "abgcd", 4: "fgbc", 5: "afgcd", 6: "afgedc", 7: "abc", 8: "abcdefg", 9: "abfgcd" };
@@ -75,11 +76,12 @@ export const stableDoorUrl = (num, color) => `data:image/svg+xml;charset=utf-8,$
  */
 export function welcomeLines({ user = "", actor = "", gm = false, stable = "97", caps = null, sats = null, rads = null } = {}) {
   const n = stableDigits(stable);
-  if (gm) return [`STABLE-TEC // TERMINAL NADZORCY — STAJNIA ${n}`, `> NADZORCA: ${String(user).toUpperCase()}`, "> SYSTEMY STAJNI ........ OK", "> MIESZKAŃCY ............ POD OBSERWACJĄ", "> WITAJ, NADZORCO."];
-  const lines = [`STABLE-TEC PIPBUCK 3000 — STAJNIA ${n}`, `> UŻYTKOWNIK: ${String(user).toUpperCase()}`];
-  if (actor) lines.push(`> NOSICIEL: ${String(actor).toUpperCase()}`);
-  const stat = [caps !== null ? `KAPSLE ${caps}` : "", sats ? `SATS ${sats}` : "", rads !== null ? `PROM. ${rads} RAD` : ""].filter(Boolean).join(" · ");
+  const up = s => String(s).toUpperCase();
+  if (gm) return [t("STABLE-TEC // OVERMARE TERMINAL — STABLE {n}", { n }), t("> OVERMARE: {name}", { name: up(user) }), t("> STABLE SYSTEMS ........ OK"), t("> RESIDENTS ............. UNDER OBSERVATION"), t("> WELCOME, OVERMARE.")];
+  const lines = [t("STABLE-TEC PIPBUCK 3000 — STABLE {n}", { n }), t("> USER: {name}", { name: up(user) })];
+  if (actor) lines.push(t("> WEARER: {name}", { name: up(actor) }));
+  const stat = [caps !== null ? t("CAPS {n}", { n: caps }) : "", sats ? `SATS ${sats}` : "", rads !== null ? t("RADS {n}", { n: rads }) : ""].filter(Boolean).join(" · ");
   if (stat) lines.push(`> ${stat}`);
-  lines.push("> WITAJ PONOWNIE.");
+  lines.push(t("> WELCOME BACK."));
   return lines;
 }
