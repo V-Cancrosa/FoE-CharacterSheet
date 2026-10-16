@@ -50,7 +50,7 @@
       <legend>{{t "Casino bank"}}</legend>
       <label class="atk-row cbx-row"><span>{{t "Unlimited bank"}}</span> <input type="checkbox" name="system.bankUnlimited" {{#if sys.bankUnlimited}}checked{{/if}}></label>
       {{#unless sys.bankUnlimited}}<label class="atk-row" title="{{t "The house's caps at this table. When it can't cover the possible winnings, the dealer won't accept the bet — the bank can be broken"}}">{{t "Table bank"}} <input type="number" name="system.bank" value="{{sys.bank}}" step="1"></label>{{/unless}}
-      <div class="atk-row"><span>{{t "House balance"}}</span> <span><b>{{sys.profit}}</b> {{tn sys.profit "cap" "caps"}} <a data-action="resetProfit" title="{{t "Reset the balance"}}"><i class="fa-solid fa-rotate-left"></i></a></span></div>
+      <div class="atk-row"><span>{{t "House balance"}}</span> <span><b>{{sys.profit}}</b> {{tp sys.profit "cap" "caps"}} <a data-action="resetProfit" title="{{t "Reset the balance"}}"><i class="fa-solid fa-rotate-left"></i></a></span></div>
     </fieldset>
   </div>
 {{else}}

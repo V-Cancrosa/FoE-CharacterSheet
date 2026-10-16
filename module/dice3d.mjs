@@ -92,7 +92,7 @@ export function registerDice3d() {
       try { await dice3d.addColorset(c); } catch (err) { console.warn(`${F} | dice colorset ${c.name}`, err); }
     }
     // nazwy wyników w języku gracza — Dice So Nice od 6.4.0 (starsze pokazują same identyfikatory)
-    const named = !foundry.utils.isNewerVersion("6.4.0", game.modules?.get?.("dice-so-nice")?.version ?? "0");
+    const named = !(globalThis.foundry?.utils?.isNewerVersion?.("6.4.0", game.modules?.get?.("dice-so-nice")?.version ?? "0") ?? true);
     const results = ["success", "fail"].map(k => (named ? { id: SFX[k], name: t(SFX_NAMES[k]) } : SFX[k]));
     try { dice3d.addSFXTrigger?.(SFX_ID, "Fallout: Equestria", results); } catch (err) { console.warn(`${F} | dice effects`, err); }
   });

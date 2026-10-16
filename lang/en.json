@@ -1,18 +1,18 @@
 {
   "TYPES": {
     "Actor": {
-      "character": "Postać",
+      "character": "Character",
       "npc": "NPC",
       "vehicle": "Vehicle",
       "terminal": "Terminal",
       "casino": "Gaming table"
     },
     "Item": {
-      "weapon": "Broń",
-      "armor": "Pancerz",
-      "gear": "Przedmiot",
-      "feature": "Cecha",
-      "spell": "Zaklęcie"
+      "weapon": "Weapon",
+      "armor": "Armor",
+      "gear": "Item",
+      "feature": "Feature",
+      "spell": "Spell"
     }
   }
 }

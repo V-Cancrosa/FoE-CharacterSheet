@@ -170,7 +170,7 @@ for (const file of walk(path.join(ROOT, "templates")).filter(f => f.endsWith(".h
   const rel = path.relative(ROOT, file);
   const lineOf = idx => src.slice(0, idx).split("\n").length;
   for (const m of src.matchAll(/\{\{\{?\s*t\s+("(?:[^"\\]|\\.)*")/g)) need(JSON.parse(m[1]), `${rel}:${lineOf(m.index)}`);
-  for (const m of src.matchAll(/\{\{\{?\s*tn\s+\S+\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")/g)) need(`${JSON.parse(m[1])}|${JSON.parse(m[2])}`, `${rel}:${lineOf(m.index)}`);
+  for (const m of src.matchAll(/\{\{\{?\s*tp\s+\S+\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")/g)) need(`${JSON.parse(m[1])}|${JSON.parse(m[2])}`, `${rel}:${lineOf(m.index)}`);
   // polskie napisy poza {{…}}
   const bare = src.replace(/\{\{!--[\s\S]*?--\}\}/g, m => m.replace(/[^\n]/g, " ")).replace(/\{\{[\s\S]*?\}\}/g, m => m.replace(/[^\n]/g, " "));
   bare.split("\n").forEach((l, k) => { if ((PLCH.test(l) || polish(l.replace(/<[^>]*>/g, " ").replace(/[a-z-]+="[^"]*"/g, ""))) && !/pl-ok/.test(src.split("\n")[k])) leftovers.push(`${rel}:${k + 1}: ${l.trim().slice(0, 90)}`); });

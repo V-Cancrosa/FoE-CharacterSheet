@@ -153,10 +153,11 @@ export function localizeRegistrations() {
   }
 }
 
-/** Pomocniki szablonów: {{t "Attack"}}, {{t "{n} caps" n=caps}}, {{tn caps "{n} cap" "{n} caps"}}. */
+/** Pomocniki szablonów: {{t "Attack"}}, {{t "{n} caps" n=caps}}, {{tp caps "{n} cap" "{n} caps"}}. */
 export function registerI18nHelpers() {
   const H = globalThis.Handlebars;
   if (!H) return;
   H.registerHelper("t", (text, options) => t(text, options?.hash));
-  H.registerHelper("tn", (n, one, many, options) => tn(n, one, many, options?.hash));
+  // „tn” zajęte przez pole szablonów (próg testu), więc liczba mnoga to {{tp …}}
+  H.registerHelper("tp", (n, one, many, options) => tn(n, one, many, options?.hash));
 }
