@@ -3354,5 +3354,8 @@ export default {
   "Which game?": "Jaka gra?",
   "You can change the game later on the table's sheet, while nobody sits at it.": "Grę zmienisz później na karcie stołu, gdy nikt przy nim nie siedzi.",
   "Texas Hold'em table": "Stół do Texas Hold'em",
-  "Blackjack table": "Stół do blackjacka"
+  "Blackjack table": "Stół do blackjacka",
+  // ---- module/catalog.mjs
+  "Fallout: Equestria was updated{to}, but this world is still running version {old}. Return to Setup (Settings tab → “Return to Setup”) and launch the world again — until then new features (e.g. the gaming table) won't work.": "Fallout: Equestria zaktualizowano{to}, ale ten świat działa jeszcze na wersji {old}. Wróć do ekranu konfiguracji (zakładka Ustawienia → „Wróć do konfiguracji” / „Return to Setup”) i uruchom świat ponownie — do tego czasu nowe funkcje (np. stół do gry) nie zadziałają.",
+  "to {v}": "do wersji {v}"
 };

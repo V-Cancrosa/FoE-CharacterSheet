@@ -7,6 +7,12 @@ Language: *Configure Settings → System Settings → “Language (Fallout: Eque
 (the page reloads after the change). Chat messages and created documents (items, actors, roll tables) stay in the language
 of whoever created them. The rest of this README is in Polish.
 
+## Aktualizacja systemu
+Po aktualizacji systemu (Foundry, The Forge) **uruchom świat ponownie**: zakładka Ustawienia → „Wróć do konfiguracji”
+(„Return to Setup”), potem znów uruchom świat. Samo odświeżenie strony nie wystarczy — serwer trzyma opis systemu z chwili
+startu świata, więc nowe typy aktorów (np. „Stół do gry”) i nowe style nie działają, a przy tworzeniu takiego aktora pojawia
+się błąd „… is not a valid type”. Od wersji 0.35.2 MG dostaje wtedy przy wejściu do gry komunikat z tą instrukcją.
+
 ## Język / Language
 System jest po angielsku, jak podręcznik; polskie tłumaczenie włącza każdy gracz u siebie:
 *Konfiguracja → Ustawienia systemu → „Language (Fallout: Equestria)”* — „Same as Foundry” (język z ustawień Foundry),

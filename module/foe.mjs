@@ -29,6 +29,7 @@ import { casinoDataClass } from "./casino-data.mjs";
 import { FoeCasinoSheet } from "./casino-sheet.mjs";
 import { registerCasinoSettings, registerCasinoHooks } from "./casino.mjs";
 import { registerLanguageSetting, registerI18nHelpers, localizeRegistrations } from "./i18n.mjs";
+import { registerVersionCheck } from "./version-check.mjs";
 
 Hooks.once("init", () => {
   // język systemu (opcja gracza) — najpierw, bo z niego korzystają wszystkie napisy
@@ -90,6 +91,7 @@ Hooks.once("init", () => {
   registerUiHooks();
   registerCasinoSettings();
   registerCasinoHooks();
+  registerVersionCheck();
   game.foe = { openCatalog, setWeather };
 });
 
