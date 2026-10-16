@@ -135,7 +135,7 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
       // a umiejętnościom dają ±5 za punkt — ale nie zmieniają rang (s. 17)
       const layerPen = pen[k] ?? 0;
       att.temp = sum("tempAttr", e => hits(e.target, k)) - layerPen;
-      att.tempSources = [...src("tempAttr", e => hits(e.target, k)), ...(layerPen ? [`Warstwy pancerza (${layers.length}) −${layerPen}`] : [])];
+      att.tempSources = [...src("tempAttr", e => hits(e.target, k)), ...(layerPen ? [t("Armor layers ({n}) −{p}", { n: layers.length, p: layerPen })] : [])];
       att.base = Math.max(0, att.value + att.mod + att.fx);
       att.total = Math.max(0, att.base + att.temp);
       att.tn = att.total * 10;

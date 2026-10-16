@@ -222,7 +222,7 @@ export function loadBestiary() {
 export async function importCreature(e, deps) {
   if (!game.user.can("ACTOR_CREATE")) return ui.notifications.warn(t("Only the GM (or a player allowed to create actors) can add creatures from the bestiary."));
   const { actor, items } = buildNpc(e, deps);
-  let folder = game.folders?.find(f => f.type === "Actor" && (f.getFlag?.(F, "bestiary") || ["Bestiariusz FoE", "FoE Bestiary"].includes(f.name)));
+  let folder = game.folders?.find(f => f.type === "Actor" && (f.getFlag?.(F, "bestiary") || ["Bestiariusz FoE", "FoE Bestiary"].includes(f.name))); // pl-ok: dawna nazwa folderu
   if (!folder && game.user.isGM) folder = await Folder.create({ name: t("FoE Bestiary"), type: "Actor", color: "#1f6b3f", flags: { [F]: { bestiary: true } } });
   actor.folder = folder?.id ?? null;
   const created = await Actor.implementation.create(actor);

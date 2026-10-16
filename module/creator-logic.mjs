@@ -1,6 +1,7 @@
 import { ATTRS, SKILLS } from "./data.mjs";
 import { CREATION, RACES, HINDRANCES, TRAITS, EARTH_PERKS, NPC_ARCHETYPES } from "./creation-data.mjs";
 import { hits, CREATION_ONLY } from "./effects.mjs";
+import { t, tn } from "./i18n.mjs";
 
 const ATTR_KEYS = Object.keys(ATTRS);
 const RACIAL_SKILLS = Object.entries(SKILLS).filter(([, s]) => s.racial).map(([k]) => k);
@@ -67,7 +68,7 @@ export function resolveFeature(kind, key, def, raw = {}, { chosenCost, auto = fa
 }
 
 /** Sumuje efekty danego typu trafiające w klucz (do podglądu w kreatorze). */
-const fxSum = (list, type, key = "all") => list.filter(e => e.type === type && !e.when && hits(e.target, key)).reduce((t, e) => t + num(e.value), 0);
+const fxSum = (list, type, key = "all") => list.filter(e => e.type === type && !e.when && hits(e.target, key)).reduce((sum, e) => sum + num(e.value), 0);
 
 /**
  * Przelicza cały stan kreatora: budżet punktów, atrybuty, umiejętności, błędy.
@@ -91,30 +92,30 @@ export function computePc(state, pool = CREATION.pool) {
   let hindPts = pointGiving;
   if (race.hindrancePoints === "half") hindPts = Math.floor(pointGiving / 2);
   if (race.hindrancePoints === "minus2") hindPts = Math.max(0, pointGiving - 2);
-  if (counted.length > maxH) warnings.push(`Więcej niż ${maxH} wad — nadmiarowe nie dają punktów.`);
-  else if (counted.length > 4 && !race.maxHindrances) warnings.push("Podręcznik zaleca na początek najwyżej 3 wady (powyżej 4 — raczej za cechy niż atrybuty).");
+  if (counted.length > maxH) warnings.push(t("More than {n} hindrances — the extra ones give no points.", { n: maxH }));
+  else if (counted.length > 4 && !race.maxHindrances) warnings.push(t("The rulebook recommends at most 3 hindrances to start with (above 4 — rather for traits than for attributes)."));
 
   // --- cechy: automatyczne (darmowe) + wybrane ---
   const autoT = race.traits ?? [];
   const tList = [
-    ...autoT.map(t => TRAITS[t.key]
-      ? resolveFeature("trait", t.key, TRAITS[t.key], choices[`t:${t.key}`] ?? t.choices, { auto: true })
-      : { kind: "perk", key: t.key, label: t.label, desc: t.desc, fx: [], ch: {}, visible: [], missing: [], cost: 0, auto: true }),
+    ...autoT.map(tr => TRAITS[tr.key]
+      ? resolveFeature("trait", tr.key, TRAITS[tr.key], choices[`t:${tr.key}`] ?? tr.choices, { auto: true })
+      : { kind: "perk", key: tr.key, label: tr.label, desc: tr.desc, fx: [], ch: {}, visible: [], missing: [], cost: 0, auto: true }),
     ...Object.keys(state.traits).filter(k => TRAITS[k] && !autoT.some(a => a.key === k))
       .map(k => resolveFeature("trait", k, TRAITS[k], choices[`t:${k}`], { chosenCost: state.traits[k] }))
   ];
-  const rawTraitCost = tList.reduce((t, x) => t + x.cost, 0);
+  const rawTraitCost = tList.reduce((sum, x) => sum + x.cost, 0);
   const credit = Math.min(race.freeTraitPoints ?? 0, rawTraitCost);
   const traitCost = rawTraitCost - credit;
 
   for (const f of [...hList, ...tList]) {
-    if (f.missing.length) errors.push(`${f.label}: wybierz ${f.missing.join(", ").toLowerCase()} (krok Wady i cechy).`);
+    if (f.missing.length) errors.push(t("{name}: choose {what} (Hindrances and traits step).", { name: f.label, what: f.missing.join(", ").toLowerCase() }));
   }
   // cechy dostępne tylko dla wybranych ras / niełączące się z wadą (np. Shadowflash: kucyki nietoperzowe, nie z Young)
-  for (const t of tList) {
-    const def = TRAITS[t.key];
-    if (def?.onlyRaces && !def.onlyRaces.includes(state.race)) warnings.push(`${def.label}: według podręcznika tylko ${def.onlyRaces.map(r => RACES[r]?.label ?? r).join(", ")} — za zgodą MG.`);
-    for (const h of def?.notWith ?? []) if ((state.hindrances ?? []).includes(h)) errors.push(`${def.label} nie łączy się z wadą ${h === "young" ? "Young" : h}.`);
+  for (const tr of tList) {
+    const def = TRAITS[tr.key];
+    if (def?.onlyRaces && !def.onlyRaces.includes(state.race)) warnings.push(t("{name}: according to the rulebook only {races} — with GM approval.", { name: def.label, races: def.onlyRaces.map(r => RACES[r]?.label ?? r).join(", ") }));
+    for (const h of def?.notWith ?? []) if ((state.hindrances ?? []).includes(h)) errors.push(t("{name} doesn't combine with the {h} hindrance.", { name: def.label, h: HINDRANCES[h]?.label ?? h }));
   }
 
   // --- wszystkie efekty: wady, cechy, perk kucyka ziemskiego, rasa ---
@@ -123,14 +124,14 @@ export function computePc(state, pool = CREATION.pool) {
 
   // --- budżet ---
   const budget = (pool - ATTR_KEYS.length) + hindPts + fxSum(allFx, "creationPoints") - traitCost;
-  const spentTotal = ATTR_KEYS.reduce((t, k) => t + num(state.spent[k]), 0);
+  const spentTotal = ATTR_KEYS.reduce((sum, k) => sum + num(state.spent[k]), 0);
   const remaining = budget - spentTotal;
-  if (remaining < 0) errors.push(`Wydano o ${-remaining} pkt za dużo — odejmij z atrybutów, dodaj wadę albo usuń cechę.`);
-  else if (remaining > 0) warnings.push(`Zostało ${remaining} niewydanych punktów.`);
+  if (remaining < 0) errors.push(tn(-remaining, "{n} point too many spent — take some off the attributes, add a hindrance or remove a trait.", "{n} points too many spent — take some off the attributes, add a hindrance or remove a trait."));
+  else if (remaining > 0) warnings.push(tn(remaining, "{n} unspent point left.", "{n} unspent points left."));
 
   // --- rasowe atrybuty ---
   const raceAttrs = state.raceAttrs.filter(k => race.attrs.from.includes(k)).slice(0, race.attrs.pick);
-  if (raceAttrs.length < race.attrs.pick) errors.push(`Wybierz ${race.attrs.pick === 2 ? "dwa atrybuty" : "atrybut"} z premią rasową (krok Rasa).`);
+  if (raceAttrs.length < race.attrs.pick) errors.push(race.attrs.pick === 2 ? t("Choose two attributes with the racial bonus (Race step).") : t("Choose an attribute with the racial bonus (Race step)."));
 
   const attrs = {};
   for (const k of ATTR_KEYS) {
@@ -142,8 +143,8 @@ export function computePc(state, pool = CREATION.pool) {
     const total = base + eff;                                   // z efektami cech
     const maxSpent = k === "luck" ? CREATION.maxRaiseLuck : CREATION.maxRaise;
     attrs[k] = { key: k, label: ATTRS[k], spent, racial, eff, adj, base, total, maxSpent };
-    if (total > CREATION.hardCap) errors.push(`${ATTRS[k]} przekracza limit ${CREATION.hardCap}.`);
-    if (total < 1) errors.push(`${ATTRS[k]} spada poniżej 1.`);
+    if (total > CREATION.hardCap) errors.push(t("{attr} exceeds the limit of {n}.", { attr: ATTRS[k], n: CREATION.hardCap }));
+    if (total < 1) errors.push(t("{attr} drops below 1.", { attr: ATTRS[k] }));
   }
 
   // --- premie rasowe do umiejętności ---
@@ -152,10 +153,10 @@ export function computePc(state, pool = CREATION.pool) {
   const groups = (race.skills?.picks ?? []).map((g, i) => {
     const chosen = state.raceSkills.filter(x => x.startsWith(`${i}:`)).map(x => x.slice(x.indexOf(":") + 1)).filter(k => g.from.includes(k)).slice(0, g.n);
     for (const k of chosen) raceSkill[k] = (raceSkill[k] ?? 0) + g.value;
-    if (chosen.length < g.n) errors.push(`Wybierz ${g.n} umiejętności z premią rasową +${g.value} (krok Rasa).`);
+    if (chosen.length < g.n) errors.push(tn(g.n, "Choose {n} skill with the racial bonus +{v} (Race step).", "Choose {n} skills with the racial bonus +{v} (Race step).", { v: g.value }));
     return { ...g, index: i, chosen };
   });
-  if (tList.some(t => t.def?.removeLockpickPenalty) && (raceSkill.lockpick ?? 0) < 0) raceSkill.lockpick = 0;
+  if (tList.some(tr => tr.def?.removeLockpickPenalty) && (raceSkill.lockpick ?? 0) < 0) raceSkill.lockpick = 0;
 
   // umiejętności rasowe (Magic / Flight / Dig)
   const known = Object.fromEntries(Object.entries(SKILLS).map(([k, d]) => [k, !d.racial || !!race.manual]));
@@ -169,7 +170,7 @@ export function computePc(state, pool = CREATION.pool) {
   const zebraSplit = race.zebraNoMagic && state.zebraNoMagic
     ? state.zebraSplit.filter(k => !["survival", "unarmed", "sneak", ...RACIAL_SKILLS].includes(k)).slice(0, 2) : [];
   for (const k of zebraSplit) raceSkill[k] = (raceSkill[k] ?? 0) + 5;
-  if (race.zebraNoMagic && state.zebraNoMagic && zebraSplit.length < 2) errors.push("Zebra bez magii: wybierz dwie umiejętności po +5 (krok Rasa).");
+  if (race.zebraNoMagic && state.zebraNoMagic && zebraSplit.length < 2) errors.push(t("Zebra without magic: choose two skills at +5 each (Race step)."));
 
   // --- umiejętności ---
   const tagLimit = CREATION.tags + fxSum(allFx, "tags");
@@ -187,15 +188,15 @@ export function computePc(state, pool = CREATION.pool) {
     const tn = rank + Math.floor(attrs[attr].total * 10 / 2);
     skills[k] = { key: k, label: def.label, attr, attrLabel: attr.toUpperCase(), racial: !!def.racial, known: known[k], base, fromRace, fromEff, extra, bonus, tag, rank, tn };
   }
-  if (tags.length < tagLimit) warnings.push(`Wybrano ${tags.length} z ${tagLimit} umiejętności z tagiem.`);
+  if (tags.length < tagLimit) warnings.push(t("{n} of {max} tagged skills chosen.", { n: tags.length, max: tagLimit }));
 
   const caps = CREATION.caps + fxSum(allFx, "caps");
   const karma = fxSum(allFx, "karma");
 
   // --- cechy do zapisania na karcie (z efektami) ---
   const features = [];
-  if (!race.manual) features.push({ kind: "other", key: "race", label: `Rasa: ${race.label}`, desc: [race.desc, ...(race.notes ?? [])].join(" "), notes: race.notes, fx: race.fx ?? [], auto: true });
-  if (perk) features.push({ kind: "perk", key: "earthPerk", label: perk.label, desc: `Darmowy perk kucyka ziemskiego. ${perk.desc}`, fx: perk.fx ?? [], auto: true });
+  if (!race.manual) features.push({ kind: "other", key: "race", label: t("Race: {name}", { name: race.label }), desc: [race.desc, ...(race.notes ?? [])].join(" "), notes: race.notes, fx: race.fx ?? [], auto: true });
+  if (perk) features.push({ kind: "perk", key: "earthPerk", label: perk.label, desc: `${t("Free earth pony perk.")} ${perk.desc}`, fx: perk.fx ?? [], auto: true });
   features.push(...hList, ...tList);
 
   return {
@@ -221,16 +222,17 @@ function featureItem(f) {
     const vals = Array.isArray(c.value) ? c.value : [c.value];
     return `${c.label}: ${vals.map(v => c.options.find(o => o.v === v)?.label ?? v).join(", ")}`;
   });
-  const lines = [f.desc, ...picked, f.auto && f.kind !== "other" && f.key !== "earthPerk" ? "<i>Z rasy.</i>" : "",
-    f.kind === "trait" && !f.auto ? `<i>Koszt: ${f.cost} pkt.</i>` : ""].filter(Boolean);
+  const lines = [f.desc, ...picked, f.auto && f.kind !== "other" && f.key !== "earthPerk" ? `<i>${t("From the race.")}</i>` : "",
+    f.kind === "trait" && !f.auto ? `<i>${t("Cost: {n} pts.", { n: f.cost })}</i>` : ""].filter(Boolean);
   const label = f.label + (picked.length && f.visible.length === 1 && !Array.isArray(f.visible[0].value)
     ? ` (${f.visible[0].options.find(o => o.v === f.visible[0].value)?.label ?? ""})` : "");
   return {
     name: label,
     type: "feature",
     system: {
-      kind, active: true, description: lines.map(t => `<p>${t}</p>`).join(""),
-      effects: f.fx.filter(e => !CREATION_ONLY.has(e.type)).map(e => ({ type: e.type, target: e.target, value: e.value, when: e.when ?? "" }))
+      kind, active: true, description: lines.map(ln => `<p>${ln}</p>`).join(""),
+      // warunki efektów (when) są po angielsku w danych — na karcie w języku twórcy
+      effects: f.fx.filter(e => !CREATION_ONLY.has(e.type)).map(e => ({ type: e.type, target: e.target, value: e.value, when: e.when ? t(e.when) : "" }))
     },
     flags: { "foe-rpg": { creator: true, source: `${f.kind}:${f.key}` } }
   };
@@ -318,14 +320,14 @@ export function computeNpc({ race: raceKey = "earth", archetype = "raider", leve
   let pool = (lvl - 1) * perLevel;
   const points = {};
   const focus = Object.entries(arch.focus).filter(([k]) => usable(k));
-  const weightSum = focus.reduce((t, [, w]) => t + w, 0) || 1;
+  const weightSum = focus.reduce((sum, [, w]) => sum + w, 0) || 1;
   // gdy umiejętności archetypu dojdą do 100, reszta idzie równo w pozostałe
   const rest = Object.keys(SKILLS).filter(k => usable(k) && !arch.focus[k]).map(k => [k, 1]);
   for (let guard = 0; pool > 0 && guard < 40; guard++) {
     let open = focus.filter(([k]) => rankOf(k, points[k] ?? 0) < 100);
     if (!open.length) open = rest.filter(([k]) => rankOf(k, points[k] ?? 0) < 100);
     if (!open.length) break;
-    const ws = open.reduce((t, [, w]) => t + w, 0) || weightSum;
+    const ws = open.reduce((sum, [, w]) => sum + w, 0) || weightSum;
     let given = 0;
     for (const [k, w] of open) {
       const want = Math.max(1, Math.floor(pool * w / ws));
@@ -376,12 +378,12 @@ export function buildNpcUpdate(opts, r) {
   }
   // rasa i jej darmowe cechy (np. Large) jako przedmioty z efektami
   const feats = [];
-  if (!r.race.manual) feats.push({ kind: "other", key: "race", label: `Rasa: ${r.race.label}`, desc: [r.race.desc, ...(r.race.notes ?? [])].join(" "), fx: r.race.fx ?? [], auto: true });
-  for (const t of r.race.traits ?? []) {
-    if (TRAITS[t.key]) feats.push(resolveFeature("trait", t.key, TRAITS[t.key], t.choices, { auto: true }));
+  if (!r.race.manual) feats.push({ kind: "other", key: "race", label: t("Race: {name}", { name: r.race.label }), desc: [r.race.desc, ...(r.race.notes ?? [])].join(" "), fx: r.race.fx ?? [], auto: true });
+  for (const tr of r.race.traits ?? []) {
+    if (TRAITS[tr.key]) feats.push(resolveFeature("trait", tr.key, TRAITS[tr.key], tr.choices, { auto: true }));
   }
   for (const h of r.race.hindrances ?? []) feats.push(resolveFeature("hindrance", h.key, HINDRANCES[h.key], h.choices, { auto: true }));
   const items = feats.map(featureItem);
-  items.push({ name: `Archetyp: ${r.arch.label}`, type: "feature", system: { kind: "other", active: true, effects: [], description: `<p>NPC poziomu ${r.level} wygenerowany kreatorem.</p>` }, flags: { "foe-rpg": { creator: true } } });
+  items.push({ name: t("Archetype: {name}", { name: r.arch.label }), type: "feature", system: { kind: "other", active: true, effects: [], description: `<p>${t("Level {n} NPC generated by the creator.", { n: r.level })}</p>` }, flags: { "foe-rpg": { creator: true } } });
   return { update, items };
 }

@@ -4,14 +4,15 @@ import { defaultPcState, computePc, buildPcUpdate, computeNpc, buildNpcUpdate } 
 import { FX_TYPES, describeFx } from "./effects.mjs";
 import { grantStartingSpells } from "./magic.mjs";
 import { grantStartingManeuvers } from "./flight.mjs";
+import { t, N_ } from "./i18n.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2, DialogV2 } = foundry.applications.api;
 const P = "systems/foe-rpg/templates/creator";
-const FX_LABELS = {
-  all: "wszystko", ranged: "broń dystansowa", melee: "wręcz", attack: "ataki", ground: "ląd", fly: "lot",
+const fxLabels = () => ({
+  all: t("fx|everything"), ranged: t("fx|ranged weapons"), melee: t("fx|melee"), attack: t("fx|attacks"), ground: t("fx|ground"), fly: t("fx|flight"),
   ...ATTRS, ...Object.fromEntries(Object.entries(SKILLS).map(([k, v]) => [k, v.label])), ...LOCATIONS
-};
-const STEPS = ["Rasa", "Wady i cechy", "S.P.E.C.I.A.L.", "Umiejętności", "Podsumowanie"];
+});
+const STEPS = [N_("Race"), N_("Hindrances and traits"), "S.P.E.C.I.A.L.", N_("Skills"), N_("Summary")];
 const readFlag = (actor, key) => {
   try { return JSON.parse(actor.getFlag("foe-rpg", key) || "{}"); } catch { return {}; }
 };
@@ -61,7 +62,7 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
 
   static PARTS = { body: { template: `${P}/pc.hbs`, scrollable: [".cr-scroll"] } };
 
-  get title() { return `Kreator postaci: ${this.wiz.name || this.actor.name}`; }
+  get title() { return t("Character creator: {name}", { name: this.wiz.name || this.actor.name }); }
 
   get pool() {
     try { return Number(game.settings.get("foe-rpg", "creationPool")) || CREATION.pool; } catch { return CREATION.pool; }
@@ -76,7 +77,7 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
 
     const ctx = {
       st, r,
-      steps: STEPS.map((label, i) => ({ i, label, n: i + 1, active: i === st.step, done: i < st.step })),
+      steps: STEPS.map((label, i) => ({ i, label: t(label), n: i + 1, active: i === st.step, done: i < st.step })),
       step: { race: st.step === 0, flaws: st.step === 1, special: st.step === 2, skills: st.step === 3, summary: st.step === 4 },
       isFirst: st.step === 0, isLast: st.step === STEPS.length - 1,
       remainingCls: r.remaining < 0 ? "bad" : r.remaining > 0 ? "warn" : "ok",
@@ -93,7 +94,7 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
     }));
     ctx.raceFixed = Object.entries(race.skills?.fixed ?? {}).map(([k, v]) => `${skillLabel(k)} ${signed(v)}`).join(", ");
     ctx.racialSkills = Object.entries(race.racial ?? {}).map(([k, v]) => ({
-      label: skillLabel(k), bonus: v.bonus, attrs: v.attrs.map(a => a.toUpperCase()).join(" lub "),
+      label: skillLabel(k), bonus: v.bonus, attrs: v.attrs.map(a => a.toUpperCase()).join(` ${t("conj|or")} `),
       choice: k === "magic" && v.attrs.length > 1 ? v.attrs.map(a => ({ v: a, label: ATTRS[a], sel: a === r.magicAttr })) : null
     }));
     ctx.zebra = race.zebraNoMagic ? {
@@ -102,10 +103,10 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
         .map(([k, s]) => ({ k, label: s.label, on: r.zebraSplit.includes(k) }))
     } : null;
     ctx.earthPerks = race.earthPerk ? Object.entries(EARTH_PERKS).map(([k, p]) => ({ k, ...p, sel: k === st.earthPerk })) : null;
-    ctx.autoTraits = (race.traits ?? []).map(t => TRAITS[t.key]?.label ?? t.label).join(", ");
-    ctx.autoHindrances = (race.hindrances ?? []).map(h => HINDRANCES[h.key]?.label + (h.points === false ? " (bez punktu)" : "")).join(", ");
-    ctx.hindRule = race.hindrancePoints === "half" ? "1 punkt za każde 2 wady"
-      : race.hindrancePoints === "minus2" ? "punkty = liczba wad − 2" : "1 punkt za każdą wadę";
+    ctx.autoTraits = (race.traits ?? []).map(tr => TRAITS[tr.key]?.label ?? tr.label).join(", ");
+    ctx.autoHindrances = (race.hindrances ?? []).map(h => HINDRANCES[h.key]?.label + (h.points === false ? ` (${t("no point")})` : "")).join(", ");
+    ctx.hindRule = race.hindrancePoints === "half" ? t("1 point for every 2 hindrances")
+      : race.hindrancePoints === "minus2" ? t("points = number of hindrances − 2") : t("1 point for each hindrance");
 
     // --- krok 2: wady i cechy ---
     const resolved = new Map([...r.hindrances, ...r.traits].map(f => [`${f.kind === "hindrance" ? "h" : "t"}:${f.key}`, f]));
@@ -114,7 +115,8 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
       count: Array.isArray(c.value) ? c.value.length : 0,
       options: c.options.map(o => ({ v: o.v, label: o.label, sel: Array.isArray(c.value) ? c.value.includes(o.v) : o.v === c.value }))
     }));
-    const fxText = key => (resolved.get(key)?.fx ?? []).filter(e => FX_TYPES[e.type]).map(e => describeFx(e, FX_LABELS));
+    const labels = fxLabels();
+    const fxText = key => (resolved.get(key)?.fx ?? []).filter(e => FX_TYPES[e.type]).map(e => describeFx(e, labels));
     const autoH = new Set((race.hindrances ?? []).map(h => h.key));
     ctx.hindrances = Object.entries(HINDRANCES).map(([k, h]) => {
       const on = autoH.has(k) || st.hindrances.includes(k);
@@ -124,19 +126,19 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
         search: `${h.label} ${h.desc}`.toLowerCase()
       };
     });
-    const autoT = new Set((race.traits ?? []).map(t => t.key));
-    ctx.traits = Object.entries(TRAITS).map(([k, t]) => {
+    const autoT = new Set((race.traits ?? []).map(tr => tr.key));
+    ctx.traits = Object.entries(TRAITS).map(([k, tr]) => {
       const on = autoT.has(k) || k in st.traits;
-      const costByChoice = (t.choices ?? []).some(c => c.options.some(o => o.cost != null));
+      const costByChoice = (tr.choices ?? []).some(c => c.options.some(o => o.cost != null));
       const res = resolved.get(`t:${k}`);
       return {
-        k, ...t, on, locked: autoT.has(k),
-        costLabel: t.cost[0] === t.cost[1] ? `${t.cost[0]}` : `${t.cost[0]}–${t.cost[1]}`,
-        range: t.cost[0] !== t.cost[1] && on && !autoT.has(k) && !costByChoice, min: t.cost[0], max: t.cost[1],
-        chosenCost: st.traits[k] ?? t.cost[0],
+        k, ...tr, on, locked: autoT.has(k),
+        costLabel: tr.cost[0] === tr.cost[1] ? `${tr.cost[0]}` : `${tr.cost[0]}–${tr.cost[1]}`,
+        range: tr.cost[0] !== tr.cost[1] && on && !autoT.has(k) && !costByChoice, min: tr.cost[0], max: tr.cost[1],
+        chosenCost: st.traits[k] ?? tr.cost[0],
         nowCost: on && !autoT.has(k) && costByChoice ? res?.cost : null,
         choices: on ? choiceView(`t:${k}`) : [], fxText: on ? fxText(`t:${k}`) : [],
-        search: `${t.label} ${t.desc}`.toLowerCase()
+        search: `${tr.label} ${tr.desc}`.toLowerCase()
       };
     });
 
@@ -154,11 +156,11 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
 
     // --- krok 5: podsumowanie ---
     ctx.summary = {
-      race: race.manual ? (st.raceName || "Inna rasa") : race.label,
+      race: race.manual ? (st.raceName || t("Other race")) : race.label,
       attrs: Object.values(r.attrs).map(a => `${a.label.slice(0, 3).toUpperCase()} ${a.total}`).join(" · "),
       tags: r.tags.map(skillLabel).join(", ") || "—",
       hindrances: r.hindrances.map(h => h.label).join(", ") || "—",
-      traits: r.traits.map(t => t.label + (t.auto ? " (rasa)" : "")).join(", ") || "—",
+      traits: r.traits.map(tr => tr.label + (tr.auto ? ` (${t("race")})` : "")).join(", ") || "—",
       perk: race.earthPerk ? EARTH_PERKS[st.earthPerk]?.label : null,
       sats: r.preview.sats,
       luckCards: r.preview.luckCards,
@@ -190,11 +192,11 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
   }
 
   #onChange(ev) {
-    const t = ev.target;
-    const name = t.name;
+    const el = ev.target;
+    const name = el.name;
     if (!name || name === "filter") return;
     const st = this.wiz;
-    const v = t.type === "checkbox" ? t.checked : t.value;
+    const v = el.type === "checkbox" ? el.checked : el.value;
     if (name.startsWith("adj.")) st.adj[name.slice(4)] = Number(v) || 0;
     else if (name.startsWith("extra.")) st.extra[name.slice(6)] = Number(v) || 0;
     else if (name.startsWith("traitCost.")) st.traits[name.slice(10)] = Number(v) || 0;
@@ -289,14 +291,14 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
     if (r.errors.length) return ui.notifications.warn(r.errors[0]);
     if (this.actor.getFlag("foe-rpg", "created")) {
       const ok = await DialogV2.confirm({
-        window: { title: "Nadpisać postać?" },
-        content: "<p>Kreator nadpisze atrybuty, umiejętności i cechy dodane wcześniej przez kreator. Przedmioty i notatki zostaną.</p>"
+        window: { title: t("Overwrite the character?") },
+        content: `<p>${t("The creator will overwrite the attributes, skills and features it added earlier. Items and notes will stay.")}</p>`
       });
       if (!ok) return;
     }
     const { update, items } = buildPcUpdate(this.wiz, r);
     await applyToActor(this.actor, update, items, this.wiz.race);
-    ui.notifications.info(`${this.actor.name}: postać gotowa.`);
+    ui.notifications.info(t("{name}: character ready.", { name: this.actor.name }));
     this.close();
     this.actor.sheet?.render(true);
   }
@@ -321,7 +323,7 @@ export class NpcCreator extends HandlebarsApplicationMixin(ApplicationV2) {
 
   static PARTS = { body: { template: `${P}/npc.hbs`, scrollable: [".cr-scroll"] } };
 
-  get title() { return `Kreator NPC: ${this.wiz.name || this.actor.name}`; }
+  get title() { return t("NPC creator: {name}", { name: this.wiz.name || this.actor.name }); }
 
   async _prepareContext() {
     const st = this.wiz;
@@ -350,14 +352,14 @@ export class NpcCreator extends HandlebarsApplicationMixin(ApplicationV2) {
     const r = computeNpc(this.wiz);
     if (this.actor.getFlag("foe-rpg", "created")) {
       const ok = await DialogV2.confirm({
-        window: { title: "Nadpisać NPC?" },
-        content: "<p>Kreator nadpisze atrybuty i umiejętności tego NPC.</p>"
+        window: { title: t("Overwrite the NPC?") },
+        content: `<p>${t("The creator will overwrite this NPC's attributes and skills.")}</p>`
       });
       if (!ok) return;
     }
     const { update, items } = buildNpcUpdate(this.wiz, r);
     await applyToActor(this.actor, update, items, this.wiz.race);
-    ui.notifications.info(`${this.actor.name}: NPC gotowy.`);
+    ui.notifications.info(t("{name}: NPC ready.", { name: this.actor.name }));
     this.close();
     this.actor.sheet?.render(true);
   }
@@ -367,8 +369,8 @@ export class NpcCreator extends HandlebarsApplicationMixin(ApplicationV2) {
 export function openCreator(actor) {
   const App = actor.type === "npc" ? NpcCreator : CharacterCreator;
   const fail = err => {
-    console.error("foe-rpg | kreator", err);
-    ui.notifications.error(`Kreator nie mógł się otworzyć: ${err.message}`);
+    console.error("foe-rpg | creator", err);
+    ui.notifications.error(t("The creator couldn't open: {msg}", { msg: err.message }));
   };
   try {
     const app = foundry.applications.instances?.get(`foe-creator-${actor.id}`) ?? new App(actor, { id: `foe-creator-${actor.id}` });

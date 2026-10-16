@@ -316,7 +316,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
   const fxDamage = sumFx(fx, "damage", e => hitsAttack(e.target, w.skill));
   if (fxDamage) formula += ` + ${fxDamage}`;
   const sitDamage = fx.filter(e => e.type === "damage" && e.when && hitsAttack(e.target, w.skill))
-    .map(e => `${e.source}: ${signed(Number(e.value) || 0)} (${e.when})`);
+    .map(e => `${e.source}: ${signed(Number(e.value) || 0)} (${t(e.when)})`);
 
   // Krytyk: mnożnik broni; wręcz w SATS podwójny (s. 442); broń obszarowa nie ma krytyków (s. 456)
   const c = crit && !aoe ? parseCrit(w.crit) : {};

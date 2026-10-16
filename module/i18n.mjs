@@ -81,15 +81,23 @@ export function tmap(obj) {
   return out;
 }
 
-/** Jak tmap, ale dla obiektów i tablic z polami tekstowymi (np. { label, desc }) — tłumaczy tylko pola z `fields`. */
+/**
+ * Jak tmap, ale dla obiektów i tablic z polami tekstowymi (np. { label, desc }) — tłumaczy tylko pola z `fields`
+ * (także tablice napisów, np. notes: ["…", "…"]). Pola już tłumaczone przy odczycie (zagnieżdżone tmap/tfields) zostają.
+ */
 export function tfields(obj, fields = ["label", "desc"]) {
   const wrap = o => {
     if (Array.isArray(o)) return o.map(wrap);
-    if (!o || typeof o !== "object") return o;
+    if (!o || typeof o !== "object" || typeof o === "function") return o;
     const out = {};
-    for (const [k, v] of Object.entries(o)) {
+    for (const k of Object.keys(o)) {
+      const d = Object.getOwnPropertyDescriptor(o, k);
+      if (d.get) { Object.defineProperty(out, k, d); continue; }
+      const v = d.value;
       if (typeof v === "string" && fields.includes(k)) getter(out, k, v);
-      else out[k] = v && typeof v === "object" ? wrap(v) : v;
+      else if (Array.isArray(v) && fields.includes(k) && v.every(x => typeof x === "string")) {
+        Object.defineProperty(out, k, { get: () => v.map(x => t(x)), enumerable: true, configurable: true });
+      } else out[k] = v && typeof v === "object" ? wrap(v) : v;
     }
     return out;
   };

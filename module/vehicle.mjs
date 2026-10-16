@@ -360,7 +360,7 @@ export async function repairVehicle(vehicle) {
 export async function importVehicle(e, catalog) {
   if (!game.user.can("ACTOR_CREATE")) return warn(t("Only the GM (or a player allowed to create actors) can add vehicles."));
   const { actor, items, missing } = buildVehicle(e, { catalog, weaponItem });
-  let folder = game.folders?.find(f => f.type === "Actor" && (f.getFlag?.(F, "vehicles") || ["Pojazdy FoE", "FoE Vehicles"].includes(f.name)));
+  let folder = game.folders?.find(f => f.type === "Actor" && (f.getFlag?.(F, "vehicles") || ["Pojazdy FoE", "FoE Vehicles"].includes(f.name))); // pl-ok: dawna nazwa folderu
   if (!folder && game.user.isGM) folder = await Folder.create({ name: t("FoE Vehicles"), type: "Actor", color: "#3a5a1f", flags: { [F]: { vehicles: true } } });
   actor.folder = folder?.id ?? null;
   const created = await Actor.implementation.create(actor);

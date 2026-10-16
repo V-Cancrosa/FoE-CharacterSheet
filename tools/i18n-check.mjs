@@ -17,6 +17,11 @@ const PL = (await import(url.pathToFileURL(path.join(ROOT, "lang/pl.mjs")).href)
 const args = new Set(process.argv.slice(2));
 const PLCH = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/;
 const PLWORDS = /\b(nie|jest|się|albo|oraz|tylko|przy|brak|Brak|zaznacz|Zaznacz|kliknij|Kliknij|rzut|Rzut|postać|karta|karty|gracz|gracza|MG)\b/;
+// słowa tylko polskie (także bez ogonków, np. „Dodaj”, „utworzono”): z tłumaczeń słownika, bez słów z angielskich kluczy
+const wordsOf = s => String(s).toLowerCase().match(/[a-ząćęłńóśźż]{3,}/g) ?? [];
+const EN_WORDS = new Set([...Object.keys(PL).flatMap(wordsOf), "cyber"]);
+const PL_ONLY = new Set(Object.values(PL).flat().flatMap(wordsOf).filter(w => !EN_WORDS.has(w)));
+const polish = s => PLCH.test(s) || PLWORDS.test(s) || wordsOf(s).some(w => PL_ONLY.has(w));
 
 /**
  * Literały napisów w kodzie JS: [{ kind: "str"|"tpl", value, start, end, line }] — bez komentarzy i wyrażeń regularnych.
@@ -120,8 +125,11 @@ for (const f of fs.readdirSync(path.join(ROOT, "module")).filter(f => f.endsWith
     }
     maps.push({ start: m.index, end: k, fields });
   }
+  // klucz pola przed napisem: „label: "…"” albo element tablicy „notes: ["…", "…"]”
+  const STR = String.raw`(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')`;
+  const FIELD = new RegExp(String.raw`(?:(\w+)|"(\w+)")\s*:\s*(?:\[\s*(?:${STR}\s*,\s*)*)?$`);
   const mapKey = L => maps.some(mp => L.start > mp.start && L.end < mp.end && (() => {
-    const key = /(?:(\w+)|"(\w+)")\s*:\s*$/.exec(src.slice(Math.max(0, L.start - 40), L.start));
+    const key = FIELD.exec(src.slice(Math.max(mp.start, L.start - 3000), L.start));
     if (!key) return false;
     return !mp.fields || mp.fields.includes(key[1] ?? key[2]);
   })());
@@ -151,7 +159,7 @@ for (const f of fs.readdirSync(path.join(ROOT, "module")).filter(f => f.endsWith
       if (nx?.kind === "str" && /^\s*,\s*$/.test(src.slice(L.end, nx.start))) { need(`${L.value}|${nx.value}`, where); n++; continue; }
     }
     const text = L.kind === "tpl" ? L.value.replace(/\$\{[^}]*\}/g, " ") : L.value;
-    if ((PLCH.test(text) || PLWORDS.test(text)) && !/pl-ok/.test(lines[L.line - 1] ?? "")) leftovers.push(`${where}: ${JSON.stringify(text.slice(0, 90))}`);
+    if (polish(text) && !/pl-ok/.test(lines[L.line - 1] ?? "")) leftovers.push(`${where}: ${JSON.stringify(text.slice(0, 90))}`);
   }
 }
 
@@ -165,7 +173,7 @@ for (const file of walk(path.join(ROOT, "templates")).filter(f => f.endsWith(".h
   for (const m of src.matchAll(/\{\{\{?\s*tn\s+\S+\s+("(?:[^"\\]|\\.)*")\s+("(?:[^"\\]|\\.)*")/g)) need(`${JSON.parse(m[1])}|${JSON.parse(m[2])}`, `${rel}:${lineOf(m.index)}`);
   // polskie napisy poza {{…}}
   const bare = src.replace(/\{\{!--[\s\S]*?--\}\}/g, m => m.replace(/[^\n]/g, " ")).replace(/\{\{[\s\S]*?\}\}/g, m => m.replace(/[^\n]/g, " "));
-  bare.split("\n").forEach((l, k) => { if ((PLCH.test(l) || PLWORDS.test(l.replace(/<[^>]*>/g, " ").replace(/[a-z-]+="[^"]*"/g, ""))) && !/pl-ok/.test(src.split("\n")[k])) leftovers.push(`${rel}:${k + 1}: ${l.trim().slice(0, 90)}`); });
+  bare.split("\n").forEach((l, k) => { if ((PLCH.test(l) || polish(l.replace(/<[^>]*>/g, " ").replace(/[a-z-]+="[^"]*"/g, ""))) && !/pl-ok/.test(src.split("\n")[k])) leftovers.push(`${rel}:${k + 1}: ${l.trim().slice(0, 90)}`); });
 }
 
 // ---------- t()/tn()/N_() zasłonięte zmienną lokalną albo niezaimportowane (ESLint, jeśli jest) ----------

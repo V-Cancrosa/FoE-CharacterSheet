@@ -169,7 +169,7 @@ export function rollContext(actor, ctx, { manualMod = 0, manualLabel = t("Sheet 
     if (!r.mod && !r.steps && !r.critSuccess && !r.critFail) continue;
     if (e.when) {
       const key = `${e.source}|${e.when}`;
-      const g = groups.get(key) ?? { id: `s${groups.size}`, label: e.when, source: e.source, mod: 0, steps: 0 };
+      const g = groups.get(key) ?? { id: `s${groups.size}`, label: t(e.when), source: e.source, mod: 0, steps: 0 };
       g.mod += r.mod; g.steps += r.steps;
       groups.set(key, g);
       continue;
@@ -206,7 +206,8 @@ export function describeFx(e, labels = {}) {
   const value = steps ? tn(v, "{s} step", "{s} steps", { s: signed(v) }) : `${signed(v)}${["speedPct", "radResist", "xpPct"].includes(e.type) ? "%" : ""}`;
   const what = ft ? ft.label : e.type;
   const showTarget = ft && ft.targets !== "none" && tgt;
-  return `${what}${showTarget ? ` (${tgt})` : ""}: ${value}${e.when ? ` ${t("— when: {w}", { w: e.when })}` : ""}`;
+  // warunek z danych systemu jest angielskim kluczem (tłumaczy się); wpisany na karcie zostaje bez zmian
+  return `${what}${showTarget ? ` (${tgt})` : ""}: ${value}${e.when ? ` ${t("— when: {w}", { w: t(e.when) })}` : ""}`;
 }
 
 /** Zwięzły opis efektu do tabel, np. „+1 CHA”, „Sneak: −2 kroki MFD”, „+15% odp. na prom.”. */
@@ -227,5 +228,5 @@ export function shortFx(e, labels = {}) {
     skillPoints: t("{v} skill points/level", d), satsRegen: t("{v} AP/round", d), xpPct: t("{v}% XP", d),
     fireDt: t("{v} DT vs. fire ({tgt})", d), limbWounds: t("{v} wounds to cripple/maim ({tgt})", d), limbMult: t("×{n} limb wounds", { n: v })
   }[e.type] ?? describeFx(e, labels);
-  return e.when ? `${txt} ${t("(when: {w})", { w: e.when })}` : txt;
+  return e.when ? `${txt} ${t("(when: {w})", { w: t(e.when) })}` : txt;
 }
