@@ -2,6 +2,7 @@
  * Katalog przedmiotów z podręcznika v1.22 (data/catalog.json) → dane przedmiotów Foundry.
  * Czyste funkcje (bez Foundry), żeby dało się je testować.
  */
+import { tmap } from "./i18n.mjs";
 
 const I = "systems/foe-rpg/icons";
 export const ICONS = {
@@ -26,17 +27,17 @@ export function iconFor(type, sys = {}) {
   return set.default;
 }
 
-export const WEAPON_KINDS = {
-  smallGuns: "Small Guns", energy: "Energy Weapons", bigGuns: "Big Guns", bigGunsAoe: "Big Guns (obszarowe)",
-  explosive: "Materiały wybuchowe", special: "Łuki i rzucane", melee: "Melee", unarmed: "Unarmed"
-};
-export const ARMOR_KINDS = {
-  clothing: "Ubrania", light: "Lekkie", medium: "Średnie", heavy: "Ciężkie", helmet: "Hełmy i nakrycia głowy", accessory: "Akcesoria"
-};
-export const GEAR_KINDS = {
-  ammo: "Amunicja", medical: "Leczenie", drug: "Leki i używki", food: "Jedzenie i picie", book: "Książki i magazyny",
-  pipbuck: "PipBucki", saddle: "Siodła bojowe i dodatki", misc: "Różne"
-};
+export const WEAPON_KINDS = tmap({
+  smallGuns: "Small Guns", energy: "Energy Weapons", bigGuns: "Big Guns", bigGunsAoe: "Big Guns (area)",   // en=pl
+  explosive: "Explosives", special: "Bows and thrown", melee: "Melee", unarmed: "Unarmed"   // en=pl
+});
+export const ARMOR_KINDS = tmap({
+  clothing: "kinds|Clothing", light: "kinds|Light", medium: "kinds|Medium", heavy: "kinds|Heavy", helmet: "Helmets and headgear", accessory: "Accessories"
+});
+export const GEAR_KINDS = tmap({
+  ammo: "Ammunition", medical: "Medical", drug: "Chems and drugs", food: "Food and drink", book: "Books and magazines",
+  pipbuck: "PipBucks", saddle: "Battle saddles and add-ons", misc: "Miscellaneous"
+});
 
 const LOCS = ["head", "torso", "flLeg", "frLeg", "rlLeg", "rrLeg", "wings", "horn"];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);

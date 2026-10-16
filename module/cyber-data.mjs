@@ -10,15 +10,16 @@
  *   - Zebra Augmented i Bone Strengthening Brew nie łączą się z cybernetyką.
  * Implant i proteza to cecha („feature”) rodzaju implant / cyberlimb z polami w system.cyber.
  */
+import { t, tn, tmap, tdata } from "./i18n.mjs";
 const F = "foe-rpg";
 
 /** Kończyny w rozumieniu zasad o ranach (nogi i skrzydła). */
 export const LIMB_LOCS = ["flLeg", "frLeg", "rlLeg", "rrLeg", "wings"];
 export const LEG_LOCS = ["flLeg", "frLeg", "rlLeg", "rrLeg"];
-const LOC_PL = { head: "głowa", torso: "tułów", flLeg: "przednia lewa", frLeg: "przednia prawa", rlLeg: "tylna lewa", rrLeg: "tylna prawa", wings: "skrzydła", horn: "róg" };
-const ATTR_PL = { str: "STR", per: "PER", end: "END", cha: "CHA", int: "INT", agi: "AGI", luck: "LCK" };
+const LOC_NAME = tmap({ head: "loc|head", torso: "loc|torso", flLeg: "leg|front left", frLeg: "leg|front right", rlLeg: "leg|rear left", rrLeg: "leg|rear right", wings: "loc|wings", horn: "loc|horn" });
+const ATTR_SHORT = { str: "STR", per: "PER", end: "END", cha: "CHA", int: "INT", agi: "AGI", luck: "LCK" };
 
-export const CYBER_KINDS = { implant: "Implant", cyberlimb: "Proteza" };
+export const CYBER_KINDS = tmap({ implant: "Implant", cyberlimb: "Cyberlimb" });
 export const isCyber = i => i?.type === "feature" && !!CYBER_KINDS[i.system?.kind];
 export const cyberItems = actor => (actor?.items ?? []).filter(isCyber);
 const active = i => i.system?.active !== false;
@@ -42,11 +43,11 @@ export function cyberItemData(e, { loc = "", attr = "" } = {}) {
   const effects = (e.fx ?? []).map(([type, target, value, when = ""]) => ({
     type, target: target === "@loc" ? where : target === "@attr" ? attr : target, value, when
   })).filter(x => x.target);
-  const suffix = e.slot === "leg" && where ? `: ${LOC_PL[where]}` : e.slot === "attr" && attr ? `: ${ATTR_PL[attr]}` : "";
+  const suffix = e.slot === "leg" && where ? `: ${LOC_NAME[where]}` : e.slot === "attr" && attr ? `: ${ATTR_SHORT[attr]}` : "";
   return {
-    name: `${e.name}${suffix}`, type: "feature", img: "systems/foe-rpg/icons/cyber.svg",
+    name: `${tdata(e, "name")}${suffix}`, type: "feature", img: "systems/foe-rpg/icons/cyber.svg",
     system: {
-      kind: e.kind === "limb" ? "cyberlimb" : "implant", active: true, effects, description: `<p>${e.desc ?? ""}</p>`,
+      kind: e.kind === "limb" ? "cyberlimb" : "implant", active: true, effects, description: `<p>${tdata(e, "desc") ?? ""}</p>`,
       cyber: { loc: where, power: Number(e.power) || 0, talisman: !!e.talisman, capacity: Number(e.capacity) || 0, charges: 0, regen: Number(e.regen) || 0 }
     },
     flags: { [F]: { cyber: e.name } }
@@ -61,25 +62,25 @@ const cyberponyFull = actor => (actor?.items ?? []).some(i => i.type === "featur
 export function cyberWarnings(actor, e, { attr = "", loc = "" } = {}) {
   const w = [];
   const race = String(actor?.system?.race ?? "");
-  if (hasFeature(actor, /zebra augmented/i)) w.push("Zebra Augmented nie łączy się z cybernetyką — organizm odrzuca implant (bolesne, możliwie śmiertelne)");
-  if (hasFeature(actor, /bone strengthening brew/i)) w.push("Bone Strengthening Brew wyklucza cybernetykę");
-  if (e.kind === "implant" && (/alikorn|alicorn/i.test(race) || hasFeature(actor, /canterlot ghoul/i))) w.push("alikorny i ghule z Canterlotu nie mogą mieć implantów (Implanted)");
+  if (hasFeature(actor, /zebra augmented/i)) w.push(t("Zebra Augmented doesn't combine with cybernetics — the body rejects the implant (painful, possibly fatal)"));
+  if (hasFeature(actor, /bone strengthening brew/i)) w.push(t("Bone Strengthening Brew rules out cybernetics"));
+  if (e.kind === "implant" && (/alikorn|alicorn/i.test(race) || hasFeature(actor, /canterlot ghoul/i))) w.push(t("alicorns and Canterlot ghouls can't have implants (Implanted)"));
   if (e.slot === "attr") {
-    if (!attr) w.push("wybierz atrybut");
-    else if (cyberItems(actor).some(i => (i.system.effects ?? []).some(x => x.type === "attr" && x.target === attr && x.value > 0))) w.push(`${ATTR_PL[attr]} ma już implant — implantami można go podnieść tylko o 1`);
+    if (!attr) w.push(t("choose an attribute"));
+    else if (cyberItems(actor).some(i => (i.system.effects ?? []).some(x => x.type === "attr" && x.target === attr && x.value > 0))) w.push(t("{attr} already has an implant — implants can raise it by 1 only", { attr: ATTR_SHORT[attr] }));
   }
-  if (e.slot === "leg" && !loc) w.push("wybierz nogę");
+  if (e.slot === "leg" && !loc) w.push(t("choose a leg"));
   const where = e.slot === "leg" ? loc : e.slot;
-  if (e.kind === "limb" && where && cyberItems(actor).some(i => i.system.kind === "cyberlimb" && i.system.cyber?.loc === where && !/oko|organ/i.test(i.name))) w.push(`na lokacji ${LOC_PL[where]} jest już proteza`);
-  if (/star and cross/i.test(e.name) && !hasFeature(actor, /cyberpony/i)) w.push("wymaga co najmniej 1 pkt w Cyberpony");
-  if (/nemean|basilisk/i.test(e.name) && cyberItems(actor).some(i => /nemean|basilisk/i.test(i.name))) w.push("Nemean i Basilisk nie sumują się — liczy się mocniejszy");
-  if (e.slot === "wings" && actor?.system?.skills?.flight?.known === false) w.push("postać nie ma rasowej umiejętności Flight — skrzydło nie da lotu");
+  if (e.kind === "limb" && where && cyberItems(actor).some(i => i.system.kind === "cyberlimb" && i.system.cyber?.loc === where && !/oko|eye|organ/i.test(i.name))) w.push(t("there's already a cyberlimb on {loc}", { loc: LOC_NAME[where] }));
+  if (/star and cross/i.test(e.name) && !hasFeature(actor, /cyberpony/i)) w.push(t("requires at least 1 point in Cyberpony"));
+  if (/nemean|basilisk/i.test(e.name) && cyberItems(actor).some(i => /nemean|basilisk/i.test(i.name))) w.push(t("Nemean and Basilisk don't stack — the stronger one counts"));
+  if (e.slot === "wings" && actor?.system?.skills?.flight?.known === false) w.push(t("the character has no racial Flight skill — the wing won't give flight"));
   return w;
 }
 
 // ---------- zasilanie ----------
 /** Ile „kończyn” zasilania zużywa postać (kończyna 1, tułów 2, implant ¼ — wg pola power). */
-export const powerUnits = actor => Math.round(cyberItems(actor).filter(active).reduce((t, i) => t + (Number(i.system.cyber?.power) || 0), 0) * 100) / 100;
+export const powerUnits = actor => Math.round(cyberItems(actor).filter(active).reduce((sum, i) => sum + (Number(i.system.cyber?.power) || 0), 0) * 100) / 100;
 
 function tracking() {
   try { return !!globalThis.game?.settings?.get?.(F, "cyberPower"); } catch { return false; }
@@ -158,7 +159,7 @@ export function planRegen(actor, seconds, carry = {}, scrap = 0) {
       if (!k) break;
       wounds[k]--; scrapUsed++;
     }
-    if (scrapUsed) notes.push(`talizman naprawczy: −${scrapUsed} ${scrapUsed === 1 ? "rana" : "rany"} (złom ×${scrapUsed})`);
+    if (scrapUsed) notes.push(tn(scrapUsed, "repair talisman: −{n} wound (scrap ×{n})", "repair talisman: −{n} wounds (scrap ×{n})"));
   } else out.talisman = 0;
   const phoenix = state.powered && items.some(i => (Number(i.system.cyber?.regen) || 0) > 0);
   const anyHurt = () => Object.values(wounds).some(v => v > 0);
@@ -171,7 +172,7 @@ export function planRegen(actor, seconds, carry = {}, scrap = 0) {
       const k = Object.keys(wounds).reduce((a, b) => (wounds[b] > wounds[a] ? b : a));
       wounds[k]--; healed++;
     }
-    if (healed) notes.push(`Phoenix Monocyte Breeder: −${healed} ${healed === 1 ? "rana" : "rany"}`);
+    if (healed) notes.push(tn(healed, "Phoenix Monocyte Breeder: −{n} wound", "Phoenix Monocyte Breeder: −{n} wounds"));
   } else if (!phoenix || !anyHurt()) out.phoenix = 0;
   const changed = Object.fromEntries(Object.entries(wounds).filter(([k, v]) => v !== sys.locations[k].wounds));
   return { wounds: changed, scrapUsed, notes, carry: out };

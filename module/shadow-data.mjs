@@ -16,6 +16,7 @@
  *   - żerowanie: rzut Speechcraft, sukces +1d4 miłości (krytyk 2d4),
  *   - wykrycie przebrania: rzut PER obserwatora z MFD wg znajomości (jak przy Voice Alteration, s. 316).
  */
+import { t, tfields } from "./i18n.mjs";
 const F = "foe-rpg";
 const flags = actor => actor?.flags?.[F] ?? {};
 const featureNamed = (actor, re) => (actor?.items ?? []).some(i => i.type === "feature" && i.system?.active !== false && re.test(i.name));
@@ -40,11 +41,11 @@ export function spendShadow(state, cost, now) {
   return { spent: Math.min(state.max, state.spent + cost), at: now };
 }
 
-export const SHADOW_MODES = {
-  dodge: { label: "Unik (Shadowflash)", mfd: "1/2", cost: 2, note: "sukces = unik udany automatycznie; reakcja, bez akcji" },
-  teleport: { label: "Teleport (Shadowflash)", mfd: "3/4", cost: 2, note: "do 10×INT ft, tylko ty i trzymane przedmioty; pęd przepada" },
-  warp: { label: "Przeskok między cieniami (Shadow Form)", mfd: "3/4", cost: 0, note: "do 40 ft, tylko między cieniami (zależy od światła)" }
-};
+export const SHADOW_MODES = tfields({
+  dodge: { label: "Dodge (Shadowflash)", mfd: "1/2", cost: 2, note: "success = an automatic successful dodge; a reaction, no action" },
+  teleport: { label: "Teleport (Shadowflash)", mfd: "3/4", cost: 2, note: "up to 10×INT ft, only you and held items; momentum is lost" },
+  warp: { label: "Shadow jump (Shadow Form)", mfd: "3/4", cost: 0, note: "up to 40 ft, only between shadows (depends on the light)" }
+}, ["label", "note"]);
 
 /** Sonic Screech jako broń (dane przedmiotu). */
 export function sonicScreechItem() {
@@ -52,8 +53,8 @@ export function sonicScreechItem() {
     name: "Sonic Screech", type: "weapon", img: "systems/foe-rpg/icons/energy.svg",
     system: {
       skill: "energy", kind: "special", damage: "3d12", shots: 1, satsCost: 40, ammo: { value: 0, max: 0 }, ammoType: "", reload: "",
-      range: "10 ft (maks. 30)", rangeInc: 10, crit: "x1", ignoreDT: 0, flat: false, armorless: true,
-      description: "<p>Ultradźwiękowy krzyk kucyka nietoperzowego (s. 35). +2d12 przeciw maszynom i pancerzom wspomaganym. Całkowicie ignoruje pancerz, chyba że cel jest w szczelnie zamkniętym pancerzu (wtedy odznacz to przy nanoszeniu). Zasięg maks. 30 ft.</p>"
+      range: t("10 ft (max. 30)"), rangeInc: 10, crit: "x1", ignoreDT: 0, flat: false, armorless: true,
+      description: `<p>${t("A bat pony's ultrasonic screech (p. 35). +2d12 against machines and power armor. Ignores armor completely unless the target is in fully sealed armor (then uncheck it when applying). Range max. 30 ft.")}</p>`
     },
     flags: { [F]: { racial: "sonicScreech" } }
   };
@@ -80,14 +81,14 @@ export function changelingEffects(actor) {
   if (!isChangeling(actor)) return [];
   // liczone przed atrybutami (actorEffects na początku przygotowania danych) — tylko z zapisanej wartości
   if ((flags(actor).love?.value ?? 1) > 0) return [];
-  return [{ type: "basedStep", target: "end,cha", value: -1, when: "", source: "Głód miłości (podmieniec)", id: "love.hunger" }];
+  return [{ type: "basedStep", target: "end,cha", value: -1, when: "", source: t("Love hunger (changeling)"), id: "love.hunger" }];
 }
 
 /** MFD wykrycia przebrania wg znajomości z oryginałem (s. 316: zna blisko — 1; widział raz krótko — kryt.). */
-export const FAMILIARITY = {
-  intimate: { label: "Zna oryginał bardzo dobrze", mfd: "1" },
-  friend: { label: "Zna oryginał dobrze", mfd: "3/4" },
-  acquaint: { label: "Zna oryginał z widzenia", mfd: "1/2" },
-  met: { label: "Spotkał oryginał kilka razy", mfd: "1/4" },
-  once: { label: "Widział oryginał raz, krótko", mfd: "1/10" }
-};
+export const FAMILIARITY = tfields({
+  intimate: { label: "Knows the original very well", mfd: "1" },
+  friend: { label: "Knows the original well", mfd: "3/4" },
+  acquaint: { label: "Knows the original by sight", mfd: "1/2" },
+  met: { label: "Met the original a few times", mfd: "1/4" },
+  once: { label: "Saw the original once, briefly", mfd: "1/10" }
+}, ["label"]);

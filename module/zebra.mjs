@@ -7,36 +7,58 @@
  *   - wyroby w walce: wypicie 15 AP, rzut 35 AP (przedział zasięgu 10 ft, Magic albo Explosives), posmarowanie 25 AP,
  *   - szukanie składników: Survival albo Magic, MFD wg terenu, każdy stopień rzadkości o krok trudniej, 30 min za stopień.
  */
-import { MFD_STEPS } from "./data.mjs";
+import { MFD_STEPS, GEAR_CATEGORIES } from "./data.mjs";
 import { rollContext } from "./effects.mjs";
 import { promptMfd, rollTest, threshold, stepIndex } from "./rolls.mjs";
 import { attackWithWeapon } from "./attack.mjs";
 import { spendActions } from "./tracker.mjs";
+import { t, tn, isPL, tmap, tfields } from "./i18n.mjs";
 
 const F = "foe-rpg";
 const { DialogV2 } = foundry.applications.api;
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const warn = msg => { ui.notifications.warn(msg); return null; };
 
-export const RARITY = { 1: "niska", 2: "średnia", 3: "wysoka", 4: "bardzo wysoka" };
-export const MODES = {
-  Drink: { short: "Wywar", label: "Wywar do picia", ap: 15, category: "potion" },
-  Throw: { short: "Do rzucania", label: "Mikstura do rzucania", ap: 35, category: "potion" },
-  Apply: { short: "Do smarowania", label: "Do posmarowania / nałożenia", ap: 25, category: "potion" },
-  Worn: { short: "Talizman", label: "Talizman / fetysz (noszony)", ap: 0, category: "talisman" },
-  Cast: { short: "Rytuał", label: "Rytuał (rzucany)", ap: 40, category: null },
-  Task: { short: "Zadanie", label: "Zadanie rytualne (poza walką)", ap: 0, category: "potion" }
-};
+export const RARITY = tmap({ 1: "rarity|low", 2: "rarity|medium", 3: "rarity|high", 4: "rarity|very high" });
+export const MODES = tfields({
+  Drink: { short: "mode|Drink", label: "Potion to drink", ap: 15, category: "potion" },
+  Throw: { short: "mode|Throw", label: "Potion to throw", ap: 35, category: "potion" },
+  Apply: { short: "mode|Apply", label: "To apply / put on", ap: 25, category: "potion" },
+  Worn: { short: "mode|Talisman", label: "Talisman / fetish (worn)", ap: 0, category: "talisman" },
+  Cast: { short: "mode|Ritual", label: "Ritual (cast)", ap: 40, category: null },
+  Task: { short: "mode|Task", label: "Ritual task (out of combat)", ap: 0, category: "potion" }
+}, ["short", "label"]);
 
-/** Teren → MFD szukania składników o niskiej rzadkości (tabela XXV). */
-export const AREAS = {
-  "Wybrzeże / plaża": "1", "Pustynia": "1/2", "Doki / magazyny": "3/4", "Las Everfree": "2", "Fabryka": "1", "Las": "2",
-  "Odosobniony budynek": "1", "Duża osada": "3/4", "Obiekt wojskowy": "1", "Góry": "1", "Biurowiec": "1.5",
-  "Stare pole bitwy": "1.5", "Wąwóz / dolina": "1.5", "Laboratorium": "1", "Mała osada": "1/2", "Ruiny miasteczka": "1.5",
-  "Stajnia (Stable)": "1/2", "Centrum handlowe": "1", "Ruiny przedmieść": "1", "Bocznica kolejowa": "3/4", "Tunele / kanały": "1.5",
-  "Ruiny miasta": "3/4", "Pustkowie — zarośla": "1.5", "Pustkowie — badlands": "1", "Pustkowie — przy drogach": "1",
-  "Pustkowie — na uboczu": "1.5", "Pustkowie — tundra": "3/4"
-};
+/** Teren i MFD szukania składników o niskiej rzadkości (tabela XXV). */
+export const AREAS = tfields([
+  { label: "Coast / beach", mfd: "1" },
+  { label: "Desert", mfd: "1/2" },
+  { label: "Docks / warehouses", mfd: "3/4" },
+  { label: "Everfree Forest", mfd: "2" },
+  { label: "Factory", mfd: "1" },
+  { label: "Forest", mfd: "2" },
+  { label: "Isolated building", mfd: "1" },
+  { label: "Large settlement", mfd: "3/4" },
+  { label: "Military facility", mfd: "1" },
+  { label: "Mountains", mfd: "1" },
+  { label: "Office building", mfd: "1.5" },
+  { label: "Old battlefield", mfd: "1.5" },
+  { label: "Ravine / valley", mfd: "1.5" },
+  { label: "Laboratory", mfd: "1" },
+  { label: "Small settlement", mfd: "1/2" },
+  { label: "Town ruins", mfd: "1.5" },
+  { label: "Stable", mfd: "1/2" },
+  { label: "Shopping center", mfd: "1" },
+  { label: "Suburb ruins", mfd: "1" },
+  { label: "Rail yard", mfd: "3/4" },
+  { label: "Tunnels / sewers", mfd: "1.5" },
+  { label: "City ruins", mfd: "3/4" },
+  { label: "Wasteland — scrubland", mfd: "1.5" },
+  { label: "Wasteland — badlands", mfd: "1" },
+  { label: "Wasteland — by the roads", mfd: "1" },
+  { label: "Wasteland — off the beaten path", mfd: "1.5" },
+  { label: "Wasteland — tundra", mfd: "3/4" }
+], ["label"]);
 
 let cache = null;
 export function loadRecipes() {
@@ -131,11 +153,11 @@ async function spendFor(actor, recipe) {
   const { roll, n, less } = await ingredientCount(actor);
   const plan = planIngredients(ingredientStock(actor), s.rarity || 1, n);
   if (!plan.ok) {
-    warn(`${recipe.name}: potrzeba ${n} składników (${RARITY[s.rarity]}) — brakuje ${plan.short}. Szukaj składników albo dodaj je w Ekwipunku.`);
+    warn(t("{name}: needs {n} ingredients ({rarity}) — {short} missing. Search for ingredients or add them in the Inventory.", { name: recipe.name, n, rarity: RARITY[s.rarity], short: plan.short }));
     return null;
   }
   await payIngredients(actor, plan.use);
-  return { n, text: `1d4+1 = ${roll.total}${less ? ` − ${less} (Magic)` : ""} → ${n} skł.: ${usedText(plan.use)}`, roll };
+  return { n, text: `1d4+1 = ${roll.total}${less ? ` − ${less} (Magic)` : ""} → ${n} ${t("ingr.")}: ${usedText(plan.use)}`, roll };
 }
 
 /** Przygotowanie wyrobu (mikstura, talizman, zadanie rytualne). */
@@ -146,7 +168,7 @@ export async function prepareRecipe(actor, recipe, mode) {
   if (!paid) return null;
   const lvl = Math.max(1, s.level || 0);
   const timeF = mode === "Worn" ? (s.level ? `15 * ${lvl}d4` : "15") : mode === "Task" ? "15d20" : "5d12";
-  const t = await new Roll(timeF).evaluate();
+  const tr = await new Roll(timeF).evaluate();
   if (m.category) {
     await addStack(actor, {
       name: recipe.name, type: "gear", img: m.category === "talisman" ? "systems/foe-rpg/icons/talisman.svg" : "systems/foe-rpg/icons/potion.svg",
@@ -156,15 +178,15 @@ export async function prepareRecipe(actor, recipe, mode) {
   }
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
-    rolls: [paid.roll, t],
+    rolls: [paid.roll, tr],
     content: `
     <div class="foe-card spell success">
-      <div class="fc-tag"><span>PIPBUCK // ALCHEMIA</span><span>${esc(m.label)}</span></div>
+      <div class="fc-tag"><span>PIPBUCK // ${t("ALCHEMY")}</span><span>${esc(m.label)}</span></div>
       <h3>${esc(recipe.name)}</h3>
-      <div class="fc-calc">Przygotowano</div>
+      <div class="fc-calc">${t("Prepared")}</div>
       <div class="fc-meta">${esc(paid.text)}</div>
-      <div class="fc-meta">Czas: ${esc(timeF)} = ${t.total} min${s.special ? ` · składnik specjalny: ${esc(s.special)}` : ""}</div>
-      ${m.category ? `<div class="fc-meta">Wyrób trafił do Ekwipunku (${m.category === "talisman" ? "Talizmany i fetysze" : "Mikstury i wywary zebr"}).</div>` : ""}
+      <div class="fc-meta">${t("Time: {f} = {n} min", { f: esc(timeF), n: tr.total })}${s.special ? ` · ${t("special ingredient: {s}", { s: esc(s.special) })}` : ""}</div>
+      ${m.category ? `<div class="fc-meta">${t("The product went to the Inventory ({cat}).", { cat: GEAR_CATEGORIES[m.category === "talisman" ? "talisman" : "potion"] })}</div>` : ""}
     </div>`
   });
 }
@@ -173,12 +195,12 @@ export async function prepareRecipe(actor, recipe, mode) {
 export async function castRitual(actor, recipe) {
   const s = recipe.system;
   const magic = actor.system.skills.magic;
-  if (!magic || magic.known === false) return warn(`${actor.name} nie zna magii zebr.`);
+  if (!magic || magic.known === false) return warn(t("{name} doesn't know zebra magic.", { name: actor.name }));
   const sats = actor.system.resources.sats;
-  const extraHtml = `<div class="dlg-attack"><div class="atk-info"><div>Rytuał · składniki: ${RARITY[s.rarity]}${s.special ? ` + ${esc(s.special)}` : ""}</div></div>
-    <label class="atk-row atk-check"><input type="checkbox" name="sats" ${sats.value >= 40 ? "" : "disabled"}><span>SATS</span><small>−40 AP (masz ${sats.value})</small></label></div>`;
+  const extraHtml = `<div class="dlg-attack"><div class="atk-info"><div>${t("Ritual · ingredients: {r}", { r: RARITY[s.rarity] })}${s.special ? ` + ${esc(s.special)}` : ""}</div></div>
+    <label class="atk-row atk-check"><input type="checkbox" name="sats" ${sats.value >= 40 ? "" : "disabled"}><span>SATS</span><small>−40 AP (${t("you have {n}", { n: sats.value })})</small></label></div>`;
   const rc = rollContext(actor, { kind: "skill", skill: "magic", skillAttr: magic.attr }, { manualMod: magic.mod });
-  const r = await promptMfd(`Rytuał: ${recipe.name}`, magic.tn, rc, {
+  const r = await promptMfd(t("Ritual: {name}", { name: recipe.name }), magic.tn, rc, {
     extraHtml, readExtra: f => ({ steps: 0, mod: 0, notes: f.elements.sats?.checked ? ["SATS −40 AP"] : [], data: { sats: !!f.elements.sats?.checked } })
   });
   if (!r) return null;
@@ -186,19 +208,19 @@ export async function castRitual(actor, recipe) {
   const paid = await spendFor(actor, recipe);
   if (!paid) return null;
   if (ex.sats) await actor.update({ "system.resources.sats.value": actor.system.resources.sats.value - 40 });
-  await spendActions(actor, 1, "rytuał");
-  const msg = await rollTest(actor, { label: `Rytuał: ${recipe.name} (Magic)`, baseTn: magic.tn, ...roll });
+  await spendActions(actor, 1, t("ritual"));
+  const msg = await rollTest(actor, { label: t("Ritual: {name} (Magic)", { name: recipe.name }), baseTn: magic.tn, magic: true, ...roll });
   const res = msg?.getFlag?.(F, "test")?.result ?? msg?.flags?.[F]?.test?.result ?? "fail";
   const ok = res === "success" || res === "crit-success";
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content: `
     <div class="foe-card spell ${ok ? "success" : "fail"}">
-      <div class="fc-tag"><span>PIPBUCK // RYTUAŁ</span><span>poziom ${s.level}</span></div>
+      <div class="fc-tag"><span>PIPBUCK // ${t("RITUAL")}</span><span>${t("level {n}", { n: s.level })}</span></div>
       <h3>${esc(recipe.name)}</h3>
-      <div class="fc-calc">${ok ? "Rytuał działa" : "Rytuał nie wyszedł"}</div>
+      <div class="fc-calc">${ok ? t("The ritual works") : t("The ritual failed")}</div>
       <div class="fc-meta">${esc(paid.text)}</div>
-      ${ok && s.damage ? `<button type="button" class="foe-luck" data-action="foeSpellDamage"><i class="fa-solid fa-burst"></i> Rzuć obrażenia</button>` : ""}
+      ${ok && s.damage ? `<button type="button" class="foe-luck" data-action="foeSpellDamage"><i class="fa-solid fa-burst"></i> ${t("Roll damage")}</button>` : ""}
     </div>`,
     flags: { [F]: { spell: { actorUuid: actor.uuid, spellUuid: recipe.uuid, layers: 0 } } }
   });
@@ -206,10 +228,10 @@ export async function castRitual(actor, recipe) {
 
 /** Użycie wyrobu: wypić, posmarować, założyć albo rzucić (jak granat). */
 export async function useProduct(actor, item) {
-  if (item.type !== "gear") return warn(`${item.name}: to receptura — najpierw przygotuj wyrób.`);
+  if (item.type !== "gear") return warn(t("{name}: this is a recipe — prepare the product first.", { name: item.name }));
   const mode = item.system.usage || "Drink";
   const m = MODES[mode] ?? MODES.Drink;
-  if ((item.system.qty || 0) < 1) return warn(`${item.name}: nie masz już ani jednej sztuki.`);
+  if ((item.system.qty || 0) < 1) return warn(t("{name}: you don't have any left.", { name: item.name }));
   if (mode === "Throw") {
     const sk = actor.system.skills;
     const skill = (sk.magic?.known !== false ? sk.magic.tn : 0) >= sk.explosives.tn ? "magic" : "explosives";
@@ -224,15 +246,15 @@ export async function useProduct(actor, item) {
     return msg;
   }
   if (mode === "Worn") {
-    return ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: `<div class="foe-card spell"><div class="fc-tag"><span>PIPBUCK // TALIZMAN</span><span>1 akcja</span></div><h3>${esc(item.name)}</h3><div class="fc-meta">Działa po pełnej rundzie noszenia. Opis efektu — w przedmiocie.</div></div>` });
+    return ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: `<div class="foe-card spell"><div class="fc-tag"><span>PIPBUCK // ${t("TALISMAN")}</span><span>${t("1 action")}</span></div><h3>${esc(item.name)}</h3><div class="fc-meta">${t("Works after a full round of wearing. The effect's description is in the item.")}</div></div>` });
   }
   const left = item.system.qty - 1;
   await spendActions(actor, 1, m.label.toLowerCase());
   await item.update({ "system.qty": left });
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
-    content: `<div class="foe-card spell success"><div class="fc-tag"><span>PIPBUCK // ${mode === "Drink" ? "WYPITO" : "NAŁOŻONO"}</span><span>${m.ap} AP w SATS</span></div>
-      <h3>${esc(item.name)}</h3><div class="fc-meta">Zostało: ${left}</div>${item.system.description || ""}</div>`
+    content: `<div class="foe-card spell success"><div class="fc-tag"><span>PIPBUCK // ${mode === "Drink" ? t("DRUNK") : t("APPLIED")}</span><span>${t("{n} AP in SATS", { n: m.ap })}</span></div>
+      <h3>${esc(item.name)}</h3><div class="fc-meta">${t("Left: {n}", { n: left })}</div>${item.system.description || ""}</div>`
   });
 }
 
@@ -241,28 +263,28 @@ export async function searchIngredients(actor) {
   const sk = actor.system.skills;
   const content = `
     <div class="foe-dialog">
-      <label class="atk-row">Teren <select name="area">${Object.entries(AREAS).map(([k, v]) => `<option value="${v}">${k} (MFD ${v.replace(".", ",")})</option>`).join("")}</select></label>
-      <label class="atk-row">Rzadkość <select name="rarity">${Object.entries(RARITY).map(([k, v]) => `<option value="${k}">${v}${k > 1 ? ` (−${k - 1} kr., +${(k - 1) * 30} min)` : ""}</option>`).join("")}</select></label>
-      <label class="atk-row">Umiejętność <select name="skill"><option value="survival">Survival (${sk.survival.tn})</option>${sk.magic?.known !== false ? `<option value="magic">Magic (${sk.magic.tn})</option>` : ""}</select></label>
-      <p class="hint">Szukanie trwa co najmniej 30 minut (+30 za każdy stopień rzadkości). Sukces daje 1d4 składników — ostateczną liczbę ustala MG.</p>
+      <label class="atk-row">${t("Terrain")} <select name="area">${AREAS.map(a => `<option value="${a.mfd}">${a.label} (MFD ${isPL() ? a.mfd.replace(".", ",") : a.mfd})</option>`).join("")}</select></label>
+      <label class="atk-row">${t("Rarity")} <select name="rarity">${Object.entries(RARITY).map(([k, v]) => `<option value="${k}">${v}${k > 1 ? ` ${t("(−{s} st., +{m} min)", { s: k - 1, m: (k - 1) * 30 })}` : ""}</option>`).join("")}</select></label>
+      <label class="atk-row">${t("Skill")} <select name="skill"><option value="survival">Survival (${sk.survival.tn})</option>${sk.magic?.known !== false ? `<option value="magic">Magic (${sk.magic.tn})</option>` : ""}</select></label>
+      <p class="hint">${t("The search takes at least 30 minutes (+30 per rarity step). Success gives 1d4 ingredients — the GM sets the final number.")}</p>
     </div>`;
   const pick = await DialogV2.wait({
-    window: { title: "Szukanie składników" }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 440 }, content, rejectClose: false,
-    buttons: [{ action: "go", label: "Szukaj", icon: "fa-solid fa-magnifying-glass", default: true,
+    window: { title: t("Searching for ingredients") }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 440 }, content, rejectClose: false,
+    buttons: [{ action: "go", label: t("Search"), icon: "fa-solid fa-magnifying-glass", default: true,
       callback: (ev, btn) => ({ area: btn.form.elements.area.value, rarity: Number(btn.form.elements.rarity.value), skill: btn.form.elements.skill.value }) }]
   });
   if (!pick) return null;
   const s = sk[pick.skill];
   const idx = Math.min(MFD_STEPS.length - 1, stepIndex(pick.area) + (pick.rarity - 1));
-  const msg = await rollTest(actor, { label: `Szukanie składników (${RARITY[pick.rarity]})`, baseTn: s.tn, step: MFD_STEPS[idx].key, mod: s.rollMod ?? 0, notes: [] });
+  const msg = await rollTest(actor, { label: t("Searching for ingredients ({r})", { r: RARITY[pick.rarity] }), baseTn: s.tn, step: MFD_STEPS[idx].key, mod: s.rollMod ?? 0, notes: [] });
   const res = msg?.getFlag?.(F, "test")?.result ?? msg?.flags?.[F]?.test?.result ?? "fail";
-  if (res !== "success" && res !== "crit-success") return ui.notifications.info(`${actor.name}: nic nie znaleziono (${pick.rarity * 30} min).`);
+  if (res !== "success" && res !== "crit-success") return ui.notifications.info(t("{name}: found nothing ({n} min).", { name: actor.name, n: pick.rarity * 30 }));
   const r = await new Roll("1d4").evaluate();
   await addStack(actor, {
-    name: `Składniki: ${RARITY[pick.rarity]}`, type: "gear", img: "systems/foe-rpg/icons/ingredient.svg",
-    system: { category: "ingredient", rarity: pick.rarity, weight: 0, value: 0, description: "<p>Drobne składniki zebrzej alchemii (zamiennik 4:1 o stopień wyżej, wyższa rzadkość zastępuje niższą 1:1).</p>" }
+    name: t("Ingredients: {r}", { r: RARITY[pick.rarity] }), type: "gear", img: "systems/foe-rpg/icons/ingredient.svg",
+    system: { category: "ingredient", rarity: pick.rarity, weight: 0, value: 0, description: `<p>${t("Small ingredients for zebra alchemy (4:1 substitute one step up, a higher rarity replaces a lower one 1:1).")}</p>` }
   }, r.total);
-  ui.notifications.info(`${actor.name}: znaleziono ${r.total} składników (${RARITY[pick.rarity]}).`);
+  ui.notifications.info(tn(r.total, "{name}: found {n} ingredient ({r}).", "{name}: found {n} ingredients ({r}).", { name: actor.name, r: RARITY[pick.rarity] }));
   return msg;
 }
 
