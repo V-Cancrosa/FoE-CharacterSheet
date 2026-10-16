@@ -8,20 +8,21 @@ import {
   request, tableState, inPlay, turnSeat, controls, holeCards, npcHoles, requestCards, userActor, tableReach, reachOn,
   sitDown, seatNpcs, docSync
 } from "./casino.mjs";
-import { capsOf, esc } from "./give.mjs";
+import { capsOf, capsText, esc } from "./give.mjs";
+import { t, tn } from "./i18n.mjs";
 
 const { HandlebarsApplicationMixin, DialogV2 } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
 const P = "systems/foe-rpg/templates";
 const opt = (obj, cur) => Object.entries(obj).map(([value, label]) => ({ value, label, sel: value === cur }));
-const RESULT = { bj: "BLACKJACK", win: "wygrana", push: "remis", lose: "przegrana", bust: "fura" };
+const result = r => ({ bj: "BLACKJACK", win: t("win"), push: t("push"), lose: t("loss"), bust: t("bust") })[r] ?? "";
 
 /** Karta jako HTML: awers (ranga, kolor, imię damy) albo rewers; `anim` — „deal” (rozdanie) albo „flip” (odkrycie). */
 function cardHtml(code, { anim = "", delay = 0, extra = "" } = {}) {
   const c = C.cardInfo(code);
   const cls = ["cz-card", c.hidden ? "back" : "", c.red ? "red" : "", anim, extra].filter(Boolean).join(" ");
   const style = anim ? ` style="--d:${(delay * 0.13).toFixed(2)}s"` : "";
-  if (c.hidden) return `<span class="${cls}"${style} title="karta zakryta"></span>`;
+  if (c.hidden) return `<span class="${cls}"${style} title="${esc(c.title)}"></span>`;
   const queen = c.queen === "Nightmare Moon" ? "N. Moon" : c.queen;
   return `<span class="${cls}"${style} title="${esc(c.title)}"><i>${esc(c.rank)}</i><u>${c.suit}</u>${queen ? `<small>${esc(queen)}</small>` : ""}</span>`;
 }
@@ -30,7 +31,7 @@ function cardHtml(code, { anim = "", delay = 0, extra = "" } = {}) {
 function bjLabel(cards, { natural = false, final = false } = {}) {
   if (!cards?.length) return "";
   const v = C.bjValue(cards);
-  if (v.total > 21) return `fura (${v.total})`;
+  if (v.total > 21) return t("bust ({n})", { n: v.total });
   if (natural && cards.length === 2 && v.total === 21) return "BJ";
   if (v.soft && v.total < 21 && !final) return `${v.total - 10}/${v.total}`;
   return String(v.total);
@@ -125,9 +126,9 @@ export class FoeCasinoSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const html = list => list.map(x => x.html).join("");
     const v = {
       bj, he: !bj, name: table.name, gameLabel: C.GAMES[st.game], open: sys.open, playing,
-      stakes: bj ? `stawki ${sys.minBet}–${sys.maxBet} kapsli · ${sys.decks} ${sys.decks === 1 ? "talia" : "talie"} · krupier stoi na 17 · BJ płaci 3:2`
-        : `ciemne ${sys.smallBlind}/${Math.max(sys.bigBlind, sys.smallBlind)} · wpisowe ${sys.buyInMin}–${sys.buyInMax}${sys.rake ? ` · prowizja ${sys.rake}%` : ""}`,
-      bank: sys.bankUnlimited ? "" : `bank stołu: ${sys.bank} kapsli`,
+      stakes: bj ? [t("stakes {min}–{max} caps", { min: sys.minBet, max: sys.maxBet }), tn(sys.decks, "{n} deck", "{n} decks"), t("dealer stands on 17"), t("BJ pays 3:2")].join(" · ")
+        : [t("blinds {sb}/{bb}", { sb: sys.smallBlind, bb: Math.max(sys.bigBlind, sys.smallBlind) }), t("buy-in {min}–{max}", { min: sys.buyInMin, max: sys.buyInMax }), sys.rake ? t("rake {n}%", { n: sys.rake }) : ""].filter(Boolean).join(" · "),
+      bank: sys.bankUnlimited ? "" : t("table bank: {n} caps", { n: sys.bank }),
       profit: game.user.isGM ? `${(sys.profit ?? 0) > 0 ? "+" : ""}${sys.profit ?? 0}` : null,
       log: (sys.log ?? []).slice(-14)
     };
@@ -142,12 +143,12 @@ export class FoeCasinoSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // kolejność jak przy stole: pierwsza karta graczy, odkryta krupiera, druga graczy, zakryta krupiera, potem dobierane
       dealerCards = d.cards.map((c, i) => card(c, `d${i}`, i === 0 ? n : i === 1 ? 2 * n + 1 : 1000 + i));
       if (d.hidden && d.cards.length) dealerCards.push(card("??", "d1", 2 * n + 1));
-      v.dealer = { name: sys.dealer || "Krupier", total: !d.cards.length ? "" : d.hidden ? `${bjLabel(d.cards, { final: true })} + ?` : bjLabel(d.cards, { natural: true, final: true }) };
+      v.dealer = { name: sys.dealer || t("Dealer"), total: !d.cards.length ? "" : d.hidden ? `${bjLabel(d.cards, { final: true })} + ?` : bjLabel(d.cards, { natural: true, final: true }) };
     } else {
       board = st.board.map((c, i) => card(c, `b${i}`, 100 + i));
       const pot = (st.pot ?? 0) + st.seats.reduce((t, s) => t + (s.bet ?? 0), 0);
       v.pot = pot || playing ? pot : null;
-      v.dealerName = sys.dealer || "Krupier";
+      v.dealerName = sys.dealer || t("Dealer");
     }
 
     v.seats = st.seats.map((s, idx) => {
@@ -161,7 +162,7 @@ export class FoeCasinoSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             slots: h.cards.map((c, i) => card(c, `${s.id}:${hi}:${i}`, i < 2 && !h.split ? i * (n + 1) + inRound.indexOf(s) : 500 + inRound.indexOf(s) * 20 + hi * 5 + i)),
             total: bjLabel(h.cards, { natural: !h.split, final: !!h.result || h.done }), stake: h.bet, doubled: h.doubled,
             active: playing && st.turn?.seat === idx && st.turn?.hand === hi,
-            result: h.result, resultLabel: RESULT[h.result] ?? "", net: h.result ? h.payout - h.bet : null
+            result: h.result, resultLabel: result(h.result), net: h.result ? h.payout - h.bet : null
           }))
         });
         const net = row.hands.reduce((t, h) => t + (h.net ?? 0), 0);
@@ -219,8 +220,8 @@ export class FoeCasinoSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const actor = userActor();
       const reach = tableReach(actor, table);
       ctl.sit = {
-        who: actor?.name ?? "", caps: actor ? capsOf(actor) : 0, ok: !!actor && reach.ok,
-        why: !actor ? "Zaznacz token swojej postaci (albo przypisz postać do gracza)." : reach.ok ? "" : `${actor.name}: ${reach.why}.`,
+        who: actor?.name ?? "", caps: actor ? capsOf(actor) : 0, capsLabel: capsText(actor ? capsOf(actor) : 0), ok: !!actor && reach.ok,
+        why: !actor ? t("Select your character's token (or assign a character to the player).") : reach.ok ? "" : `${actor.name}: ${reach.why}.`,
         buyIn: !bj, buyMin: sys.buyInMin, buyMax: Math.min(sys.buyInMax, Math.max(sys.buyInMin, actor ? capsOf(actor) : 0)),
         buyDefault: Math.min(sys.buyInMax, Math.max(sys.buyInMin, Math.min(actor ? capsOf(actor) : 0, sys.buyInMin * 2)))
       };
@@ -230,7 +231,7 @@ export class FoeCasinoSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (st.phase === "betting") {
         const bets = st.seats.filter(s => s.bet > 0 && !s.leaving);
         ctl.deal = anySeat && sys.open && bets.length > 0;
-        ctl.status = !sys.open ? "Stół zamknięty." : bets.length ? `Postawione: ${bets.map(s => `${s.name} ${s.bet}`).join(", ")}. Krupier rozda, gdy ktoś kliknie „Rozdaj”.` : "Stawiajcie zakłady.";
+        ctl.status = !sys.open ? t("Table closed.") : bets.length ? t("Bets: {list}. The dealer deals when someone clicks “Deal”.", { list: bets.map(s => `${s.name} ${s.bet}`).join(", ") }) : t("Place your bets.");
       } else if (turn) {
         const legal = C.bjLegal(st, turn.id);
         const hand = turn.hands[st.turn.hand];
@@ -239,25 +240,25 @@ export class FoeCasinoSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           ctl.bjTurn = {
             seat: turn.id, name: turn.name, hit: legal.hit, stand: legal.stand, double: legal.double, split: legal.split, cost: legal.cost,
             short: (legal.double || legal.split) && caps < legal.cost,
-            hand: turn.hands.length > 1 ? `ręka ${st.turn.hand + 1} z ${turn.hands.length}` : "", total: bjLabel(hand.cards)
+            hand: turn.hands.length > 1 ? t("hand {n} of {m}", { n: st.turn.hand + 1, m: turn.hands.length }) : "", total: bjLabel(hand.cards)
           };
-        } else if (game.user.isGM) ctl.force = { seat: turn.id, name: turn.name, act: "stand", label: "Wymuś: stoi" };
-        ctl.status = `Ruch: ${turn.name}${turn.hands.length > 1 ? ` (ręka ${st.turn.hand + 1})` : ""}.`;
+        } else if (game.user.isGM) ctl.force = { seat: turn.id, name: turn.name, act: "stand", label: t("Force: stand") };
+        ctl.status = `${t("Turn: {name}", { name: turn.name })}${turn.hands.length > 1 ? ` ${t("(hand {n})", { n: st.turn.hand + 1 })}` : ""}.`;
       }
     } else if (!playing) {
       const ready = st.seats.filter(s => s.stack > 0 && !s.leaving);
       ctl.start = anySeat && sys.open && ready.length >= 2;
-      ctl.status = !sys.open ? "Stół zamknięty." : ready.length >= 2 ? "Między rozdaniami — „Nowe rozdanie” rozpoczyna grę." : "Potrzeba co najmniej dwóch graczy z kapslami na stole.";
+      ctl.status = !sys.open ? t("Table closed.") : ready.length >= 2 ? t("Between hands — “New hand” starts the game.") : t("At least two players with caps on the table are needed.");
     } else if (turn) {
       const legal = C.heLegal(st, turn.id);
       if (controls(turn)) {
         ctl.heTurn = {
           seat: turn.id, name: turn.name, fold: legal.fold, check: legal.check, call: legal.call, callAmount: legal.callAmount,
           raise: legal.raise, minTo: legal.minRaiseTo, maxTo: legal.maxRaiseTo, allIn: legal.allIn, allInTo: turn.bet + turn.stack,
-          raiseLabel: st.toCall > 0 ? "Podbij do" : "Postaw"
+          raiseLabel: st.toCall > 0 ? t("Raise to") : t("he|Bet")
         };
-      } else if (game.user.isGM) ctl.force = { seat: turn.id, name: turn.name, act: legal.check ? "check" : "fold", label: legal.check ? "Wymuś: czeka" : "Wymuś: pas" };
-      ctl.status = `${{ preflop: "Przed flopem", flop: "Flop", turn: "Turn", river: "River" }[st.phase]} — ruch: ${turn.name}${st.toCall ? ` (do sprawdzenia ${st.toCall})` : ""}.`;
+      } else if (game.user.isGM) ctl.force = { seat: turn.id, name: turn.name, act: legal.check ? "check" : "fold", label: legal.check ? t("Force: check") : t("Force: fold") };
+      ctl.status = `${{ preflop: t("Pre-flop"), flop: "Flop", turn: "Turn", river: "River" }[st.phase]} — ${t("turn: {name}", { name: turn.name })}${st.toCall ? ` ${t("(to call: {n})", { n: st.toCall })}` : ""}.`;
     }
     if (game.user.isGM) {
       ctl.gm = { npcBuy: !bj, buyMin: sys.buyInMin, buyMax: sys.buyInMax, playing };
@@ -334,8 +335,8 @@ export class FoeCasinoSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!seat) return null;
     const busy = inPlay(st) && (seat.inHand && !seat.folded || seat.inRound);
     if (busy && !await DialogV2.confirm({
-      window: { title: `${seat.name}: wstać od stołu?` },
-      content: `<p>${st.game === "holdem" ? "Trwa rozdanie — wstając, pasujesz. Kapsle ze stołu wrócą po rozdaniu." : "Trwa rozdanie — twoje ręce zostaną tak, jak są, a wygrana i tak trafi na kartę postaci."}</p>`
+      window: { title: t("{name}: leave the table?", { name: seat.name }) },
+      content: `<p>${st.game === "holdem" ? t("A hand is in progress — leaving means folding. The caps on the table come back after the hand.") : t("A round is in progress — your hands stay as they are, and any winnings still go to the character sheet.")}</p>`
     })) return null;
     return request(this.document, "leave", { seat: seat.id });
   }
@@ -346,7 +347,7 @@ export class FoeCasinoSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const st = tableState(this.document);
     const s = st.seats.find(x => x.id === seat);
     const actor = s ? docSync(s.actor) : null;
-    if (amount > 0 && actor && capsOf(actor) + (s.bet ?? 0) < amount) return ui.notifications.warn(`${s.name}: za mało kapsli (${capsOf(actor)}).`);
+    if (amount > 0 && actor && capsOf(actor) + (s.bet ?? 0) < amount) return ui.notifications.warn(t("{name}: not enough caps ({n}).", { name: s.name, n: capsOf(actor) }));
     return request(this.document, "bet", { seat, amount });
   }
   static #onDeal() { return request(this.document, "deal"); }
@@ -368,16 +369,16 @@ export class FoeCasinoSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
   static async #onKick(ev, el) {
     const s = tableState(this.document).seats.find(x => x.id === el.dataset.seat);
-    if (!s || !await DialogV2.confirm({ window: { title: "Wyprosić od stołu?" }, content: `<p>${esc(s.name)} odchodzi od stołu; kapsle ze stołu wracają na kartę postaci (w trakcie rozdania — pas).</p>` })) return null;
+    if (!s || !await DialogV2.confirm({ window: { title: t("Remove from the table?") }, content: `<p>${esc(t("{name} leaves the table; the caps on the table go back to the character sheet (during a hand — a fold).", { name: s.name }))}</p>` })) return null;
     return request(this.document, "kick", { seat: s.id });
   }
   static #onForce(ev, el) { return request(this.document, "act", { seat: el.dataset.seat, action: el.dataset.act }); }
   static async #onVoid() {
-    if (!await DialogV2.confirm({ window: { title: "Anulować rozdanie?" }, content: "<p>Wszystkie stawki z tego rozdania wrócą do graczy.</p>" })) return null;
+    if (!await DialogV2.confirm({ window: { title: t("Void the hand?") }, content: `<p>${t("All stakes from this hand will go back to the players.")}</p>` })) return null;
     return request(this.document, "void");
   }
   static async #onClose() {
-    if (!await DialogV2.confirm({ window: { title: "Zamknąć stół?" }, content: "<p>Trwające rozdanie zostanie anulowane, a wszystkie kapsle ze stołu wrócą do graczy. Stół otworzysz znowu w ustawieniach.</p>" })) return null;
+    if (!await DialogV2.confirm({ window: { title: t("Close the table?") }, content: `<p>${t("The current hand will be voided and all the caps on the table will go back to the players. You can open the table again in the settings.")}</p>` })) return null;
     return request(this.document, "close");
   }
   static #onResetProfit() { return this.document.update({ "system.profit": 0 }); }

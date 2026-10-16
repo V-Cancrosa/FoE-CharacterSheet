@@ -28,8 +28,12 @@ import { registerUiSettings, registerUiHooks } from "./ui-theme.mjs";
 import { casinoDataClass } from "./casino-data.mjs";
 import { FoeCasinoSheet } from "./casino-sheet.mjs";
 import { registerCasinoSettings, registerCasinoHooks } from "./casino.mjs";
+import { registerLanguageSetting, registerI18nHelpers, localizeRegistrations } from "./i18n.mjs";
 
 Hooks.once("init", () => {
+  // język systemu (opcja gracza) — najpierw, bo z niego korzystają wszystkie napisy
+  registerLanguageSetting();
+  registerI18nHelpers();
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData, vehicle: VehicleData, terminal: terminalDataClass(), casino: casinoDataClass() };
   CONFIG.Item.dataModels = { weapon: WeaponData, armor: ArmorData, gear: GearData, feature: FeatureData, spell: SpellData };
   CONFIG.Combat.documentClass = FoeCombat;
@@ -41,11 +45,11 @@ Hooks.once("init", () => {
   const register = (cls, sheet, opts) => (SheetConfig?.registerSheet
     ? SheetConfig.registerSheet(cls, "foe-rpg", sheet, opts)
     : (cls === Actor ? foundry.documents.collections.Actors : foundry.documents.collections.Items).registerSheet("foe-rpg", sheet, opts));
-  register(Actor, FoeActorSheet, { types: ["character", "npc"], makeDefault: true, label: "FoE: karta postaci" });
-  register(Actor, FoeVehicleSheet, { types: ["vehicle"], makeDefault: true, label: "FoE: karta pojazdu" });
+  register(Actor, FoeActorSheet, { types: ["character", "npc"], makeDefault: true, label: "FoE: character sheet" });
+  register(Actor, FoeVehicleSheet, { types: ["vehicle"], makeDefault: true, label: "FoE: vehicle sheet" });
   register(Actor, FoeTerminalSheet, { types: ["terminal"], makeDefault: true, label: "FoE: terminal" });
-  register(Actor, FoeCasinoSheet, { types: ["casino"], makeDefault: true, label: "FoE: stół do gry" });
-  register(Item, FoeItemSheet, { makeDefault: true, label: "FoE: przedmiot" });
+  register(Actor, FoeCasinoSheet, { types: ["casino"], makeDefault: true, label: "FoE: gaming table" });
+  register(Item, FoeItemSheet, { makeDefault: true, label: "FoE: item sheet" });
 
   registerCombatHooks();
   registerTrackerHooks();
@@ -89,6 +93,9 @@ Hooks.once("init", () => {
   game.foe = { openCatalog, setWeather };
 });
 
+/** Tłumaczenia Foundry wczytane: ustawienia, typy i etykiety kart w języku gracza. */
+Hooks.once("i18nInit", () => localizeRegistrations());
+
 /** Nowa postać lub NPC → kreator (tylko u osoby, która ją utworzyła). */
 Hooks.on("createActor", (actor, options, userId) => {
   if (userId !== game.user.id || ["vehicle", "terminal", "casino"].includes(actor.type) || !game.settings.get("foe-rpg", "autoCreator")) return;
@@ -99,20 +106,20 @@ Hooks.on("createActor", (actor, options, userId) => {
 
 function registerCreatorSettings() {
   game.settings.register("foe-rpg", "autoCreator", {
-    name: "Kreator przy nowej postaci",
-    hint: "Otwiera kreator postaci (PC) lub NPC zaraz po utworzeniu nowego aktora. Kreator można też uruchomić przyciskiem na karcie.",
+    name: "Creator for new characters",
+    hint: "Opens the character (PC) or NPC creator right after a new actor is created. You can also start the creator with a button on the sheet.",
     scope: "world",
     config: true,
     type: Boolean,
     default: true
   });
   game.settings.register("foe-rpg", "creationPool", {
-    name: "Punkty tworzenia postaci",
-    hint: "Pula punktów S.P.E.C.I.A.L. (podręcznik s. 51): 35 standardowo, 37 dla „wielkich bohaterów”, 32 dla słabszych postaci.",
+    name: "Character creation points",
+    hint: "S.P.E.C.I.A.L. point pool (rulebook p. 51): 35 as standard, 37 for “great heroes”, 32 for weaker characters.",
     scope: "world",
     config: true,
     type: Number,
-    choices: { 32: "32 — słabsze postacie", 35: "35 — standard", 37: "37 — wielcy bohaterowie" },
+    choices: { 32: "32 — weaker characters", 35: "35 — standard", 37: "37 — great heroes" },
     default: 35
   });
 }
@@ -136,39 +143,39 @@ Hooks.once("ready", async () => {
     if (world.length) await Item.implementation.updateDocuments(world);
     await game.settings.set("foe-rpg", "specialsMigrated", true);
   } catch (err) {
-    console.error("foe-rpg | uzupełnianie efektów broni", err);
+    console.error("foe-rpg | weapon specials migration", err);
   }
 });
 
 /** Zasady opcjonalne z rozdziału o walce. */
 function registerCombatSettings() {
   game.settings.register("foe-rpg", "powerArmorUntrainedAgi", {
-    name: "Kara AGI za pancerz wspomagany bez szkolenia",
-    hint: "Zasada domowa: dodatkowa kara do AGI dla postaci bez Power Armor Training. Podręcznik mówi tylko, że bez szkolenia nie ma premii z pancerza, a jego kary AGI zostają (0 = tylko to).",
+    name: "AGI penalty for power armor without training",
+    hint: "House rule: an extra AGI penalty for characters without Power Armor Training. The rulebook only says that without the training the armor gives no bonuses while its AGI penalties remain (0 = just that).",
     scope: "world", config: true, type: Number, default: 0, range: { min: 0, max: 5, step: 1 }
   });
   game.settings.register("foe-rpg", "weaponDegradation", {
-    name: "Degradacja broni",
-    hint: "Zasada opcjonalna (s. 458): każda kość obrażeń to krok degradacji; broń traci kość co 2 magazynki (ponad 8 kości — co 1, jednostrzałowa — co 4 strzały), wręcz — po tylu trafieniach, ile ma kości. Naprawa: Repair wg tabeli XXIX i broń-dawca na części.",
+    name: "Weapon degradation",
+    hint: "Optional rule (p. 458): each damage die is one degradation step; a weapon loses a die every 2 magazines (over 8 dice — every magazine, single-shot — every 4 shots), a melee weapon — after as many hits as it has dice. Repair: Repair per Table XXIX and a donor weapon for parts.",
     scope: "world", config: true, type: Boolean, default: false
   });
   game.settings.register("foe-rpg", "specialAmmo", {
-    name: "Amunicja specjalna",
-    hint: "Zasada opcjonalna (s. 202–203): zwykłe naboje i amunicja energetyczna ignorują 5 DT, a w katalogu jest amunicja specjalna (AP, Incendiary, Spark, Focused, High Explosive…) wybierana przy przeładowaniu.",
+    name: "Special ammunition",
+    hint: "Optional rule (pp. 202–203): regular rounds and energy ammo ignore 5 DT, and the catalog has special ammunition (AP, Incendiary, Spark, Focused, High Explosive…) chosen when reloading.",
     scope: "world", config: true, type: Boolean, default: false
   });
   game.settings.register("foe-rpg", "specialsMigrated", { scope: "world", config: false, type: Boolean, default: false });
   game.settings.register("foe-rpg", "randomHitLocations", {
-    name: "Losowe lokacje trafień",
-    hint: "Zasada opcjonalna (s. 449–450): w oknie ataku domyślnie wybrana jest lokacja losowana k20 wg rasy celu zamiast tułowia. Strzały celowane działają zawsze.",
+    name: "Random hit locations",
+    hint: "Optional rule (pp. 449–450): the attack dialog defaults to a hit location rolled on a d20 for the target's race instead of the torso. Called shots always work.",
     scope: "world",
     config: true,
     type: Boolean,
     default: false
   });
   game.settings.register("foe-rpg", "armorDegradation", {
-    name: "Degradacja pancerza",
-    hint: "Zasada opcjonalna (s. 460): gdy obrażenia przebiją pancerz, traci on 1 DT na tej lokacji. To domyślne zaznaczenie w oknie „Nanieś obrażenia”.",
+    name: "Armor degradation",
+    hint: "Optional rule (p. 460): when damage gets through the armor, it loses 1 DT on that location. This is the default of the checkbox in the “Apply damage” dialog.",
     scope: "world",
     config: true,
     type: Boolean,
@@ -184,18 +191,18 @@ function registerDisplaySettings() {
     try { globalThis.ui?.pause?.render?.(); } catch { /* ekran pauzy jeszcze nie istnieje */ }
   };
   game.settings.register("foe-rpg", "pipColor", {
-    name: "Kolor ekranu PipBucka",
-    hint: "Kolor fosforu na kartach postaci i w rzutach na czacie.",
+    name: "PipBuck screen color",
+    hint: "Phosphor color of the character sheets and of the rolls in chat.",
     scope: "client",
     config: true,
     type: String,
-    choices: { green: "Zielony", amber: "Bursztynowy", blue: "Niebieski", white: "Biały" },
+    choices: { green: "Green", amber: "Amber", blue: "Blue", white: "White" },
     default: "green",
     onChange: apply
   });
   game.settings.register("foe-rpg", "crtEffect", {
-    name: "Efekt kineskopu (linie skanowania)",
-    hint: "Wyłącz, jeśli linie skanowania przeszkadzają w czytaniu.",
+    name: "CRT effect (scan lines)",
+    hint: "Turn it off if the scan lines make reading harder.",
     scope: "client",
     config: true,
     type: Boolean,

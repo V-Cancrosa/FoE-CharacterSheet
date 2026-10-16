@@ -5,6 +5,7 @@
  * Okno wymiany (kto stoi obok, rzut, sprzedaż): trade.mjs; rzut przedmiotem: throw.mjs; sprzedaż: sale.mjs.
  */
 import { addItemToActor } from "./catalog.mjs";
+import { t, tn } from "./i18n.mjs";
 
 export const F = "foe-rpg";
 export const SOCKET = `system.${F}`;
@@ -14,11 +15,8 @@ export const warn = msg => { ui.notifications.warn(msg); return null; };
 export const stacks = it => it?.type === "gear" || (it?.type === "weapon" && !!it.system?.consumable);
 export const qtyOf = it => (stacks(it) ? Math.max(0, Number(it.system?.qty) || 0) : 1);
 export const capsOf = actor => Math.max(0, Number(actor?.system?.caps) || 0);
-/** „1 kapsel”, „3 kapsle”, „5 kapsli”, „22 kapsle”. */
-export function capsText(n) {
-  const a = Math.abs(Number(n) || 0), d = a % 10, t = a % 100;
-  return `${n} ${a === 1 ? "kapsel" : d >= 2 && d <= 4 && (t < 12 || t > 14) ? "kapsle" : "kapsli"}`;
-}
+/** „1 cap”, „3 caps” — po polsku „1 kapsel”, „3 kapsle”, „5 kapsli”, „22 kapsle”. */
+export const capsText = n => tn(Number(n) || 0, "{n} cap", "{n} caps");
 
 /** Siatka sceny: { size (px), distance (ft na pole), diagonals (reguła przekątnych), gridless }. */
 export function gridOf(scene) {
@@ -93,7 +91,7 @@ export async function moveCaps(src, dst, qty) {
 export function viaGM(payload, apply) {
   const p = { user: game.user.id, ...payload };
   if (game.user.isGM) return apply(p);
-  if (!game.users.activeGM) return warn("To wymaga zalogowanego MG.");
+  if (!game.users.activeGM) return warn(t("This requires a logged-in GM."));
   game.socket.emit(SOCKET, p);
   return true;
 }
@@ -103,9 +101,9 @@ export async function handOver(data) {
   const payload = { kind: "give", user: game.user.id, ...data };
   const to = await fromUuid(data.to).catch(() => null);
   if (game.user.isGM || to?.isOwner) return transfer(payload);
-  if (!game.users.activeGM) return warn("Przekazanie innej postaci wymaga zalogowanego MG.");
+  if (!game.users.activeGM) return warn(t("Giving to another character requires a logged-in GM."));
   game.socket.emit(SOCKET, payload);
-  ui.notifications.info("Przekazanie wysłane — MG je zapisze.");
+  ui.notifications.info(t("Hand-over sent — the GM will record it."));
   return true;
 }
 
@@ -113,7 +111,7 @@ export async function handOver(data) {
  * Wykonanie przeniesienia (MG albo właściciel obu stron). tag — dopisek na karcie („przekazanie”, „rzut — złapane”);
  * toName — nazwa odbiorcy, jaką widział gracz (NPC z ukrytą nazwą to „nieznany NPC”).
  */
-export async function transfer({ op, from, itemId, to, toName, qty, user, tag = "przekazanie" }) {
+export async function transfer({ op, from, itemId, to, toName, qty, user, tag = t("hand-over") }) {
   const src = await fromUuid(from).catch(() => null);
   const dst = await fromUuid(to).catch(() => null);
   if (!src || !dst || src.uuid === dst.uuid) return null;
@@ -131,7 +129,7 @@ export async function transfer({ op, from, itemId, to, toName, qty, user, tag = 
   }
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: src }),
-    content: `<div class="foe-card reload"><div class="fc-tag"><span>PIPBUCK // WYMIANA</span><span>${esc(tag)}</span></div>
+    content: `<div class="foe-card reload"><div class="fc-tag"><span>${t("PIPBUCK // TRADE")}</span><span>${esc(tag)}</span></div>
       <h3>${esc(src.name)} → ${esc(toName || dst.name)}</h3><div class="fc-calc">${esc(line)}</div></div>`
   });
 }
@@ -140,7 +138,7 @@ export function registerGiveHooks() {
   Hooks.once("ready", () => {
     game.socket.on(SOCKET, payload => {
       if (payload?.kind !== "give" || !game.users.activeGM?.isSelf) return;
-      transfer(payload).catch(err => console.error(`${F} | przekazanie`, err));
+      transfer(payload).catch(err => console.error(`${F} | hand-over`, err));
     });
   });
 }
