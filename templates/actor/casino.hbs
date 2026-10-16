@@ -1,0 +1,177 @@
+<section class="tab active casino-body">
+{{#if config}}
+  <header class="foe-header">
+    <div class="pip-bar"><span>PIPBUCK 3000 · KASYNO</span><span>KONFIGURACJA MG</span></div>
+    <div class="foe-id">
+      <img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
+      <div class="identity">
+        <input class="name" type="text" name="name" value="{{actor.name}}" placeholder="Nazwa stołu">
+        <div class="row veh-row">
+          <label title="{{#if locked}}Grę zmienisz, gdy nikt nie siedzi przy stole{{else}}Gra przy tym stole{{/if}}">Gra <select name="system.game" {{#if locked}}disabled{{/if}}>{{#each games}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+          <label class="cbx" title="Zamknięty stół: nikt nie siada, nie stawia i nie zaczyna rozdania"><input type="checkbox" name="system.open" {{#if sys.open}}checked{{/if}}> stół otwarty</label>
+        </div>
+        <div class="row veh-row">
+          <label class="wide">Krupier <input type="text" name="system.dealer" value="{{sys.dealer}}" placeholder="Krupier"></label>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="veh-actions">
+    <a data-action="toggleView" title="Zobacz stół tak, jak widzą go gracze"><i class="fa-solid fa-table-cells-large"></i> Widok stołu</a>
+    {{#if playing}}<a data-action="voidHand" title="Anuluj trwające rozdanie — stawki wracają do graczy"><i class="fa-solid fa-ban"></i> Anuluj rozdanie</a>{{/if}}
+    {{#if seatCount}}<a data-action="closeTable" title="Anuluj rozdanie, oddaj wszystkim kapsle ze stołu i zamknij stół"><i class="fa-solid fa-door-closed"></i> Zamknij stół ({{seatCount}})</a>{{/if}}
+    <a data-action="clearLog" title="Wyczyść dziennik krupiera"><i class="fa-solid fa-eraser"></i> Wyczyść dziennik</a>
+  </div>
+  <p class="hint">Postaw token stołu na mapie (2×1 pola — zmienisz rozmiar w ustawieniach tokenu). Gracze otwierają stół klikając jego token; {{#if reach}}siadają, gdy token ich postaci stoi obok tokenu stołu, {{/if}}a kapsle schodzą z karty postaci. Ruchy wykonuje przeglądarka MG — musisz być zalogowany. Karty w talii, but i zakryte karty są tylko w pamięci twojej przeglądarki; gdy odświeżysz stronę w trakcie rozdania, zostanie ono anulowane, a stawki wrócą do graczy. NPC sadzasz w widoku stołu (zaznacz ich tokeny).</p>
+
+  <div class="cz-config">
+    {{#if bj}}
+    <fieldset>
+      <legend>Blackjack</legend>
+      <label class="atk-row">Najniższa stawka <input type="number" name="system.minBet" value="{{sys.minBet}}" min="1" step="1"></label>
+      <label class="atk-row">Najwyższa stawka <input type="number" name="system.maxBet" value="{{sys.maxBet}}" min="1" step="1"></label>
+      <label class="atk-row" title="Ile talii w bucie (tasowanie, gdy zostanie mniej niż ¼)">Talie w bucie <input type="number" name="system.decks" value="{{sys.decks}}" min="1" max="8" step="1"></label>
+      <p class="hint">Krupier dobiera do 16 i staje na każdych 17. Blackjack płaci 3:2, wygrana 1:1. Podwojenie na dwóch kartach (także po rozdzieleniu), jedno rozdzielenie pary (asy dostają po jednej karcie). Krupier zagląda pod kartę przy asie i dziesiątce. Bez ubezpieczenia i poddania.</p>
+    </fieldset>
+    {{/if}}
+    {{#if he}}
+    <fieldset>
+      <legend>Texas Hold'em</legend>
+      <label class="atk-row">Mała ciemna <input type="number" name="system.smallBlind" value="{{sys.smallBlind}}" min="1" step="1"></label>
+      <label class="atk-row">Duża ciemna <input type="number" name="system.bigBlind" value="{{sys.bigBlind}}" min="1" step="1"></label>
+      <label class="atk-row" title="Ile kapsli gracz kładzie na stół, siadając (i najwięcej, ile może tam mieć)">Wpisowe od <input type="number" name="system.buyInMin" value="{{sys.buyInMin}}" min="1" step="1"></label>
+      <label class="atk-row">Wpisowe do <input type="number" name="system.buyInMax" value="{{sys.buyInMax}}" min="1" step="1"></label>
+      <label class="atk-row" title="Procent z każdej puli dla kasyna, gdy padł flop (0 — bez prowizji)">Prowizja kasyna (%) <input type="number" name="system.rake" value="{{sys.rake}}" min="0" max="10" step="1"></label>
+      <p class="hint">No-limit: podbicie co najmniej o ostatnie podbicie (min. duża ciemna), va banque zawsze. Boczne pule przy va banque. Gracze widzą tylko swoje karty; ty widzisz karty NPC.</p>
+    </fieldset>
+    {{/if}}
+    <fieldset>
+      <legend>Bank kasyna</legend>
+      <label class="atk-row cbx-row"><span>Bank bez limitu</span> <input type="checkbox" name="system.bankUnlimited" {{#if sys.bankUnlimited}}checked{{/if}}></label>
+      {{#unless sys.bankUnlimited}}<label class="atk-row" title="Kapsle kasyna przy tym stole. Gdy nie pokryje możliwych wygranych, krupier nie przyjmie stawki — bank można rozbić">Bank stołu <input type="number" name="system.bank" value="{{sys.bank}}" step="1"></label>{{/unless}}
+      <div class="atk-row"><span>Bilans kasyna</span> <span><b>{{sys.profit}}</b> kapsli <a data-action="resetProfit" title="Wyzeruj bilans"><i class="fa-solid fa-rotate-left"></i></a></span></div>
+    </fieldset>
+  </div>
+{{else}}
+  <div class="cz-table game-{{#if v.bj}}blackjack{{else}}holdem{{/if}}">
+    <header class="cz-head">
+      <div class="cz-title"><b>{{v.name}}</b><span>{{v.gameLabel}}</span></div>
+      <div class="cz-stakes">{{v.stakes}}{{#if v.bank}} · <span class="cz-bank">{{v.bank}}</span>{{/if}}{{#if v.profit}} · <span class="cz-profit" title="Bilans kasyna (widzi tylko MG)">bilans {{v.profit}}</span>{{/if}}</div>
+      {{#if isGM}}<a class="cz-cfg" data-action="toggleView" title="Ustawienia stołu (widzi tylko MG)"><i class="fa-solid fa-gear"></i> ustawienia</a>{{/if}}
+    </header>
+
+    <div class="cz-felt">
+      {{#unless v.open}}<div class="cz-closed">STÓŁ ZAMKNIĘTY</div>{{/unless}}
+      {{#if v.bj}}
+      <div class="cz-dealer">
+        <div class="cz-label">{{v.dealer.name}}</div>
+        <div class="cz-cards">{{{v.dealer.cards}}}</div>
+        {{#if v.dealer.total}}<div class="cz-total">{{v.dealer.total}}</div>{{/if}}
+      </div>
+      <div class="cz-motto">BLACKJACK PŁACI 3:2 · KRUPIER STOI NA 17</div>
+      {{else}}
+      <div class="cz-board">
+        <div class="cz-label">{{v.dealerName}}</div>
+        <div class="cz-cards">{{{v.board}}}</div>
+        {{#if v.pot}}<div class="cz-pot">pula <b>{{v.pot}}</b></div>{{/if}}
+      </div>
+      <div class="cz-motto">TEXAS HOLD'EM · BEZ LIMITU</div>
+      {{/if}}
+
+      <div class="cz-seats">
+        {{#each v.seats}}
+        <div class="cz-seat{{#if turn}} turn{{/if}}{{#if me}} me{{/if}}{{#if folded}} folded{{/if}}{{#if leaving}} leaving{{/if}}{{#if won}} winner{{/if}}">
+          <div class="cz-who">
+            {{#if button}}<span class="cz-dbtn" title="Rozdający">D</span>{{/if}}
+            <b>{{name}}</b>{{#if npc}}<small class="cz-tag">NPC</small>{{/if}}{{#if leaving}}<small class="cz-tag">odchodzi</small>{{/if}}
+            {{#if ../isGM}}{{#unless leaving}}<a class="cz-kick" data-action="kick" data-seat="{{id}}" title="Wyproś od stołu (kapsle wracają)"><i class="fa-solid fa-xmark"></i></a>{{/unless}}{{/if}}
+          </div>
+          {{#if ../v.bj}}
+            {{#each hands}}
+            <div class="cz-hand{{#if active}} active{{/if}}{{#if result}} res-{{result}}{{/if}}">
+              <div class="cz-cards">{{{cards}}}</div>
+              <div class="cz-hinfo"><span class="cz-val" title="Wartość ręki">{{total}}</span><span class="cz-stake" title="Stawka{{#if doubled}} (podwojona){{/if}}"><span class="cz-chip"></span>{{stake}}{{#if doubled}} ×2{{/if}}</span>{{#if result}}<span class="cz-res">{{resultLabel}}</span>{{/if}}</div>
+            </div>
+            {{/each}}
+            {{#if net}}<div class="cz-net {{netCls}}">{{net}}</div>{{/if}}
+            {{#if bet}}<div class="cz-chips" title="Postawione na następne rozdanie"><span class="cz-chip"></span>{{bet}}</div>{{/if}}
+            {{#if betting}}
+            <div class="cz-mine">
+              <input type="number" class="cz-bet" name="cz-bet-{{id}}" data-seat="{{id}}" value="{{betDefault}}" min="{{../sys.minBet}}" max="{{../sys.maxBet}}" step="1" data-enter=".cz-betbtn[data-seat='{{id}}']" title="Stawka ({{../sys.minBet}}–{{../sys.maxBet}})">
+              <button type="button" class="cz-betbtn" data-action="bet" data-seat="{{id}}">Postaw</button>
+              {{#if bet}}<button type="button" data-action="bet" data-seat="{{id}}" data-amount="0" title="Wycofaj stawkę">✕</button>{{/if}}
+              <button type="button" class="cz-leave" data-action="leave" data-seat="{{id}}" title="Wstań od stołu">Wstań</button>
+            </div>
+            {{else}}{{#if me}}{{#unless ../v.playing}}<div class="cz-mine"><button type="button" class="cz-leave" data-action="leave" data-seat="{{id}}">Wstań</button></div>{{/unless}}{{/if}}
+            {{/if}}
+          {{else}}
+            <div class="cz-cards hole">{{{cards}}}</div>
+            {{#if secret}}<div class="cz-note">karty widzi tylko MG</div>{{/if}}
+            <div class="cz-hinfo">
+              <span class="cz-stack" title="Kapsle na stole"><span class="cz-chip"></span>{{stack}}</span>
+              {{#if bet}}<span class="cz-stake" title="Postawione w tej rundzie">{{bet}}</span>{{/if}}
+              {{#if lastAction}}<span class="cz-act">{{lastAction}}</span>{{/if}}
+            </div>
+            {{#if best}}<div class="cz-best">{{best}}</div>{{/if}}
+            {{#if won}}<div class="cz-net win">+{{won}}</div>{{/if}}
+            {{#if canLeave}}
+            <div class="cz-mine">
+              {{#if canRebuy}}
+              <input type="number" class="cz-rebuy" name="cz-rebuy-{{id}}" data-seat="{{id}}" value="{{rebuyDefault}}" min="1" max="{{rebuyMax}}" step="1" data-enter=".cz-rebuybtn[data-seat='{{id}}']" title="Dokup kapsle (najwyżej {{rebuyMax}})">
+              <button type="button" class="cz-rebuybtn" data-action="rebuy" data-seat="{{id}}">Dokup</button>
+              {{/if}}
+              <button type="button" class="cz-leave" data-action="leave" data-seat="{{id}}" title="Wstań od stołu (kapsle wracają)">Wstań</button>
+            </div>
+            {{/if}}
+          {{/if}}
+        </div>
+        {{else}}<p class="cz-empty">Nikt nie siedzi przy stole.</p>{{/each}}
+      </div>
+    </div>
+
+    <div class="cz-controls">
+      {{#if v.ctl.status}}<div class="cz-status">{{v.ctl.status}}</div>{{/if}}
+      <div class="cz-buttons">
+        {{#with v.ctl.sit}}
+          {{#if ok}}
+            {{#if buyIn}}<label class="cz-inp">wpisowe <input type="number" name="cz-buyin" value="{{buyDefault}}" min="{{buyMin}}" max="{{buyMax}}" step="1" data-enter=".cz-sitbtn"></label>{{/if}}
+            <button type="button" class="cz-sitbtn primary" data-action="sit"><i class="fa-solid fa-chair"></i> Usiądź: {{who}} ({{caps}} kapsli)</button>
+          {{else}}<span class="cz-why">{{why}}</span>{{/if}}
+        {{/with}}
+        {{#if v.ctl.deal}}<button type="button" class="primary" data-action="deal"><i class="fa-solid fa-layer-group"></i> Rozdaj</button>{{/if}}
+        {{#if v.ctl.start}}<button type="button" class="primary" data-action="start"><i class="fa-solid fa-layer-group"></i> Nowe rozdanie</button>{{/if}}
+        {{#with v.ctl.bjTurn}}
+          <span class="cz-turn">{{name}}{{#if hand}} — {{hand}}{{/if}}: <b>{{total}}</b></span>
+          <button type="button" class="primary" data-action="act" data-seat="{{seat}}" data-act="hit">Dobierz</button>
+          <button type="button" class="primary" data-action="act" data-seat="{{seat}}" data-act="stand">Stój</button>
+          {{#if double}}<button type="button" data-action="act" data-seat="{{seat}}" data-act="double" {{#if short}}title="Za mało kapsli"{{/if}}>Podwój (+{{cost}})</button>{{/if}}
+          {{#if split}}<button type="button" data-action="act" data-seat="{{seat}}" data-act="split" {{#if short}}title="Za mało kapsli"{{/if}}>Rozdziel (+{{cost}})</button>{{/if}}
+        {{/with}}
+        {{#with v.ctl.heTurn}}
+          <span class="cz-turn">{{name}}:</span>
+          <button type="button" data-action="act" data-seat="{{seat}}" data-act="fold">Pas</button>
+          {{#if check}}<button type="button" class="primary" data-action="act" data-seat="{{seat}}" data-act="check">Czekaj</button>{{/if}}
+          {{#if call}}<button type="button" class="primary" data-action="act" data-seat="{{seat}}" data-act="call">Sprawdź {{callAmount}}</button>{{/if}}
+          {{#if raise}}
+            <label class="cz-inp"><input type="number" name="cz-raise" value="{{minTo}}" min="{{minTo}}" max="{{maxTo}}" step="1" data-enter=".cz-raisebtn"></label>
+            <button type="button" class="cz-raisebtn" data-action="raise" data-seat="{{seat}}">{{raiseLabel}}</button>
+          {{/if}}
+          {{#if allIn}}<button type="button" class="allin" data-action="act" data-seat="{{seat}}" data-act="allin">Va banque ({{allInTo}})</button>{{/if}}
+        {{/with}}
+        {{#with v.ctl.force}}<button type="button" class="gm" data-action="force" data-seat="{{seat}}" data-act="{{act}}" title="Gracz nie odpowiada — MG wykonuje ruch za niego">{{label}} ({{name}})</button>{{/with}}
+      </div>
+      {{#with v.ctl.gm}}
+      <div class="cz-gm">
+        <span>MG:</span>
+        {{#if npcBuy}}<label class="cz-inp" title="Kapsle NPC na stół (z jego karty, a gdy ma za mało — od MG)">NPC wnosi <input type="number" name="cz-npcbuy" value="{{buyMin}}" min="{{buyMin}}" max="{{buyMax}}" step="1"></label>{{/if}}
+        <button type="button" class="gm" data-action="seatNpc" title="Posadź przy stole NPC zaznaczonych na mapie"><i class="fa-solid fa-user-plus"></i> Posadź zaznaczonych NPC</button>
+        {{#if playing}}<button type="button" class="gm" data-action="voidHand"><i class="fa-solid fa-ban"></i> Anuluj rozdanie</button>{{/if}}
+      </div>
+      {{/with}}
+    </div>
+
+    <div class="cz-log">{{#each v.log}}<div>{{this}}</div>{{else}}<div class="cz-empty">Dziennik krupiera jest pusty.</div>{{/each}}</div>
+  </div>
+{{/if}}
+</section>

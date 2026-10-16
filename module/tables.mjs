@@ -72,7 +72,7 @@ export function registerRollTableClass() {
 
 /** Postać, której dotyczą przyciski: własny zaznaczony token, potem postać gracza. */
 function userActor() {
-  const own = (canvas?.tokens?.controlled ?? []).map(t => t.actor).find(a => a?.isOwner && !["terminal", "vehicle"].includes(a.type));
+  const own = (canvas?.tokens?.controlled ?? []).map(t => t.actor).find(a => a?.isOwner && !["terminal", "vehicle", "casino"].includes(a.type));
   return own ?? game.user.character ?? null;
 }
 
