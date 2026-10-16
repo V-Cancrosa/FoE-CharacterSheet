@@ -389,7 +389,8 @@ krytyczna porażka −1 próba. Zmiany stanu terminala zapisuje przeglądarka MG
 Kasyno (osobny typ aktora „Stół do gry”): blackjack z automatycznym krupierem albo Texas Hold'em bez limitu. Talia jak
 w podręczniku (s. 220): damą kier jest Celestia, trefl — Luna, karo — Cadance, pik — Nightmare Moon (jokerów, Discorda
 i Chrysalis, te gry nie używają). Same zasady gier są jak w kasynach.
-- MG tworzy aktora „Stół do gry” i stawia jego token na mapie (2×1 pola). W ustawieniach stołu wybiera grę i stawki
+- MG klika w zakładce aktorów przycisk „Stół do gry” (albo tworzy aktora typu „Stół do gry”), wybiera grę i stawia token stołu
+  na mapie (2×1 pola). W ustawieniach stołu wybiera grę i stawki
   (blackjack: najniższa i najwyższa stawka, talie w bucie; poker: ciemne, wpisowe od–do, prowizja kasyna 0–10%), imię
   krupiera i bank kasyna — bez limitu albo z kwotą, którą da się rozbić (krupier nie przyjmie stawki, której bank nie
   pokryje). MG widzi też bilans kasyna.

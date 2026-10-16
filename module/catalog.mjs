@@ -440,7 +440,34 @@ export function registerCatalogButton() {
     veh.className = "foe-catalog-open foe-vehicles-open";
     veh.innerHTML = `<i class="fa-solid fa-truck-pickup"></i> ${t("FoE Vehicles")}`;
     veh.addEventListener("click", () => openCatalog(null, "vehicles"));
-    const bar = root.querySelector(".header-actions") ?? root.querySelector(".directory-header");
-    (bar ?? root).append(btn, veh);
+    const cas = document.createElement("button");
+    cas.type = "button";
+    cas.className = "foe-catalog-open foe-casino-new";
+    cas.innerHTML = `<i class="fa-solid fa-dice"></i> ${t("Gaming table")}`;
+    cas.title = t("A new gaming table (blackjack or Texas Hold'em) — the dealer, bets and the casino bank are set on its sheet. Then drag it onto the map.");
+    cas.addEventListener("click", () => newCasinoTable().catch(err => { console.error("foe-rpg | casino table", err); ui.notifications.error(err.message); }));
+    // własny rząd pod „Utwórz aktora / folder” — w jednym rzędzie pięć przycisków byłoby za ciasno
+    const row = document.createElement("div");
+    row.className = "foe-dir-row";
+    row.append(btn, veh, cas);
+    const bar = root.querySelector(".header-actions");
+    if (bar) bar.after(row);
+    else (root.querySelector(".directory-header") ?? root).append(row);
   });
+}
+
+/** Nowy stół do gry: wybór gry, utworzenie aktora i otwarcie jego karty (tam stawki, krupier i bank). */
+async function newCasinoTable() {
+  const game = await foundry.applications.api.DialogV2.wait({
+    window: { title: t("Gaming table") }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 420 }, rejectClose: false,
+    content: `<div class="foe-dialog"><p>${t("Which game?")}</p><p class="hint">${t("You can change the game later on the table's sheet, while nobody sits at it.")}</p></div>`,
+    buttons: [
+      { action: "blackjack", label: "Blackjack", icon: "fa-solid fa-diamond", default: true },
+      { action: "holdem", label: "Texas Hold'em", icon: "fa-solid fa-coins" }
+    ]
+  });
+  if (game !== "blackjack" && game !== "holdem") return null;
+  const actor = await Actor.implementation.create({ name: game === "holdem" ? t("Texas Hold'em table") : t("Blackjack table"), type: "casino", system: { game } });
+  actor?.sheet?.render(true);
+  return actor;
 }

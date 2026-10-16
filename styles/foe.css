@@ -1176,3 +1176,7 @@ body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
 .foe-rpg .term-boot.kind-cloud { --term: #bfe8ff; }
 .foe-rpg .term-boot.kind-stabletec { --term: #ffd27a; }
 .foe-rpg .term-boot.kind-military { --term: #9cff6a; }
+
+/* Przyciski FoE w zakładce aktorów (Bestiariusz, Pojazdy, Stół do gry): własny rząd pod „Utwórz aktora” */
+.foe-dir-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 2px; }
+.foe-dir-row > button { flex: 1 1 auto; width: auto; min-width: 0; margin: 0; white-space: nowrap; }
