@@ -458,6 +458,9 @@ export function registerCatalogButton() {
 
 /** Nowy stół do gry: wybór gry, utworzenie aktora i otwarcie jego karty (tam stawki, krupier i bank). */
 async function newCasinoTable() {
+  // świat uruchomiony przed aktualizacją systemu nie zna jeszcze typu „casino”
+  const { staleTypes, restartMessage } = await import("./version-check.mjs");
+  if (staleTypes().includes("Actor.casino")) return ui.notifications.error(restartMessage(), { permanent: true });
   const game = await foundry.applications.api.DialogV2.wait({
     window: { title: t("Gaming table") }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 420 }, rejectClose: false,
     content: `<div class="foe-dialog"><p>${t("Which game?")}</p><p class="hint">${t("You can change the game later on the table's sheet, while nobody sits at it.")}</p></div>`,
