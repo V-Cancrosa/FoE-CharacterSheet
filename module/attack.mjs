@@ -15,12 +15,12 @@ import { implantReserve } from "./cyber.mjs";
 import { loadedVariant, ammoOnHit, SPECIAL_AMMO, variantsFor, specialAmmoOn, variantName } from "./ammo-data.mjs";
 import { degradationOn, weaponCondition, addWear, ammoWearFactor } from "./craft-data.mjs";
 import { spendActions } from "./tracker.mjs";
+import { t, tn } from "./i18n.mjs";
 
 const { DialogV2 } = foundry.applications.api;
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
-const num = n => String(n).replace(".", ",");
-const stepsLabel = v => `${signed(v)} ${Math.abs(v) === 1 ? "krok" : "kroki"} MFD`;
+const stepsLabel = v => tn(v, "{s} MFD step", "{s} MFD steps", { s: signed(v) });
 const warn = msg => { ui.notifications.warn(msg); return null; };
 const elementOf = x => (x instanceof HTMLElement ? x : x?.element instanceof HTMLElement ? x.element : null);
 
@@ -36,9 +36,9 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   const sys = actor.system;
   const w = item.system;
   const sk = sys.skills[w.skill];
-  if (!sk) return warn("Broń nie ma przypisanej umiejętności.");
+  if (!sk) return warn(t("The weapon has no skill assigned."));
   // degradacja (zasada opcjonalna, s. 458): broń bez kości obrażeń to złom
-  if (degradationOn() && weaponCondition(w).broken) return warn(`${item.name} jest zepsuta — napraw ją (zakładka Walka) albo oddaj na części.`);
+  if (degradationOn() && weaponCondition(w).broken) return warn(t("{name} is broken — repair it (Combat tab) or use it for parts.", { name: item.name }));
   const str = sys.attributes.str.total;
   const close = isClose(w);
   const aoe = isAoe(w);
@@ -46,12 +46,12 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   // Amunicja: seria „/N” traci kości, gdy brakuje naboi (s. 187); granaty zużywają sztukę
   let b = { ok: true, use: 0, lacking: 0, formula: w.damage };
   if (w.consumable) {
-    if ((Number(w.qty) || 0) < 1) return warn(`${item.name}: nie masz już ani jednej sztuki — dodaj je z katalogu.`);
+    if ((Number(w.qty) || 0) < 1) return warn(t("{name}: you don't have any left — add more from the catalog.", { name: item.name }));
     b.use = 1;
   } else if (w.ammo.max > 0) {
     b = burst(w.damage, w.shots, w.ammo.value);
-    if (!b.ok) return warn(w.ammo.value <= 0 ? `${item.name}: brak amunicji — przeładuj.`
-      : `${item.name}: za mało amunicji, żeby strzelić (${w.ammo.value}, seria ${w.shots}) — przeładuj.`);
+    if (!b.ok) return warn(w.ammo.value <= 0 ? t("{name}: out of ammo — reload.", { name: item.name })
+      : t("{name}: not enough ammo to fire ({n}, burst {b}) — reload.", { name: item.name, n: w.ammo.value, b: w.shots }));
   }
 
   const sats = sys.resources.sats;
@@ -79,40 +79,40 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   const moving = !!vsys?.vehicle?.currentSpeed;
 
   const info = [
-    targets.length ? `Cel: <b>${targets.map(t => esc(t.name)).join(", ")}</b>` : "Cel: <i>brak — namierz token (T), żeby obrażenia trafiły od razu do niego</i>",
-    w.consumable ? `Sztuk: <b>${w.qty}</b>` : w.ammo.max > 0 ? `Amunicja: <b>${w.ammo.value}/${w.ammo.max}</b>${w.shots > 1 ? ` · seria ${w.shots}${b.lacking ? ` → brakuje ${b.lacking}: <b>${esc(b.formula)}</b>` : ""}` : ""}` : "",
-    vehicle ? `Broń pokładowa: <b>${esc(vehicle.name)}</b> · strzela ${esc(actor.name)}${actor === vehicle ? " (załoga pojazdu)" : ""}${vsys.gunSteps ? ` · uszkodzone uzbrojenie ${vsys.gunSteps} kr.` : ""}` : "",
-    aoe ? (tVehicle ? "Broń obszarowa w pojazd: można celować wprost (s. 451) — podstawowe MFD 1." : "Broń obszarowa: przeciw celom normalnej wielkości podstawowe MFD ¾ (s. 451).") : "",
+    targets.length ? t("Target: {list}", { list: `<b>${targets.map(tk => esc(tk.name)).join(", ")}</b>` }) : `${t("Target:")} <i>${t("none — target a token (T) so the damage goes straight to it")}</i>`,
+    w.consumable ? t("Pieces: {n}", { n: `<b>${w.qty}</b>` }) : w.ammo.max > 0 ? `${t("Ammo: {v}", { v: `<b>${w.ammo.value}/${w.ammo.max}</b>` })}${w.shots > 1 ? ` · ${t("burst {n}", { n: w.shots })}${b.lacking ? ` → ${t("{n} short: {f}", { n: b.lacking, f: `<b>${esc(b.formula)}</b>` })}` : ""}` : ""}` : "",
+    vehicle ? `${t("Vehicle weapon: {v}", { v: `<b>${esc(vehicle.name)}</b>` })} · ${t("fired by {name}", { name: esc(actor.name) })}${actor === vehicle ? ` ${t("(vehicle crew)")}` : ""}${vsys.gunSteps ? ` · ${t("damaged weapons {n} st.", { n: vsys.gunSteps })}` : ""}` : "",
+    aoe ? (tVehicle ? t("Area weapon against a vehicle: you can aim at it directly (p. 451) — base MFD 1.") : t("Area weapon: against normal-sized targets the base MFD is ¾ (p. 451).")) : "",
     ...sizeSteps.map(x => `${esc(x.label)}: ${stepsLabel(x.steps)}`),
-    w.specials?.silenced ? "Tłumik: wykrycie strzelca o krok trudniejsze (MFD ½)." : "",
-    ammoV ? `Amunicja: <b>${esc(ammoV.label)}</b> — ${esc(ammoV.effect)}; ${esc(ammoV.downside)}` : ""
+    w.specials?.silenced ? t("Silencer: detecting the shooter is a step harder (MFD ½).") : "",
+    ammoV ? `${t("Ammo: {v}", { v: `<b>${esc(ammoV.label)}</b>` })} — ${esc(ammoV.effect)}; ${esc(ammoV.downside)}` : ""
   ].filter(Boolean).map(l => `<div>${l}</div>`).join("");
 
   const extraHtml = `
     <div class="dlg-attack">
       <div class="atk-info">${info}</div>
-      ${followUp ? `<div class="atk-info"><div>Salwa z siodła: ${volley.sats ? "w SATS (AP już zapłacone)" : "ta sama akcja"}.</div></div>` : ""}
+      ${followUp ? `<div class="atk-info"><div>${volley.sats ? t("Saddle volley: in SATS (AP already paid).") : t("Saddle volley: the same action.")}</div></div>` : ""}
       ${spell || followUp ? "" : `<label class="atk-row atk-check"><input type="checkbox" name="sats" ${canSats ? "" : "disabled"}>
-        <span>SATS</span><small>${canSats ? `−${cost} AP (zostanie ${sats.value - cost}) · bez kar otoczenia i pośpiechu` : `za mało AP: ${sats.value}/${cost}`}</small></label>`}
-      <label class="atk-row">Otoczenie i pośpiech <select name="env">
-        <option value="0">bez kar</option>
-        <option value="-1">−1 krok (dym, mgła, mrok, strzał z bliska)</option>
-        <option value="-2">−2 kroki</option><option value="-3">−3 kroki</option><option value="-4">−4 kroki</option>
+        <span>SATS</span><small>${canSats ? t("−{c} AP ({left} left) · no environment and haste penalties", { c: cost, left: sats.value - cost }) : t("not enough AP: {v}/{c}", { v: sats.value, c: cost })}</small></label>`}
+      <label class="atk-row">${t("Environment and haste")} <select name="env">
+        <option value="0">${t("no penalties")}</option>
+        <option value="-1">${t("−1 step (smoke, fog, darkness, point-blank shot)")}</option>
+        <option value="-2">${t("−2 steps")}</option><option value="-3">${t("−3 steps")}</option><option value="-4">${t("−4 steps")}</option>
       </select></label>
-      ${bands.length ? `<label class="atk-row">Odległość <select name="range">${bands.map(x => `<option value="${x.steps}">${x.label}${x.steps ? ` (${x.steps} kr.)` : ""}</option>`).join("")}</select></label>` : ""}
-      ${aoe ? "" : `<label class="atk-row">Cel ataku <select name="loc">
+      ${bands.length ? `<label class="atk-row">${t("Distance")} <select name="range">${bands.map(x => `<option value="${x.steps}">${x.label}${x.steps ? ` (${x.steps} ${t("st.")})` : ""}</option>`).join("")}</select></label>` : ""}
+      ${aoe ? "" : `<label class="atk-row">${t("Attack target")} <select name="loc">
         ${areas.length
-          ? areas.map((a, i) => `<option value="area:${i}" ${!random && a.loc === "torso" && !areas.slice(0, i).some(x => x.loc === "torso") ? "selected" : ""}>${esc(a.label)} (MFD ${esc(a.mfd)}${areaSteps(a) ? `, ${areaSteps(a)} kr.` : ""})</option>`).join("")
-          : Object.entries(CALLED_SHOTS).map(([k, c]) => `<option value="${k}" ${!random && k === "torso" ? "selected" : ""}>${c.label}${c.steps ? ` (${c.steps} kr.)` : ""}</option>`).join("")}
-        <option value="random" ${random ? "selected" : ""}>Losowo (k20 wg rasy)</option>
+          ? areas.map((a, i) => `<option value="area:${i}" ${!random && a.loc === "torso" && !areas.slice(0, i).some(x => x.loc === "torso") ? "selected" : ""}>${esc(a.label)} (MFD ${esc(a.mfd)}${areaSteps(a) ? `, ${areaSteps(a)} ${t("st.")}` : ""})</option>`).join("")
+          : Object.entries(CALLED_SHOTS).map(([k, c]) => `<option value="${k}" ${!random && k === "torso" ? "selected" : ""}>${c.label}${c.steps ? ` (${c.steps} ${t("st.")})` : ""}</option>`).join("")}
+        <option value="random" ${random ? "selected" : ""}>${t("Random (d20 by race)")}</option>
       </select></label>
-      <label class="atk-row atk-table">Tabela trafień <select name="table">
-        ${Object.entries(HIT_TABLES).map(([k, t]) => `<option value="${k}" ${k === table ? "selected" : ""}>${t.label}</option>`).join("")}
+      <label class="atk-row atk-table">${t("Hit table")} <select name="table">
+        ${Object.entries(HIT_TABLES).map(([k, ht]) => `<option value="${k}" ${k === table ? "selected" : ""}>${ht.label}</option>`).join("")}
       </select></label>`}
       ${vehicle ? `<label class="atk-row atk-check"><input type="checkbox" name="moving" ${moving ? "checked" : ""}>
-        <span>Pojazd w ruchu</span><small>strzał z jadącego pojazdu: −1 krok MFD (zasada domowa)</small></label>` : ""}
+        <span>${t("Vehicle moving")}</span><small>${t("shooting from a moving vehicle: −1 MFD step (house rule)")}</small></label>` : ""}
       ${heavy ? `<label class="atk-row atk-check"><input type="checkbox" name="heavy" checked>
-        <span>Za ciężka broń</span><small>${w.weight} lb > ${w.mounted ? "limit siodła" : "2×STR"} (${limit}): −${heavy} kr.${close ? ", bez premii STR" : ""}</small></label>` : ""}
+        <span>${t("Weapon too heavy")}</span><small>${w.weight} lb > ${w.mounted ? t("saddle limit") : "2×STR"} (${limit}): −${heavy} ${t("st.")}${close ? `, ${t("no STR bonus")}` : ""}</small></label>` : ""}
     </div>`;
 
   const readExtra = form => {
@@ -129,19 +129,19 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     const volleySteps = volley ? -volley.steps : 0;
     const movingSteps = el.moving?.checked ? -1 : 0;
     const gunSteps = vehicle ? vsys.gunSteps || 0 : 0;
-    const bigSteps = sizeSteps.reduce((t, x) => t + x.steps, 0);
+    const bigSteps = sizeSteps.reduce((sum, x) => sum + x.steps, 0);
     const ammoSteps = ammoV?.steps ?? 0;
     const notes = [];
-    if (satsOn) notes.push(followUp ? "SATS (salwa)" : `SATS −${cost} AP${envRaw ? " (kary otoczenia pominięte)" : ""}`);
-    if (env) notes.push(`Otoczenie ${stepsLabel(env)}`);
-    if (rng) notes.push(`Odległość ${el.range.selectedOptions[0]?.textContent.split(" (")[0]} ${stepsLabel(rng)}`);
-    if (called) notes.push(`Strzał celowany: ${area ? area.label : CALLED_SHOTS[loc].label} ${stepsLabel(called)}`);
-    if (heavySteps) notes.push(`Za ciężka broń ${stepsLabel(heavySteps)}`);
-    if (volleySteps) notes.push(`Salwa z siodła (${volley.index + 1}/${volley.count}) ${stepsLabel(volleySteps)}`);
-    if (movingSteps) notes.push(`Strzał z pojazdu w ruchu ${stepsLabel(movingSteps)}`);
-    if (gunSteps) notes.push(`Uszkodzone uzbrojenie ${stepsLabel(gunSteps)}`);
+    if (satsOn) notes.push(followUp ? t("SATS (volley)") : `SATS −${cost} AP${envRaw ? ` ${t("(environment penalties skipped)")}` : ""}`);
+    if (env) notes.push(t("Environment {s}", { s: stepsLabel(env) }));
+    if (rng) notes.push(t("Distance {d} {s}", { d: el.range.selectedOptions[0]?.textContent.split(" (")[0], s: stepsLabel(rng) }));
+    if (called) notes.push(t("Called shot: {loc} {s}", { loc: area ? area.label : CALLED_SHOTS[loc].label, s: stepsLabel(called) }));
+    if (heavySteps) notes.push(t("Weapon too heavy {s}", { s: stepsLabel(heavySteps) }));
+    if (volleySteps) notes.push(t("Saddle volley ({i}/{n}) {s}", { i: volley.index + 1, n: volley.count, s: stepsLabel(volleySteps) }));
+    if (movingSteps) notes.push(t("Shot from a moving vehicle {s}", { s: stepsLabel(movingSteps) }));
+    if (gunSteps) notes.push(t("Damaged weapons {s}", { s: stepsLabel(gunSteps) }));
     for (const x of sizeSteps) notes.push(`${x.label} ${stepsLabel(x.steps)}`);
-    if (ammoSteps) notes.push(`Amunicja ${ammoV.label} ${stepsLabel(ammoSteps)}`);
+    if (ammoSteps) notes.push(t("Ammo {a} {s}", { a: ammoV.label, s: stepsLabel(ammoSteps) }));
     return { steps: env + rng + called + heavySteps + volleySteps + movingSteps + gunSteps + bigSteps + ammoSteps, mod: 0, notes, data: { sats: satsOn, loc: raw === "random" ? "random" : loc, area: area?.label ?? null, table: el.table?.value ?? table } };
   };
 
@@ -163,17 +163,17 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   };
 
   const rc = rollContext(actor, { kind: "attack", skill: w.skill, skillAttr: sk.attr }, { manualMod: sk.mod });
-  const r = await promptMfd(`Atak: ${item.name}`, sk.tn, rc, { defaultStep: aoe && !tVehicle ? "3/4" : "1", extraHtml, readExtra, onRender });
+  const r = await promptMfd(t("Attack: {name}", { name: item.name }), sk.tn, rc, { defaultStep: aoe && !tVehicle ? "3/4" : "1", extraHtml, readExtra, onRender });
   if (!r) return null;
   const { extra: ex = {}, ...roll } = r;
 
   if (ex.sats && !followUp) {
     const cur = actor.system.resources.sats.value;
-    if (cur < cost) return warn(`Za mało AP w SATS (${cur}/${cost}).`);
+    if (cur < cost) return warn(t("Not enough AP in SATS ({v}/{c}).", { v: cur, c: cost }));
     await actor.update({ "system.resources.sats.value": cur - cost });
   }
   // salwa z siodła: jedna akcja (i jeden koszt SATS) za wszystkie bronie
-  if (!spell && !(volley?.index > 0)) await spendActions(actor, 1, volley ? "salwa z siodła" : ex.sats ? "SATS" : "atak");
+  if (!spell && !(volley?.index > 0)) await spendActions(actor, 1, volley ? t("saddle volley") : ex.sats ? "SATS" : t("attack"));
   if (w.consumable) await item.update({ "system.qty": Math.max(0, (Number(item.system.qty) || 0) - 1) });
   else if (w.ammo.max > 0) await item.update({ "system.ammo.value": Math.max(0, item.system.ammo.value - b.use) });
   // degradacja broni dystansowej: liczy się wystrzelona amunicja (niektóre rodzaje amunicji specjalnej 2× albo 4×)
@@ -182,11 +182,11 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   const attack = {
     sats: !!ex.sats, satsCost: cost, random: ex.loc === "random", called: ex.loc === "random" ? null : ex.loc ?? "torso",
     table: ex.table ?? table, melee: close, aoe, area: ex.area ?? null, areaLabels: target ? areaLabels(target) : {}, formula: b.formula, lacking: b.lacking, used: b.use, consumable: !!w.consumable,
-    targets: targets.map(t => t.document?.uuid).filter(Boolean), overglow: spell?.layers ?? 0,
+    targets: targets.map(tk => tk.document?.uuid).filter(Boolean), overglow: spell?.layers ?? 0,
     ...(vehicle ? { vehicle: vehicle.uuid, gunnerUuid: actor.uuid } : {})
   };
-  if (spell) return rollTest(actor, { label: `Celowanie: ${item.name} (Magic)`, baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
-  const msg = await rollTest(actor, { label: `Atak: ${item.name} (${SKILLS[w.skill]?.label ?? w.skill})`, baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
+  if (spell) return rollTest(actor, { label: t("Aiming: {name} (Magic)", { name: item.name }), baseTn: sk.tn, magic: true, ...roll, itemUuid: item.uuid, attack });
+  const msg = await rollTest(actor, { label: t("Attack: {name} ({skill})", { name: item.name, skill: SKILLS[w.skill]?.label ?? w.skill }), baseTn: sk.tn, ...roll, itemUuid: item.uuid, attack });
   // degradacja broni do walki wręcz: liczą się trafienia
   const res = msg?.getFlag?.("foe-rpg", "test")?.result ?? msg?.flags?.["foe-rpg"]?.test?.result;
   if (degradationOn() && close && (res === "success" || res === "crit-success")) await wearWeapon(item, 1);
@@ -198,8 +198,8 @@ async function wearWeapon(item, amount) {
   const r = addWear(item.system, amount);
   if (r.wear === (Number(item.system.wear) || 0) && r.fired === (Number(item.system.fired) || 0)) return;
   await item.update({ "system.wear": r.wear, "system.fired": r.fired });
-  if (r.stepped) ui.notifications.warn(r.broken ? `${item.name} rozpadła się — to już tylko złom (albo części do naprawy innej takiej broni).`
-    : `${item.name} się zużywa: −${r.stepped} ${r.stepped === 1 ? "kość" : "kości"} obrażeń (stan ${weaponCondition({ ...item.system, wear: r.wear }).left}/${weaponCondition(item.system).total}).`);
+  if (r.stepped) ui.notifications.warn(r.broken ? t("{name} fell apart — it's just scrap now (or parts to repair another such weapon).", { name: item.name })
+    : tn(r.stepped, "{name} is wearing out: −{n} damage die (condition {a}/{b}).", "{name} is wearing out: −{n} damage dice (condition {a}/{b}).", { name: item.name, a: weaponCondition({ ...item.system, wear: r.wear }).left, b: weaponCondition(item.system).total }));
 }
 
 // ======================================================================
@@ -208,7 +208,7 @@ async function wearWeapon(item, amount) {
 
 export async function reloadWeapon(actor, item) {
   const w = item.system;
-  if (!(w.ammo.max > 0)) return warn(`${item.name} nie ma magazynka do przeładowania.`);
+  if (!(w.ammo.max > 0)) return warn(t("{name} has no magazine to reload.", { name: item.name }));
   const ri = reloadInfo(w.reload, { energy: w.skill === "energy" });
   const sats = actor.system.resources.sats;
 
@@ -221,27 +221,27 @@ export async function reloadWeapon(actor, item) {
   const loadedNow = special ? (w.loaded || "") : "";
   let variant = loadedNow;
   if (special) {
-    const qtyOf = v => allStock.filter(i => (i.system.variant || "") === v).reduce((t, i) => t + Math.max(0, Number(i.system.qty) || 0), 0);
-    const opts = [{ v: "", label: "Zwykła" }, ...variantsFor(w.ammoType).map(x => ({ v: x.key, label: x.label }))]
+    const qtyOf = v => allStock.filter(i => (i.system.variant || "") === v).reduce((sum, i) => sum + Math.max(0, Number(i.system.qty) || 0), 0);
+    const opts = [{ v: "", label: t("ammo|Regular") }, ...variantsFor(w.ammoType).map(x => ({ v: x.key, label: x.label }))]
       .map(o => ({ ...o, n: qtyOf(o.v) })).filter(o => o.n > 0 || o.v === "" || o.v === loadedNow);
     if (opts.length > 1) {
       const pick = await DialogV2.wait({
-        window: { title: `Amunicja: ${item.name}` }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 420 }, rejectClose: false,
-        content: `<div class="foe-dialog"><div class="atk-info"><div>W magazynku: <b>${w.ammo.value}</b> × ${esc(loadedNow ? SPECIAL_AMMO[loadedNow].label : "zwykła")}</div></div>
-          <label class="atk-row">Ładuj <select name="v">${opts.map(o => `<option value="${o.v}" ${o.v === loadedNow ? "selected" : ""}>${esc(o.label)} (w ekwipunku: ${o.n})</option>`).join("")}</select></label>
-          <p class="hint">Zmiana rodzaju amunicji wyjmuje resztę naboi z magazynka z powrotem do ekwipunku.</p></div>`,
-        buttons: [{ action: "ok", label: "Dalej", icon: "fa-solid fa-check", default: true, callback: (ev, btn) => btn.form.elements.v.value }]
+        window: { title: t("Ammo: {v}", { v: item.name }) }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 420 }, rejectClose: false,
+        content: `<div class="foe-dialog"><div class="atk-info"><div>${t("In the magazine: {n} × {kind}", { n: `<b>${w.ammo.value}</b>`, kind: esc(loadedNow ? SPECIAL_AMMO[loadedNow].label : t("ammo|regular")) })}</div></div>
+          <label class="atk-row">${t("Load")} <select name="v">${opts.map(o => `<option value="${o.v}" ${o.v === loadedNow ? "selected" : ""}>${esc(o.label)} ${t("(in inventory: {n})", { n: o.n })}</option>`).join("")}</select></label>
+          <p class="hint">${t("Changing the ammo type ejects the remaining rounds from the magazine back into the inventory.")}</p></div>`,
+        buttons: [{ action: "ok", label: t("Next"), icon: "fa-solid fa-check", default: true, callback: (ev, btn) => btn.form.elements.v.value }]
       });
       if (pick === null || pick === undefined) return null;
       variant = pick;
     }
   }
   const stock = special ? allStock.filter(i => (i.system.variant || "") === variant) : allStock;
-  const fromStock = stock.reduce((t, i) => t + Math.max(0, Number(i.system.qty) || 0), 0);
-  if (special && variant && fromStock <= 0) return warn(`Brak amunicji ${SPECIAL_AMMO[variant].label} „${w.ammoType}” w ekwipunku.`);
+  const fromStock = stock.reduce((sum, i) => sum + Math.max(0, Number(i.system.qty) || 0), 0);
+  if (special && variant && fromStock <= 0) return warn(t("No {kind} “{type}” ammo in the inventory.", { kind: SPECIAL_AMMO[variant].label, type: w.ammoType }));
   const swap = special && variant !== loadedNow && w.ammo.value > 0;
   const missing = swap ? w.ammo.max : w.ammo.max - w.ammo.value;
-  if (missing <= 0) return ui.notifications.info(`${item.name}: magazynek jest pełny.`);
+  if (missing <= 0) return ui.notifications.info(t("{name}: the magazine is full.", { name: item.name }));
 
   // Siodło bojowe (s. 168–170): rezerwa energii/paliwa jako dodatkowa amunicja, podajniki
   const saddle = w.mounted ? saddleState(actor) : null;
@@ -250,43 +250,43 @@ export async function reloadWeapon(actor, item) {
     : saddle?.fuel && isFuel(w.ammoType) ? { kind: "fuel", item: saddle.fuel.item, per: 1, rounds: saddle.fuel.units, pts: saddle.fuel.units }
     : implantReserve(actor, w.ammoType);   // Internal Energy Reservoir: przewód do broni energetycznej
   if (special && variant) reserve = null;  // rezerwy siodła i implantu dają tylko zwykłą amunicję
-  const reserveName = { energy: "rezerwa energii", fuel: "rezerwa paliwa", implant: "magazyn implantu" }[reserve?.kind] ?? "";
+  const reserveName = { energy: t("energy reserve"), fuel: t("fuel reserve"), implant: t("implant reservoir") }[reserve?.kind] ?? "";
   const reserveCap = reserve?.kind === "energy" ? saddle.energy.cap : reserve?.kind === "fuel" ? saddle.fuel.cap : reserve?.cap ?? 0;
   const available = fromStock + (reserve?.rounds ?? 0);
   const tracked = stock.length > 0 || !!reserve;
   // Postać gracza ładuje tylko z ekwipunku albo rezerwy — amunicja nie bierze się znikąd.
   // NPC MG (bez właściciela-gracza) ładują bez liczenia; Junk, Cake i Rock to „amunicja” z czegokolwiek.
   const mustTrack = !!type && (actor.type === "character" || actor.hasPlayerOwner) && !/^(junk|cake|rock)$/i.test(type);
-  if (mustTrack && !tracked) return warn(`${actor.name}: brak amunicji „${w.ammoType}” w ekwipunku — nie ma czym przeładować ${item.name} (dodaj amunicję z katalogu albo z łupu).`);
-  if (tracked && available <= 0) return warn(`${actor.name}: brak amunicji „${w.ammoType}” w ekwipunku${reserve ? ` ani w: ${reserveName}` : ""}.`);
+  if (mustTrack && !tracked) return warn(t("{name}: no “{type}” ammo in the inventory — nothing to reload {weapon} with (add ammo from the catalog or from loot).", { name: actor.name, type: w.ammoType, weapon: item.name }));
+  if (tracked && available <= 0) return warn(reserve ? t("{name}: no “{type}” ammo in the inventory or in: {res}.", { name: actor.name, type: w.ammoType, res: reserveName }) : t("{name}: no “{type}” ammo in the inventory.", { name: actor.name, type: w.ammoType }));
   const kind = String(w.reload ?? "").toUpperCase();
   const loaderOk = !(w.skill === "energy" || isFuel(w.ammoType) || /bow|crossbow/i.test(item.name)) && /DTM|BREECH|INTERNAL|BELT/.test(kind);
   const auto = !!(saddle?.acc?.auto && loaderOk);
   const semi = !auto && !!(saddle?.acc?.semi && /DTM|BELT/.test(kind));
   const extraActions = saddle && !auto && !semi && !saddle.acc?.bit && !reserve ? 2 : 0;
 
-  const actionText = { full: "cały magazynek", half: "pół magazynka", breech: "1d4+1 naboi" }[ri.action];
+  const actionText = { full: t("a full magazine"), half: t("half a magazine"), breech: t("1d4+1 rounds") }[ri.action];
   const content = `
     <div class="foe-dialog">
       <div class="atk-info">
-        <div>Magazynek: <b>${w.ammo.value}/${w.ammo.max}</b> · przeładowanie: <b>${esc(ri.label || "—")}</b></div>
-        <div>${tracked ? `Amunicja „${esc(w.ammoType)}”: <b>${available}</b>${reserve ? ` (ekwipunek ${fromStock} + ${reserveName} ${reserve.rounds})` : ""}`
-          : w.ammoType ? `NPC bez amunicji „${esc(w.ammoType)}” w ekwipunku — załaduję bez odejmowania.`
-          : "Broń bez typu amunicji — załaduję bez odejmowania."}</div>
-        ${saddle ? `<div>Na siodle (${esc(saddle.label)}): ${auto ? "podajnik automatyczny — przeładowanie bez akcji" : semi ? "podajnik półautomatyczny — 1 akcja, cały magazynek" : extraActions ? "bez podajnika i wysuwanego wędzidła sięgnięcie po amunicję to +2 akcje" : "normalnie"}</div>` : ""}
+        <div>${t("Magazine: {m} · reload: {r}", { m: `<b>${w.ammo.value}/${w.ammo.max}</b>`, r: `<b>${esc(ri.label || "—")}</b>` })}</div>
+        <div>${tracked ? `${t("“{type}” ammo: {n}", { type: esc(w.ammoType), n: `<b>${available}</b>` })}${reserve ? ` ${t("(inventory {a} + {res} {b})", { a: fromStock, res: reserveName, b: reserve.rounds })}` : ""}`
+          : w.ammoType ? t("NPC without “{type}” ammo in the inventory — I'll load without deducting.", { type: esc(w.ammoType) })
+          : t("Weapon without an ammo type — I'll load without deducting.")}</div>
+        ${saddle ? `<div>${t("On the saddle ({s}): {how}", { s: esc(saddle.label), how: auto ? t("auto loader — reload without an action") : semi ? t("semi-auto loader — 1 action, a full magazine") : extraActions ? t("without a loader or a retractable bit, reaching for ammo is +2 actions") : t("normally") })}</div>` : ""}
       </div>
       <ul class="rl-opts">
-        <li><b>Akcją:</b> ${semi ? "cały magazynek" : actionText}${extraActions ? ` (razem ${1 + extraActions} akcje)` : ""}</li>
-        <li><b>W SATS:</b> pełny magazynek za ${ri.ap} AP (masz ${sats.value})</li>
+        <li><b>${t("As an action:")}</b> ${semi ? t("a full magazine") : actionText}${extraActions ? ` ${t("({n} actions in total)", { n: 1 + extraActions })}` : ""}</li>
+        <li><b>${t("In SATS:")}</b> ${t("a full magazine for {ap} AP (you have {n})", { ap: ri.ap, n: sats.value })}</li>
       </ul>
     </div>`;
   const buttons = [
-    ...(auto ? [{ action: "auto", label: "Podajnik (bez akcji)", icon: "fa-solid fa-gears", default: true }] : []),
-    { action: "action", label: extraActions ? `Akcjami (${1 + extraActions})` : "Akcją", icon: "fa-solid fa-rotate", default: !auto },
+    ...(auto ? [{ action: "auto", label: t("Loader (no action)"), icon: "fa-solid fa-gears", default: true }] : []),
+    { action: "action", label: extraActions ? t("With actions ({n})", { n: 1 + extraActions }) : t("With an action"), icon: "fa-solid fa-rotate", default: !auto },
     { action: "sats", label: `SATS −${ri.ap} AP`, icon: "fa-solid fa-crosshairs", disabled: sats.value < ri.ap }
   ];
   const choice = await DialogV2.wait({
-    window: { title: `Przeładowanie: ${item.name}` }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 440 },
+    window: { title: t("Reload: {name}", { name: item.name }) }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 440 },
     content, rejectClose: false, buttons
   });
   if (!choice) return null;
@@ -295,10 +295,10 @@ export async function reloadWeapon(actor, item) {
   let note = "";
   if (choice === "sats") {
     const cur = actor.system.resources.sats.value;
-    if (cur < ri.ap) return warn(`Za mało AP w SATS (${cur}/${ri.ap}).`);
+    if (cur < ri.ap) return warn(t("Not enough AP in SATS ({v}/{c}).", { v: cur, c: ri.ap }));
     await actor.update({ "system.resources.sats.value": cur - ri.ap });
   } else if (choice === "action") {
-    await spendActions(actor, 1 + extraActions, "przeładowanie");
+    await spendActions(actor, 1 + extraActions, t("reloading"));
   }
   if (choice === "action" && !semi) {
     if (ri.action === "half") amount = Math.min(missing, Math.ceil(w.ammo.max / 2));
@@ -309,7 +309,7 @@ export async function reloadWeapon(actor, item) {
     }
   }
   if (tracked) amount = Math.min(amount, available);
-  if (amount <= 0) return warn(`Brak amunicji „${w.ammoType}” w ekwipunku${reserve ? ` ani w: ${reserveName}` : ""}.`);
+  if (amount <= 0) return warn(reserve ? t("No “{type}” ammo in the inventory or in: {res}.", { type: w.ammoType, res: reserveName }) : t("No “{type}” ammo in the inventory.", { type: w.ammoType }));
 
   let left = amount;
   for (const st of stock) {
@@ -338,16 +338,16 @@ export async function reloadWeapon(actor, item) {
   const before = swap ? 0 : w.ammo.value;
   await item.update({ "system.ammo.value": before + amount, ...(special ? { "system.loaded": variant } : {}) });
 
-  const how = choice === "sats" ? `SATS −${ri.ap} AP` : choice === "auto" ? "podajnik, bez akcji" : `${1 + extraActions} ${1 + extraActions === 1 ? "akcja" : "akcje"}`;
+  const how = choice === "sats" ? `SATS −${ri.ap} AP` : choice === "auto" ? t("loader, no action") : tn(1 + extraActions, "{n} action", "{n} actions");
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content: `
     <div class="foe-card reload">
-      <div class="fc-tag"><span>PIPBUCK // PRZEŁADOWANIE</span><span>${how}</span></div>
+      <div class="fc-tag"><span>PIPBUCK // ${t("RELOAD")}</span><span>${how}</span></div>
       <h3>${esc(item.name)}</h3>
-      <div class="fc-calc">Załadowano ${amount}${note}${w.ammoType ? ` × ${esc(w.ammoType)}` : ""}${special && variant ? ` (${esc(SPECIAL_AMMO[variant].label)})` : ""} → <b>${before + amount}/${w.ammo.max}</b></div>
-      ${ejected ? `<div class="fc-meta">Wyjęto do ekwipunku: ${ejected} × ${esc(loadedNow ? SPECIAL_AMMO[loadedNow].label : "zwykła")}</div>` : ""}
-      ${tracked ? `<div class="fc-meta">${stock.length ? `W ekwipunku zostało: ${fromStock - (amount - fromReserve)}` : ""}${reserve ? `${stock.length ? " · " : ""}${reserve.kind === "implant" ? "Z magazynu implantu" : "Z rezerwy siodła"}: ${fromReserve} (zostało ${reserve.pts - fromReserve * reserve.per}/${reserveCap})` : ""}</div>` : ""}
+      <div class="fc-calc">${t("Loaded {n}", { n: amount })}${note}${w.ammoType ? ` × ${esc(w.ammoType)}` : ""}${special && variant ? ` (${esc(SPECIAL_AMMO[variant].label)})` : ""} → <b>${before + amount}/${w.ammo.max}</b></div>
+      ${ejected ? `<div class="fc-meta">${t("Ejected to the inventory: {n} × {kind}", { n: ejected, kind: esc(loadedNow ? SPECIAL_AMMO[loadedNow].label : t("ammo|regular")) })}</div>` : ""}
+      ${tracked ? `<div class="fc-meta">${stock.length ? t("Left in the inventory: {n}", { n: fromStock - (amount - fromReserve) }) : ""}${reserve ? `${stock.length ? " · " : ""}${reserve.kind === "implant" ? t("From the implant reservoir") : t("From the saddle reserve")}: ${fromReserve} ${t("({v}/{max} left)", { v: reserve.pts - fromReserve * reserve.per, max: reserveCap })}` : ""}</div>` : ""}
     </div>`
   });
 }
@@ -355,9 +355,9 @@ export async function reloadWeapon(actor, item) {
 /** Salwa z siodła: wszystkie zamontowane bronie jedną akcją, −1 krok MFD (czteroramienne −2); SATS: najdroższa +10 (+40). */
 export async function fireVolley(actor) {
   const s = saddleState(actor);
-  if (!s) return warn(`${actor.name}: brak założonego siodła bojowego (Ekwipunek) ani pancerza wspomaganego z siodłem.`);
+  if (!s) return warn(t("{name}: no battle saddle worn (Inventory) and no power armor with a saddle.", { name: actor.name }));
   const list = s.mounted.slice(0, s.maxWeapons);
-  if (list.length < 2) return warn(`Salwa wymaga co najmniej dwóch broni zamontowanych na siodle (zaznacz „S” przy broni w zakładce Walka).`);
+  if (list.length < 2) return warn(t("A volley needs at least two weapons mounted on the saddle (mark “S” by the weapon in the Combat tab)."));
   const satsCost = Math.max(...list.map(i => Number(i.system.satsCost) || 0)) + s.volleyExtraAp;
   let sats = false;
   const out = [];
@@ -374,27 +374,27 @@ export async function fireVolley(actor) {
 export async function repairPowerArmor(actor, armor) {
   const wear = armor.system.wear ?? {};
   const worst = Math.max(0, ...Object.values(wear).map(v => Number(v) || 0));
-  if (!worst) return ui.notifications.info(`${armor.name}: pancerz nie jest uszkodzony.`);
+  if (!worst) return ui.notifications.info(t("{name}: the armor isn't damaged.", { name: armor.name }));
   const scrap = actor.items.filter(i => i.type === "gear" && /scrap (metal|electronics)|złom/i.test(i.name) && (i.system.qty || 0) > 0);
-  const have = scrap.reduce((t, i) => t + (i.system.qty || 0), 0);
-  if (!have) return warn("Talizman naprawczy potrzebuje złomu (Scrap Metal albo Scrap Electronics) w ekwipunku.");
+  const have = scrap.reduce((sum, i) => sum + (i.system.qty || 0), 0);
+  if (!have) return warn(t("The repair talisman needs scrap (Scrap Metal or Scrap Electronics) in the inventory."));
   const need = Math.ceil(worst / 2);
   const units = Math.min(have, need);
   let left = units;
   for (const it of scrap) {
     if (!left) break;
-    const t = Math.min(left, it.system.qty);
-    await it.update({ "system.qty": it.system.qty - t });
-    left -= t;
+    const take = Math.min(left, it.system.qty);
+    await it.update({ "system.qty": it.system.qty - take });
+    left -= take;
   }
   const upd = {};
   for (const [k, v] of Object.entries(wear)) if (v) upd[`system.wear.${k}`] = Math.max(0, v - 2 * units);
   await armor.update(upd);
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
-    content: `<div class="foe-card reload"><div class="fc-tag"><span>PIPBUCK // NAPRAWA</span><span>talizman naprawczy</span></div><h3>${esc(armor.name)}</h3>
-      <div class="fc-calc">Zużyto ${units} × złom → +${2 * units} DT na każdej lokacji</div>
-      <div class="fc-meta">Talizman naprawia 1 DT co 30 sekund; mieści do 3 jednostek złomu na raz. Przestaje działać, gdy DT spadnie poniżej 25%.</div></div>`
+    content: `<div class="foe-card reload"><div class="fc-tag"><span>PIPBUCK // ${t("REPAIR")}</span><span>${t("repair talisman")}</span></div><h3>${esc(armor.name)}</h3>
+      <div class="fc-calc">${t("Used {n} × scrap → +{dt} DT on every location", { n: units, dt: 2 * units })}</div>
+      <div class="fc-meta">${t("The talisman repairs 1 DT every 30 seconds; it holds up to 3 units of scrap at once. It stops working when DT drops below 25%.")}</div></div>`
   });
 }
 
@@ -408,11 +408,11 @@ const calledOf = v => (LOC_OF[v] ? v : null);
 
 /** Cele: z karty ataku → namierzone → zaznaczone tokeny. */
 async function resolveTargets(uuids = []) {
-  const fromCard = (await Promise.all(uuids.map(u => fromUuid(u).catch(() => null)))).filter(t => t?.actor);
+  const fromCard = (await Promise.all(uuids.map(u => fromUuid(u).catch(() => null)))).filter(tk => tk?.actor);
   if (fromCard.length) return fromCard;
-  const targeted = [...(game.user?.targets ?? [])].map(t => t.document).filter(t => t?.actor);
+  const targeted = [...(game.user?.targets ?? [])].map(tk => tk.document).filter(tk => tk?.actor);
   if (targeted.length) return targeted;
-  return (canvas?.tokens?.controlled ?? []).map(t => t.document).filter(t => t?.actor);
+  return (canvas?.tokens?.controlled ?? []).map(tk => tk.document).filter(tk => tk?.actor);
 }
 
 /** Wynik trafienia jednego celu: obrażenia na lokację po DT i rany. */
@@ -437,11 +437,11 @@ export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0,
 /** Stan lokacji po ranach — progi z danych postaci (u potworów z bestiariusza: z bloku statystyk). */
 function statusText(loc, wounds, sys) {
   const L = sys.locations[loc] ?? {};
-  if (sys.isVehicle) return wounds > 0 && wounds >= L.limit ? AREA_STATUS[loc] ?? "ZNISZCZONA" : wounds > 0 && wounds >= L.crippleAt ? "USZKODZONA" : "";
+  if (sys.isVehicle) return wounds > 0 && wounds >= L.limit ? AREA_STATUS[loc] ?? t("DESTROYED") : wounds > 0 && wounds >= L.crippleAt ? t("DAMAGED") : "";
   const maim = L.limit || sys.attributes.end.total;
   const crip = L.crippleAt || Math.max(1, Math.ceil(maim / 2));
-  if (wounds > 0 && wounds >= maim) return loc === "head" || loc === "torso" ? "ŚMIERĆ" : "KOŃCZYNA UTRACONA";
-  if (wounds > 0 && wounds >= crip) return "OKALECZONA";
+  if (wounds > 0 && wounds >= maim) return loc === "head" || loc === "torso" ? t("DEATH") : t("LIMB LOST");
+  if (wounds > 0 && wounds >= crip) return t("CRIPPLED");
   return "";
 }
 
@@ -449,11 +449,11 @@ export async function applyDamage(message) {
   const d = message.getFlag("foe-rpg", "damage");
   if (!d) return null;
   const tokens = await resolveTargets(d.targets);
-  if (!tokens.length) return warn("Brak celu: namierz token klawiszem T (albo go zaznacz) i kliknij jeszcze raz.");
-  const allowed = tokens.filter(t => t.actor.isOwner);
-  const denied = tokens.filter(t => !t.actor.isOwner);
-  if (!allowed.length) return warn(`Nie możesz zmieniać ${tokens.map(t => t.name).join(", ")} — poproś MG, żeby kliknął „Nanieś obrażenia” na tej karcie.`);
-  if (denied.length) ui.notifications.info(`Pominięto (brak uprawnień): ${denied.map(t => t.name).join(", ")}.`);
+  if (!tokens.length) return warn(t("No target: target a token with the T key (or select it) and click again."));
+  const allowed = tokens.filter(tk => tk.actor.isOwner);
+  const denied = tokens.filter(tk => !tk.actor.isOwner);
+  if (!allowed.length) return warn(t("You can't modify {list} — ask the GM to click “Apply damage” on this card.", { list: tokens.map(tk => tk.name).join(", ") }));
+  if (denied.length) ui.notifications.info(t("Skipped (no permission): {list}.", { list: denied.map(tk => tk.name).join(", ") }));
 
   const degradeDefault = !d.noDegrade && !!game.settings.get("foe-rpg", "armorDegradation");
   // Upadek ignoruje DT pancerza — zostaje naturalne DT z cech (s. 579)
@@ -463,45 +463,45 @@ export async function applyDamage(message) {
   const sp = d.specials ?? {};
   // amunicja specjalna z karty obrażeń
   const ammo = d.ammo?.key && SPECIAL_AMMO[d.ammo.key] ? { ...SPECIAL_AMMO[d.ammo.key], machineBonus: d.ammo.machineBonus ?? 0 } : null;
-  const rows = allowed.map((t, i) => {
-    const sys = t.actor.system;
-    const items = t.actor.items ?? [];
+  const rows = allowed.map((tok, i) => {
+    const sys = tok.actor.system;
+    const items = tok.actor.items ?? [];
     // lokacje chronione pancerzem średnim, ciężkim albo wspomaganym (AP i Focused: inaczej połowa obrażeń)
     const armored = new Set(items.filter(a => a.type === "armor" && a.system.equipped && (a.system.powered || ["medium", "heavy"].includes(a.system.category)))
       .flatMap(a => Object.entries(a.system.cover ?? {}).filter(([, on]) => on).map(([k]) => k)));
     const machine = !!sys.isVehicle || /robot|sentry|turret|protectapony|sprite.?bot|maszyn/i.test(sys.race ?? "") || items.some(a => a.type === "armor" && a.system.equipped && a.system.powered);
     const table = d.table && HIT_TABLES[d.table] ? d.table : hitTableFor(sys.race);
     // potwory z bestiariusza: własne strefy (np. „Szczypce L”) zamiast lokacji kucyka
-    const labels = areaLabels(t.actor);
+    const labels = areaLabels(tok.actor);
     const areaLocs = Object.keys(labels);
     const locs = areaLocs.length ? areaLocs : tableLocations(table);
     const opts = locs.map(k => ({ v: k, label: labels[k] ?? locationName(k, table) }));
-    if (d.called === "heart") opts.push({ v: "heart", label: "Serce (tułów, ×2)" });
-    if (d.called === "eye") opts.push({ v: "eye", label: "Oko (głowa, ×1,5)" });
-    opts.push({ v: "all", label: "Cały cel — wybuch (każda lokacja)" });
+    if (d.called === "heart") opts.push({ v: "heart", label: t("Heart (torso, ×2)") });
+    if (d.called === "eye") opts.push({ v: "eye", label: t("Eye (head, ×1.5)") });
+    opts.push({ v: "all", label: t("Whole target — explosion (every location)") });
     const sel = d.aoe ? "all" : calledOf(d.called) && locs.includes(calledOf(d.called)) ? calledOf(d.called) : d.loc && locs.includes(d.loc) ? d.loc : locs.includes("torso") ? "torso" : locs[0];
-    return { t, i, sys, table, locs, opts, sel, labels, armored, machine };
+    return { tok, i, sys, table, locs, opts, sel, labels, armored, machine };
   });
 
   const defMult = v => (d.aoe || d.flatMult || v === "all" ? 1 : combineMultipliers(d.critMult ?? 1, locationMultiplier(locOf(v), calledOf(v))));
   const content = `
     <div class="foe-dialog dmg-apply">
-      <div class="atk-info"><div>${esc(d.itemName)}: <b>${d.pre}</b> obrażeń przed mnożnikami${d.crit ? " (krytyk)" : ""}${d.ignoreDT ? ` · ignoruje ${d.ignoreDT} DT` : ""}</div>${ammo ? `<div>Amunicja <b>${esc(ammo.label)}</b>: ${esc(ammo.effect)}; ${esc(ammo.downside)}</div>` : ""}</div>
+      <div class="atk-info"><div>${esc(d.itemName)}: ${t("{n} damage before multipliers", { n: `<b>${d.pre}</b>` })}${d.crit ? ` ${t("(critical)")}` : ""}${d.ignoreDT ? ` · ${t("ignores {n} DT", { n: d.ignoreDT })}` : ""}</div>${ammo ? `<div>${t("Ammo {a}: {e}; {d}", { a: `<b>${esc(ammo.label)}</b>`, e: esc(ammo.effect), d: esc(ammo.downside) })}</div>` : ""}</div>
       ${rows.map(r => `
       <fieldset class="dmg-target" data-i="${r.i}">
-        <legend>${esc(r.t.name)} <small>${r.sys.dmgPerWound} obr. = 1 rana · ${r.sys.isVehicle ? `wytrzymałość strefy ${r.sys.structure}` : `END ${r.sys.attributes.end.total}`}</small></legend>
-        <label>Lokacja <select name="loc-${r.i}">${r.opts.map(o => `<option value="${o.v}" ${o.v === r.sel ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></label>
-        <label>Mnożnik <input type="number" name="mult-${r.i}" value="${defMult(r.sel)}" step="0.5" min="0"></label>
-        <label class="dt-row">DT <input type="number" name="dt-${r.i}" value="${r.sel === "all" ? "" : dtOf(r.sys, r.sel)}" ${r.sel === "all" ? "disabled placeholder=\"wg lokacji\"" : ""}></label>
-        <label>Ignoruje DT <input type="number" name="ign-${r.i}" value="${d.ignoreDT ?? 0}" min="0"></label>
-        <label class="atk-check"><input type="checkbox" name="all-${r.i}"> <span>Ignoruj całe DT</span></label>
-        ${ammo?.machineBonus ? `<label class="atk-check"><input type="checkbox" name="mach-${r.i}" ${r.machine ? "checked" : ""}> <span>Maszyna / robot / pancerz wspomagany (+${ammo.machineBonus})</span></label>` : ""}
-        ${ammo?.living4 ? `<label class="atk-check"><input type="checkbox" name="live-${r.i}" ${r.machine ? "" : "checked"}> <span>Cel żywy albo ghul (×4)</span></label>` : ""}
+        <legend>${esc(r.tok.name)} <small>${t("{n} dmg = 1 wound", { n: r.sys.dmgPerWound })} · ${r.sys.isVehicle ? t("area durability {n}", { n: r.sys.structure }) : `END ${r.sys.attributes.end.total}`}</small></legend>
+        <label>${t("Location")} <select name="loc-${r.i}">${r.opts.map(o => `<option value="${o.v}" ${o.v === r.sel ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></label>
+        <label>${t("Multiplier")} <input type="number" name="mult-${r.i}" value="${defMult(r.sel)}" step="0.5" min="0"></label>
+        <label class="dt-row">DT <input type="number" name="dt-${r.i}" value="${r.sel === "all" ? "" : dtOf(r.sys, r.sel)}" ${r.sel === "all" ? `disabled placeholder="${t("by location")}"` : ""}></label>
+        <label>${t("Ignores DT")} <input type="number" name="ign-${r.i}" value="${d.ignoreDT ?? 0}" min="0"></label>
+        <label class="atk-check"><input type="checkbox" name="all-${r.i}"> <span>${t("Ignore all DT")}</span></label>
+        ${ammo?.machineBonus ? `<label class="atk-check"><input type="checkbox" name="mach-${r.i}" ${r.machine ? "checked" : ""}> <span>${t("Machine / robot / power armor (+{n})", { n: ammo.machineBonus })}</span></label>` : ""}
+        ${ammo?.living4 ? `<label class="atk-check"><input type="checkbox" name="live-${r.i}" ${r.machine ? "" : "checked"}> <span>${t("Living target or ghoul (×4)")}</span></label>` : ""}
         <div class="dmg-out" data-out="${r.i}"></div>
       </fieldset>`).join("")}
       ${specialHtml(sp, rows.some(r => r.sys.isVehicle))}
       <label class="atk-row atk-check"><input type="checkbox" name="degrade" ${degradeDefault ? "checked" : ""}>
-        <span>Degradacja pancerza</span><small>przebity pancerz traci 1 DT na tej lokacji (zasada opcjonalna)</small></label>
+        <span>${t("Armor degradation")}</span><small>${t("pierced armor loses 1 DT on that location (optional rule)")}</small></label>
     </div>`;
 
   const read = (form, r) => {
@@ -523,7 +523,7 @@ export async function applyDamage(message) {
   };
   const describe = (r, res) => res.map(x => {
     const st = statusText(x.loc, x.now, r.sys);
-    return `<div><b>${esc(r.labels[x.loc] ?? locationName(x.loc, r.table))}</b>: ${x.dmg} − DT ${x.eff} = ${x.after} → <b>${x.wounds} ${x.wounds === 1 ? "rana" : "ran"}</b> (${x.before}→${x.now}/${r.sys.locations[x.loc]?.limit ?? r.sys.attributes.end.total})${x.ammoNotes?.length ? ` <small>[${esc(x.ammoNotes.join(", "))}]</small>` : ""}${st ? ` <span class="warn">${st}</span>` : ""}</div>`;
+    return `<div><b>${esc(r.labels[x.loc] ?? locationName(x.loc, r.table))}</b>: ${x.dmg} − DT ${x.eff} = ${x.after} → <b>${tn(x.wounds, "{n} wound", "{n} wounds")}</b> (${x.before}→${x.now}/${r.sys.locations[x.loc]?.limit ?? r.sys.attributes.end.total})${x.ammoNotes?.length ? ` <small>[${esc(x.ammoNotes.join(", "))}]</small>` : ""}${st ? ` <span class="warn">${st}</span>` : ""}</div>`;
   }).join("");
 
   const render = (event, dialog) => {
@@ -540,7 +540,7 @@ export async function applyDamage(message) {
           const dtIn = el[`dt-${r.i}`];
           dtIn.disabled = v === "all";
           dtIn.value = v === "all" ? "" : dtOf(r.sys, v);
-          dtIn.placeholder = v === "all" ? "wg lokacji" : "";
+          dtIn.placeholder = v === "all" ? t("by location") : "";
         }
         const out = form.querySelector(`[data-out="${r.i}"]`);
         if (out) out.innerHTML = describe(r, computeHit(r.sys, read(form, r)));
@@ -552,14 +552,14 @@ export async function applyDamage(message) {
   };
 
   const result = await DialogV2.wait({
-    window: { title: "Nanieś obrażenia" },
+    window: { title: t("Apply damage") },
     classes: ["foe-rpg", "foe-roll-dialog"],
     position: { width: 480 },
     content,
     render,
     rejectClose: false,
     buttons: [{
-      action: "apply", label: "Nanieś", icon: "fa-solid fa-heart-crack", default: true,
+      action: "apply", label: t("Apply"), icon: "fa-solid fa-heart-crack", default: true,
       callback: (event, button) => ({
         degrade: !!button.form.elements.degrade?.checked,
         special: readSpecial(button.form),
@@ -579,7 +579,7 @@ export async function applyDamage(message) {
 
   const lines = [];
   for (const { r, input } of result.hits) {
-    const actor = r.t.actor;
+    const actor = r.tok.actor;
     const sys = actor.system;
     const res = computeHit(sys, input);
     const update = {};
@@ -592,7 +592,7 @@ export async function applyDamage(message) {
       for (const x of res) {
         const worn = actor.items.filter(i => i.type === "armor" && i.system.equipped && i.system.cover?.[x.loc]);
         if (!worn.length || x.dmg <= x.armorDt) continue;
-        if (x.armorDt <= 0) { armorNotes.push(`${worn.map(i => i.name).join(", ")} (${locationName(x.loc)}): zniszczony`); continue; }
+        if (x.armorDt <= 0) { armorNotes.push(t("{list} ({loc}): destroyed", { list: worn.map(i => i.name).join(", "), loc: locationName(x.loc) })); continue; }
         for (const i of worn) {
           const w = wear.get(i.id) ?? { _id: i.id, [`system.wear.${x.loc}`]: 0 };
           w[`system.wear.${x.loc}`] = (i.system.wear?.[x.loc] ?? 0) + 1;
@@ -611,11 +611,11 @@ export async function applyDamage(message) {
     const dead = fx.dead;
     lines.push(`
       <div class="dmg-res">
-        <h4>${esc(r.t.name)}</h4>
+        <h4>${esc(r.tok.name)}</h4>
         ${describe(r, res)}
-        ${armorNotes.length ? `<div class="fc-meta">Pancerz: ${armorNotes.map(esc).join(" · ")}</div>` : ""}
+        ${armorNotes.length ? `<div class="fc-meta">${t("Armor: {list}", { list: armorNotes.map(esc).join(" · ") })}</div>` : ""}
         ${fx.notes.length ? `<div class="fc-special">${fx.notes.map(n => `<span>${esc(n)}</span>`).join("")}</div>` : ""}
-        ${sys.isVehicle ? vehicleNotes(actor, res) : `<div class="fc-meta">Rany łącznie: ${total}/${4 * endT}${dead ? ` · <b class="warn">${esc(dead)}</b>` : actor.system.unconsciousRisk ? " · <b class=\"warn\">traci przytomność: przy każdej akcji rzut END MFD ¾</b>" : ""}</div>`}
+        ${sys.isVehicle ? vehicleNotes(actor, res) : `<div class="fc-meta">${t("Total wounds: {n}/{max}", { n: total, max: 4 * endT })}${dead ? ` · <b class="warn">${esc(dead)}</b>` : actor.system.unconsciousRisk ? ` · <b class="warn">${t("losing consciousness: END MFD ¾ roll on every action")}</b>` : ""}</div>`}
       </div>`);
   }
 
@@ -624,8 +624,8 @@ export async function applyDamage(message) {
     rolls: robotRoll ? [robotRoll] : [],
     content: `
     <div class="foe-card wounds">
-      ${robotRoll ? `<div class="fc-meta">Elektryczność przeciw maszynie: +6d12 = ${robotRoll.total}</div>` : ""}
-      <div class="fc-tag"><span>PIPBUCK // RANY</span><span>${esc(d.itemName)}</span></div>
+      ${robotRoll ? `<div class="fc-meta">${t("Electricity against a machine: +6d12 = {n}", { n: robotRoll.total })}</div>` : ""}
+      <div class="fc-tag"><span>PIPBUCK // ${t("WOUNDS")}</span><span>${esc(d.itemName)}</span></div>
       ${lines.join("")}
     </div>`
   });
@@ -638,10 +638,10 @@ function vehicleNotes(actor, res) {
   for (const x of res) {
     const L = sys.locations[x.loc];
     if (x.wounds && L?.effect) out.push(L.effect);
-    if (x.loc === "head" && x.after > 0) out.push(`kabina przebita: MG może przenieść ${x.after} obrażeń na członka załogi (zasada domowa)`);
+    if (x.loc === "head" && x.after > 0) out.push(t("cabin pierced: the GM may transfer {n} damage to a crew member (house rule)", { n: x.after }));
   }
-  if (sys.falling) out.push(`POJAZD SPADA z ${sys.altitude} ft — przycisk „Zderzenie” na karcie pojazdu (upadek)`);
-  return `<div class="fc-meta">Rany pojazdu: ${sys.totalWounds} · ${out.length ? out.map(n => `<b class="warn">${esc(n)}</b>`).join(" · ") : "pojazd sprawny"}</div>`;
+  if (sys.falling) out.push(t("THE VEHICLE IS FALLING from {n} ft — the “Crash” button on the vehicle sheet (fall)", { n: sys.altitude }));
+  return `<div class="fc-meta">${t("Vehicle wounds: {n}", { n: sys.totalWounds })} · ${out.length ? out.map(n => `<b class="warn">${esc(n)}</b>`).join(" · ") : t("vehicle operational")}</div>`;
 }
 
 // ======================================================================
@@ -652,17 +652,17 @@ function specialHtml(sp, machine = false) {
   const row = (name, label, desc, checked = true) =>
     `<label class="atk-row atk-check"><input type="checkbox" name="${name}" ${checked ? "checked" : ""}><span>${label}</span><small>${desc}</small></label>`;
   const parts = [];
-  if (sp.fire) parts.push(row("sp-fire", "Podpal cel (ogień)", "1d4 rundy po 3d12 na każdą lokację na koniec rundy; pancerz metalowy chroni, jeśli atak go nie przebił"));
+  if (sp.fire) parts.push(row("sp-fire", t("Ignite the target (fire)"), t("1d4 rounds of 3d12 to every location at the end of the round; metal armor protects if the attack didn't pierce it")));
   if (sp.electric) {
-    parts.push(row("sp-electric", "Porażenie prądem", "na koniec rundy 3d12 na każdą lokację (pancerz metalowy nie chroni); wyłącza PipBucka i pancerz wspomagany"));
-    parts.push(row("sp-robot", "Cel to robot / maszyna", "+6d12 teraz i 6d12 na koniec rundy", machine));
+    parts.push(row("sp-electric", t("Electric shock"), t("3d12 to every location at the end of the round (metal armor doesn't protect); disables the PipBuck and power armor")));
+    parts.push(row("sp-robot", t("The target is a robot / machine"), t("+6d12 now and 6d12 at the end of the round"), machine));
   }
-  if (sp.rads) parts.push(row("sp-rads", "Promieniowanie", "25 radów za każde 10 obrażeń po DT (minus odporność celu)"));
-  if (sp.disintegrate) parts.push(row("sp-dis", "Dezintegracja", sp.disintegrate === "crit" ? "krytyk zawsze dezintegruje; inaczej: rany okaleczające lokację albo zabójcze" : "rany okaleczające nietkniętą lokację albo trafienie zabójcze zamieniają cel w popiół"));
-  if (sp.shock) parts.push(row("sp-shock", "Nie zabija (shock)", "zamiast śmierci — utrata przytomności"));
-  if (sp.knockdown) parts.push(row("sp-knock", "Przewraca", "co najmniej 1 rana przewraca cel"));
-  if (sp.poison) parts.push(`<label class="atk-row">Trucizna <select name="sp-poison">${Object.entries(POISONS).map(([k, v]) => `<option value="${k}" ${k === sp.poison ? "selected" : ""}>${v}</option>`).join("")}</select></label>`);
-  return parts.length ? `<div class="dlg-attack dmg-special"><div class="atk-info">Efekty specjalne broni</div>${parts.join("")}</div>` : "";
+  if (sp.rads) parts.push(row("sp-rads", t("Radiation"), t("25 rads per 10 damage after DT (minus the target's resistance)")));
+  if (sp.disintegrate) parts.push(row("sp-dis", t("Disintegration"), sp.disintegrate === "crit" ? t("a critical always disintegrates; otherwise: wounds crippling a location or lethal ones") : t("wounds crippling an untouched location or a lethal hit turn the target to ash")));
+  if (sp.shock) parts.push(row("sp-shock", t("Non-lethal (shock)"), t("instead of death — unconsciousness")));
+  if (sp.knockdown) parts.push(row("sp-knock", t("Knockdown"), t("at least 1 wound knocks the target down")));
+  if (sp.poison) parts.push(`<label class="atk-row">${t("Poison")} <select name="sp-poison">${Object.entries(POISONS).map(([k, v]) => `<option value="${k}" ${k === sp.poison ? "selected" : ""}>${v}</option>`).join("")}</select></label>`);
+  return parts.length ? `<div class="dlg-attack dmg-special"><div class="atk-info">${t("Weapon special effects")}</div>${parts.join("")}</div>` : "";
 }
 
 function readSpecial(form) {
@@ -680,52 +680,53 @@ async function applySpecials(actor, res, special, d, endT) {
   const sp = d.specials ?? {};
   const hurt = res.some(x => x.after > 0 || x.wounds > 0);
   const wounded = res.some(x => x.wounds > 0);
-  let dead = "";
+  let dead = "", knockedOut = false;
 
   if (special.dis && !special.shock && res.some(x => disintegrates({ mode: sp.disintegrate, wounds: x.wounds, now: x.now, endT, crit: !!d.crit }))) {
     await toggleStatus(actor, "dead", true);
-    notes.push("DEZINTEGRACJA — cel zamienia się w popiół lub świecącą kałużę");
-    dead = "ZDEZINTEGROWANY";
+    notes.push(t("DISINTEGRATION — the target turns into ash or a glowing puddle"));
+    dead = t("DISINTEGRATED");
   } else if (actor.system.dead) {
     if (actor.system.isVehicle) {
       await toggleStatus(actor, "dead", true);
-      dead = "WRAK";
+      dead = t("WRECK");
     } else if (special.shock) {
       await toggleStatus(actor, "unconscious", true);
-      notes.push("rany zabójcze, ale broń nie zabija — nieprzytomny");
-      dead = "NIEPRZYTOMNY";
+      notes.push(t("lethal wounds, but the weapon doesn't kill — unconscious"));
+      dead = t("UNCONSCIOUS");
+      knockedOut = true;
     } else {
       await toggleStatus(actor, "dead", true);
-      dead = "MARTWY";
+      dead = t("DEAD");
     }
   }
   if (special.rads) {
-    const dmg = d.aoe ? Math.max(0, ...res.map(x => x.after)) : res.reduce((t, x) => t + x.after, 0);
+    const dmg = d.aoe ? Math.max(0, ...res.map(x => x.after)) : res.reduce((sum, x) => sum + x.after, 0);
     const rads = radsFrom(dmg, actor.system.radResistTotal ?? 0);
     if (rads) {
       await actor.update({ "system.resources.rads.value": (actor.system.resources.rads.value || 0) + rads });
-      notes.push(`+${rads} radów`);
+      notes.push(t("+{n} rads", { n: rads }));
     }
   }
-  if (dead && dead !== "NIEPRZYTOMNY") return { notes, armor, dead };
+  if (dead && !knockedOut) return { notes, armor, dead };
 
   if (special.fire) {
     // pancerz metalowy chroni przed podpaleniem, jeśli atak go nie przebił
     const stopped = res.every(x => x.dmg <= x.armorDt && actor.items.some(i => i.type === "armor" && i.system.equipped && i.system.cover?.[x.loc] && isMetalArmor(i.system)));
-    if (stopped) armor.push("metalowy pancerz zatrzymał ogień");
+    if (stopped) armor.push(t("metal armor stopped the fire"));
     else {
       const r = await new Roll("1d4").evaluate();
       await setCondition(actor, "burning", { rounds: r.total });
-      notes.push(`PŁONIE przez ${r.total} ${r.total === 1 ? "rundę" : "rundy"} (gaszenie: AGI ½, 2 akcje)`);
+      notes.push(tn(r.total, "BURNING for {n} round (putting out: AGI ½, 2 actions)", "BURNING for {n} rounds (putting out: AGI ½, 2 actions)"));
     }
   }
   if (special.electric) {
     await setCondition(actor, "shocked", { dice: special.robot ? "6d12" : "3d12" });
-    notes.push(`porażenie: ${special.robot ? "6d12" : "3d12"} na każdą lokację na koniec rundy`);
+    notes.push(t("shock: {dice} to every location at the end of the round", { dice: special.robot ? "6d12" : "3d12" }));
   }
   if (special.knock && wounded) {
     await toggleStatus(actor, "prone", true);
-    notes.push("przewrócony (wstanie: AGI ¾)");
+    notes.push(t("knocked down (getting up: AGI ¾)"));
   }
   if (special.poison && hurt) notes.push(await poisonCheck(actor, special.poison));
   return { notes, armor, dead };
@@ -741,8 +742,8 @@ export function registerCombatHooks() {
       ev.preventDefault();
       const test = message.getFlag("foe-rpg", "test");
       const item = test?.itemUuid ? await fromUuid(test.itemUuid) : null;
-      if (!item) return ui.notifications.warn("Nie znaleziono tej broni.");
-      if (!item.isOwner) return ui.notifications.warn("Nie jesteś właścicielem tej broni.");
+      if (!item) return ui.notifications.warn(t("This weapon wasn't found."));
+      if (!item.isOwner) return ui.notifications.warn(t("You don't own this weapon."));
       const crit = html.querySelector(".foe-card")?.classList.contains("crit-success");
       // broń pokładowa: premie z umiejętności strzelca, nie pojazdu
       const shooter = test.attack?.gunnerUuid ? await fromUuid(test.attack.gunnerUuid).catch(() => null) : null;
@@ -759,9 +760,9 @@ export function registerCombatHooks() {
       ev.preventDefault();
       const test = message.getFlag("foe-rpg", "test");
       const actor = test ? await fromUuid(test.actorUuid) : null;
-      if (!actor?.isOwner) return ui.notifications.warn("Nie jesteś właścicielem tej postaci.");
+      if (!actor?.isOwner) return ui.notifications.warn(t("You don't own this character."));
       const cards = actor.system.resources.luck.value;
-      if (cards <= 0) return ui.notifications.warn("Brak kart szczęścia.");
+      if (cards <= 0) return ui.notifications.warn(t("No Luck cards left."));
       await actor.update({ "system.resources.luck.value": cards - 1 });
       btn.disabled = true;
       await rollTest(actor, { ...test, rerolls: (test.rerolls ?? 0) + 1 });
@@ -779,7 +780,7 @@ export function registerCombatHooks() {
       if (!actor || seen.has(actor.uuid)) continue;
       seen.add(actor.uuid);
       // stany z efektów broni: ogień, prąd, trucizna (koniec poprzedniej rundy)
-      try { await endOfRound(actor); } catch (err) { console.error("foe-rpg | koniec rundy", err); }
+      try { await endOfRound(actor); } catch (err) { console.error("foe-rpg | end of round", err); }
       const s = actor.system.resources?.sats;
       if (!s || s.value >= s.max) continue;
       await actor.update({ "system.resources.sats.value": Math.min(s.max, s.value + (actor.system.satsRegen ?? 5)) });
