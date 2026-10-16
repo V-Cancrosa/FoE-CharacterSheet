@@ -3348,5 +3348,11 @@ export default {
   // ---- data/*.json (warunki efektów)
   "Against fire": "Przeciw ogniowi",
   "Intimidation": "Zastraszanie",
-  "Target with D/W below 8": "Cel z D/W poniżej 8"
+  "Target with D/W below 8": "Cel z D/W poniżej 8",
+  // ---- module/catalog.mjs
+  "A new gaming table (blackjack or Texas Hold'em) — the dealer, bets and the casino bank are set on its sheet. Then drag it onto the map.": "Nowy stół do gry (blackjack albo Texas Hold'em) — krupiera, stawki i bank kasyna ustawisz na jego karcie. Potem przeciągnij go na mapę.",
+  "Which game?": "Jaka gra?",
+  "You can change the game later on the table's sheet, while nobody sits at it.": "Grę zmienisz później na karcie stołu, gdy nikt przy nim nie siedzi.",
+  "Texas Hold'em table": "Stół do Texas Hold'em",
+  "Blackjack table": "Stół do blackjacka"
 };
