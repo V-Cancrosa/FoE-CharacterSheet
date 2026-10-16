@@ -8,12 +8,13 @@
  * Wygląd: styles/ui.css; grafiki i teksty: ui-art.mjs.
  */
 import { stableDoorUrl, welcomeLines } from "./ui-art.mjs";
+import { t } from "./i18n.mjs";
 
 const F = "foe-rpg";
 const get = (key, fallback) => { try { return game.settings.get(F, key); } catch { return fallback; } };
 export const PIP_HEX = { green: "#4dff8a", amber: "#ffb547", blue: "#5fd8ff", white: "#e4f2e8" };
 const pipHex = () => PIP_HEX[get("pipColor", "green")] ?? PIP_HEX.green;
-const PAUSE_TEXT = "GRA WSTRZYMANA";
+const PAUSE_TEXT = () => t("GAME PAUSED");
 
 /** Kolory radaru EFS (Eyes Forward Sparkle) dla obwódek i pierścieni tokenów. */
 export const EFS_COLORS = { HOSTILE: 0xff3b30, NEUTRAL: 0xffd23f, FRIENDLY: 0x4dff8a, PARTY: 0x8affb8 };
@@ -21,28 +22,28 @@ export const EFS_COLORS = { HOSTILE: 0xff3b30, NEUTRAL: 0xffd23f, FRIENDLY: 0x4d
 export function registerUiSettings() {
   const theme = () => document.body.classList.toggle("foe-ui", !!get("uiTheme", true));
   game.settings.register(F, "uiTheme", {
-    name: "Motyw PipBucka dla interfejsu",
-    hint: "Pasek boczny, czat, lista graczy, pasek makr, sceny i kontrolki w kolorach ekranu PipBucka (kolor jak w ustawieniu „Kolor ekranu PipBucka”). Wyłącz, jeśli wolisz zwykły wygląd Foundry.",
+    name: "PipBuck theme for the interface",
+    hint: "Sidebar, chat, player list, macro bar, scenes and controls in the colors of the PipBuck screen (the color from the “PipBuck screen color” setting). Turn it off if you prefer the regular look of Foundry.",
     scope: "client", config: true, type: Boolean, default: true, onChange: theme
   });
   game.settings.register(F, "stableNumber", {
-    name: "Numer Stajni (ekran pauzy i powitanie)",
-    hint: "Liczba na godle Stajni, które pokazuje się na ekranie pauzy (najwyżej 3 cyfry).",
+    name: "Stable number (pause screen and welcome)",
+    hint: "The number on the Stable emblem shown on the pause screen (at most 3 digits).",
     scope: "world", config: true, type: String, default: "97", onChange: () => ui.pause?.render?.()
   });
   game.settings.register(F, "efsColors", {
-    name: "Tokeny w kolorach radaru EFS",
-    hint: "Obwódki i pierścienie tokenów jak na radarze PipBucka: zielone — swoi, czerwone — wrogowie, żółte — neutralni. Zmiana po przeładowaniu.",
+    name: "Tokens in EFS radar colors",
+    hint: "Token borders and rings like on the PipBuck radar: green — friendly, red — hostile, yellow — neutral. Takes effect after a reload.",
     scope: "world", config: true, type: Boolean, default: true, requiresReload: true
   });
   game.settings.register(F, "uiWelcome", {
-    name: "Ekran powitalny PipBucka",
-    hint: "Po zalogowaniu na chwilę pojawia się ekran PipBucka z imieniem postaci i jej stanem (tylko u Ciebie; kliknięcie zamyka).",
+    name: "PipBuck welcome screen",
+    hint: "After logging in, the PipBuck screen with the character's name and condition appears for a moment (only for you; a click closes it).",
     scope: "client", config: true, type: Boolean, default: true
   });
   game.settings.register(F, "uiSounds", {
-    name: "Dźwięki PipBucka",
-    hint: "Ciche piknięcia przy pauzie, otwieraniu kart systemu i własnych rzutach (głośność jak „Interfejs” w ustawieniach dźwięku).",
+    name: "PipBuck sounds",
+    hint: "Quiet beeps on pause, when opening system sheets and on your own rolls (volume as “Interface” in the sound settings).",
     scope: "client", config: true, type: Boolean, default: false
   });
   theme();
@@ -106,7 +107,7 @@ export function decoratePause(element) {
     img.alt = "";
   }
   const cap = root.querySelector("figcaption, h3");
-  if (cap) { cap.textContent = PAUSE_TEXT; cap.dataset.text = PAUSE_TEXT; }
+  if (cap) { cap.textContent = PAUSE_TEXT(); cap.dataset.text = PAUSE_TEXT(); }
 }
 
 // ======================================================================

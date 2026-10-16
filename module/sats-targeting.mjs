@@ -8,6 +8,7 @@
 import { bodyMap } from "./body-map.mjs";
 import { CALLED_SHOTS, HIT_TABLES, hitTableFor, tableLocations } from "./combat.mjs";
 import { locationName } from "./rolls.mjs";
+import { t, isPL } from "./i18n.mjs";
 
 const F = "foe-rpg";
 const ID = "foe-sats";
@@ -25,27 +26,27 @@ const STATE = new WeakMap();
 
 export function registerSatsSettings() {
   game.settings.register(F, "satsTargeting", {
-    name: "Celownik S.A.T.S. (opcja)",
-    hint: "Przy ataku z SATS kamera najeżdża na namierzony cel, a na ekranie pojawia się jego sylwetka w stylu V.A.T.S. z szansą trafienia każdej części ciała — klik ustawia strzał celowany. Wymaga namierzenia celu (T).",
+    name: "S.A.T.S. targeting (optional)",
+    hint: "When attacking with SATS, the camera pans to the targeted token and the screen shows its V.A.T.S.-style silhouette with the hit chance of every body part — a click sets the called shot. Requires a target (T).",
     scope: "world", config: true, type: Boolean, default: false
   });
   game.settings.register(F, "satsAutoOpen", {
-    name: "S.A.T.S.: celownik po zaznaczeniu SATS",
-    hint: "Zaznaczenie SATS w oknie ataku od razu otwiera celownik (gdy jest namierzony cel). Wyłączony — tylko przycisk ⌖ przy „Cel ataku”.",
+    name: "S.A.T.S.: targeting when SATS is ticked",
+    hint: "Ticking SATS in the attack window opens the targeting screen right away (when there is a target). Off — only the ⌖ button next to “Attack target”.",
     scope: "client", config: true, type: Boolean, default: true
   });
   game.settings.register(F, "satsZoom", {
-    name: "S.A.T.S.: przybliżaj kamerę do celu",
+    name: "S.A.T.S.: zoom the camera to the target",
     scope: "client", config: true, type: Boolean, default: true
   });
   game.settings.register(F, "satsMinimize", {
-    name: "S.A.T.S.: zwijaj karty na czas celowania",
-    hint: "Otwarte karty postaci i przedmiotów zwijają się, gdy otwiera się celownik, i wracają po ataku albo wyjściu z SATS — nic nie zasłania celu.",
+    name: "S.A.T.S.: minimize sheets while aiming",
+    hint: "Open character and item sheets minimize when the targeting screen opens and come back after the attack or on leaving SATS — nothing covers the target.",
     scope: "client", config: true, type: Boolean, default: true
   });
   game.settings.register(F, "satsRestoreDelay", {
-    name: "S.A.T.S.: powrót kamery (ms)",
-    hint: "Po zamknięciu okna ataku kamera wraca do poprzedniego widoku po tylu milisekundach. −1 = zostaje przy celu.",
+    name: "S.A.T.S.: camera return (ms)",
+    hint: "After the attack window closes, the camera returns to the previous view after this many milliseconds. −1 = it stays on the target.",
     scope: "client", config: true, type: Number, default: 1500, range: { min: -1, max: 5000, step: 100 }
   });
 }
@@ -64,7 +65,7 @@ export function registerSatsHooks() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "foe-sats-open";
-    btn.title = "Celownik S.A.T.S. — przybliż cel i wybierz część ciała";
+    btn.title = t("S.A.T.S. targeting — zoom in on the target and choose a body part");
     btn.innerHTML = `<i class="fa-solid fa-crosshairs"></i>`;
     btn.addEventListener("click", ev => {
       ev.preventDefault();
@@ -92,8 +93,8 @@ export function registerSatsHooks() {
 
 /** Próg trafienia przy zaznaczonym MFD, odczytany z okna („≤ 34” albo „→ ½ ≤ 17”). */
 function chanceOf(form) {
-  const t = form.querySelector("input[name=mfd]:checked")?.closest("label")?.querySelector(".t")?.textContent ?? "";
-  const n = Number(t.match(/≤\s*(-?\d+)/)?.[1]);
+  const txt = form.querySelector("input[name=mfd]:checked")?.closest("label")?.querySelector(".t")?.textContent ?? "";
+  const n = Number(txt.match(/≤\s*(-?\d+)/)?.[1]);
   return Number.isFinite(n) ? clamp(n, 0, 100) : null;
 }
 
@@ -112,7 +113,7 @@ function measure(form, select) {
   return out;
 }
 
-const stepsNote = s => (s ? `${s} kr. MFD`.replace("-", "−") : "bez kary");
+const stepsNote = s => (s ? t("{n} MFD st.", { n: s }).replace("-", "−") : t("no penalty"));
 
 /** Wiersze listy celów: tylko części, które cel ma; oko, serce i rozłożone skrzydła pod swoją częścią. */
 function rowsFor(measured, locs, table) {
@@ -122,7 +123,7 @@ function rowsFor(measured, locs, table) {
     if (c) {
       if (!locs.includes(c.loc)) continue;
       const primary = c.loc === m.value;
-      const mult = c.mult ? `×${c.mult}` : c.loc === "head" ? "×1,5" : "";
+      const mult = c.mult ? `×${c.mult}` : c.loc === "head" ? (isPL() ? "×1,5" : "×1.5") : "";
       // dwunożni i pojazdy mają własne nazwy części (ramiona, kabina…); reszta — jak w oknie ataku, bez nawiasu
       const own = HIT_TABLES[table]?.biped || table === "vehicle";
       rows.push({
@@ -152,13 +153,13 @@ function minimizeSheets(st) {
   for (const app of foundry.applications.instances?.values?.() ?? []) {
     if (!app?.rendered || app.minimized || !app.document || st.minimized.includes(app)) continue;
     if (!app.element?.classList?.contains("foe-rpg")) continue;
-    try { app.minimize(); st.minimized.push(app); } catch (err) { console.warn(`${ID} | zwijanie karty`, err); }
+    try { app.minimize(); st.minimized.push(app); } catch (err) { console.warn(`${ID} | minimizing a sheet`, err); }
   }
 }
 
 function restoreSheets(st) {
   for (const app of st.minimized ?? []) {
-    try { if (app.rendered && app.minimized) app.maximize(); } catch (err) { console.warn(`${ID} | rozwijanie karty`, err); }
+    try { if (app.rendered && app.minimized) app.maximize(); } catch (err) { console.warn(`${ID} | restoring a sheet`, err); }
   }
   st.minimized = [];
 }
@@ -191,7 +192,7 @@ function restoreCamera(st, delay = 0) {
 
 async function openSats(app, form, { viaCheckbox }) {
   const token = game.user.targets.first();
-  if (!token?.actor) return ui.notifications.info("SATS: namierz cel (T), żeby go przybliżyć i wybrać część ciała.");
+  if (!token?.actor) return ui.notifications.info(t("SATS: target someone (T) to zoom in and choose a body part."));
   const st = STATE.get(app) ?? {};
   STATE.set(app, st);
   if (st.close) return;
@@ -224,7 +225,7 @@ async function openSats(app, form, { viaCheckbox }) {
     <div class="sats-reticle" hidden></div>
     <header class="sats-head">
       <div class="sats-logo">S.A.T.S.</div>
-      <div class="sats-sub">Cel: <b>${esc(token.name)}</b>${mfd ? ` · MFD ${esc(mfd)}` : ""}${sats?.checked && ap ? ` · ${esc(ap.split(" · ")[0])}` : ""}</div>
+      <div class="sats-sub">${t("Target:")} <b>${esc(token.name)}</b>${mfd ? ` · MFD ${esc(mfd)}` : ""}${sats?.checked && ap ? ` · ${esc(ap.split(" · ")[0])}` : ""}</div>
     </header>
     <section class="sats-panel ${map ? "" : "list-only"}">
       ${map ? `<div class="sats-map">${svgOf(map, rows)}</div>` : ""}
@@ -237,8 +238,8 @@ async function openSats(app, form, { viaCheckbox }) {
       </ol>
     </section>
     <footer class="sats-foot">
-      <span>Najedź — podgląd · klik — wybierz · ↑↓ i Enter · Esc — ${viaCheckbox ? "wyjdź z SATS" : "zamknij"}</span>
-      <button type="button" data-cancel>${viaCheckbox ? "Wyjdź z SATS" : "Zamknij"}</button>
+      <span>${t("Hover — preview · click — choose · ↑↓ and Enter · Esc — {what}", { what: viaCheckbox ? t("exit SATS") : t("close") })}</span>
+      <button type="button" data-cancel>${viaCheckbox ? t("Exit SATS") : t("Close")}</button>
     </footer>`;
 
   const values = rows.map(r => r.value);
@@ -285,13 +286,13 @@ async function openSats(app, form, { viaCheckbox }) {
   };
 
   el.addEventListener("pointerover", ev => {
-    const t = ev.target.closest("[data-opt]");
-    if (t) setActive(t.dataset.opt);
+    const opt = ev.target.closest("[data-opt]");
+    if (opt) setActive(opt.dataset.opt);
   });
   el.addEventListener("click", ev => {
     if (ev.target.closest("[data-cancel]")) return cancel();
-    const t = ev.target.closest("[data-opt]");
-    if (t) choose(t.dataset.opt);
+    const opt = ev.target.closest("[data-opt]");
+    if (opt) choose(opt.dataset.opt);
   });
   window.addEventListener("keydown", onKey, { capture: true });
 
@@ -315,7 +316,7 @@ function placeReticle(el, token) {
     Object.assign(r.style, { left: `${p.x}px`, top: `${p.y}px`, width: `${size}px`, height: `${size}px` });
     r.hidden = false;
   } catch (err) {
-    console.warn(`${ID} | pozycja celownika`, err);
+    console.warn(`${ID} | reticle position`, err);
   }
 }
 
@@ -337,7 +338,7 @@ function svgOf(map, rows) {
     </g>`;
   }).join("");
   return `
-    <svg class="pip-body" viewBox="${map.viewBox}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Części ciała celu">
+    <svg class="pip-body" viewBox="${map.viewBox}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${t("Body parts of the target")}">
       <g class="vats" transform="translate(0,${map.dy})">
         <circle cx="${map.cx}" cy="${map.cy}" r="150"/><circle cx="${map.cx}" cy="${map.cy}" r="104"/>
       </g>

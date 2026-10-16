@@ -9,10 +9,11 @@ import { esc, warn, stacks, qtyOf, capsOf, capsText, handOver, gridOf, rectOf, t
 import { tokenDistance, isAdjacent, throwSteps, suggestPrice, direction, DIR_NAMES } from "./trade-data.mjs";
 import { throwItem, throwInfo, knowsTK } from "./throw.mjs";
 import { offerSale } from "./sale.mjs";
+import { t, tn, isPL, lang } from "./i18n.mjs";
 
 const { DialogV2 } = foundry.applications.api;
 const TYPES = ["character", "npc", "vehicle"];
-const fmt = n => String(Math.round((Number(n) || 0) * 100) / 100).replace(".", ",");
+const fmt = n => (isPL() ? String(Math.round((Number(n) || 0) * 100) / 100).replace(".", ",") : String(Math.round((Number(n) || 0) * 100) / 100));
 const elementOf = x => (x instanceof HTMLElement ? x : x?.element instanceof HTMLElement ? x.element : x?.[0] instanceof HTMLElement ? x[0] : null);
 const mercantile = a => { const sk = a?.system?.skills?.mercantile; return sk ? (Number(sk.rank) || 0) + (Number(sk.rollMod) || 0) : 0; };
 
@@ -22,12 +23,12 @@ function crewmates(source) {
   const inside = v => (v.system?.vehicle?.crew ?? []).some(c => c.uuid === source.uuid);
   const vehicles = source.type === "vehicle" ? [source] : (game.actors?.filter(a => a.type === "vehicle" && inside(a)) ?? []);
   for (const v of vehicles) {
-    if (v.uuid !== source.uuid) out.push({ actor: v, note: "jesteś w środku" });
+    if (v.uuid !== source.uuid) out.push({ actor: v, note: t("you're inside") });
     for (const c of v.system?.vehicle?.crew ?? []) {
       if (c.uuid === source.uuid) continue;
       let a = null;
       try { a = fromUuidSync(c.uuid); } catch { a = null; }
-      if (a) out.push({ actor: a, note: `w pojeździe ${v.name}` });
+      if (a) out.push({ actor: a, note: t("in the vehicle {name}", { name: v.name }) });
     }
   }
   return out;
@@ -50,19 +51,19 @@ export function nearby(source, maxDist = Infinity) {
   if (me) {
     const grid = gridOf(me.parent);
     const mine = rectOf(me, grid.size);
-    for (const t of canvas.tokens?.placeables ?? []) {
-      const a = t.actor;
-      if (!a || t.document === me || a.uuid === source.uuid || !TYPES.includes(a.type)) continue;
-      if (!game.user.isGM && !(t.isVisible ?? t.visible)) continue;
+    for (const tk of canvas.tokens?.placeables ?? []) {
+      const a = tk.actor;
+      if (!a || tk.document === me || a.uuid === source.uuid || !TYPES.includes(a.type)) continue;
+      if (!game.user.isGM && !(tk.isVisible ?? tk.visible)) continue;
       if (a.statuses?.has?.("dead")) continue;
-      const r = rectOf(t.document, grid.size);
-      const elev = [me.elevation, t.document.elevation];
+      const r = rectOf(tk.document, grid.size);
+      const elev = [me.elevation, tk.document.elevation];
       const adjacent = isAdjacent(mine, r, grid, elev);
       const dist = tokenDistance(mine, r, grid, elev);
       if (!adjacent && dist > maxDist) continue;
       // nazwa NPC tylko wtedy, gdy MG pokazuje ją graczom na mapie (najechanie albo zawsze)
-      const known = game.user.isGM || a.isOwner || a.hasPlayerOwner || [30, 50].includes(Number(t.document.displayName));
-      add({ uuid: a.uuid, token: t.document.uuid, name: known ? (t.name || a.name) : "nieznany NPC", type: a.type, pc: !!a.hasPlayerOwner, actor: a,
+      const known = game.user.isGM || a.isOwner || a.hasPlayerOwner || [30, 50].includes(Number(tk.document.displayName));
+      add({ uuid: a.uuid, token: tk.document.uuid, name: known ? (tk.name || a.name) : t("unknown NPC"), type: a.type, pc: !!a.hasPlayerOwner, actor: a,
         adjacent, dist, note: known ? "" : DIR_NAMES[direction(mine, r)] });
     }
   }
@@ -70,18 +71,18 @@ export function nearby(source, maxDist = Infinity) {
     if (a.uuid === source.uuid || !TYPES.includes(a.type)) continue;
     add({ uuid: a.uuid, token: null, name: a.name, type: a.type, pc: !!a.hasPlayerOwner, actor: a, adjacent: true, dist: null, note });
   }
-  const list = [...map.values()].sort((x, y) => (Number(y.adjacent) - Number(x.adjacent)) || ((x.dist ?? 0) - (y.dist ?? 0)) || x.name.localeCompare(y.name, "pl"));
+  const list = [...map.values()].sort((x, y) => (Number(y.adjacent) - Number(x.adjacent)) || ((x.dist ?? 0) - (y.dist ?? 0)) || x.name.localeCompare(y.name, lang()));
   return { me, list };
 }
 
-const where = c => (c.dist === null ? c.note : `${c.adjacent ? "obok" : `${fmt(c.dist)} ft`}${c.note ? `, ${c.note}` : ""}`) + (c.type === "vehicle" ? ", ładownia" : "");
+const where = c => (c.dist === null ? c.note : `${c.adjacent ? t("adjacent") : `${fmt(c.dist)} ft`}${c.note ? `, ${c.note}` : ""}`) + (c.type === "vehicle" ? `, ${t("hold")}` : "");
 
 /** Okno wymiany; item = null — kapsle. */
 async function tradeDialog(source, item = null) {
-  if (!source?.isOwner) return warn(`Nie jesteś właścicielem: ${source?.name ?? "?"}.`);
+  if (!source?.isOwner) return warn(t("You don't own: {name}.", { name: source?.name ?? "?" }));
   const caps = !item;
   const have = caps ? capsOf(source) : qtyOf(item);
-  if (have <= 0) return warn(caps ? `${source.name}: brak kapsli.` : `${item.name}: nic do przekazania.`);
+  if (have <= 0) return warn(caps ? t("{name}: no caps.", { name: source.name }) : t("{name}: nothing to give.", { name: item.name }));
   const vehicle = source.type === "vehicle";
   const tk = !vehicle && knowsTK(source);
   // dalej niż najdalszy możliwy rzut (najlżejsza rzecz) nikogo nie pokazujemy
@@ -89,29 +90,29 @@ async function tradeDialog(source, item = null) {
   const { me, list } = nearby(source, reach);
   if (!list.length) {
     return warn(me
-      ? "Nikogo nie ma w pobliżu — stańcie tokenami obok siebie (albo rzuć komuś, kogo widzisz w zasięgu)."
-      : `${source.name} nie ma tokena na tej scenie — wymiana działa tylko między tokenami na mapie (albo w tym samym pojeździe).`);
+      ? t("There's nobody nearby — place your tokens next to each other (or throw to someone you can see in range).")
+      : t("{name} has no token on this scene — exchange works only between tokens on the map (or in the same vehicle).", { name: source.name }));
   }
   const byUuid = new Map(list.map(c => [c.uuid, c]));
   const near = list.filter(c => c.adjacent), far = list.filter(c => !c.adjacent);
   const opt = c => `<option value="${esc(c.uuid)}">${esc(c.name)} — ${esc(where(c))}</option>`;
   const select = [
-    near.length ? `<optgroup label="Obok">${near.map(opt).join("")}</optgroup>` : "",
-    far.length ? `<optgroup label="Dalej — tylko rzut">${far.map(opt).join("")}</optgroup>` : ""
+    near.length ? `<optgroup label="${t("Adjacent")}">${near.map(opt).join("")}</optgroup>` : "",
+    far.length ? `<optgroup label="${t("Further away — throw only")}">${far.map(opt).join("")}</optgroup>` : ""
   ].join("");
   const unitW = Number(item?.system?.weight) || 0, unitV = Number(item?.system?.value) || 0;
   const info = caps
-    ? `Kapsle: <b>${have}</b>`
-    : `<b>${esc(item.name)}</b>${stacks(item) ? ` — masz ${have}` : ""} · ${fmt(unitW)} lb${stacks(item) ? "/szt." : ""} · wartość ${unitV}${stacks(item) ? "/szt." : ""}${item.system?.equipped ? " · teraz założone / w użyciu" : ""}`;
+    ? `${t("Caps:")} <b>${have}</b>`
+    : `<b>${esc(item.name)}</b>${stacks(item) ? ` — ${t("you have {n}", { n: have })}` : ""} · ${fmt(unitW)} lb${stacks(item) ? t("/each") : ""} · ${t("value {v}", { v: unitV })}${stacks(item) ? t("/each") : ""}${item.system?.equipped ? ` · ${t("worn / in use right now")}` : ""}`;
   const sell = !caps && !vehicle;
   const content = `<div class="foe-dialog trade-dlg">
     <div class="atk-info"><div>${info}</div></div>
-    ${caps || have > 1 ? `<label class="atk-row">Ile <input type="number" name="qty" value="${caps ? Math.min(10, have) : have}" min="1" max="${have}"></label>` : ""}
-    <label class="atk-row">Do kogo <select name="to">${select}</select></label>
-    ${tk ? `<label class="atk-row">Rzut <select name="how"><option value="hoof">kopytem / w pysku (STR)</option><option value="tk">telekinezą (INT)</option></select></label>` : ""}
+    ${caps || have > 1 ? `<label class="atk-row">${t("How many")} <input type="number" name="qty" value="${caps ? Math.min(10, have) : have}" min="1" max="${have}"></label>` : ""}
+    <label class="atk-row">${t("To whom")} <select name="to">${select}</select></label>
+    ${tk ? `<label class="atk-row">${t("Throw")} <select name="how"><option value="hoof">${t("with a hoof / in the mouth (STR)")}</option><option value="tk">${t("with telekinesis (INT)")}</option></select></label>` : ""}
     ${vehicle ? "" : `<p class="hint trade-throw"></p>`}
-    ${sell ? `<label class="atk-row trade-price">Cena (kapsle) <input type="number" name="price" value="0" min="0" step="1"></label><p class="hint trade-price-hint"></p>` : ""}
-    <p class="hint">Przekazać i sprzedać można tylko komuś obok (tokeny się stykają) albo w tym samym pojeździe; rzucić — komuś, kogo widzisz w zasięgu (test Explosives).</p>
+    ${sell ? `<label class="atk-row trade-price">${t("Price (caps)")} <input type="number" name="price" value="0" min="0" step="1"></label><p class="hint trade-price-hint"></p>` : ""}
+    <p class="hint">${t("You can give and sell only to someone adjacent (the tokens touch) or in the same vehicle; throw — to someone you can see in range (Explosives test).")}</p>
   </div>`;
 
   const read = action => (ev, btn) => {
@@ -135,7 +136,7 @@ async function tradeDialog(source, item = null) {
       if (!el.price || !c) return;
       const s = suggestPrice({ value: unitV, qty: stacks(item) ? qty : 1, sellerPC: !!source.hasPlayerOwner, buyerPC: c.pc, sellerEff: mercantile(source), buyerEff: mercantile(c.actor) });
       el.price.value = s.price;
-      if (priceHint) priceHint.textContent = c.adjacent && c.type !== "vehicle" ? `Proponowana cena: ${s.rule} (wartość ${capsText(unitV * (stacks(item) ? qty : 1))}). Kupujący i tak musi ją przyjąć.` : "";
+      if (priceHint) priceHint.textContent = c.adjacent && c.type !== "vehicle" ? t("Suggested price: {rule} (value {caps}). The buyer still has to accept it.", { rule: s.rule, caps: capsText(unitV * (stacks(item) ? qty : 1)) }) : "";
     };
     const refresh = () => {
       const { c, qty } = state();
@@ -144,15 +145,15 @@ async function tradeDialog(source, item = null) {
       const canThrow = !!c?.token && !!prof?.ok && steps !== null;
       if (throwHint) {
         throwHint.textContent = !c ? ""
-          : !c.token ? "Rzut: tylko do kogoś, kogo widać na mapie."
-          : !prof.ok ? `Rzut: ${prof.reason}.`
-          : steps === null ? `Rzut: za daleko — ${fmt(c.dist)} ft, a rzut sięga ${prof.max} ft (przedział ${prof.inc} ft).`
-          : `Rzut (Explosives): przedział ${prof.inc} ft, sięga ${prof.max} ft · do celu ${fmt(c.dist)} ft — ${steps ? `${steps} ${steps === 1 ? "krok" : "kroki"} MFD trudniej` : "bez kary za odległość"}.`;
+          : !c.token ? t("Throw: only to someone visible on the map.")
+          : !prof.ok ? t("Throw: {why}.", { why: prof.reason })
+          : steps === null ? t("Throw: too far — {d} ft, and the throw reaches {max} ft (increment {inc} ft).", { d: fmt(c.dist), max: prof.max, inc: prof.inc })
+          : t("Throw (Explosives): increment {inc} ft, reaches {max} ft · {d} ft to the target — {pen}.", { inc: prof.inc, max: prof.max, d: fmt(c.dist), pen: steps ? tn(steps, "{n} MFD step harder", "{n} MFD steps harder") : t("no distance penalty") });
       }
       const give = button("give"), toss = button("throw"), sale = button("sell");
-      if (give) { give.disabled = !c?.adjacent; give.title = c?.adjacent ? "" : "Tylko komuś obok — podejdź albo rzuć"; }
-      if (toss) { toss.disabled = !canThrow; toss.title = canThrow ? "" : "Poza zasięgiem rzutu albo za ciężkie"; }
-      if (sale) { const ok = !!c?.adjacent && c.type !== "vehicle"; sale.disabled = !ok; sale.title = ok ? "" : "Sprzedać można postaci albo NPC obok"; }
+      if (give) { give.disabled = !c?.adjacent; give.title = c?.adjacent ? "" : t("Only to someone adjacent — walk up or throw"); }
+      if (toss) { toss.disabled = !canThrow; toss.title = canThrow ? "" : t("Out of throwing range or too heavy"); }
+      if (sale) { const ok = !!c?.adjacent && c.type !== "vehicle"; sale.disabled = !ok; sale.title = ok ? "" : t("You can sell to an adjacent character or NPC"); }
     };
     el.to.addEventListener("change", () => { refresh(); refreshPrice(); });
     el.qty?.addEventListener("input", () => { refresh(); refreshPrice(); });
@@ -162,12 +163,12 @@ async function tradeDialog(source, item = null) {
   };
 
   const pick = await DialogV2.wait({
-    window: { title: `${caps ? "Kapsle" : item.name}: przekaż${vehicle ? "" : ", rzuć"}${sell ? ", sprzedaj" : ""}` },
+    window: { title: `${caps ? t("Caps") : item.name}: ${[t("give"), vehicle ? "" : t("throw"), sell ? t("sell") : ""].filter(Boolean).join(", ")}` },
     classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 460 }, rejectClose: false, content, render,
     buttons: [
-      { action: "give", label: "Przekaż", icon: "fa-solid fa-hand-holding", default: true, callback: read("give") },
-      ...(vehicle ? [] : [{ action: "throw", label: "Rzuć", icon: "fa-solid fa-baseball", callback: read("throw") }]),
-      ...(sell ? [{ action: "sell", label: "Sprzedaj", icon: "fa-solid fa-sack-dollar", callback: read("sell") }] : [])
+      { action: "give", label: t("Give"), icon: "fa-solid fa-hand-holding", default: true, callback: read("give") },
+      ...(vehicle ? [] : [{ action: "throw", label: t("btn|Throw"), icon: "fa-solid fa-baseball", callback: read("throw") }]),
+      ...(sell ? [{ action: "sell", label: t("Sell"), icon: "fa-solid fa-sack-dollar", callback: read("sell") }] : [])
     ]
   });
   if (!pick || typeof pick !== "object") return null;
@@ -175,12 +176,12 @@ async function tradeDialog(source, item = null) {
   if (!c) return null;
   const qty = Math.min(have, Math.max(1, Math.floor(pick.qty) || 1));
   if (pick.action === "give") {
-    if (!c.adjacent) return warn(`${c.name} nie stoi obok — podejdź albo rzuć.`);
+    if (!c.adjacent) return warn(t("{name} isn't adjacent — walk up or throw.", { name: c.name }));
     return handOver(caps ? { op: "caps", from: source.uuid, to: c.uuid, toName: c.name, qty } : { op: "item", from: source.uuid, itemId: item.id, to: c.uuid, toName: c.name, qty });
   }
   if (pick.action === "throw") return throwItem(source, { item, caps: caps ? qty : 0, qty, target: c, tk: pick.how === "tk" });
   if (pick.action === "sell") {
-    if (!c.adjacent || c.type === "vehicle") return warn(`${c.name}: sprzedać można postaci albo NPC, który stoi obok.`);
+    if (!c.adjacent || c.type === "vehicle") return warn(t("{name}: you can sell only to a character or NPC who is adjacent.", { name: c.name }));
     return offerSale(source, item, c, qty, pick.price);
   }
   return null;
