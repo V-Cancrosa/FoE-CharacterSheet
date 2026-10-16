@@ -319,7 +319,7 @@ export class VehicleData extends BaseActorData {
   static defineSchema() {
     return {
       ...super.defineSchema(),
-      race: new F.StringField({ initial: "Pojazd" }),
+      race: new F.StringField({ initial: "Vehicle" }),
       vehicle: new F.SchemaField({
         kind: new F.StringField({ initial: "ground" }),        // ground | sky | water | rail
         power: new F.StringField({ initial: "pulled" }),       // pulled | motor
