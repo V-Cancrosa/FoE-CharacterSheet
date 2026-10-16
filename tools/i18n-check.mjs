@@ -176,6 +176,22 @@ for (const file of walk(path.join(ROOT, "templates")).filter(f => f.endsWith(".h
   bare.split("\n").forEach((l, k) => { if ((PLCH.test(l) || polish(l.replace(/<[^>]*>/g, " ").replace(/[a-z-]+="[^"]*"/g, ""))) && !/pl-ok/.test(src.split("\n")[k])) leftovers.push(`${rel}:${k + 1}: ${l.trim().slice(0, 90)}`); });
 }
 
+// ---------- dane: warunki efektów („when”) są angielskimi kluczami tłumaczonymi przy wyświetleniu ----------
+for (const f of fs.readdirSync(path.join(ROOT, "data")).filter(f => f.endsWith(".json")).sort()) {
+  const walkData = o => {
+    if (Array.isArray(o)) o.forEach(walkData);
+    else if (o && typeof o === "object") {
+      for (const [k, v] of Object.entries(o)) {
+        if (k === "when" && typeof v === "string" && v) need(v, `data/${f}`);
+        // efekty w skrócie (cyber.json): fx: [["typ", "cel", wartość, "warunek"]]
+        else if (k === "fx" && Array.isArray(v)) for (const x of v) if (Array.isArray(x) && typeof x[3] === "string" && x[3]) need(x[3], `data/${f}`);
+        walkData(v);
+      }
+    }
+  };
+  walkData(JSON.parse(fs.readFileSync(path.join(ROOT, "data", f), "utf8")));
+}
+
 // ---------- t()/tn()/N_() zasłonięte zmienną lokalną albo niezaimportowane (ESLint, jeśli jest) ----------
 const scopeErrors = [];
 try {

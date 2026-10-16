@@ -3344,5 +3344,9 @@ export default {
   "(with the racial bonus)": "(z premią rasową)",
   "{n} pts from level-ups": "{n} pkt z awansów",
   "Level-ups": "Awanse",
-  "Create NPC": "Utwórz NPC"
+  "Create NPC": "Utwórz NPC",
+  // ---- data/*.json (warunki efektów)
+  "Against fire": "Przeciw ogniowi",
+  "Intimidation": "Zastraszanie",
+  "Target with D/W below 8": "Cel z D/W poniżej 8"
 };

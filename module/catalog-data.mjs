@@ -2,7 +2,7 @@
  * Katalog przedmiotów z podręcznika v1.22 (data/catalog.json) → dane przedmiotów Foundry.
  * Czyste funkcje (bez Foundry), żeby dało się je testować.
  */
-import { tmap } from "./i18n.mjs";
+import { tmap, tdata } from "./i18n.mjs";
 
 const I = "systems/foe-rpg/icons";
 export const ICONS = {
@@ -81,7 +81,7 @@ export function weaponItem(e) {
     crit: e.crit || "x1", ignoreDT: e.ignoreDT || 0,
     aoe: { enabled: aoe, splash: clean(e.splash), inc: clean(e.aoeInc), radius: clean(e.radius) },
     specials: specialsFrom(e), consumable: e.kind === "explosive", qty: 1,
-    mw: !!e.mw, weight: e.weight || 0, value: e.value || 0, description: notesHtml(e.notes)
+    mw: !!e.mw, weight: e.weight || 0, value: e.value || 0, description: notesHtml(tdata(e, "notes"))
   };
   return { name: e.name, type: "weapon", img: iconFor("weapon", system), system, flags: { "foe-rpg": { catalog: e.name } } };
 }
@@ -91,7 +91,7 @@ export function armorItem(e) {
   const system = {
     category: e.category, dt: e.dt || 0, cover, equipped: false, powered: !!e.powered,
     effects: (e.effects ?? []).map(x => ({ type: x.type, target: x.target ?? "all", value: Number(x.value) || 0, when: x.when ?? "" })),
-    weight: e.weight || 0, value: e.value || 0, description: notesHtml(e.notes)
+    weight: e.weight || 0, value: e.value || 0, description: notesHtml(tdata(e, "notes"))
   };
   return { name: e.name, type: "armor", img: iconFor("armor", system), system, flags: { "foe-rpg": { catalog: e.name } } };
 }
@@ -99,7 +99,7 @@ export function armorItem(e) {
 export function gearItem(e, qty = 1) {
   const system = {
     category: e.category || "misc", qty: Math.max(1, qty), weight: e.weight || 0, value: e.value || 0,
-    ammoType: e.ammoType || "", heal: e.heal || "", charges: e.charges || 0, description: notesHtml(e.notes)
+    ammoType: e.ammoType || "", heal: e.heal || "", charges: e.charges || 0, description: notesHtml(tdata(e, "notes"))
   };
   return { name: e.name, type: "gear", img: iconFor("gear", system), system, flags: { "foe-rpg": { catalog: e.name } } };
 }

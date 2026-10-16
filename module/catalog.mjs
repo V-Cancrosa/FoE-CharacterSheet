@@ -137,14 +137,14 @@ function rowOf(tab, e, i, actor = null) {
         [KIND_LABEL[e.kind], e.tag === "dodge" ? t("aerial dodge") : e.tag === "block" ? t("aerial block") : "", weather ? t("man|weather") : "", e.requires ? e.requires.replace(/^Requires/i, t("man|requires")) : ""].filter(Boolean).join(", ") || "—"]
     };
   }
-  const base = { i, name: e.name, notes: e.notes ?? "", search: e.name.toLowerCase(), price: e.value ?? 0 };
+  const base = { i, name: e.name, notes: tdata(e, "notes") ?? "", search: e.name.toLowerCase(), price: e.value ?? 0 };
   if (tab === "weapons") {
     const d = catalogItem("weapons", e);
     const ammo = e.ammoType ? `${e.ammoType}${e.mag ? ` ×${e.mag}` : ""}` : "—";
     return {
       ...base, img: d.img, kind: e.kind, qty: d.system.consumable ? 1 : 0,
       cols: [WEAPON_KINDS[e.kind] ?? e.kind, `${e.damage}${e.shots > 1 ? `/${e.shots}` : ""}`, e.crit, e.sats,
-        e.rangeInc ? `${e.rangeInc} ft` : e.range, ammo, e.weight, e.value]
+        e.rangeInc ? `${e.rangeInc} ft` : e.range || (["melee", "unarmed"].includes(e.skill) ? t("fx|melee") : "—"), ammo, e.weight, e.value]
     };
   }
   if (tab === "armor") {
@@ -155,7 +155,7 @@ function rowOf(tab, e, i, actor = null) {
     };
   }
   const d = catalogItem("gear", e);
-  const desc = String(e.notes ?? "");
+  const desc = String(tdata(e, "notes") ?? "");
   return {
     ...base, img: d.img, kind: e.category, qty: e.category === "ammo" ? 10 : 1,
     cols: [GEAR_KINDS[e.category] ?? e.category, desc.length > 90 ? `${desc.slice(0, 88)}…` : desc || "—", e.weight, e.value]
