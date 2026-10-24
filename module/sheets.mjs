@@ -31,6 +31,7 @@ import { bodyMap } from "./body-map.mjs";
 import { searchBody } from "./loot.mjs";
 import { editCutieMark } from "./cutie-mark.mjs";
 import { giveItem, giveCaps } from "./trade.mjs";
+import { promptAdjustCaps } from "./give.mjs";
 import { hitTableFor, tableLocations } from "./combat.mjs";
 import { locationName } from "./rolls.mjs";
 import { degradationOn, weaponCondition } from "./craft-data.mjs";
@@ -90,6 +91,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       cutieMark: FoeActorSheet.#onCutieMark,
       giveItem: FoeActorSheet.#onGiveItem,
       giveCaps: FoeActorSheet.#onGiveCaps,
+      adjustCaps: FoeActorSheet.#onAdjustCaps,
       openCatalog: FoeActorSheet.#onOpenCatalog,
       toggleFeature: FoeActorSheet.#onToggleFeature,
       toggleEquip: FoeActorSheet.#onToggleEquip,
@@ -728,6 +730,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static #onGiveCaps() {
     return giveCaps(this.document);
+  }
+
+  static #onAdjustCaps() {
+    return promptAdjustCaps(this.document);
   }
 
   static #onOpenCatalog(event, target) {

@@ -16,6 +16,7 @@
         </span>{{/unless}}
         <label>Karma <input type="number" name="system.karma" value="{{system.karma}}"></label>
         <label>{{t "Caps"}} <input type="number" name="system.caps" value="{{system.caps}}"></label>
+        {{#if isGM}}<span class="adv-btns"><a data-action="adjustCaps" title="{{t "Add or take away caps (GM) — with a note in chat"}}"><i class="fa-solid fa-coins"></i> ±</a></span>{{/if}}
       </div>
     </div>
   </div>

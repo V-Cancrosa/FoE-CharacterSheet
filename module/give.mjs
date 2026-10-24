@@ -87,6 +87,54 @@ export async function moveCaps(src, dst, qty) {
   return n;
 }
 
+/**
+ * MG dodaje (delta > 0) albo zabiera (delta < 0) kapsle — nagroda, łapówka, kradzież, poprawka. Nie schodzi poniżej zera;
+ * na czacie zostaje wpis z powodem (widoczność jak w przełączniku trybu nad czatem). Zwraca faktyczną zmianę.
+ */
+export async function adjustCaps(actor, delta, reason = "") {
+  if (!game.user.isGM) return warn(t("Only the GM adds or takes away caps — to give caps to someone, use the button in the Gear tab."));
+  const want = Math.trunc(Number(delta) || 0);
+  if (!actor || !want) return null;
+  const have = capsOf(actor);
+  const total = Math.max(0, have + want);
+  const applied = total - have;
+  if (!applied) return warn(t("{name} has no caps to take away.", { name: actor.name }));
+  await actor.update({ "system.caps": total });
+  const why = String(reason ?? "").trim();
+  const notes = [why, -want > have ? t("only {caps} on hand", { caps: capsText(have) }) : "", t("now: {caps}", { caps: capsText(total) })];
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `<div class="foe-card reload"><div class="fc-tag"><span>${t("PIPBUCK // CAPS")}</span><span>${t("GM")}</span></div>
+      <h3>${esc(actor.name)}: ${applied > 0 ? "+" : "−"}${esc(capsText(Math.abs(applied)))}</h3><div class="fc-calc">${notes.filter(Boolean).map(esc).join(" · ")}</div></div>`
+  });
+  return applied;
+}
+
+/** Okno MG przy kapslach na karcie: ile, za co, „Dodaj” albo „Zabierz” (liczba ujemna też zabiera). */
+export async function promptAdjustCaps(actor) {
+  if (!game.user.isGM) return warn(t("Only the GM adds or takes away caps — to give caps to someone, use the button in the Gear tab."));
+  const read = sign => (ev, btn) => {
+    const el = btn.form.elements;
+    const n = Math.trunc(Number(el.n.value) || 0);
+    return { n: sign < 0 ? -Math.abs(n) : n, reason: el.reason.value };
+  };
+  const r = await foundry.applications.api.DialogV2.wait({
+    window: { title: t("Caps: {name}", { name: actor.name }) }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 420 }, rejectClose: false,
+    content: `<div class="foe-dialog caps-dlg">
+      <div class="atk-info"><div>${t("Caps:")} <b>${capsOf(actor)}</b></div></div>
+      <label class="atk-row">${t("How many")} <input type="number" name="n" value="10" step="1" autofocus></label>
+      <label class="atk-row">${t("What for (optional)")} <input type="text" name="reason" placeholder="${esc(t("e.g. a job reward"))}"></label>
+      <p class="hint">${t("Typing -50 takes away too. Caps never drop below 0. A short note goes to chat (to hide it from players, pick “GM roll” in the switch above the chat).")}</p>
+    </div>`,
+    buttons: [
+      { action: "add", label: t("Add"), icon: "fa-solid fa-plus", default: true, callback: read(1) },
+      { action: "take", label: t("Take away"), icon: "fa-solid fa-minus", callback: read(-1) }
+    ]
+  });
+  if (!r?.n) return null;
+  return adjustCaps(actor, r.n, r.reason);
+}
+
 /** Operacja wykonywana przez MG: MG robi ją od razu, gracz wysyła ją kanałem systemu. */
 export function viaGM(payload, apply) {
   const p = { user: game.user.id, ...payload };
