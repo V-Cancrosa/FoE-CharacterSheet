@@ -3357,5 +3357,18 @@ export default {
   "Blackjack table": "Stół do blackjacka",
   // ---- module/catalog.mjs
   "Fallout: Equestria was updated{to}, but this world is still running version {old}. Return to Setup (Settings tab → “Return to Setup”) and launch the world again — until then new features (e.g. the gaming table) won't work.": "Fallout: Equestria zaktualizowano{to}, ale ten świat działa jeszcze na wersji {old}. Wróć do ekranu konfiguracji (zakładka Ustawienia → „Wróć do konfiguracji” / „Return to Setup”) i uruchom świat ponownie — do tego czasu nowe funkcje (np. stół do gry) nie zadziałają.",
-  "to {v}": "do wersji {v}"
+  "to {v}": "do wersji {v}",
+  // ---- module/give.mjs
+  "Only the GM adds or takes away caps — to give caps to someone, use the button in the Gear tab.": "Kapsle dodaje i zabiera tylko MG — żeby komuś dać kapsle, użyj przycisku w zakładce Ekwipunek.",
+  "{name} has no caps to take away.": "{name} nie ma kapsli do zabrania.",
+  "only {caps} on hand": "było tylko {caps}",
+  "now: {caps}": "teraz: {caps}",
+  "PIPBUCK // CAPS": "PIPBUCK // KAPSLE",
+  "GM": "MG",
+  "Caps: {name}": "Kapsle: {name}",
+  "What for (optional)": "Za co (opcjonalnie)",
+  "e.g. a job reward": "np. nagroda za zlecenie",
+  "Typing -50 takes away too. Caps never drop below 0. A short note goes to chat (to hide it from players, pick “GM roll” in the switch above the chat).": "Wpisanie -50 też zabiera. Kapsle nie spadną poniżej 0. Na czacie pojawi się krótki wpis (żeby gracze go nie widzieli, wybierz „rzut MG” w przełączniku nad czatem).",
+  "Take away": "Zabierz",
+  "Add or take away caps (GM) — with a note in chat": "Dodaj albo zabierz kapsle (MG) — z wpisem na czacie"
 };

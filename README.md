@@ -341,6 +341,11 @@ Zapis zmian u innych robi przeglądarka MG (sprawdza, czy oddajesz swoje rzeczy)
 Żeby gracze widzieli w oknie nazwę kupca, ustaw w jego tokenie wyświetlanie nazwy „po najechaniu” albo „zawsze”.
 Znacznik upuszczonego przedmiotu można wyłączyć w ustawieniach świata.
 
+Kapsle od MG: obok pola kapsli na karcie (i przy kapslach w zakładce Ekwipunek) MG ma przycisk ± — wpisuje kwotę
+i opcjonalnie powód (np. „nagroda za zlecenie”), potem „Dodaj” albo „Zabierz” (liczba ujemna też zabiera). Kapsle
+nie spadną poniżej 0, a na czacie zostaje krótki wpis, np. „Light Chain: +50 kapsli” z powodem pod spodem. Żeby gracze
+go nie widzieli, przełącz tryb nad czatem na „rzut MG”. Pole kapsli można też po prostu poprawić ręcznie (bez wpisu).
+
 Znaczek: obok portretu na karcie jest pole znaczka — kliknij, wybierz obrazek (albo wklej adres, jeśli nie masz dostępu
 do przeglądarki plików) i dopisz krótki opis talentu (pokazuje się po najechaniu).
 
