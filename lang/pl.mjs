@@ -472,7 +472,6 @@ export default {
   "Turning on an armed terminal: an explosion hits the character who turned it on (a card with “Apply damage”). Inspecting and disarming — Explosives; a critical failure sets off the charge too.": "Włączenie uzbrojonego terminala: wybuch w postać, która go włączyła (karta z „Nanieś obrażenia”). Oględziny i rozbrajanie — Explosives; krytyczna porażka też odpala ładunek.",
   "Inspection has no button on the screen.": "Oględziny nie mają przycisku na ekranie.",
   "When a player says they check the terminal for a charge (before turning it on), tell them to click": "Gdy gracz powie, że sprawdza terminal pod kątem ładunku (przed włączeniem), każ mu kliknąć",
-  "the right screw ◦ under the screen": "prawą śrubkę ◦ pod ekranem",
   "— it opens the Explosives roll. A detected charge is then shown openly, with a “Disarm” button.": "— to otwiera rzut Explosives. Wykryty ładunek pokazuje się już otwarcie, z przyciskiem „Rozbrój”.",
   "State": "Stan",
   "Access": "Dostęp",
@@ -3370,5 +3369,18 @@ export default {
   "e.g. a job reward": "np. nagroda za zlecenie",
   "Typing -50 takes away too. Caps never drop below 0. A short note goes to chat (to hide it from players, pick “GM roll” in the switch above the chat).": "Wpisanie -50 też zabiera. Kapsle nie spadną poniżej 0. Na czacie pojawi się krótki wpis (żeby gracze go nie widzieli, wybierz „rzut MG” w przełączniku nad czatem).",
   "Take away": "Zabierz",
-  "Add or take away caps (GM) — with a note in chat": "Dodaj albo zabierz kapsle (MG) — z wpisem na czacie"
+  "Add or take away caps (GM) — with a note in chat": "Dodaj albo zabierz kapsle (MG) — z wpisem na czacie",
+  // ---- module/terminal-data.mjs
+  "top left": "lewa górna",
+  "top right": "prawa górna",
+  "bottom left": "lewa dolna",
+  "bottom right": "prawa dolna",
+  "the top left screw ◦": "lewą górną śrubkę ◦",
+  "the top right screw ◦": "prawą górną śrubkę ◦",
+  "the bottom left screw ◦": "lewą dolną śrubkę ◦",
+  "the bottom right screw ◦": "prawą dolną śrubkę ◦",
+  "> +1 ATTEMPT": "> +1 PRÓBA",
+  "Which of the 4 screws in the corners of the screen hides the inspection (and, once the charge is found, the disarming)": "Która z 4 śrubek w rogach ekranu kryje oględziny (a po wykryciu ładunku — rozbrajanie)",
+  "Screw": "Śrubka",
+  "The same screw disarms it too.": "Ta sama śrubka też go rozbraja."
 };

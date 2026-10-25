@@ -385,15 +385,16 @@ wpisy, komendy i zgrywanie wpisu na holotaśmę (zużywa pustą „Holotape”).
 Illiterate nie hakuje, Certified Pipbuck Technician dostaje administratora na Stable-Tec. Opcja świata „Terminale:
 minigra hakowania” (zasada domowa): zgadywanie hasła ze zrzutu pamięci jak w grach Fallout — 4 próby, podobieństwo
 liter. Science daje podpowiedzi (usunięcie atrapy): z góry ranga/25 minus trudność terminala (¾ −1, ½ −2, ¼ −3),
-a raz na grę „Analiza zrzutu” — rzut Science z trudnością terminala: sukces +1 podpowiedź, krytyk +2 i pełne próby,
-krytyczna porażka −1 próba. Zmiany stanu terminala zapisuje przeglądarka MG, więc MG musi być zalogowany.
+a raz na grę „Analiza zrzutu” — rzut Science z trudnością terminala: sukces +1 podpowiedź i +1 próba (do 4), krytyk
++2 podpowiedzi i pełne próby, krytyczna porażka −1 próba. Zmiany stanu terminala zapisuje przeglądarka MG, więc MG musi być zalogowany.
 - Z bliska (opcja świata „Terminale: obsługa tylko z bliska”, domyślnie włączona): gracz korzysta z terminala tylko,
   gdy token jego postaci stoi obok tokenu terminala (jak przy wymianie); z daleka widzi tylko „ZA DALEKO”. Dalej
   sięgają przedmioty z podręcznika: Cabling, Universal (10’) — 10 ft, implant Console Matrix Remote Control Talisman
   (zasilony) — 20 ft, Wire, Spark (25’) — 25 ft. Terminal bez tokenu na oglądanej scenie działa jak dotąd; MG zawsze.
 - Oględziny pod kątem ładunku nie mają przycisku: gracz musi sam powiedzieć MG, że sprawdza terminal. MG mówi mu
-  wtedy, żeby kliknął prawą śrubkę (◦) pod ekranem — przed włączeniem terminala; to otwiera rzut Explosives. Wykryty
-  ładunek widać już otwarcie, z przyciskiem „Rozbrój”.
+  wtedy, którą śrubkę (◦) kliknąć — przed włączeniem terminala; to otwiera rzut Explosives. Ukrytą śrubkę MG wybiera
+  w konfiguracji terminala (sekcja „Pułapka”, pole „Śrubka”): jedną z 4 w rogach ekranu, domyślnie prawą dolną.
+  Wykryty ładunek widać już otwarcie, z przyciskiem „Rozbrój” (ta sama śrubka też rozbraja).
 - Włączenie terminala pokazuje krótką animację ASCII (tekst startowy i pasek ładowania; kliknięcie pomija; opcja gracza
   „Terminale: animacja uruchamiania”).
 

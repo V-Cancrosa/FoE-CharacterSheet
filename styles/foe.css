@@ -1161,6 +1161,11 @@ body[data-foe-crt="off"] .foe-rpg .term-screen::after { display: none; }
 .foe-rpg .term-case .grill { flex: 1; text-align: center; letter-spacing: .12em; overflow: hidden; white-space: nowrap; }
 /* śrubka niczym się nie wyróżnia — o tym, gdzie kliknąć, mówi MG */
 .foe-rpg .term-case .screw, .foe-rpg .term-case [data-action] { cursor: default !important; padding: 0 .25rem; }
+/* górne śrubki — w rogach nad nagłówkiem, w tym samym miejscu w poziomie co dolne */
+.foe-rpg .term-head { position: relative; }
+.foe-rpg .term-head .screw { position: absolute; top: 0; padding: 0 .25rem; font-size: 14px; line-height: 1; opacity: .35; user-select: none; cursor: default !important; }
+.foe-rpg .term-head .screw.tl { left: 0; }
+.foe-rpg .term-head .screw.tr { right: 0; }
 .foe-rpg .term-dump a.w.hover { background: var(--term); color: #021006; text-shadow: none; }
 .foe-rpg.terminal .window-content { position: relative; }
 .foe-rpg .term-boot {
