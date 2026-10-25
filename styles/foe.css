@@ -1182,6 +1182,12 @@ body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
 .foe-rpg .term-boot.kind-cloud { --term: #bfe8ff; }
 .foe-rpg .term-boot.kind-stabletec { --term: #ffd27a; }
 .foe-rpg .term-boot.kind-military { --term: #9cff6a; }
+/* Ministerstwa: kolor klaczy, która nim kierowała (Technologia Wojenna zostaje przy wojskowej zieleni) */
+.foe-rpg :is(.term-screen, .term-boot).kind-military.min-mas { --term: #d9b3ff; }
+.foe-rpg :is(.term-screen, .term-boot).kind-military.min-moa { --term: #8fd8ff; }
+.foe-rpg :is(.term-screen, .term-boot).kind-military.min-moi { --term: #e6dcff; }
+.foe-rpg :is(.term-screen, .term-boot).kind-military.min-mom { --term: #ffa3d7; }
+.foe-rpg :is(.term-screen, .term-boot).kind-military.min-mop { --term: #fff09a; }
 /* logo producenta po załadowaniu: na środku, zmniejszane w małym oknie (znak VT323 ma 0,4 em szerokości) */
 .foe-rpg .term-boot { container-type: size; overflow: hidden; }
 .foe-rpg .term-boot.logo { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9rem; }
