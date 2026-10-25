@@ -13,13 +13,32 @@
 import { t, N_, tmap, tfields } from "./i18n.mjs";
 
 export const TERMINAL_KINDS = tfields({
-  office: { label: N_("Office (green terminal)"), brand: "M.A.S. TERMLINK PROTOCOL v2.1" },
+  office: { label: N_("Office (RobronCo)"), brand: "ROBRONCO INDUSTRIES (TM) TERMLINK PROTOCOL" },
   stabletec: { label: "Stable-Tec", brand: "STABLE-TEC UNIFIED OPERATING SYSTEM" },   // en=pl
-  military: { label: N_("Military / ministry"), brand: "MINISTRY OF WARTIME TECHNOLOGY — SECURE TERMLINK" },
+  // klucz „military” został z czasów, gdy był to tylko terminal M.W.T. — teraz Ministerstwo wybiera MG (MINISTRIES)
+  military: { label: N_("term|Ministry"), brand: "MINISTRY OF WARTIME TECHNOLOGY — SECURE TERMLINK" },
   cloud: { label: N_("Cloud (Enclave)"), brand: "ENCLAVE CLOUD TERMINAL // SKY-LINK" },
   unics: { label: "Unics", brand: "UNICS 3.4 — MULTI-USER SYSTEM" },   // en=pl
   portable: { label: N_("Portable"), brand: "PORTABLE TERMINAL — SPARK BATTERY MODE" }
 }, ["label"]);
+
+/**
+ * Sześć Ministerstw (podręcznik, s. 66 — alfabetycznie, z klaczą, która nim kierowała). Terminal ministerialny ma
+ * nagłówek, producenta, jedną linię testu przy starcie, logo (terminal-logos.mjs) i kolor ekranu swojego Ministerstwa.
+ * Domyślnie Technologia Wojenna — tak wyglądały terminale „wojskowe” sprzed wyboru.
+ */
+export const MINISTRIES = tfields({
+  mas: { label: N_("Arcane Science (Twilight Sparkle)"), name: N_("MINISTRY OF ARCANE SCIENCE"), brand: "M.A.S. TERMLINK PROTOCOL v2.1", line: N_("> ARCANE RESEARCH NET .... OK") },
+  moa: { label: N_("Awesome (Rainbow Dash)"), name: N_("MINISTRY OF AWESOME"), brand: "MINISTRY OF AWESOME — FLIGHT OPS TERMLINK", line: N_("> FLIGHT TELEMETRY ....... OK") },
+  moi: { label: N_("Image (Rarity)"), name: N_("MINISTRY OF IMAGE"), brand: "MINISTRY OF IMAGE — PUBLIC RELATIONS TERMLINK", line: N_("> IMAGE ARCHIVE .......... OK") },
+  mom: { label: "Morale (Pinkie Pie)", name: N_("MINISTRY OF MORALE"), brand: "MINISTRY OF MORALE — OBSERVATION TERMLINK", line: N_("> LISTENING TALISMANS .... ACTIVE") },   // en=pl
+  mop: { label: N_("Peace (Fluttershy)"), name: N_("MINISTRY OF PEACE"), brand: "MINISTRY OF PEACE — MEDICAL TERMLINK", line: N_("> MEDICAL DATABASE ....... OK") },
+  mwt: { label: N_("Wartime Technology (Applejack)"), name: N_("MINISTRY OF WARTIME TECHNOLOGY"), brand: "MINISTRY OF WARTIME TECHNOLOGY — SECURE TERMLINK", line: N_("> ENCRYPTION ............. ACTIVE") }
+}, ["label", "name", "line"]);
+/** Ministerstwo terminala (zła albo pusta wartość — Technologia Wojenna). */
+export const ministryOf = ts => (Object.hasOwn(MINISTRIES, ts?.ministry ?? "") ? ts.ministry : "mwt");
+/** Nagłówek ekranu: własny z konfiguracji albo domyślny dla typu (ministerialny — dla Ministerstwa). */
+export const terminalBrand = ts => ts?.brand || (ts?.kind === "military" ? MINISTRIES[ministryOf(ts)].brand : TERMINAL_KINDS[ts?.kind]?.brand) || "TERMLINK";
 
 /** Zabezpieczenie: MFD hakowania i długość słów w minigrze. */
 export const TERMINAL_SECURITY = tfields({
@@ -233,23 +252,24 @@ export function remoteReach(actor, { powered = true } = {}) {
 
 // ---------- uruchamianie (animacja ASCII) ----------
 const MAKERS = tmap({
-  office: N_("MINISTRY OF ARCANE SCIENCE"), stabletec: "STABLE-TEC", military: N_("MINISTRY OF WARTIME TECHNOLOGY"),   // en=pl
+  office: "ROBRONCO INDUSTRIES", stabletec: "STABLE-TEC",   // en=pl
   cloud: N_("ENCLAVE — CLOUD SERVICES"), unics: "UNICS LABS", portable: "STABLE-TEC"   // en=pl
 });
 
-/** Linie wypisywane przy uruchamianiu terminala (przed paskiem ładowania). */
-export function bootLines(kind = "office", brand = "") {
-  const head = brand || TERMINAL_KINDS[kind]?.brand || "TERMLINK";
+/** Linie wypisywane przy uruchamianiu terminala (przed paskiem ładowania); ministry — dla terminala ministerialnego. */
+export function bootLines(kind = "office", brand = "", ministry = "mwt") {
+  const min = kind === "military" ? MINISTRIES[ministryOf({ ministry })] : null;
+  const head = terminalBrand({ kind, brand, ministry });
   const lines = [
     head,
-    `(C) ${MAKERS[kind] ?? MAKERS.office}`,
+    `(C) ${min?.name ?? MAKERS[kind] ?? MAKERS.office}`,
     "",
     t("> MEMORY TEST ............ 64K OK"),
     t("> SPELL MATRIX ........... OK"),
     t("> DATA CRYSTALS .......... OK")
   ];
   if (kind === "cloud") lines.push(t("> SKY-LINK UPLINK ........ OK"));
-  else if (kind === "military") lines.push(t("> ENCRYPTION ............. ACTIVE"));
+  else if (min) lines.push(min.line);
   else if (kind === "portable") lines.push(t("> SPARK BATTERY .......... 37%"));
   else lines.push(t("> TERMLINK UPLINK ........ OK"));
   lines.push(t("> LOADING SYSTEM"));
@@ -300,6 +320,7 @@ export function terminalDataClass() {
     static defineSchema() {
       return {
         kind: str("office"),
+        ministry: str("mwt"),
         brand: str(""),
         security: str("3/4"),
         scienceReq: new F.NumberField({ initial: 0, min: 0, integer: true }),

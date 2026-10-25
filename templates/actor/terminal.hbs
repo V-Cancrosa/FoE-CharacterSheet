@@ -8,6 +8,7 @@
         <input class="name" type="text" name="name" value="{{actor.name}}" placeholder="{{t "Terminal name"}}">
         <div class="row veh-row">
           <label>{{t "Type"}} <select name="system.kind">{{#each kinds}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+          {{#if isMinistry}}<label title="{{t "Which of the six ministries the terminal belongs to: header, logo and screen color"}}">{{t "Ministry"}} <select name="system.ministry">{{#each ministries}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>{{/if}}
           <label title="{{t "Hacking difficulty (MFD of the Science roll; in the minigame — word length and fewer hints)"}}">{{t "Security"}} <select name="system.security">{{#each security}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
         </div>
         <div class="row veh-row">
@@ -101,7 +102,7 @@
     </fieldset>
   </div>
 {{else}}
-  <div class="term-screen kind-{{screen.kind}}">
+  <div class="term-screen kind-{{screen.kind}}{{#if screen.ministry}} min-{{screen.ministry}}{{/if}}">
     <div class="term-head">
       <span class="screw tl" aria-hidden="true"{{#if screen.screws.tl}} data-action="{{screen.screws.tl}}"{{/if}}>◦</span><span class="screw tr" aria-hidden="true"{{#if screen.screws.tr}} data-action="{{screen.screws.tr}}"{{/if}}>◦</span>
       <div>{{screen.brand}}</div>

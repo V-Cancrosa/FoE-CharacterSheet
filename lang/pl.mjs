@@ -299,8 +299,6 @@ export default {
   "(when: {w})": "(gdy: {w})",
   // ---- module/terminal-data.mjs
   "Portable": "Przenośny",
-  "Office (green terminal)": "Biurowy (zielony terminal)",
-  "Military / ministry": "Wojskowy / ministerialny",
   "Cloud (Enclave)": "Chmurowy (Enclave)",
   "Very hard (MFD ¼)": "Bardzo trudne (MFD ¼)",
   "None (open)": "Brak (otwarty)",
@@ -3392,5 +3390,29 @@ export default {
   "PORTABLE TERMINAL": "TERMINAL PRZENOŚNY",
   "LOW POWER MODE": "TRYB OSZCZĘDZANIA ENERGII",
   // ---- module/terminal.mjs
-  "An ASCII animation when a terminal turns on: boot text, a loading bar and the maker's logo (about 10 seconds). A click skips it.": "Animacja ASCII, gdy terminal się włącza: tekst startowy, pasek ładowania i logo producenta (około 10 sekund). Kliknięcie ją pomija."
+  "An ASCII animation when a terminal turns on: boot text, a loading bar and the maker's logo (about 10 seconds). A click skips it.": "Animacja ASCII, gdy terminal się włącza: tekst startowy, pasek ładowania i logo producenta (około 10 sekund). Kliknięcie ją pomija.",
+  // ---- module/terminal-data.mjs
+  "Office (RobronCo)": "Biurowy (RobronCo)",
+  "term|Ministry": "Ministerialny",
+  "Ministry": "Ministerstwo",
+  "Which of the six ministries the terminal belongs to: header, logo and screen color": "Do którego z sześciu Ministerstw należy terminal: nagłówek, logo i kolor ekranu",
+  "Arcane Science (Twilight Sparkle)": "Nauk Magicznych (Twilight Sparkle)",
+  "Awesome (Rainbow Dash)": "Czadu (Rainbow Dash)",
+  "Image (Rarity)": "Wizerunku (Rarity)",
+  "Peace (Fluttershy)": "Pokoju (Fluttershy)",
+  "Wartime Technology (Applejack)": "Technologii Wojennej (Applejack)",
+  "MINISTRY OF AWESOME": "MINISTERSTWO CZADU",
+  "MINISTRY OF IMAGE": "MINISTERSTWO WIZERUNKU",
+  "MINISTRY OF MORALE": "MINISTERSTWO MORALE",
+  "MINISTRY OF PEACE": "MINISTERSTWO POKOJU",
+  "> ARCANE RESEARCH NET .... OK": "> SIEĆ NAUK MAGICZNYCH ... OK",
+  "> FLIGHT TELEMETRY ....... OK": "> TELEMETRIA LOTU ........ OK",
+  "> IMAGE ARCHIVE .......... OK": "> ARCHIWUM WIZERUNKU ..... OK",
+  "> LISTENING TALISMANS .... ACTIVE": "> TALIZMANY PODSŁUCHU .... AKTYWNE",
+  "> MEDICAL DATABASE ....... OK": "> BAZA MEDYCZNA .......... OK",
+  "BUILT TO SERVE": "ZBUDOWANE, BY SŁUŻYĆ",
+  "20% COOLER": "O 20% FAJNIEJ",
+  "STYLE IS STRENGTH": "STYL TO SIŁA",
+  "SMILE! WE ARE WATCHING": "UŚMIECHNIJ SIĘ! OBSERWUJEMY",
+  "KINDNESS HEALS": "DOBROĆ LECZY"
 };

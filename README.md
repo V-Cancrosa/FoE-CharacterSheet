@@ -376,8 +376,9 @@ Fallout: Equestria RPG; domyślnie włączona — po wyłączeniu działa zestaw
 obrażenia, magia, leczenie, karta szczęścia, pułapka (Radiacja); inni widzą te same kolory. W ustawieniach efektów specjalnych Dice So Nice są wyzwalacze
 „Fallout: Equestria — Krytyczny sukces / Krytyczna porażka” (nasze krytyki z rzutu d100, także poszerzone przerzutami).
 
-Terminale (osobny typ aktora „Terminal”): MG ustawia typ (biurowy, Stable-Tec, wojskowy, chmurowy, Unics,
-przenośny), zabezpieczenie (MFD hakowania), wymagane Science, hasło i hasło administratora, wpisy (publiczne / po
+Terminale (osobny typ aktora „Terminal”): MG ustawia typ (biurowy RobronCo, Stable-Tec, ministerialny, chmurowy,
+Unics, przenośny), przy ministerialnym — które z sześciu Ministerstw (Nauk Magicznych, Czadu, Wizerunku, Morale,
+Pokoju, Technologii Wojennej; od niego zależą nagłówek, logo i kolor ekranu), zabezpieczenie (MFD hakowania), wymagane Science, hasło i hasło administratora, wpisy (publiczne / po
 zalogowaniu / administrator), komendy (drzwi ze sceny, tokeny wieżyczek i robotów, komunikat na czacie) i pułapkę
 (Rigged Terminal, s. 597). Gracze klikają token i widzą tylko ekran komputera: logowanie hasłem, hakowanie (rzut
 Science; krytyk — administrator, krytyczna porażka — blokada, Computer Whiz — druga próba, druga blokada na stałe),
@@ -397,8 +398,8 @@ a raz na grę „Analiza zrzutu” — rzut Science z trudnością terminala: su
   Wykryty ładunek widać już otwarcie, z przyciskiem „Rozbrój” (ta sama śrubka też rozbraja).
 - Włączenie terminala pokazuje animację ASCII (około 10 s): tekst startowy (status testów pojawia się po chwili),
   pasek ładowania skaczący o losowe wartości, a na koniec logo producenta z hasłem — inne dla każdego typu: biurowy
-  (M.A.S.), Stable-Tec, wojskowy (M.W.T.), chmurowy (Enklawa), Unics i przenośny. Kliknięcie pomija; opcja gracza
-  „Terminale: animacja uruchamiania”.
+  (RobronCo), Stable-Tec, ministerialny (logo wybranego Ministerstwa: M.A.S., MoA, MoI, MoM, MoP, M.W.T.), chmurowy
+  (Enklawa), Unics i przenośny. Kliknięcie pomija; opcja gracza „Terminale: animacja uruchamiania”.
 
 Kasyno (osobny typ aktora „Stół do gry”): blackjack z automatycznym krupierem albo Texas Hold'em bez limitu. Talia jak
 w podręczniku (s. 220): damą kier jest Celestia, trefl — Luna, karo — Cadance, pik — Nightmare Moon (jokerów, Discorda

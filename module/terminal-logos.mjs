@@ -1,5 +1,6 @@
 /**
  * Logo powitalne terminala po załadowaniu systemu — emblemat i napis producenta (ASCII) oraz hasło.
+ * Biurowy to RobronCo, ministerialny ma logo wybranego Ministerstwa (system.ministry).
  * Tylko znaki ASCII: czcionka ekranu (VT323) nie ma znaków blokowych ani ramek, a inne czcionki rozjechałyby kolumny.
  * Napisy: FIGlet (licencja BSD), emblematy rysowane ręcznie.
  */
@@ -8,21 +9,21 @@ import { t, N_ } from "./i18n.mjs";
 const LOGOS = {
   office: {
     art: [
-      "     *      /\\      *",
-      "       ____/  \\____",
-      "       \\          /",
-      "    .   >        <   .",
-      "       /___    ___\\",
-      "           \\  /",
-      "     *      \\/      *",
+      "             /|         |\\",
+      "            / |_________| \\",
+      "           |  .---------.  |",
+      "           |  | [o] [o] |  |",
+      "           |  |    _    |  |",
+      "           |  |  |||||  |  |",
+      "            \\ '---------' /",
+      "             '-----------'",
       "",
-      " __  __      _      ____",
-      "|  \\/  |    / \\    / ___|",
-      "| |\\/| |   / _ \\   \\___ \\",
-      "| |  | |_ / ___ \\ _ ___) |",
-      "|_|  |_(_)_/   \\_(_)____(_)"
+      " ___  ___  ___ ___  ___  _  _  ___ ___",
+      "| _ \\/ _ \\| _ ) _ \\/ _ \\| \\| |/ __/ _ \\",
+      "|   / (_) | _ \\   / (_) | .` | (_| (_) |",
+      "|_|_\\\\___/|___/_|_\\\\___/|_|\\_|\\___\\___/"
     ],
-    tagline: [N_("MINISTRY OF ARCANE SCIENCE"), N_("KNOWLEDGE IS MAGIC")]
+    tagline: ["ROBRONCO INDUSTRIES", N_("BUILT TO SERVE")]   // en=pl
   },
   stabletec: {
     art: [
@@ -41,26 +42,6 @@ const LOGOS = {
       "|___/ |_/_/ \\_\\___/____|___|   |_| |___\\___|"
     ],
     tagline: [N_("SAFE. SOUND. STABLE.")]
-  },
-  military: {
-    art: [
-      "       .-------------.",
-      "       |  \\       /  |",
-      "       |  \\\\     //  |",
-      "       |   \\\\   //   |",
-      "       |  \\ \\\\ // /  |",
-      "        \\  \\ \\V/ /  /",
-      "         '. \\ V / .'",
-      "           '-.v.-'",
-      "",
-      " __  ____          _________",
-      "|  \\/  \\ \\        / /__   __|",
-      "| \\  / |\\ \\  /\\  / /   | |",
-      "| |\\/| | \\ \\/  \\/ /    | |",
-      "| |  | |_ \\  /\\  / _   | | _",
-      "|_|  |_(_) \\/  \\/ (_)  |_|(_)"
-    ],
-    tagline: [N_("MINISTRY OF WARTIME TECHNOLOGY"), N_("AUTHORIZED PERSONNEL ONLY")]
   },
   cloud: {
     art: [
@@ -110,9 +91,126 @@ const LOGOS = {
   }
 };
 
-/** Logo dla typu terminala: { art (wiersze równej długości), width, tagline (przetłumaczone) }. */
-export function bootLogo(kind = "office") {
-  const logo = LOGOS[kind] ?? LOGOS.office;
+/** Ministerstwa (alfabetycznie jak w podręczniku, s. 66): klucze jak MINISTRIES w terminal-data.mjs. */
+const MINISTRY_LOGOS = {
+  mas: {
+    art: [
+      "     *      /\\      *",
+      "       ____/  \\____",
+      "       \\          /",
+      "    .   >        <   .",
+      "       /___    ___\\",
+      "           \\  /",
+      "     *      \\/      *",
+      "",
+      " __  __      _      ____",
+      "|  \\/  |    / \\    / ___|",
+      "| |\\/| |   / _ \\   \\___ \\",
+      "| |  | |_ / ___ \\ _ ___) |",
+      "|_|  |_(_)_/   \\_(_)____(_)"
+    ],
+    tagline: [N_("MINISTRY OF ARCANE SCIENCE"), N_("KNOWLEDGE IS MAGIC")]
+  },
+  moa: {
+    art: [
+      "     .-~~-.   .-.",
+      "  .-(      )-(   ).",
+      " (_______________)_)",
+      "        /  /",
+      "       /  /___",
+      "      /___   /",
+      "         /  /",
+      "        / /",
+      "       //",
+      "",
+      " __  __         _",
+      "|  \\/  | ___   / \\",
+      "| |\\/| |/ _ \\ / _ \\",
+      "| |  | | (_) / ___ \\",
+      "|_|  |_|\\___/_/   \\_\\"
+    ],
+    tagline: [N_("MINISTRY OF AWESOME"), N_("20% COOLER")]
+  },
+  moi: {
+    art: [
+      "       /\\",
+      "      /  \\",
+      "      \\  /",
+      "  /\\   \\/   /\\",
+      " /  \\      /  \\",
+      " \\  /      \\  /",
+      "  \\/        \\/",
+      "",
+      " __  __      ___",
+      "|  \\/  | ___|_ _|",
+      "| |\\/| |/ _ \\| |",
+      "| |  | | (_) | |",
+      "|_|  |_|\\___/___|"
+    ],
+    tagline: [N_("MINISTRY OF IMAGE"), N_("STYLE IS STRENGTH")]
+  },
+  mom: {
+    art: [
+      "  .-.    .-.",
+      " (   )  (   )   .-.",
+      "  '-'    '-'   (   )",
+      "   \\      |     '-'",
+      "    \\     |     /",
+      "     \\    |    /",
+      "      \\   |   /",
+      "       '--+--'",
+      "",
+      " __  __       __  __",
+      "|  \\/  | ___ |  \\/  |",
+      "| |\\/| |/ _ \\| |\\/| |",
+      "| |  | | (_) | |  | |",
+      "|_|  |_|\\___/|_|  |_|"
+    ],
+    tagline: [N_("MINISTRY OF MORALE"), N_("SMILE! WE ARE WATCHING")]
+  },
+  mop: {
+    art: [
+      "  ___         ___",
+      " /   '-.   .-'   \\",
+      "|       \\ /       |",
+      " \\_      Y      _/",
+      "  / '-.  |  .-' \\",
+      " (     )-'-(     )",
+      "  '---'     '---'",
+      "",
+      " __  __       ____",
+      "|  \\/  | ___ |  _ \\",
+      "| |\\/| |/ _ \\| |_) |",
+      "| |  | | (_) |  __/",
+      "|_|  |_|\\___/|_|"
+    ],
+    tagline: [N_("MINISTRY OF PEACE"), N_("KINDNESS HEALS")]
+  },
+  mwt: {
+    art: [
+      "       .-------------.",
+      "       |  \\       /  |",
+      "       |  \\\\     //  |",
+      "       |   \\\\   //   |",
+      "       |  \\ \\\\ // /  |",
+      "        \\  \\ \\V/ /  /",
+      "         '. \\ V / .'",
+      "           '-.v.-'",
+      "",
+      " __  ____          _________",
+      "|  \\/  \\ \\        / /__   __|",
+      "| \\  / |\\ \\  /\\  / /   | |",
+      "| |\\/| | \\ \\/  \\/ /    | |",
+      "| |  | |_ \\  /\\  / _   | | _",
+      "|_|  |_(_) \\/  \\/ (_)  |_|(_)"
+    ],
+    tagline: [N_("MINISTRY OF WARTIME TECHNOLOGY"), N_("AUTHORIZED PERSONNEL ONLY")]
+  }
+};
+
+/** Logo dla typu terminala (ministerialny — dla Ministerstwa): { art (wiersze równej długości), width, tagline (przetłumaczone) }. */
+export function bootLogo(kind = "office", ministry = "mwt") {
+  const logo = kind === "military" ? (MINISTRY_LOGOS[ministry] ?? MINISTRY_LOGOS.mwt) : (LOGOS[kind] ?? LOGOS.office);
   const width = Math.max(...logo.art.map(l => l.length));
   return { art: logo.art.map(l => l.padEnd(width)), width, tagline: logo.tagline.map(s => t(s)) };
 }

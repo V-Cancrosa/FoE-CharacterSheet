@@ -3,8 +3,8 @@
  * na podgląd ekranu; gracz (dostęp ograniczony) widzi tylko ekran komputera. Logika: terminal.mjs.
  */
 import {
-  TERMINAL_KINDS, TERMINAL_SECURITY, ACCESS_LABELS, TRAP_EXPLOSIVES, TRAP_SCREWS, COMMAND_KINDS, COMMAND_ACTIONS,
-  terminalAccess, canSee, effectiveState, memoryDump, bootLines, bootBar, bootSteps, splitStatus, trapScrew
+  TERMINAL_KINDS, TERMINAL_SECURITY, ACCESS_LABELS, TRAP_EXPLOSIVES, TRAP_SCREWS, COMMAND_KINDS, COMMAND_ACTIONS, MINISTRIES,
+  terminalAccess, canSee, effectiveState, memoryDump, bootLines, bootBar, bootSteps, splitStatus, trapScrew, ministryOf, terminalBrand
 } from "./terminal-data.mjs";
 import { bootLogo } from "./terminal-logos.mjs";
 import {
@@ -72,6 +72,8 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.config = this.#config;
     if (ctx.config) {
       ctx.kinds = opt(TERMINAL_KINDS, ts.kind);
+      ctx.isMinistry = ts.kind === "military";
+      ctx.ministries = opt(MINISTRIES, ministryOf(ts));
       ctx.security = opt(TERMINAL_SECURITY, ts.security);
       ctx.explosives = opt(TRAP_EXPLOSIVES, ts.trap.explosive);
       ctx.screws = opt(TRAP_SCREWS, trapScrew(ts));
@@ -102,7 +104,7 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const actor = userActor();
     const acc = terminalAccess(actor, ts);
     const s = {
-      brand: ts.brand || TERMINAL_KINDS[ts.kind]?.brand || "TERMLINK", kind: ts.kind, name: this.document.name, welcome: ts.welcome,
+      brand: terminalBrand(ts), kind: ts.kind, ministry: ts.kind === "military" ? ministryOf(ts) : null, name: this.document.name, welcome: ts.welcome,
       log: st.log ?? [], who: actor?.name ?? (game.user.isGM ? t("GM (select a character token to act as that character)") : t("no character — select your token")),
       why: acc.why, canHack: acc.hack, minigame: minigameOn(), trapFound: st.trapFound && ts.trap.armed, admin: st.access === "admin"
     };
@@ -150,7 +152,7 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const ts = this.document.system;
     const kind = ts.kind;
     const box = document.createElement("div");
-    box.className = `term-boot kind-${kind}`;
+    box.className = `term-boot kind-${kind}${kind === "military" ? ` min-${ministryOf(ts)}` : ""}`;
     box.innerHTML = `<pre></pre>`;
     host.append(box);
     const pre = box.querySelector("pre");
@@ -169,7 +171,7 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const run = async () => {
       // 1. tekst: po kilka liter, status testu po chwili, krótka przerwa po każdej linii
       let text = "";
-      for (const line of bootLines(kind, ts.brand)) {
+      for (const line of bootLines(kind, ts.brand, ts.ministry)) {
         const [head, status] = splitStatus(line);
         for (let i = 3; i < head.length + 3; i += 3) {
           if (!live()) return;
@@ -200,7 +202,7 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       await sleep(550);
       if (!live()) return;
       // 3. logo producenta: wiersz po wierszu, potem hasło po literze i migający kursor
-      const logo = bootLogo(kind);
+      const logo = bootLogo(kind, ministryOf(ts));
       box.classList.add("logo");
       box.innerHTML = `<pre class="art"></pre><pre class="tag"></pre>`;
       const art = box.querySelector(".art"), tag = box.querySelector(".tag");
