@@ -395,8 +395,10 @@ a raz na grę „Analiza zrzutu” — rzut Science z trudnością terminala: su
   wtedy, którą śrubkę (◦) kliknąć — przed włączeniem terminala; to otwiera rzut Explosives. Ukrytą śrubkę MG wybiera
   w konfiguracji terminala (sekcja „Pułapka”, pole „Śrubka”): jedną z 4 w rogach ekranu, domyślnie prawą dolną.
   Wykryty ładunek widać już otwarcie, z przyciskiem „Rozbrój” (ta sama śrubka też rozbraja).
-- Włączenie terminala pokazuje krótką animację ASCII (tekst startowy i pasek ładowania; kliknięcie pomija; opcja gracza
-  „Terminale: animacja uruchamiania”).
+- Włączenie terminala pokazuje animację ASCII (około 10 s): tekst startowy (status testów pojawia się po chwili),
+  pasek ładowania skaczący o losowe wartości, a na koniec logo producenta z hasłem — inne dla każdego typu: biurowy
+  (M.A.S.), Stable-Tec, wojskowy (M.W.T.), chmurowy (Enklawa), Unics i przenośny. Kliknięcie pomija; opcja gracza
+  „Terminale: animacja uruchamiania”.
 
 Kasyno (osobny typ aktora „Stół do gry”): blackjack z automatycznym krupierem albo Texas Hold'em bez limitu. Talia jak
 w podręczniku (s. 220): damą kier jest Celestia, trefl — Luna, karo — Cadance, pik — Nightmare Moon (jokerów, Discorda

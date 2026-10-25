@@ -1182,6 +1182,13 @@ body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
 .foe-rpg .term-boot.kind-cloud { --term: #bfe8ff; }
 .foe-rpg .term-boot.kind-stabletec { --term: #ffd27a; }
 .foe-rpg .term-boot.kind-military { --term: #9cff6a; }
+/* logo producenta po załadowaniu: na środku, zmniejszane w małym oknie (znak VT323 ma 0,4 em szerokości) */
+.foe-rpg .term-boot { container-type: size; overflow: hidden; }
+.foe-rpg .term-boot.logo { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9rem; }
+.foe-rpg .term-boot pre.art { white-space: pre; line-height: 1; font-size: min(20px, calc(94cqw / (var(--w, 40) * .4)), calc(86cqh / var(--h, 16))); animation: foe-term-logo 1.4s ease-out; }
+.foe-rpg .term-boot pre.tag { text-align: center; letter-spacing: .1em; font-size: 18px; }
+.foe-rpg .term-boot .cur { animation: foe-blink 1s steps(2, start) infinite; }
+@keyframes foe-term-logo { from { filter: brightness(2.2); text-shadow: 0 0 12px var(--term); } }
 
 /* Przyciski FoE w zakładce aktorów (Bestiariusz, Pojazdy, Stół do gry): własny rząd pod „Utwórz aktora” */
 .foe-dir-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 2px; }

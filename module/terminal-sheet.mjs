@@ -4,8 +4,9 @@
  */
 import {
   TERMINAL_KINDS, TERMINAL_SECURITY, ACCESS_LABELS, TRAP_EXPLOSIVES, TRAP_SCREWS, COMMAND_KINDS, COMMAND_ACTIONS,
-  terminalAccess, canSee, effectiveState, memoryDump, bootLines, bootBar, trapScrew
+  terminalAccess, canSee, effectiveState, memoryDump, bootLines, bootBar, bootSteps, splitStatus, trapScrew
 } from "./terminal-data.mjs";
+import { bootLogo } from "./terminal-logos.mjs";
 import {
   request, bootTerminal, inspectTrap, login, hackTerminal, guess, analyzeDump, downloadEntry, userActor, minigameOn,
   terminalReach, reachOn, bootAnimOn
@@ -139,7 +140,8 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
-   * Animacja ASCII przy uruchamianiu: tekst startowy wypisywany po literze, potem pasek ładowania ze wskaźnikiem.
+   * Animacja ASCII przy uruchamianiu: tekst startowy wypisywany po literze (status testu po chwili), pasek ładowania
+   * skokami o losowe wartości, a na koniec logo producenta z hasłem (terminal-logos.mjs).
    * Nakładka siedzi w treści okna (poza częścią szablonu), więc przeżywa odświeżenie ekranu; kliknięcie ją pomija.
    */
   #playBoot() {
@@ -152,22 +154,79 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     box.innerHTML = `<pre></pre>`;
     host.append(box);
     const pre = box.querySelector("pre");
-    const lines = bootLines(kind, ts.brand);
-    const text = lines.join("\n");
-    let i = 0, pct = 0, tick = 0, timer = null;
-    const done = () => { clearInterval(timer); box.classList.add("out"); setTimeout(() => box.remove(), 250); };
+    let over = false, spin = null;
+    const live = () => !over && box.isConnected;
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const between = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+    const done = () => {
+      if (over) return;
+      over = true;
+      clearInterval(spin);
+      box.classList.add("out");
+      setTimeout(() => box.remove(), 250);
+    };
     box.addEventListener("click", done);
-    timer = setInterval(() => {
-      if (!box.isConnected) return clearInterval(timer);
-      if (i < text.length) {
-        i = Math.min(text.length, i + 3);
-        pre.textContent = `${text.slice(0, i)}█`;
-        return;
+    const run = async () => {
+      // 1. tekst: po kilka liter, status testu po chwili, krótka przerwa po każdej linii
+      let text = "";
+      for (const line of bootLines(kind, ts.brand)) {
+        const [head, status] = splitStatus(line);
+        for (let i = 3; i < head.length + 3; i += 3) {
+          if (!live()) return;
+          pre.textContent = `${text}${head.slice(0, i)}█`;
+          await sleep(between(24, 40));
+        }
+        if (status) await sleep(between(150, 380));
+        text += `${line}\n`;
+        pre.textContent = `${text}█`;
+        await sleep(between(70, 160));
       }
-      pct = Math.min(100, pct + 7);
-      pre.textContent = `${text}\n${bootBar(pct, 24, tick++)}${pct >= 100 ? "\n> GOTOWE_" : ""}`;
-      if (pct >= 100) { clearInterval(timer); setTimeout(done, 450); }
-    }, 22);
+      // 2. pasek: skoki o losowe wartości z losowymi przerwami, wskaźnik kręci się cały czas
+      let pct = 0, tick = 0;
+      const bar = () => { pre.textContent = `${text}${bootBar(pct, 24, tick)}`; };
+      spin = setInterval(() => {
+        if (!live()) return clearInterval(spin);   // okno zamknięte albo animacja zaczęta od nowa
+        tick++;
+        bar();
+      }, 110);
+      for (const step of bootSteps()) {
+        await sleep(step.wait);
+        if (!live()) return;
+        pct = step.pct;
+        bar();
+      }
+      clearInterval(spin);
+      pre.textContent = `${text}${bootBar(100, 24, 0)}\n${t("> READY")}█`;
+      await sleep(550);
+      if (!live()) return;
+      // 3. logo producenta: wiersz po wierszu, potem hasło po literze i migający kursor
+      const logo = bootLogo(kind);
+      box.classList.add("logo");
+      box.innerHTML = `<pre class="art"></pre><pre class="tag"></pre>`;
+      const art = box.querySelector(".art"), tag = box.querySelector(".tag");
+      art.style.setProperty("--w", logo.width);
+      art.style.setProperty("--h", logo.art.length + logo.tagline.length + 3);
+      const blank = " ".repeat(logo.width);
+      for (let n = 1; n <= logo.art.length; n++) {
+        if (!live()) return;
+        art.textContent = logo.art.map((l, i) => (i < n ? l : blank)).join("\n");
+        await sleep(55);
+      }
+      const words = logo.tagline.join("\n");
+      for (let i = 1; i <= words.length; i++) {
+        if (!live()) return;
+        tag.textContent = `${words.slice(0, i)}█`;
+        await sleep(28);
+      }
+      tag.textContent = words;
+      const cur = document.createElement("span");
+      cur.className = "cur";
+      cur.textContent = "_";
+      tag.append(cur);
+      await sleep(1600);
+      done();
+    };
+    run().catch(err => { console.error("foe-rpg | terminal boot animation", err); done(); });
   }
 
   /** Gracz nie jest właścicielem — formularz byłby wyłączony; ekran działa na przyciskach, więc go nie blokujemy. */
