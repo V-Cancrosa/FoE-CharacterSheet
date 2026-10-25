@@ -3,8 +3,8 @@
  * na podgląd ekranu; gracz (dostęp ograniczony) widzi tylko ekran komputera. Logika: terminal.mjs.
  */
 import {
-  TERMINAL_KINDS, TERMINAL_SECURITY, ACCESS_LABELS, TRAP_EXPLOSIVES, COMMAND_KINDS, COMMAND_ACTIONS,
-  terminalAccess, canSee, effectiveState, memoryDump, bootLines, bootBar
+  TERMINAL_KINDS, TERMINAL_SECURITY, ACCESS_LABELS, TRAP_EXPLOSIVES, TRAP_SCREWS, COMMAND_KINDS, COMMAND_ACTIONS,
+  terminalAccess, canSee, effectiveState, memoryDump, bootLines, bootBar, trapScrew
 } from "./terminal-data.mjs";
 import {
   request, bootTerminal, inspectTrap, login, hackTerminal, guess, analyzeDump, downloadEntry, userActor, minigameOn,
@@ -73,6 +73,8 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       ctx.kinds = opt(TERMINAL_KINDS, ts.kind);
       ctx.security = opt(TERMINAL_SECURITY, ts.security);
       ctx.explosives = opt(TRAP_EXPLOSIVES, ts.trap.explosive);
+      ctx.screws = opt(TRAP_SCREWS, trapScrew(ts));
+      ctx.screwClick = TRAP_SCREWS[trapScrew(ts)].click;
       ctx.mfds = MFD_STEPS.map(s => ({ value: s.key, label: `MFD ${s.name} (${s.desc})`, sel: s.key === ts.trap.noticeMfd }));
       ctx.accessStates = opt({ none: t("none (login screen)"), user: t("logged in"), admin: t("administrator") }, st.access);
       ctx.entries = ts.entries.map((e, i) => ({ ...e, i, access: opt(ACCESS_LABELS, e.access) }));
@@ -114,8 +116,9 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const reach = terminalReach(actor, this.document);
     if (!reach.ok) { s.mode = "far"; s.farWhy = reach.why; s.log = []; this.#entry = null; }
     else if (reach.via) s.via = `${reach.via} (${reach.dist} ft)`;
-    // oględziny obudowy (Explosives): bez napisu — ukryta śrubka, o której mówi MG
-    s.canInspect = s.mode === "boot" && !st.trapFound;
+    // ukryta śrubka (wybiera MG, o tym, gdzie kliknąć, mówi graczom): oględziny obudowy (Explosives), po wykryciu — rozbrajanie
+    const hot = s.mode !== "boot" ? null : !st.trapFound ? "inspect" : s.trapFound ? "disarm" : null;
+    s.screws = Object.fromEntries(Object.keys(TRAP_SCREWS).map(k => [k, k === trapScrew(ts) ? hot : null]));
     s.lockedOnce = (st.lockouts ?? 0) === 1;
     s.entries = ts.entries.filter(e => canSee(e.access, st)).map(e => ({ id: e.id, title: e.title, access: e.access }));
     s.commands = ts.commands.filter(c => canSee(c.access, st)).map(c => ({ id: c.id, label: c.label }));

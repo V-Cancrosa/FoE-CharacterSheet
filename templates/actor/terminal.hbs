@@ -77,9 +77,10 @@
         <label class="cbx"><input type="checkbox" name="system.trap.armed" {{#if t.trap.armed}}checked{{/if}}> {{t "armed"}}</label>
         <label>{{t "Charge"}} <select name="system.trap.explosive">{{#each explosives}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
         <label title="{{t "Difficulty of inspecting and disarming (Explosives)"}}">{{t "Detection"}} <select name="system.trap.noticeMfd">{{#each mfds}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+        <label title="{{t "Which of the 4 screws in the corners of the screen hides the inspection (and, once the charge is found, the disarming)"}}">{{t "Screw"}} <select name="system.trap.screw">{{#each screws}}<option value="{{value}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
       </div>
       <p class="hint">{{t "Turning on an armed terminal: an explosion hits the character who turned it on (a card with “Apply damage”). Inspecting and disarming — Explosives; a critical failure sets off the charge too."}}</p>
-      <p class="hint"><b>{{t "Inspection has no button on the screen."}}</b> {{t "When a player says they check the terminal for a charge (before turning it on), tell them to click"}} <b>{{t "the right screw ◦ under the screen"}}</b> {{t "— it opens the Explosives roll. A detected charge is then shown openly, with a “Disarm” button."}}</p>
+      <p class="hint"><b>{{t "Inspection has no button on the screen."}}</b> {{t "When a player says they check the terminal for a charge (before turning it on), tell them to click"}} <b>{{screwClick}}</b> {{t "— it opens the Explosives roll. A detected charge is then shown openly, with a “Disarm” button."}} {{t "The same screw disarms it too."}}</p>
     </fieldset>
 
     <fieldset>
@@ -102,6 +103,7 @@
 {{else}}
   <div class="term-screen kind-{{screen.kind}}">
     <div class="term-head">
+      <span class="screw tl" aria-hidden="true"{{#if screen.screws.tl}} data-action="{{screen.screws.tl}}"{{/if}}>◦</span><span class="screw tr" aria-hidden="true"{{#if screen.screws.tr}} data-action="{{screen.screws.tr}}"{{/if}}>◦</span>
       <div>{{screen.brand}}</div>
       <div class="term-sub">{{screen.name}}{{#if screen.admin}} · ADMIN{{/if}}</div>
     </div>
@@ -169,7 +171,7 @@
       {{#if screen.log.length}}<pre class="term-log">{{#each screen.log}}{{this}}
 {{/each}}</pre>{{/if}}
     </div>
-    <div class="term-case" aria-hidden="true"><span class="screw">◦</span><span class="grill">▤▤▤▤▤▤▤▤▤▤▤▤▤▤</span><span class="screw"{{#if screen.canInspect}} data-action="inspect"{{/if}}>◦</span></div>
+    <div class="term-case" aria-hidden="true"><span class="screw"{{#if screen.screws.bl}} data-action="{{screen.screws.bl}}"{{/if}}>◦</span><span class="grill">▤▤▤▤▤▤▤▤▤▤▤▤▤▤</span><span class="screw"{{#if screen.screws.br}} data-action="{{screen.screws.br}}"{{/if}}>◦</span></div>
     <div class="term-foot">
       <span>{{t "User: {who}" who=screen.who}}{{#if screen.via}} · {{t "connection: {via}" via=screen.via}}{{/if}}</span>
       {{#if isGM}}<a data-action="toggleView"><i class="fa-solid fa-gear"></i> {{t "configuration"}}</a>{{/if}}

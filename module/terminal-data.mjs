@@ -37,6 +37,17 @@ export const TRAP_EXPLOSIVES = tfields({
   satchel: { label: N_("Satchel charge (10d12)"), formula: "10d12", name: "Satchel Charge" },
   sparkle: { label: "Sparkle grenade (10d20)", formula: "10d20", name: "Sparkle Grenade" }   // en=pl
 }, ["label"]);
+/**
+ * Śrubki obudowy w rogach ekranu. Ukryta (wybiera ją MG) otwiera oględziny pod kątem ładunku (Explosives),
+ * a po wykryciu ładunku — rozbrajanie. Domyślnie prawa dolna (tak było przed wyborem).
+ */
+export const TRAP_SCREWS = tfields({
+  tl: { label: N_("top left"), click: N_("the top left screw ◦") },
+  tr: { label: N_("top right"), click: N_("the top right screw ◦") },
+  bl: { label: N_("bottom left"), click: N_("the bottom left screw ◦") },
+  br: { label: N_("bottom right"), click: N_("the bottom right screw ◦") }
+}, ["label", "click"]);
+export const trapScrew = ts => (Object.hasOwn(TRAP_SCREWS, ts?.trap?.screw ?? "") ? ts.trap.screw : "br");
 export const COMMAND_KINDS = tmap({ door: N_("Door"), token: N_("Tokens (turrets, robots)"), message: N_("Chat message") });
 export const COMMAND_ACTIONS = {
   door: tmap({ open: N_("open"), close: N_("close"), lock: N_("lock"), unlock: N_("unlock"), toggle: N_("toggle") }),
@@ -99,12 +110,14 @@ export function rng(seed) {
   let s = (Number(seed) >>> 0) || 1;
   return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 2 ** 32; };
 }
+/** Próby w minigrze (jak w grach). */
+export const MAX_TRIES = 4;
 /** Podobieństwo: liczba liter na tych samych miejscach. */
 export const likeness = (a, b) => [...String(a)].reduce((n, ch, i) => n + (ch === String(b)[i] ? 1 : 0), 0);
 
 /**
  * Nowa gra: { words, answer, tries, hints, removed, seed, len }.
- * Podpowiedzi (usunięcie atrapy) = ranga Science / 25 minus trudność; próby 4 (jak w grach).
+ * Podpowiedzi (usunięcie atrapy) = ranga Science / 25 minus trudność; próby — MAX_TRIES.
  */
 export function newGame(dict, security, { scienceRank = 0, seed = Date.now(), count = 12 } = {}) {
   const sec = TERMINAL_SECURITY[security] ?? TERMINAL_SECURITY["3/4"];
@@ -119,14 +132,14 @@ export function newGame(dict, security, { scienceRank = 0, seed = Date.now(), co
   const close = scored.slice(0, Math.ceil((count - 1) / 2));
   const rest = scored.slice(close.length).sort((a, b) => a.r - b.r).slice(0, count - 1 - close.length);
   const words = [answer, ...close.map(x => x.w), ...rest.map(x => x.w)].map(w => ({ w, r: rand() })).sort((a, b) => a.r - b.r).map(x => x.w);
-  return { words, answer, tries: 4, hints: Math.max(0, Math.floor(scienceRank / 25) - sec.penalty), removed: [], seed, len };
+  return { words, answer, tries: MAX_TRIES, hints: Math.max(0, Math.floor(scienceRank / 25) - sec.penalty), removed: [], seed, len };
 }
 
 /** Strzał w minigrze: { correct, likeness, tries, lockout }. */
 export function guessWord(game, word) {
   const w = String(word ?? "").toUpperCase();
   if (w === game.answer) return { correct: true, likeness: w.length, tries: game.tries, lockout: false };
-  const tries = Math.max(0, (game.tries ?? 4) - 1);
+  const tries = Math.max(0, (game.tries ?? MAX_TRIES) - 1);
   return { correct: false, likeness: likeness(w, game.answer), tries, lockout: tries <= 0 };
 }
 
@@ -173,16 +186,20 @@ export function memoryDump(game, { rows = 24, width = 12 } = {}) {
 }
 
 /**
- * Analiza zrzutu — rzut Science w minigrze (raz na grę): krytyk — +2 podpowiedzi i pełne 4 próby; sukces — +1 podpowiedź;
- * porażka — nic; krytyczna porażka — jedna próba mniej (ostatnia → blokada jak po chybionym haśle).
+ * Analiza zrzutu — rzut Science w minigrze (raz na grę): krytyk — +2 podpowiedzi i pełne próby; sukces — +1 podpowiedź
+ * i +1 próba (do MAX_TRIES); porażka — nic; krytyczna porażka — jedna próba mniej (ostatnia → blokada jak po chybionym haśle).
  * Zwraca { game, lines, lockout }.
  */
 export function analyzeOutcome(game, result) {
   const g = { ...game, analyzed: true };
-  if (result === "crit-success") return { game: { ...g, hints: (Number(g.hints) || 0) + 2, tries: 4 }, lines: [t("> ANALYSIS: +2 HINTS"), t("> ATTEMPTS RESTORED")], lockout: false };
-  if (result === "success") return { game: { ...g, hints: (Number(g.hints) || 0) + 1 }, lines: [t("> ANALYSIS: +1 HINT")], lockout: false };
+  if (result === "crit-success") return { game: { ...g, hints: (Number(g.hints) || 0) + 2, tries: MAX_TRIES }, lines: [t("> ANALYSIS: +2 HINTS"), t("> ATTEMPTS RESTORED")], lockout: false };
+  if (result === "success") {
+    const before = Number(g.tries ?? MAX_TRIES) || 0;
+    const tries = Math.min(MAX_TRIES, before + 1);
+    return { game: { ...g, hints: (Number(g.hints) || 0) + 1, tries }, lines: [t("> ANALYSIS: +1 HINT"), ...(tries > before ? [t("> +1 ATTEMPT")] : [])], lockout: false };
+  }
   if (result === "crit-fail") {
-    const tries = Math.max(0, (Number(g.tries) || 4) - 1);
+    const tries = Math.max(0, (Number(g.tries) || MAX_TRIES) - 1);
     return { game: { ...g, tries }, lines: [t("> ANALYSIS ERROR — ATTEMPT LOST")], lockout: tries <= 0 };
   }
   return { game: g, lines: [t("> ANALYSIS INCONCLUSIVE")], lockout: false };
@@ -268,7 +285,8 @@ export function terminalDataClass() {
         trap: new F.SchemaField({
           armed: new F.BooleanField({ initial: false }),
           explosive: str("frag"),
-          noticeMfd: str("3/4")
+          noticeMfd: str("3/4"),
+          screw: str("br")
         }),
         entries: new F.ArrayField(new F.SchemaField({
           id: str(""), title: str("New entry"), body: str(""), access: str("user")
