@@ -353,7 +353,6 @@ export default {
   "Terminals: use only up close": "Terminale: obsługa tylko z bliska",
   "A player can use a terminal only while their character's token stands next to the terminal's token (as for trading). From further away — with a Cabling, Universal cable (10 ft), a Console Matrix Remote Control Talisman implant (20 ft) or Wire, Spark (25 ft). A terminal without a token on the viewed scene works as before.": "Gracz korzysta z terminala tylko, gdy token jego postaci stoi obok tokenu terminala (jak przy wymianie). Dalej — z kablem Cabling, Universal (10 ft), implantem Console Matrix Remote Control Talisman (20 ft) albo Wire, Spark (25 ft). Terminal bez tokenu na oglądanej scenie działa jak dotąd.",
   "Terminals: boot animation": "Terminale: animacja uruchamiania",
-  "A short ASCII animation (boot text and a loading bar) when a terminal turns on. A click skips it.": "Krótka animacja ASCII (tekst startowy i pasek ładowania), gdy terminal się włącza. Kliknięcie ją pomija.",
   "select your token": "zaznacz swój token",
   "{name} has no token on this scene": "{name} nie ma tokena na tej scenie",
   "too far ({dist} ft) — walk up to the terminal": "za daleko ({dist} ft) — podejdź do terminala",
@@ -3382,5 +3381,16 @@ export default {
   "> +1 ATTEMPT": "> +1 PRÓBA",
   "Which of the 4 screws in the corners of the screen hides the inspection (and, once the charge is found, the disarming)": "Która z 4 śrubek w rogach ekranu kryje oględziny (a po wykryciu ładunku — rozbrajanie)",
   "Screw": "Śrubka",
-  "The same screw disarms it too.": "Ta sama śrubka też go rozbraja."
+  "The same screw disarms it too.": "Ta sama śrubka też go rozbraja.",
+  // ---- module/terminal-logos.mjs
+  "> READY": "> GOTOWE",
+  "KNOWLEDGE IS MAGIC": "WIEDZA TO MAGIA",
+  "SAFE. SOUND. STABLE.": "BEZPIECZNIE. PEWNIE. STABILNIE.",
+  "AUTHORIZED PERSONNEL ONLY": "TYLKO DLA UPOWAŻNIONEGO PERSONELU",
+  "SKY-LINK: CONNECTED": "SKY-LINK: POŁĄCZONO",
+  "MULTI-USER SYSTEM 3.4": "SYSTEM WIELODOSTĘPNY 3.4",
+  "PORTABLE TERMINAL": "TERMINAL PRZENOŚNY",
+  "LOW POWER MODE": "TRYB OSZCZĘDZANIA ENERGII",
+  // ---- module/terminal.mjs
+  "An ASCII animation when a terminal turns on: boot text, a loading bar and the maker's logo (about 10 seconds). A click skips it.": "Animacja ASCII, gdy terminal się włącza: tekst startowy, pasek ładowania i logo producenta (około 10 sekund). Kliknięcie ją pomija."
 };

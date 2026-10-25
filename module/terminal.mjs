@@ -47,7 +47,7 @@ export function registerTerminalSettings() {
   });
   game.settings.register(F, "terminalBootAnim", {
     name: "Terminals: boot animation",
-    hint: "A short ASCII animation (boot text and a loading bar) when a terminal turns on. A click skips it.",
+    hint: "An ASCII animation when a terminal turns on: boot text, a loading bar and the maker's logo (about 10 seconds). A click skips it.",
     scope: "client", config: true, type: Boolean, default: true
   });
 }

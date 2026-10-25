@@ -256,6 +256,32 @@ export function bootLines(kind = "office", brand = "") {
   return lines;
 }
 
+/** Linia startowa z kropkami → [tekst z kropkami, status] („OK” pojawia się po chwili, jak po prawdziwym teście). */
+export function splitStatus(line) {
+  const m = /^(.*?\.{3,}\s*)(\S.*)$/.exec(String(line ?? ""));
+  return m ? [m[1], m[2]] : [String(line ?? ""), ""];
+}
+
+/**
+ * Pasek ładowania skokami: [{ pct, wait }] — przyrost zwykle 1–9%, czasem skok 12–30%; przerwa zwykle 50–150 ms,
+ * czasem „zawieszenie” 400–900 ms; całość najwyżej maxMs (dłuższe przerwy są proporcjonalnie skracane).
+ * Ostatni krok to 100%. rand — generator 0..1 (w testach powtarzalny).
+ */
+export function bootSteps(rand = Math.random, maxMs = 3200) {
+  const steps = [];
+  let pct = 0;
+  while (pct < 100 && steps.length < 40) {
+    const jump = rand() < 0.15 ? 12 + Math.floor(rand() * 19) : 1 + Math.floor(rand() * 9);
+    const wait = rand() < 0.12 ? 400 + Math.floor(rand() * 501) : 50 + Math.floor(rand() * 101);
+    pct = Math.min(100, pct + jump);
+    steps.push({ pct, wait });
+  }
+  if (steps.at(-1)?.pct !== 100) steps.push({ pct: 100, wait: 120 });
+  const total = steps.reduce((n, x) => n + x.wait, 0);
+  if (total > maxMs) for (const x of steps) x.wait = Math.round((x.wait * maxMs) / total);
+  return steps;
+}
+
 /** Pasek ładowania ASCII: „[#####-----]  50% /” (spinner co krok). */
 export function bootBar(pct, width = 24, tick = 0) {
   const p = Math.max(0, Math.min(100, Math.round(Number(pct) || 0)));
