@@ -9,6 +9,7 @@ import { wieldLimit } from "./saddle.mjs";
 import { loadedVariant, ammoIgnoreDT, shiftDice, dieOf } from "./ammo-data.mjs";
 import { degradationOn } from "./craft-data.mjs";
 import { t, tn, isPL } from "./i18n.mjs";
+import { ruleLink } from "./rules.mjs";
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
@@ -57,7 +58,7 @@ export async function promptMfd(title, baseTn, rc = {}, opts = {}) {
     </label>`).join("");
   const content = `
     <div class="foe-dialog">
-      <div class="dlg-base">${t("Base target number (MFD 1):")} <b>${baseTn}</b></div>
+      <div class="dlg-base">${t("Base target number (MFD 1):")} <b>${baseTn}</b> ${ruleLink("tests/mfd")}</div>
       ${opts.extraHtml ?? ""}
       ${fixedList ? `<div class="dlg-fixed"><span>${t("Fixed modifiers (already included)")}</span><ul>${fixedList}</ul></div>` : ""}
       ${sitList ? `<div class="dlg-sit"><span>${t("Situational — tick them if they apply to this roll")}</span>${sitList}</div>` : ""}

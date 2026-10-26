@@ -1199,3 +1199,10 @@ body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
 /* Przyciski FoE w zakładce aktorów (Bestiariusz, Pojazdy, Stół do gry): własny rząd pod „Utwórz aktora” */
 .foe-dir-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 2px; }
 .foe-dir-row > button { flex: 1 1 auto; width: auto; min-width: 0; margin: 0; white-space: nowrap; }
+
+/* ---------- Linki „?” do kompendium zasad (rules.mjs) ---------- */
+.foe-rule { display: inline-block; margin-left: .2em; font-size: .78em; line-height: 1; vertical-align: .1em; color: var(--pip-mid, currentColor); opacity: .7; cursor: help; text-decoration: none; text-transform: none; letter-spacing: 0; }
+.foe-rule:hover, .foe-rule:focus-visible { color: var(--pip-bright, currentColor); opacity: 1; text-shadow: 0 0 6px var(--pip-glow, transparent); }
+/* w nagłówkach sekcji „?” stoi przy tytule; przyciski sekcji zostają po prawej */
+.foe-rpg h3 a.foe-rule { margin-left: .4rem; font-size: .8rem; }
+.foe-rpg h3 a.foe-rule + a { margin-left: auto; }

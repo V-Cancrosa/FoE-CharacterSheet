@@ -1,7 +1,7 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="main">
   <div class="cols">
     <div class="col-attrs">
-      <h3>S.P.E.C.I.A.L.</h3>
+      <h3>S.P.E.C.I.A.L. {{rule "tests/attributes"}}</h3>
       <table class="foe-table">
         <thead><tr><th class="l">{{t "Attribute"}}</th><th>{{t "Val."}}</th><th>Mod</th><th title="{{t "MFD 1 (normal)"}}">1</th><th class="frac" title="{{t "MFD 3/4 (hard)"}}">3/4</th><th class="frac" title="{{t "MFD 1/2 (very hard)"}}">1/2</th><th class="frac" title="{{t "MFD 1/4 (frustratingly hard)"}}">1/4</th></tr></thead>
         <tbody>
@@ -20,17 +20,17 @@
       </table>
       <dl class="derived">
         <dt>{{t "Carry weight"}}</dt><dd>{{system.carry}} lb ({{t "carrying {w}" w=weight}}){{#if system.overload}} <span class="warn">{{t "overload +{n}" n=system.overload}}</span>{{/if}}</dd>
-        <dt>{{t "Movement"}}</dt><dd>{{system.speed}} {{t "ft / action"}} {{#if system.flier}}({{t "fx|flight"}} {{#if system.canFly}}{{system.flySpeed}} ft{{else}}— {{system.flyNote}}{{/if}}){{else}}{{#if digSpeed}}({{t "digging {n} ft" n=system.flySpeed}}){{/if}}{{/if}}{{#each system.speedNotes}}<small class="sub warn">{{this}}</small>{{/each}}</dd>
-        <dt>{{t "Damage per wound"}}</dt><dd>{{system.dmgPerWound}} <input type="number" name="system.woundBonus" value="{{system.woundBonus}}" title="{{t "Modifier (Large +2, Pipsqueak −2…)"}}"></dd>
-        <dt><a class="rollable" data-action="rollInitiative" title="{{t "Join the combat and roll initiative (d100, then you choose ± AGI)"}}"><i class="fa-solid fa-dice-d20"></i> {{t "Initiative"}}</a></dt><dd>d100 ± {{system.initAgi}}{{#if extra.initFx}} {{extra.initFx}}{{/if}} ({{t "lower = faster; you choose ± after the roll"}})</dd>
-        <dt>{{t "Criticals"}}</dt><dd>{{t "success 1–{n}" n=extra.crit.success}} · {{t "failure {n}–100" n=extra.critFailFrom}}</dd>
+        <dt>{{t "Movement"}} {{rule "combat/actions"}}</dt><dd>{{system.speed}} {{t "ft / action"}} {{#if system.flier}}({{t "fx|flight"}} {{#if system.canFly}}{{system.flySpeed}} ft{{else}}— {{system.flyNote}}{{/if}}){{else}}{{#if digSpeed}}({{t "digging {n} ft" n=system.flySpeed}}){{/if}}{{/if}}{{#each system.speedNotes}}<small class="sub warn">{{this}}</small>{{/each}}</dd>
+        <dt>{{t "Damage per wound"}} {{rule "combat/wounds"}}</dt><dd>{{system.dmgPerWound}} <input type="number" name="system.woundBonus" value="{{system.woundBonus}}" title="{{t "Modifier (Large +2, Pipsqueak −2…)"}}"></dd>
+        <dt><a class="rollable" data-action="rollInitiative" title="{{t "Join the combat and roll initiative (d100, then you choose ± AGI)"}}"><i class="fa-solid fa-dice-d20"></i> {{t "Initiative"}}</a> {{rule "combat/round"}}</dt><dd>d100 ± {{system.initAgi}}{{#if extra.initFx}} {{extra.initFx}}{{/if}} ({{t "lower = faster; you choose ± after the roll"}})</dd>
+        <dt>{{t "Criticals"}} {{rule "tests/crit"}}</dt><dd>{{t "success 1–{n}" n=extra.crit.success}} · {{t "failure {n}–100" n=extra.critFailFrom}}</dd>
         {{#if extra.dodge}}<dt>{{t "Dodge"}}</dt><dd title="{{extra.dodgeTip}}">{{extra.dodge}} ({{t "to the dodge roll"}})</dd>{{/if}}
         {{#if extra.damage}}<dt>{{t "Damage from features"}}</dt><dd>{{extra.damage}}</dd>{{/if}}
         <dt>{{t "Rad resistance"}}</dt><dd><input type="number" name="system.radResist" value="{{system.radResist}}"> %{{#if system.fx.radResist}} <span class="fxb" title="{{t "From features"}}">{{t "total {n}%" n=system.radResistTotal}}</span>{{/if}}</dd>
       </dl>
     </div>
     <div class="col-skills">
-      <h3>{{t "Skills"}}</h3>
+      <h3>{{t "Skills"}} {{rule "tests/skills"}}</h3>
       <div class="scroll-x">
       <table class="foe-table skills">
         <thead><tr><th class="l">{{t "Skill"}}</th><th>{{t "Attr"}}</th><th title="Tag skill: +15">Tag</th><th class="hide-narrow">{{t "Base"}}</th><th title="{{t "Points from level-ups"}}">{{t "Pts"}}</th><th title="{{t "Race, traits, perks"}}">Bonus</th><th>{{t "Rank"}}</th><th title="{{t "Permanent roll modifier"}}">Mod</th><th title="{{t "Target number at MFD 1 (normal)"}}">MFD 1</th><th class="frac hide-narrow" title="{{t "Target number at MFD 1/2"}}">1/2</th></tr></thead>

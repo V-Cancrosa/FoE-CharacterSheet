@@ -13,7 +13,7 @@
   <div class="cr-scroll">
   {{!-- ================= 1. RASA ================= --}}
   {{#if step.race}}
-    <h3>{{t "Name and race"}}</h3>
+    <h3>{{t "Name and race"}} {{rule "races/overview"}}</h3>
     <div class="cr-row">
       <label>{{t "Name"}} <input type="text" name="name" value="{{st.name}}"></label>
       <label>{{t "Race"}} <select name="race">{{#each races}}<option value="{{k}}" {{#if sel}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
@@ -122,7 +122,7 @@
 
   {{!-- ================= 3. S.P.E.C.I.A.L. ================= --}}
   {{#if step.special}}
-    <p class="cr-desc">{{t "Every attribute starts at 1. With creation points you can raise it by at most 8 (Luck by 9); the limit after all bonuses is 12. A value of 5 is average. The “Hindrances/traits” column comes from the effects of the chosen entries; “Other” is a manual adjustment."}}</p>
+    <p class="cr-desc">{{t "Every attribute starts at 1. With creation points you can raise it by at most 8 (Luck by 9); the limit after all bonuses is 12. A value of 5 is average. The “Hindrances/traits” column comes from the effects of the chosen entries; “Other” is a manual adjustment."}} {{rule "tests/attributes"}}</p>
     <table class="foe-table cr-attrs">
       <thead><tr><th class="l">{{t "Attribute"}}</th><th>{{t "Base"}}</th><th>{{t "Points"}}</th><th>{{t "Race"}}</th><th title="{{t "From hindrances and traits"}}">{{t "Hindrances/traits"}}</th><th title="{{t "Manual adjustments (e.g. Elderly: +1 INT or CHA)"}}">{{t "col|Other"}}</th><th>{{t "Result"}}</th><th>MFD 1</th></tr></thead>
       <tbody>
@@ -148,7 +148,7 @@
 
   {{!-- ================= 4. UMIEJĘTNOŚCI ================= --}}
   {{#if step.skills}}
-    <p class="cr-desc">{{{t "Starting rank = 2 × attribute + Luck/2 + 2 (min. 5). Choose <b>{n}</b> tagged skills (+15) — {k} chosen. The “Hindrances/traits” column is counted automatically from the effects. “Other” is extra ranks, e.g. the free ranks of a Canterlot ghoul." n=r.tagLimit k=r.tags.length}}}</p>
+    <p class="cr-desc">{{{t "Starting rank = 2 × attribute + Luck/2 + 2 (min. 5). Choose <b>{n}</b> tagged skills (+15) — {k} chosen. The “Hindrances/traits” column is counted automatically from the effects. “Other” is extra ranks, e.g. the free ranks of a Canterlot ghoul." n=r.tagLimit k=r.tags.length}}} {{rule "tests/skills"}}</p>
     <div class="scroll-x">
     <table class="foe-table skills cr-skills">
       <thead><tr><th>Tag</th><th class="l">{{t "Skill"}}</th><th>{{t "Attr"}}</th><th>{{t "Base"}}</th><th>{{t "Race"}}</th><th>{{t "Hindrances/traits"}}</th><th>{{t "col|Other"}}</th><th>{{t "Rank"}}</th><th>MFD 1</th></tr></thead>
