@@ -390,6 +390,12 @@ Inne moduły (działa samo, gdy moduł jest włączony):
   Piętro, na którym stał, zostaje, więc Levels pokazuje lecącego kucyka na właściwej wysokości; wymiana i terminale
   liczą odległość w pionie.
 - PopOut! — karty systemu działają w osobnym oknie w kolorze PipBucka (zmiana koloru odświeży się po ponownym otwarciu).
+- Monk's Active Tile Triggers — w konfiguracji kafelka (zakładka akcji) jest grupa „Fallout: Equestria”:
+  - „FoE: promieniowanie” — postacie na kafelku dostają rady (liczba albo kości, np. 2d10) pomniejszone o odporność na
+    promieniowanie, jak przy broni; wpis na czacie z nowym stanem i stopniem choroby popromiennej po przekroczeniu progu,
+  - „FoE: pułapka (obrażenia)” — rzut obrażeń (np. 3d12) i karta z „Nanieś obrażenia” dla postaci na kafelku: jedno
+    trafienie (lokację wybiera się w oknie obrażeń) albo wybuch (każda odsłonięta lokacja), z DT pancerza jak przy ataku.
+  Uwaga: wbudowanej akcji „Hurt/Heal” nie używaj na postaciach FoE — odejmuje wartość z głównego paska tokena, czyli SATS.
 
 Terminale (osobny typ aktora „Terminal”): MG ustawia typ (biurowy RobronCo, Stable-Tec, ministerialny, chmurowy,
 Unics, przenośny), przy ministerialnym — które z sześciu Ministerstw (Nauk Magicznych, Czadu, Wizerunku, Morale,
