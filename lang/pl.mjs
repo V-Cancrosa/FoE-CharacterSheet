@@ -2813,8 +2813,6 @@ export default {
   "Roll: magic": "Rzut: magia",
   "Roll: healing": "Rzut: leczenie",
   "Roll: luck card": "Rzut: karta szczęścia",
-  "3D dice: color by roll kind": "Kości 3D: kolor według rodzaju rzutu",
-  "Requires the Dice So Nice module. Your dice change their look depending on the roll: test — PipBuck (screen color), SATS, hit location, damage, magic, healing, luck card, trap. Turn it off to use the set chosen in the Dice So Nice settings.": "Wymaga modułu Dice So Nice. Twoje kości zmieniają wygląd zależnie od rzutu: test — PipBuck (kolor ekranu), SATS, lokacja trafienia, obrażenia, magia, leczenie, karta szczęścia, pułapka. Wyłącz, żeby używać zestawu wybranego w ustawieniach Dice So Nice.",
   // ---- module/loot.mjs
   "carried": "przy sobie",
   "bestiary": "bestiariusz",
@@ -3414,5 +3412,13 @@ export default {
   "20% COOLER": "O 20% FAJNIEJ",
   "STYLE IS STRENGTH": "STYL TO SIŁA",
   "SMILE! WE ARE WATCHING": "UŚMIECHNIJ SIĘ! OBSERWUJEMY",
-  "KINDNESS HEALS": "DOBROĆ LECZY"
+  "KINDNESS HEALS": "DOBROĆ LECZY",
+  // ---- module/integrations.mjs
+  "3D dice: colors": "Kości 3D: kolory",
+  "Requires the Dice So Nice module. Special rolls (SATS, hit location, damage, magic, healing, luck card, trap) get their own Fallout: Equestria colors; ordinary tests can go in your own dice set (chosen in the Dice So Nice settings, e.g. from a dice module) or in the PipBuck color.": "Wymaga modułu Dice So Nice. Rzuty specjalne (SATS, miejsce trafienia, obrażenia, magia, leczenie, karta szczęścia, pułapka) mają własne kolory Fallout: Equestria; zwykłe testy mogą iść Twoim zestawem kości (wybranym w ustawieniach Dice So Nice, np. z modułu z kośćmi) albo w kolorze PipBucka.",
+  "All rolls in Fallout: Equestria colors": "Wszystkie rzuty w kolorach Fallout: Equestria",
+  "Tests in my own dice, special rolls in FoE colors": "Testy moimi kośćmi, rzuty specjalne w kolorach FoE",
+  "Always my own dice (the Dice So Nice set)": "Zawsze moje kości (zestaw z Dice So Nice)",
+  "Flight altitude moves the token": "Wysokość lotu przesuwa token",
+  "When a pegasus or a flying vehicle changes its flight altitude (sheet, flight, landing, fall), its token goes up or down by the same number of feet. With the Levels module it shows at the right height; handing over items and terminals count the vertical distance too.": "Gdy pegaz albo pojazd latający zmienia wysokość lotu (karta, lot, lądowanie, upadek), jego token idzie w górę albo w dół o tyle samo stóp. Z modułem Levels pokazuje się na właściwej wysokości; wymiana przedmiotów i terminale też liczą odległość w pionie."
 };
