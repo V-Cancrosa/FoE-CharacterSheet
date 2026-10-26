@@ -1,0 +1,12 @@
+{
+  "name": "foe-rpg",
+  "private": true,
+  "description": "Narzędzia do budowania systemu (kompendium zasad). Do grania nie są potrzebne.",
+  "scripts": {
+    "build:packs": "node tools/build-packs.mjs"
+  },
+  "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "3.0.5",
+    "marked": "18.0.14"
+  }
+}

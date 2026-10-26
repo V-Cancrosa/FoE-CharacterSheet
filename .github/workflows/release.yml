@@ -39,9 +39,20 @@ jobs:
              '.download = $d' system.json > system.tmp
           mv system.tmp system.json
 
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.exists != 'true'
+        with:
+          node-version: 22
+
+      - name: Zbuduj kompendium zasad
+        if: steps.check.outputs.exists != 'true'
+        run: |
+          npm ci --no-audit --no-fund
+          node tools/build-packs.mjs
+
       - name: Spakuj system
         if: steps.check.outputs.exists != 'true'
-        run: zip -r foe-rpg.zip system.json README.md module templates styles lang fonts icons data assets
+        run: zip -r foe-rpg.zip system.json README.md module templates styles lang fonts icons data assets packs
 
       - name: Utwórz wydanie
         if: steps.check.outputs.exists != 'true'

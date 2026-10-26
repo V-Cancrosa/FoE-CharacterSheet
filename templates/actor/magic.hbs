@@ -41,7 +41,7 @@
     <span class="cs" title="{{flight.weather.summary}}"><i class="fa-solid fa-cloud-sun-rain"></i> {{flight.weather.label}}</span>
     <a class="cs act" data-action="rollFall" title="{{t "1d20 per 10 ft (controlled 1d10), ignores armor DT"}}"><i class="fa-solid fa-person-falling"></i> {{t "Fall"}}</a>
   </div>
-  <h3>{{t "Flight and maneuvers"}}
+  <h3>{{t "Flight and maneuvers"}} {{rule "races/flight"}}
     <a data-action="openCatalog" data-tab="maneuvers" title="{{t "Flight maneuvers from the rulebook (weather ones too)"}}"><i class="fa-solid fa-feather"></i> {{t "Catalog"}}</a>
   </h3>
   {{#each flight.levels}}
@@ -76,7 +76,7 @@
   </div>
 
   {{#if magic.maintained.length}}
-  <h3>{{t "Maintained spells"}}</h3>
+  <h3>{{t "Maintained spells"}} {{rule "races/magic"}}</h3>
   <ul class="item-list conditions">
     {{#each magic.maintained}}
     <li><span class="nm">{{name}}</span><span class="cdesc">{{perRound}} {{t "strain at the start of the round"}}{{#if layers}} (overglow {{layers}}){{/if}}; {{t "new spells cost ×2, −1 step to accuracy, INT and AGI"}}</span>
@@ -85,7 +85,7 @@
   </ul>
   {{/if}}
 
-  <h3>{{t "Spells"}}
+  <h3>{{t "Spells"}} {{rule "races/magic"}}
     <a data-action="openCatalog" data-tab="spells" title="{{t "Unicorn and alicorn spells from the rulebook"}}"><i class="fa-solid fa-book"></i> {{t "Catalog"}}</a>
   </h3>
   {{#each magic.levels}}
@@ -120,7 +120,7 @@
     {{#each zebra.stock}}<span class="cs" title="{{t "Ingredients of this rarity"}}">{{label}} <b>{{n}}</b></span>{{/each}}
     <a class="cs act" data-action="searchIngredients" title="{{t "Survival or Magic, MFD depends on the terrain"}}"><i class="fa-solid fa-magnifying-glass"></i> {{t "Search for ingredients"}}</a>
   </div>
-  <h3>{{t "Zebra recipes"}}
+  <h3>{{t "Zebra recipes"}} {{rule "races/zebra"}}
     <a data-action="openCatalog" data-tab="recipes" title="{{t "Recipes from the rulebook"}}"><i class="fa-solid fa-book"></i> {{t "Catalog"}}</a>
   </h3>
   <div class="scroll-x">

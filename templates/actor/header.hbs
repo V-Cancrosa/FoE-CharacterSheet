@@ -12,6 +12,7 @@
         <span class="adv-btns">
           {{#if adv.canLevel}}<a class="adv {{#if adv.ready}}ready{{/if}}" data-action="levelUp" title="{{t "Level up: skill points and a perk"}}"><i class="fa-solid fa-arrow-up"></i> {{t "Level up"}}</a>{{/if}}
           {{#if adv.useXp}}{{#if adv.canAward}}<a data-action="awardXp" title="{{t "Award XP (Horse Sense +10% is counted automatically)"}}"><i class="fa-solid fa-star"></i> {{t "XP"}}</a>{{/if}}{{/if}}
+          {{rule "tests/levelup"}}
           {{#if adv.canUndo}}<a data-action="undoLevel" title="{{t "Undo the last level up"}}"><i class="fa-solid fa-rotate-left"></i></a>{{/if}}
         </span>{{/unless}}
         <label>Karma <input type="number" name="system.karma" value="{{system.karma}}"></label>
@@ -22,17 +23,17 @@
   </div>
   <div class="resources">
     <div class="res">
-      <span class="res-lbl">SATS</span>
+      <span class="res-lbl">SATS {{rule "combat/sats"}}</span>
       <span class="res-val"><input type="number" name="system.resources.sats.value" value="{{system.resources.sats.value}}"> / {{system.resources.sats.max}}</span>
       <div class="meter"><span style="width: {{meters.sats}}%"></span></div>
     </div>
     <div class="res">
-      <span class="res-lbl" title="{{t "Luck cards"}}">{{t "Luck"}}</span>
+      <span class="res-lbl" title="{{t "Luck cards"}}">{{t "Luck"}} {{rule "tests/luck"}}</span>
       <span class="res-val"><input type="number" name="system.resources.luck.value" value="{{system.resources.luck.value}}"> / {{system.resources.luck.max}}</span>
       <div class="meter"><span style="width: {{meters.luck}}%"></span></div>
     </div>
     <div class="res">
-      <span class="res-lbl">Strain</span>
+      <span class="res-lbl">Strain {{rule "races/magic"}}</span>
       <span class="res-val"><input type="number" name="system.resources.strain.value" value="{{system.resources.strain.value}}"> / {{#if system.caster}}<span title="END + INT + {{#if system.alicorn}}5{{else}}2{{/if}} + {{t "features"}}">{{system.strainMax}}</span>{{else}}<input type="number" name="system.resources.strain.max" value="{{system.resources.strain.max}}">{{#if extra.strainBonus}}<span class="fxb" title="{{t "From features"}}">{{extra.strainBonus}}</span>{{/if}}{{/if}}</span>
       <div class="meter"><span style="width: {{meters.strain}}%"></span></div>
     </div>

@@ -3435,5 +3435,9 @@ export default {
   "FoE: trap (damage)": "FoE: pułapka (obrażenia)",
   "Damage (dice, e.g. 3d12)": "Obrażenia (kości, np. 3d12)",
   "Trap name on the card": "Nazwa pułapki na karcie",
-  "Explosion — every exposed location": "Wybuch — każda odsłonięta lokacja"
+  "Explosion — every exposed location": "Wybuch — każda odsłonięta lokacja",
+  // ---- module/rules.mjs
+  "Rules: open this page of the rules compendium": "Zasady: otwórz tę stronę kompendium zasad",
+  "Rules": "Zasady",
+  "The rules compendium is missing. After updating the system, restart the world (Return to Setup → Launch World).": "Brak kompendium zasad. Po aktualizacji systemu uruchom świat ponownie („Wróć do konfiguracji” → „Uruchom świat”)."
 };

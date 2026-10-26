@@ -21,6 +21,26 @@ zostają po angielsku w obu językach. Wiadomości na czacie i utworzone dokumen
 w języku tego, kto je utworzył — np. tabele FoE zaimportowane po polsku zostaną po polsku, dopóki MG nie zaimportuje ich
 ponownie po angielsku. Tłumaczenie jest w pliku `lang/pl.mjs` (angielski tekst → polski).
 
+## Kompendium zasad
+Najważniejsze zasady systemu, własnymi słowami i z numerami stron podręcznika v1.22 — dla MG i dla graczy (na razie po polsku):
+zakładka **Kompendia** (ikona książek) → **„Zasady Fallout: Equestria (PL)”**. Trzy dzienniki:
+- **1. Testy i umiejętności** — test d100 i próg, MFD i kroki, krytyki, rzuty przeciwstawne, skradanie i światło, pomoc,
+  karty szczęścia, S.P.E.C.I.A.L. i wartości pochodne, umiejętności, awans i tabela PD;
+- **2. Walka** — runda i inicjatywa, zaskoczenie, akcje i ruch, SATS, atak i zasięg, przeładowanie, strzał celowany i lokacje,
+  obrażenia, krytyki i DT, rany, okaleczenia i śmierć, unik, blok i osłona, efekty broni i stany;
+- **3. Rasy i zdolności** — tworzenie postaci w skrócie, przegląd ras, kucyki, gryfy i zebry, rasy alternatywne,
+  magia jednorożców i alikornów, magia zebr, lot i manewry.
+
+Na każdej stronie ramka „Na karcie” mówi, gdzie dana zasada działa w systemie, a podkreślone nazwy prowadzą do innych stron.
+**Szybki skok do zasad:** mała ikonka **?** przy nagłówkach karty postaci (S.P.E.C.I.A.L., umiejętności, krytyki, inicjatywa,
+SATS, szczęście, strain, awans, broń, stany, rany, lot, zaklęcia, receptury zebr), w kreatorze postaci, w oknie rzutu (MFD)
+i w oknie ataku (SATS, odległość, lokacje) otwiera właściwą stronę. Kompendium jest tylko do odczytu; MG może je
+zaimportować do świata (prawy przycisk na dzienniku → „Importuj”), jeśli chce dopisać własne zasady domowe.
+Kompendium pojawia się po aktualizacji systemu i ponownym uruchomieniu świata.
+
+Dla twórców: treść jest w plikach Markdown `packs-src/rules/pl/*.md` (`# Dziennik {#klucz}`, `## Strona {#klucz}`,
+linki `[[walka/sats]]`). Paczkę `packs/rules` buduje `npm ci && node tools/build-packs.mjs` — przy wydaniu robi to GitHub sam.
+
 Co działa: S.P.E.C.I.A.L. z progami MFD, 17 umiejętności (baza = 2×ATR + Luck/2 + 2, min 5; tag +15; próg MFD 1 = ranga + ATR×5),
 rzut d100 pod próg z wyborem MFD (2 … 1/10) i modyfikatorem, krytyki 1–5 / 96–100, poziom osiągnięty do rzutów przeciwstawnych,
 przerzut za kartę szczęścia z czatu (+5% zakresu krytyków za każdy przerzut), SATS, karty szczęścia, strain, rady,

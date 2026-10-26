@@ -16,6 +16,7 @@ import { loadedVariant, ammoOnHit, SPECIAL_AMMO, variantsFor, specialAmmoOn, var
 import { degradationOn, weaponCondition, addWear, ammoWearFactor } from "./craft-data.mjs";
 import { spendActions } from "./tracker.mjs";
 import { t, tn } from "./i18n.mjs";
+import { ruleLink } from "./rules.mjs";
 
 const { DialogV2 } = foundry.applications.api;
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -93,14 +94,14 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
       <div class="atk-info">${info}</div>
       ${followUp ? `<div class="atk-info"><div>${volley.sats ? t("Saddle volley: in SATS (AP already paid).") : t("Saddle volley: the same action.")}</div></div>` : ""}
       ${spell || followUp ? "" : `<label class="atk-row atk-check"><input type="checkbox" name="sats" ${canSats ? "" : "disabled"}>
-        <span>SATS</span><small>${canSats ? t("−{c} AP ({left} left) · no environment and haste penalties", { c: cost, left: sats.value - cost }) : t("not enough AP: {v}/{c}", { v: sats.value, c: cost })}</small></label>`}
+        <span>SATS ${ruleLink("combat/sats")}</span><small>${canSats ? t("−{c} AP ({left} left) · no environment and haste penalties", { c: cost, left: sats.value - cost }) : t("not enough AP: {v}/{c}", { v: sats.value, c: cost })}</small></label>`}
       <label class="atk-row">${t("Environment and haste")} <select name="env">
         <option value="0">${t("no penalties")}</option>
         <option value="-1">${t("−1 step (smoke, fog, darkness, point-blank shot)")}</option>
         <option value="-2">${t("−2 steps")}</option><option value="-3">${t("−3 steps")}</option><option value="-4">${t("−4 steps")}</option>
       </select></label>
-      ${bands.length ? `<label class="atk-row">${t("Distance")} <select name="range">${bands.map(x => `<option value="${x.steps}">${x.label}${x.steps ? ` (${x.steps} ${t("st.")})` : ""}</option>`).join("")}</select></label>` : ""}
-      ${aoe ? "" : `<label class="atk-row">${t("Attack target")} <select name="loc">
+      ${bands.length ? `<label class="atk-row">${t("Distance")} ${ruleLink("combat/attack")} <select name="range">${bands.map(x => `<option value="${x.steps}">${x.label}${x.steps ? ` (${x.steps} ${t("st.")})` : ""}</option>`).join("")}</select></label>` : ""}
+      ${aoe ? "" : `<label class="atk-row">${t("Attack target")} ${ruleLink("combat/locations")} <select name="loc">
         ${areas.length
           ? areas.map((a, i) => `<option value="area:${i}" ${!random && a.loc === "torso" && !areas.slice(0, i).some(x => x.loc === "torso") ? "selected" : ""}>${esc(a.label)} (MFD ${esc(a.mfd)}${areaSteps(a) ? `, ${areaSteps(a)} ${t("st.")}` : ""})</option>`).join("")
           : Object.entries(CALLED_SHOTS).map(([k, c]) => `<option value="${k}" ${!random && k === "torso" ? "selected" : ""}>${c.label}${c.steps ? ` (${c.steps} ${t("st.")})` : ""}</option>`).join("")}

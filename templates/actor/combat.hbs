@@ -11,7 +11,7 @@
     {{#if system.dead}}<span class="cs alert">{{t "DEAD"}}</span>{{else if system.unconsciousRisk}}<span class="cs alert">{{t "LOSING CONSCIOUSNESS — END ¾ roll on every action"}}</span>{{/if}}
   </div>
 
-  <h3>{{t "sec|Weapons"}}
+  <h3>{{t "sec|Weapons"}} {{rule "combat/attack"}}
     {{#if saddle.canVolley}}<a data-action="fireVolley" title="{{t "All mounted weapons in one action: −{n} {steps} MFD; SATS: the most expensive weapon +{ap} AP" n=saddle.volleySteps steps=saddle.stepsWord ap=saddle.volleyAp}}"><i class="fa-solid fa-burst"></i> {{t "Saddle volley"}}</a>{{/if}}
     <a data-action="openCatalog" data-tab="weapons" title="{{t "Weapon catalog from the rulebook"}}"><i class="fa-solid fa-boxes-stacked"></i> {{t "Catalog"}}</a>
     <a class="plus" data-action="createItem" data-type="weapon" title="{{t "Blank weapon to fill in"}}"><i class="fa-solid fa-plus"></i></a>
@@ -46,7 +46,7 @@
   <p class="hint">{{t "Click a weapon's name to attack: in the window you mark SATS (uses AP and removes environment penalties), distance, a called shot or a random location. The attack deducts ammo by itself, and the hit card has buttons for damage and applying wounds."}}</p>
 
   {{#if conditions.length}}
-  <h3>{{t "Conditions"}} <a data-action="endRound" title="{{t "Apply end-of-round effects now (in combat this happens by itself when the round changes)"}}"><i class="fa-solid fa-hourglass-end"></i> {{t "End of round"}}</a></h3>
+  <h3>{{t "Conditions"}} {{rule "combat/effects"}} <a data-action="endRound" title="{{t "Apply end-of-round effects now (in combat this happens by itself when the round changes)"}}"><i class="fa-solid fa-hourglass-end"></i> {{t "End of round"}}</a></h3>
   <ul class="item-list conditions">
     {{#each conditions}}
     <li data-cond="{{key}}"><span class="nm">{{label}}</span><span class="cdesc">{{detail}}</span>
@@ -59,7 +59,7 @@
   </ul>
   {{/if}}
 
-  <h3>{{t "Health, chems and radiation"}}
+  <h3>{{t "Health, chems and radiation"}} {{rule "combat/wounds"}}
     <a data-action="rest" title="{{t "Natural healing: 1 wound per location per 8 h (the GM advances game time)"}}"><i class="fa-solid fa-bed"></i> {{t "Rest"}}</a>
     <a data-action="setLimb" title="{{t "Setting a crippled limb: Medicine ¾"}}"><i class="fa-solid fa-bone"></i> {{t "Set limb"}}</a>
   </h3>
@@ -103,7 +103,7 @@
   </ul>
   {{/if}}
 
-  <h3>{{t "Wounds, crippling and DT"}}</h3>
+  <h3>{{t "Wounds, crippling and DT"}} {{rule "combat/wounds"}}</h3>
   {{#if bodyMap}}
   <div class="body-map">
     <svg class="pip-body" viewBox="{{bodyMap.viewBox}}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{t "Body part status"}}">

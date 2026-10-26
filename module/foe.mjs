@@ -31,11 +31,13 @@ import { registerCasinoSettings, registerCasinoHooks } from "./casino.mjs";
 import { registerLanguageSetting, registerI18nHelpers, localizeRegistrations } from "./i18n.mjs";
 import { registerVersionCheck } from "./version-check.mjs";
 import { registerIntegrations } from "./integrations.mjs";
+import { registerRuleLinks } from "./rules.mjs";
 
 Hooks.once("init", () => {
   // język systemu (opcja gracza) — najpierw, bo z niego korzystają wszystkie napisy
   registerLanguageSetting();
   registerI18nHelpers();
+  registerRuleLinks();
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData, vehicle: VehicleData, terminal: terminalDataClass(), casino: casinoDataClass() };
   CONFIG.Item.dataModels = { weapon: WeaponData, armor: ArmorData, gear: GearData, feature: FeatureData, spell: SpellData };
   CONFIG.Combat.documentClass = FoeCombat;
