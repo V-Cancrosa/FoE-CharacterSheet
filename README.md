@@ -371,10 +371,25 @@ karta PipBucka; przy stworach z bestiariusza jest „Dodaj NPC”, przy pojazdac
 
 Kości 3D (jeśli jest włączony moduł Dice So Nice): w ustawieniach modułu, w kategorii „Fallout: Equestria”, są zestawy
 PipBuck (zielony, bursztynowy, niebieski, biały — czcionka ekranu PipBucka), Stable-Tec, Gardens, Kapsel, Radiacja,
-Zebra i Enklawa. Każdy gracz wybiera swój zestaw. Opcja gracza „Kości 3D: kolor według rodzaju rzutu” (Ustawienia gry →
-Fallout: Equestria RPG; domyślnie włączona — po wyłączeniu działa zestaw z Dice So Nice) zmienia jego kości zależnie od rzutu: test — PipBuck w kolorze ekranu, SATS, lokacja trafienia,
-obrażenia, magia, leczenie, karta szczęścia, pułapka (Radiacja); inni widzą te same kolory. W ustawieniach efektów specjalnych Dice So Nice są wyzwalacze
+Zebra i Enklawa. Każdy gracz wybiera swój zestaw. Opcja gracza „Kości 3D: kolory” (Ustawienia gry → Fallout: Equestria
+RPG) ma trzy możliwości: „Testy moimi kośćmi, rzuty specjalne w kolorach FoE” (domyślnie — zwykłe testy idą zestawem
+wybranym w Dice So Nice, np. z modułu z kośćmi jak Rollsmith), „Wszystkie rzuty w kolorach Fallout: Equestria” (test —
+PipBuck w kolorze ekranu) i „Zawsze moje kości”. Rzuty specjalne mają własne kolory: SATS, lokacja trafienia, obrażenia,
+magia, leczenie, karta szczęścia, pułapka (Radiacja); inni widzą te same kolory. Kto wcześniej wyłączył dawną opcję
+„kolor według rodzaju rzutu”, ma od razu „Zawsze moje kości”. W ustawieniach efektów specjalnych Dice So Nice są wyzwalacze
 „Fallout: Equestria — Krytyczny sukces / Krytyczna porażka” (nasze krytyki z rzutu d100, także poszerzone przerzutami).
+
+Inne moduły (działa samo, gdy moduł jest włączony):
+- Carousel Combat Tracker — przy portretach SATS, karty szczęścia, rany i ruch, a pod imieniem rasa i poziom (NPC:
+  „NPC”, pojazd: „Pojazd”). To wartości domyślne: jeśli MG zmienił już listę w ustawieniach Carousel („Tooltip
+  Attributes” → „Configure Attributes”), zostaje jego lista. Dymek z wartościami w czcionkach PipBucka; kolory pasków — z ustawień Carousel.
+- Dice Tray — tacka pod czatem ma d100 na wierzchu (testy) i kości obrażeń z podręcznika (d4, d6, d8, d10, d12, d20),
+  bez przycisków „zachowaj wyższy / niższy”; z motywem PipBucka — w jego kolorach.
+- Levels (i bez niego) — opcja świata „Wysokość lotu przesuwa token” (domyślnie włączona): gdy pegaz albo pojazd
+  latający zmienia wysokość lotu (karta, lot, lądowanie, upadek), jego token idzie w górę albo w dół o tyle samo stóp.
+  Piętro, na którym stał, zostaje, więc Levels pokazuje lecącego kucyka na właściwej wysokości; wymiana i terminale
+  liczą odległość w pionie.
+- PopOut! — karty systemu działają w osobnym oknie w kolorze PipBucka (zmiana koloru odświeży się po ponownym otwarciu).
 
 Terminale (osobny typ aktora „Terminal”): MG ustawia typ (biurowy RobronCo, Stable-Tec, ministerialny, chmurowy,
 Unics, przenośny), przy ministerialnym — które z sześciu Ministerstw (Nauk Magicznych, Czadu, Wizerunku, Morale,

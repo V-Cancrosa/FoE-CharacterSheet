@@ -57,22 +57,32 @@ export function colorsetFor(kind) {
   return { sats: "foe-sats", hitloc: "foe-hitloc", damage: "foe-damage", magic: "foe-magic", heal: "foe-heal", luck: "foe-luck", trap: "foe-radiation" }[kind] ?? null;
 }
 
-const byRollOn = () => {
-  try { return !!game.modules?.get?.("dice-so-nice")?.active && !!game.settings.get(F, "dice3dByRoll"); } catch { return false; }
-};
+/**
+ * Kolory kości (opcja gracza): all — każdy rzut w kolorze FoE; special — zwykłe testy własnym zestawem gracza z Dice So Nice
+ * (np. kości z innego modułu), reszta (SATS, trafienie, obrażenia, magia, leczenie, karta szczęścia, pułapka) w kolorach FoE;
+ * none — zawsze zestaw gracza. Wygląd idzie z rzutem, więc inni widzą te same kolory.
+ */
+export const DICE_MODES = { all: N_("All rolls in Fallout: Equestria colors"), special: N_("Tests in my own dice, special rolls in FoE colors"), none: N_("Always my own dice (the Dice So Nice set)") };
+export function diceMode() {
+  try { return game.modules?.get?.("dice-so-nice")?.active ? (game.settings.get(F, "dice3dColors") ?? "special") : "none"; } catch { return "none"; }
+}
 
-/** Opcja gracza (domyślnie włączona): kolor kości według rodzaju rzutu (wygląd idzie z rzutem, więc inni widzą te same kolory). */
 export function registerDice3dSettings() {
-  game.settings.register(F, "dice3dByRoll", {
-    name: "3D dice: color by roll kind",
-    hint: "Requires the Dice So Nice module. Your dice change their look depending on the roll: test — PipBuck (screen color), SATS, hit location, damage, magic, healing, luck card, trap. Turn it off to use the set chosen in the Dice So Nice settings.",
-    scope: "client", config: true, type: Boolean, default: true
+  // dawna opcja tak / nie — zostaje ukryta, żeby przenieść wybór gracza („nie” → „zawsze moje kości”)
+  game.settings.register(F, "dice3dByRoll", { scope: "client", config: false, type: Boolean, default: true });
+  let old = true;
+  try { old = game.settings.get(F, "dice3dByRoll") !== false; } catch { /* brak zapisu */ }
+  game.settings.register(F, "dice3dColors", {
+    name: "3D dice: colors",
+    hint: "Requires the Dice So Nice module. Special rolls (SATS, hit location, damage, magic, healing, luck card, trap) get their own Fallout: Equestria colors; ordinary tests can go in your own dice set (chosen in the Dice So Nice settings, e.g. from a dice module) or in the PipBuck color.",
+    scope: "client", config: true, type: String, default: old ? "special" : "none", choices: DICE_MODES
   });
 }
 
-/** Nadaj kościom rzutu zestaw dla rodzaju rzutu (gdy opcja jest włączona). */
+/** Nadaj kościom rzutu zestaw dla rodzaju rzutu (według opcji gracza). */
 export function tint(roll, kind) {
-  if (!roll?.dice?.length || !byRollOn()) return roll;
+  const mode = diceMode();
+  if (!roll?.dice?.length || mode === "none" || (mode === "special" && kind === "test")) return roll;
   const colorset = colorsetFor(kind);
   if (!colorset) return roll;
   for (const die of roll.dice) {
