@@ -384,7 +384,7 @@ Inne moduły (działa samo, gdy moduł jest włączony):
   „NPC”, pojazd: „Pojazd”). To wartości domyślne: jeśli MG zmienił już listę w ustawieniach Carousel („Tooltip
   Attributes” → „Configure Attributes”), zostaje jego lista. Dymek z wartościami w czcionkach PipBucka; kolory pasków — z ustawień Carousel.
 - Dice Tray — tacka pod czatem ma d100 na wierzchu (testy) i kości obrażeń z podręcznika (d4, d6, d8, d10, d12, d20),
-  bez przycisków „zachowaj wyższy / niższy”; z motywem PipBucka — w jego kolorach.
+  przyciski KH / KL zostają; z motywem PipBucka — w jego kolorach.
 - Levels (i bez niego) — opcja świata „Wysokość lotu przesuwa token” (domyślnie włączona): gdy pegaz albo pojazd
   latający zmienia wysokość lotu (karta, lot, lądowanie, upadek), jego token idzie w górę albo w dół o tyle samo stóp.
   Piętro, na którym stał, zostaje, więc Levels pokazuje lecącego kucyka na właściwej wysokości; wymiana i terminale
