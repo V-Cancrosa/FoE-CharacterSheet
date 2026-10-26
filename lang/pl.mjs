@@ -3420,5 +3420,20 @@ export default {
   "Tests in my own dice, special rolls in FoE colors": "Testy moimi kośćmi, rzuty specjalne w kolorach FoE",
   "Always my own dice (the Dice So Nice set)": "Zawsze moje kości (zestaw z Dice So Nice)",
   "Flight altitude moves the token": "Wysokość lotu przesuwa token",
-  "When a pegasus or a flying vehicle changes its flight altitude (sheet, flight, landing, fall), its token goes up or down by the same number of feet. With the Levels module it shows at the right height; handing over items and terminals count the vertical distance too.": "Gdy pegaz albo pojazd latający zmienia wysokość lotu (karta, lot, lądowanie, upadek), jego token idzie w górę albo w dół o tyle samo stóp. Z modułem Levels pokazuje się na właściwej wysokości; wymiana przedmiotów i terminale też liczą odległość w pionie."
+  "When a pegasus or a flying vehicle changes its flight altitude (sheet, flight, landing, fall), its token goes up or down by the same number of feet. With the Levels module it shows at the right height; handing over items and terminals count the vertical distance too.": "Gdy pegaz albo pojazd latający zmienia wysokość lotu (karta, lot, lądowanie, upadek), jego token idzie w górę albo w dół o tyle samo stóp. Z modułem Levels pokazuje się na właściwej wysokości; wymiana przedmiotów i terminale też liczą odległość w pionie.",
+  // ---- module/integrations.mjs
+  "Trap": "Pułapka",
+  "Hit": "Trafienie",
+  "Explosion: each exposed location separately.": "Wybuch: każda odsłonięta lokacja osobno.",
+  "One hit: pick the location in the damage window.": "Jedno trafienie: lokację wybierz w oknie obrażeń.",
+  "Caught: {names}": "Na pułapce: {names}",
+  "FoE: radiation": "FoE: promieniowanie",
+  "Rads (a number or dice, e.g. 2d10)": "Rady (liczba albo kości, np. 2d10)",
+  "(rolled {r}, resistance {p}%)": "(wyrzucono {r}, odporność {p}%)",
+  "PIPBUCK // RADIATION": "PIPBUCK // PROMIENIOWANIE",
+  "Geiger counter crackles": "Licznik Geigera trzeszczy",
+  "FoE: trap (damage)": "FoE: pułapka (obrażenia)",
+  "Damage (dice, e.g. 3d12)": "Obrażenia (kości, np. 3d12)",
+  "Trap name on the card": "Nazwa pułapki na karcie",
+  "Explosion — every exposed location": "Wybuch — każda odsłonięta lokacja"
 };
