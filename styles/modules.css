@@ -1,0 +1,24 @@
+/* ==========================================================================
+   Wygląd PipBucka dla modułów (tylko z motywem interfejsu — body.foe-ui).
+   Foundry v13 wkłada style systemu do warstwy CSS „system”, a style modułów do „modules”, która jest po niej — reguła
+   modułu wygrywa wtedy z regułą systemu niezależnie od selektora. Dlatego ten plik nie jest w system.json: wczytuje go
+   integrations.mjs zwykłym <link>, poza warstwami (style spoza warstw wygrywają ze wszystkimi warstwami).
+   ========================================================================== */
+
+/* Carousel Combat Tracker (moduł combat-tracker-dock): przyciski to .ui-control, dymek to #tooltip (kolory z motywu);
+   tu czcionki PipBucka zamiast „Amiri” — kolory pasków zostają z ustawień modułu */
+body.foe-ui .combat-dock :is(.portrait-initiative-text, .tracked-attribute-text-container) { font-family: var(--foe-crt); letter-spacing: .03em; }
+body.foe-ui .combat-dock-tooltip .combat-dock-tooltip-wrapper { font-family: var(--foe-mono); }
+body.foe-ui .combat-dock-tooltip .combat-dock-tooltip-wrapper :is(h2, h3) { font-family: var(--foe-crt); color: var(--pip-bright); letter-spacing: .04em; text-shadow: 0 0 6px var(--pip-glow); }
+body.foe-ui .combat-dock-tooltip .combat-dock-tooltip-wrapper p { color: var(--pip-mid); }
+body.foe-ui .combat-dock-tooltip .combat-dock-tooltip-wrapper li i.icon { color: var(--pip); }
+
+/* Dice Tray (moduł dice-calculator): tacka kości pod czatem i jej osobne okno */
+body.foe-ui .dice-tray :is(button, input[type="text"]) { background: var(--pip-panel); border-color: var(--pip-line); color: var(--pip); font-family: var(--foe-crt); }
+body.foe-ui .dice-tray button div.dice { background-color: var(--pip); }
+body.foe-ui .dice-tray button:hover { background: var(--pip-bg-hi); border-color: var(--pip); color: var(--pip-bright); }
+body.foe-ui .dice-tray button:hover div.dice { background-color: var(--pip-bright); }
+/* KH / KL włączone */
+body.foe-ui .dice-tray button.active { background: var(--pip); border-color: var(--pip-bright); color: #021006; outline: 1px solid var(--pip); }
+body.foe-ui .dice-tray .dice-tray__flag { background-color: var(--pip); color: #021006; }
+body.foe-ui .dice-tray input[type="text"]:focus { background: var(--pip-bg-hi); border-color: var(--pip); }

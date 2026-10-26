@@ -2,8 +2,8 @@
  * Współpraca z modułami — każda część działa tylko z włączonym modułem, bez niego nic się nie dzieje:
  *   - Carousel Combat Tracker (combat-tracker-dock): wartości FoE przy portretach (SATS, karty szczęścia, rany, ruch)
  *     i podpis pod imieniem (rasa · poziom, NPC, pojazd),
- *   - Dice Tray (dice-calculator): tacka pod FoE — d100 na wierzchu, kości obrażeń z podręcznika, bez „zachowaj wyższy”.
- * Wygląd PipBucka dla obu: styles/ui.css (z włączonym motywem interfejsu).
+ *   - Dice Tray (dice-calculator): tacka pod FoE — d100 na wierzchu, potem kości obrażeń z podręcznika.
+ * Wygląd PipBucka dla obu: styles/modules.css (z włączonym motywem interfejsu), wczytywany tu poza warstwami CSS.
  * Do tego lot: zmiana wysokości lotu (pegazy, pojazdy latające) przesuwa token w pionie o tę samą różnicę — moduł Levels
  * pokazuje wtedy lecącego kucyka na właściwej wysokości, a wymiana i terminale liczą odległość w pionie.
  */
@@ -61,8 +61,6 @@ function registerDiceTray() {
   Hooks.once("dice-calculator.keymaps", (maps, Template) => {
     if (typeof Template !== "function") return;
     maps[F] = class FoeDiceMap extends Template {
-      // „zachowaj wyższy / niższy” — FoE nie ma przewagi; przerzut daje karta szczęścia na karcie postaci
-      showExtraButtons = false;
       get rows() {
         const dice = this.dice;
         return [Object.fromEntries(TRAY_DICE.filter(k => dice[k]).map(k => [k, dice[k]]))];
@@ -108,7 +106,21 @@ function registerAltitudeSync() {
   });
 }
 
+/**
+ * Style dla modułów (styles/modules.css) zwykłym <link>: Foundry v13 wkłada style z system.json do warstwy „system”,
+ * a style modułów do późniejszej „modules”, więc nadpisanie z system.json zawsze przegrywa. Plik spoza warstw wygrywa.
+ */
+function loadModuleStyles() {
+  if (document.getElementById("foe-module-styles")) return;
+  const link = document.createElement("link");
+  link.id = "foe-module-styles";
+  link.rel = "stylesheet";
+  link.href = `systems/${F}/styles/modules.css?v=${encodeURIComponent(game.system?.version ?? "")}`;
+  document.head.append(link);
+}
+
 export function registerIntegrations() {
+  loadModuleStyles();
   registerCarousel();
   registerDiceTray();
   registerAltitudeSync();
