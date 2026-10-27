@@ -1,0 +1,11 @@
+{
+  "id": "map-scene-browser",
+  "title": "Map & Scene Browser",
+  "description": "A GM window that lists map and scene modules from a remote CSV file (source, name, json_link, zip_link, version), with search, a type filter, and Install / Uninstall buttons.",
+  "version": "1.0.0",
+  "authors": [{ "name": "V_Cancrosa" }],
+  "compatibility": { "minimum": "14", "verified": "14" },
+  "esmodules": ["scripts/browser.js"],
+  "styles": ["styles/browser.css"],
+  "url": "https://github.com/V-Cancrosa/FoE-CharacterSheet"
+}
