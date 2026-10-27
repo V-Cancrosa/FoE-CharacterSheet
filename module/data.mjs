@@ -1,5 +1,5 @@
 import { actorEffects, sumFx, sourcesFx, hits, signed } from "./effects.mjs";
-import { LAYER_CATEGORIES, defaultCover, layerPenalties, overloadSpeed, sneakWeightPenalty } from "./combat.mjs";
+import { LAYER_CATEGORIES, defaultCover, layerPenalties, loadMovement, loadNote, sneakWeightPenalty } from "./combat.mjs";
 import { iconFor } from "./catalog-data.mjs";
 import { unpoweredLocs, powerState, isCyborg, LIMB_LOCS } from "./cyber-data.mjs";
 import { sizeRow, defaultStructure, defaultPilotSkill, vehicleSpeed, VEHICLE_LOCS, AREA_EFFECTS, AREA_STATUS } from "./vehicle-data.mjs";
@@ -48,6 +48,11 @@ export const LOCATIONS = tmap({
   head: N_("Head"), torso: N_("Torso"), flLeg: N_("Left foreleg"), frLeg: N_("Right foreleg"),
   rlLeg: N_("Left hindleg"), rrLeg: N_("Right hindleg"), wings: N_("Wings"), horn: N_("Horn")
 });
+
+/** Zasada przeciążenia z ustawień świata: "tiers" (domowa, domyślna) albo "book" (s. 150). */
+const overloadRule = () => {
+  try { return globalThis.game?.settings?.get?.("foe-rpg", "overloadRule") === "book" ? "book" : "tiers"; } catch { return "tiers"; }
+};
 
 const num = (initial = 0, opts = {}) =>
   new F.NumberField({ required: true, nullable: false, integer: true, initial, ...opts });
@@ -253,19 +258,23 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
     this.unconsciousAt = 4 * endT;
     this.unconsciousRisk = endT > 0 && totalWounds >= 4 * endT;
 
-    // Ruch: −5 ft za okaleczoną nogę, przy ≤ 1 sprawnej nodze brak ruchu; przeciążenie −5 ft / 10 lb (s. 18, 444)
+    // Ruch: −5 ft za okaleczoną nogę, przy ≤ 1 sprawnej nodze brak ruchu (s. 444); potem ciężar —
+    // stopnie przeciążenia albo −5 ft / 10 lb z podręcznika (ustawienie świata „overloadRule”)
     const badLegs = LEGS.filter(k => L[k].isCrippled).length;
-    const overSpeed = overloadSpeed(this.weight, this.carry);
     let speed = Math.floor((2.5 * agi * (100 + pct("ground")) / 100) / 5) * 5 + (this.speedBonus ?? 0) + this.fx.speed;
-    speed -= 5 * badLegs + overSpeed;
+    speed -= 5 * badLegs;
     if (LEGS.length - badLegs <= 1) speed = 0;
-    this.speed = Math.max(0, speed);
+    this.load = loadMovement(this.weight, this.carry, speed, overloadRule());
+    this.loadNote = loadNote(this.load);
+    this.speed = this.load.speed;
     this.speedNotes = [
       badLegs ? t("crippled legs: −{n} ft", { n: 5 * badLegs }) : "",
       LEGS.length - badLegs <= 1 ? t("≤ 1 working leg: can't walk without help") : "",
-      overSpeed ? t("overloaded: −{n} ft", { n: overSpeed }) : ""
+      this.loadNote
     ].filter(Boolean);
     this.flySpeed = Math.floor((5 * agi * (100 + pct("fly")) / 100) / 5) * 5;
+    // przeciążony nie kopie szybciej, niż chodzi (s. 150); lotnik ponad udźwig nie startuje (niżej)
+    if (this.overload > 0) this.flySpeed = Math.min(this.flySpeed, this.speed);
     // Lot (s. 379, 444): wymaga rasowej umiejętności Flight; przeciążenie uziemia, okaleczone skrzydła nie niosą
     const flightless = items.some(i => i.type === "feature" && i.system?.active !== false && /flightless|stubby little/i.test(i.name));
     this.flier = this.skills.flight?.known !== false;

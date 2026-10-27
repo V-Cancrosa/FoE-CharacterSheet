@@ -1,7 +1,7 @@
 <section class="tab {{tab.cssClass}}" data-group="primary" data-tab="gear">
   <div class="status-bar">
     <span class="cs" title="{{t "Carry weight: 100 + 10×STR; ammo and caps weigh nothing"}}">{{t "Carrying"}} <b>{{system.weight}}</b>/{{system.carry}} lb</span>
-    {{#if system.overload}}<span class="cs alert">{{t "Overloaded +{n} lb: movement −{ft} ft" n=system.overload ft=overSpeed}}</span>{{/if}}
+    {{#if system.loadNote}}<span class="cs alert" title="{{t "overload +{n}" n=system.overload}} lb">{{system.loadNote}} {{rule "combat/actions"}}</span>{{/if}}
     {{#if system.sneakPenalty}}<span class="cs" title="{{t "−5 for every started 10 lb over 50"}}">{{t "Sneak −{n}" n=system.sneakPenalty}}</span>{{/if}}
     <span class="cs"><i class="fa-solid fa-coins"></i> {{t "Caps"}} <b>{{system.caps}}</b> <a data-action="giveCaps" title="{{t "Caps: give to someone next to you or throw to someone in range (map tokens only)"}}"><i class="fa-solid fa-hand-holding-dollar"></i></a>{{#if isGM}} <a data-action="adjustCaps" title="{{t "Add or take away caps (GM) — with a note in chat"}}"><i class="fa-solid fa-plus-minus"></i></a>{{/if}}</span>
   </div>

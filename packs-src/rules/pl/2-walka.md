@@ -44,8 +44,26 @@ Gdy atakowani nie wiedzą o wrogu (ukryty snajper, zasadzka), zaczyna się **run
 - **Skradanie się:** połowa prędkości na akcję (w dół do 5 ft); rzut Sneak jest darmowy, raz na akcję. W polu maskującym (stealthbuck, niewidzialność) — pełna prędkość, ale −25 do Sneak; pole daje swoją premię.
 - **Skok:** w dal — połowa ruchu z jednej akcji (+5 ft z rozbiegu); wzwyż — połowa skoku w dal.
 - **Lot:** 5 × AGI ft na akcję w dowolnym kierunku; zob. [[races/flight]].
-- **Przeciążenie:** każde rozpoczęte 10 lb ponad udźwig to −5 ft na akcję (s. 150). Lotnik: kara do Flight równa ciężarowi ponad 100 lb; ponad udźwig nie wystartuje.
+- **Przeciążenie:** zob. niżej. Lotnik: kara do Flight równa ciężarowi ponad 100 lb; ponad udźwig nie wystartuje. Kopacz z nadwagą nie kopie szybciej, niż chodzi. (s. 150, 440)
 - **Okaleczona noga:** −5 ft na akcję za każdą; z co najwyżej jedną sprawną nogą — bez pomocy tylko czołganie, 5 ft na akcję. (s. 16, 444)
+
+### Przeciążenie (zasada domowa)
+
+Udźwig to 100 + 10 × STR lb (amunicja i kapsle nic nie ważą). Nadwaga spowalnia stopniami:
+
+| Ładunek | Ruch na akcję |
+|---|---|
+| do udźwigu | pełna prędkość |
+| do 125% udźwigu | ¾ prędkości |
+| do 150% udźwigu | ½ prędkości |
+| do 2 × udźwig | wleczenie się: 5 ft, bez biegu i szarży |
+| ponad 2 × udźwig | postać stoi — gracz nie przesunie tokena, dopóki postać czegoś nie porzuci, nie odda albo ktoś jej czegoś nie zabierze (MG może ją przesunąć) |
+
+Prędkość zaokrągla się w dół do 5 ft, ale do dwukrotności udźwigu nie spada poniżej 5 ft. Przykład: STR 5 (udźwig 150 lb) i AGI 6 (15 ft) — do 150 lb 15 ft, do 187 lb 10 ft, do 225 lb 5 ft, do 300 lb wleczenie 5 ft, ponad 300 lb stoi.
+
+Podręcznik podaje dwie inne wersje: −5 ft za każde rozpoczęte 10 lb ponad udźwig (s. 19, 150) albo −5 ft już przy udźwigu i kolejne −5 ft co 50 lb (s. 440). Przy małych prędkościach FoE (10–25 ft) obie szybko zatrzymują postać, dlatego system liczy stopnie, które rosną razem z siłą i zręcznością. MG może wrócić do wersji z s. 150 w ustawieniach świata („Przeciążenie”). Ciągnięcie lub wleczenie ładunku (wózek, ranny towarzysz) to co innego niż noszenie w jukach — kucyki uciągną do 5 × udźwigu (s. 150).
+
+> **Na karcie:** stopień przeciążenia i to, ile trzeba odłożyć, żeby wrócić do poprzedniego stopnia, widać przy *Ruchu* w zakładce *Statystyki* i w nagłówku zakładki *Ekwipunek*.
 
 ## SATS {#sats}
 

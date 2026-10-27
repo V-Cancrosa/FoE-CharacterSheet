@@ -300,8 +300,11 @@ Rany: wpisane w tabeli lokacji albo naniesione z czatu. Połowa END ran okalecza
 i siodła bojowego; skrzydła: bez lotu, −2 kroki Flight; zaklęcia trudniejsze), END ran w głowie albo tułowiu to śmierć,
 w kończynie — jej utrata, 4×END ran łącznie — utrata przytomności.
 
-Obciążenie: waga broni, pancerzy i ekwipunku (amunicja i kapsle nic nie ważą); przeciążenie −5 ft ruchu za każde
-rozpoczęte 10 lb ponad udźwig, skradanie −5 za każde rozpoczęte 10 lb ponad 50.
+Obciążenie: waga broni, pancerzy i ekwipunku (amunicja i kapsle nic nie ważą); skradanie −5 do rzutu za każde rozpoczęte
+10 lb ponad 50 (s. 438). Przeciążenie — zasada domowa (ustawienie świata „Przeciążenie”): do 125% udźwigu ¾ prędkości,
+do 150% ½, do dwukrotności udźwigu wleczenie się po 5 ft na akcję (bez biegu i szarży), ponad dwukrotność postać stoi —
+gracz nie przesunie tokena, dopóki czegoś nie porzuci albo nie odda (MG może, z ostrzeżeniem). Karta pokazuje stopień
+i ile trzeba odłożyć. W ustawieniach można wrócić do zasady z podręcznika (s. 150: −5 ft za każde rozpoczęte 10 lb).
 
 Czego NIE ma (jeszcze): kompendia ras i perków poza kreatorem, magia zebr (alchemia, talizmany), automatyczne efekty
 zaklęć bez obrażeń (tarcze, leczenie — opis w zaklęciu, rozliczasz ręcznie), unikalne zdolności pojedynczych broni

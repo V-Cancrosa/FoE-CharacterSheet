@@ -22,6 +22,7 @@ import { registerDice3d, registerDice3dSettings } from "./dice3d.mjs";
 import { registerRollTableClass, registerTableHooks } from "./tables.mjs";
 import { registerLootSettings, registerLootHooks } from "./loot.mjs";
 import { registerGiveHooks } from "./give.mjs";
+import { registerLoadHooks } from "./load.mjs";
 import { registerThrowSettings, registerThrowHooks } from "./throw.mjs";
 import { registerSaleHooks } from "./sale.mjs";
 import { registerUiSettings, registerUiHooks } from "./ui-theme.mjs";
@@ -89,6 +90,7 @@ Hooks.once("init", () => {
   registerLootSettings();
   registerLootHooks();
   registerGiveHooks();
+  registerLoadHooks();
   registerThrowSettings();
   registerThrowHooks();
   registerSaleHooks();
@@ -170,6 +172,16 @@ function registerCombatSettings() {
     name: "Special ammunition",
     hint: "Optional rule (pp. 202–203): regular rounds and energy ammo ignore 5 DT, and the catalog has special ammunition (AP, Incendiary, Spark, Focused, High Explosive…) chosen when reloading.",
     scope: "world", config: true, type: Boolean, default: false
+  });
+  game.settings.register("foe-rpg", "overloadRule", {
+    name: "Overloading",
+    hint: "House rule (default): up to 125% of the carry limit — ¾ speed, up to 150% — ½ speed, up to twice the limit — dragging along at 5 ft per action, over twice the limit — the character can't move (players can't move the token until they drop or hand over something; the GM can). Rulebook (pp. 19, 150): −5 ft per action for every started 10 lb over the limit.",
+    scope: "world", config: true, type: String, default: "tiers",
+    choices: { tiers: "Levels (house rule): ¾ → ½ → 5 ft → stuck", book: "Rulebook: −5 ft for every 10 lb" },
+    onChange: () => {
+      for (const a of game.actors) a.prepareData();
+      for (const app of foundry.applications.instances.values()) if (app.document?.documentName === "Actor") app.render();
+    }
   });
   game.settings.register("foe-rpg", "specialsMigrated", { scope: "world", config: false, type: Boolean, default: false });
   game.settings.register("foe-rpg", "randomHitLocations", {

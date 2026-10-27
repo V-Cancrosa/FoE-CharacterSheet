@@ -1039,7 +1039,6 @@ export default {
   // ---- templates/actor/gear.hbs
   "Carry weight: 100 + 10×STR; ammo and caps weigh nothing": "Udźwig: 100 + 10×STR; amunicja i kapsle nic nie ważą",
   "Carrying": "Niesiesz",
-  "Overloaded +{n} lb: movement −{ft} ft": "Przeciążenie +{n} lb: ruch −{ft} ft",
   "−5 for every started 10 lb over 50": "−5 za każde rozpoczęte 10 lb ponad 50",
   "Sneak −{n}": "Skradanie −{n}",
   "Caps: give to someone next to you or throw to someone in range (map tokens only)": "Kapsle: przekaż komuś obok albo rzuć komuś w zasięgu (tylko tokeny na mapie)",
@@ -3439,5 +3438,16 @@ export default {
   // ---- module/rules.mjs
   "Rules: open this page of the rules compendium": "Zasady: otwórz tę stronę kompendium zasad",
   "Rules": "Zasady",
-  "The rules compendium is missing. After updating the system, restart the world (Return to Setup → Launch World).": "Brak kompendium zasad. Po aktualizacji systemu uruchom świat ponownie („Wróć do konfiguracji” → „Uruchom świat”)."
+  "The rules compendium is missing. After updating the system, restart the world (Return to Setup → Launch World).": "Brak kompendium zasad. Po aktualizacji systemu uruchom świat ponownie („Wróć do konfiguracji” → „Uruchom świat”).",
+  // ---- module/load.mjs
+  "can't move: over twice the carry limit — drop {d} lb to drag along at 5 ft": "nie rusza się: ładunek ponad dwa razy większy niż udźwig — odłóż {d} lb, żeby wlec się po 5 ft",
+  "overloaded: ¾ speed — drop {d} lb to walk normally": "przeciążenie: ¾ prędkości — odłóż {d} lb, żeby iść normalnie",
+  "heavily overloaded: ½ speed — drop {d} lb for ¾ speed": "duże przeciążenie: ½ prędkości — odłóż {d} lb, żeby mieć ¾",
+  "dragging the load: 5 ft per action, no running or charging — drop {d} lb for ½ speed": "wlecze się: 5 ft na akcję, bez biegu i szarży — odłóż {d} lb, żeby mieć ½ prędkości",
+  "{name} carries more than twice the carry limit and can't move on their own — moved by the GM.": "{name}: ładunek ponad dwa razy większy niż udźwig — postać nie rusza się sama, przesuwa ją MG.",
+  "{name} can't move: the load is over twice the carry limit. Drop, give away or hand over at least {d} lb.": "{name} nie może się ruszyć: ładunek przekracza dwukrotność udźwigu. Porzuć, oddaj albo przekaż co najmniej {d} lb.",
+  "Overloading": "Przeciążenie",
+  "House rule (default): up to 125% of the carry limit — ¾ speed, up to 150% — ½ speed, up to twice the limit — dragging along at 5 ft per action, over twice the limit — the character can't move (players can't move the token until they drop or hand over something; the GM can). Rulebook (pp. 19, 150): −5 ft per action for every started 10 lb over the limit.": "Zasada domowa (domyślna): do 125% udźwigu — ¾ prędkości, do 150% — ½ prędkości, do dwukrotności udźwigu — wleczenie się po 5 ft na akcję, ponad dwukrotność — postać się nie rusza (gracz nie przesunie tokena, dopóki czegoś nie porzuci albo nie odda; MG może). Podręcznik (s. 19, 150): −5 ft na akcję za każde rozpoczęte 10 lb ponad udźwig.",
+  "Levels (house rule): ¾ → ½ → 5 ft → stuck": "Stopnie (zasada domowa): ¾ → ½ → 5 ft → stoi",
+  "Rulebook: −5 ft for every 10 lb": "Podręcznik: −5 ft za każde 10 lb"
 };

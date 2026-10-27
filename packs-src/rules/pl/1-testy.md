@@ -140,7 +140,7 @@ Spadek atrybutu do 0 ma poważne skutki (END 0 — śmierć, AGI 0 — bezruch, 
 - **Ruch:** 2,5 × AGI ft na akcję, w dół do pełnych 5 ft. Lot i kopanie: 5 × AGI ft. (s. 13)
 - **SATS:** 40 + 5 × AGI punktów akcji. (s. 15)
 - **Obrażenia na ranę:** 10 na 1. poziomie, +1 co 3 poziomy (najwyżej 20); Large +2, Pipsqueak i Young mniej. (s. 15)
-- **Udźwig:** 100 + 10 × STR lb. Każde rozpoczęte 10 lb ponad udźwig to −5 ft ruchu na akcję. (s. 150)
+- **Udźwig:** 100 + 10 × STR lb; amunicja i kapsle nic nie ważą. Nadwaga spowalnia stopniami — zob. [[combat/actions]]. (s. 150)
 - **Zasięg wzroku:** bez pomocy PipBucka 5 ft × PER; każdy kolejny taki przedział to 1 krok trudniej, najdalej 25 ft × PER. (s. 49)
 - **Zmiana tymczasowa** (pancerz, chemia, choroba) daje powiązanym umiejętnościom ±5 za każdy punkt atrybutu. (s. 17)
 
