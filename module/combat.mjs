@@ -2,7 +2,7 @@
  * Zasady walki z podręcznika v1.22 (rozdz. 4 i 7) jako czyste funkcje — bez zależności od Foundry,
  * żeby dało się je testować poza grą.
  */
-import { t, N_, tmap, tfields } from "./i18n.mjs";
+import { t, N_, tmap, tfields, isPL } from "./i18n.mjs";
 
 // ---------- Lokacje trafień ----------
 const span = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
@@ -223,9 +223,57 @@ export function layerPenalties(count) {
   return { agi: Math.max(0, count - 1), str: Math.max(0, count - 2) };
 }
 
-// ---------- Obciążenie (s. 18) ----------
-/** Ruch: −5 ft za każde rozpoczęte 10 lb ponad udźwig. */
+// ---------- Obciążenie (s. 19, 150, 440) ----------
+/** Ruch wg podręcznika (s. 19, 150): −5 ft za każde rozpoczęte 10 lb ponad udźwig. */
 export const overloadSpeed = (weight, carry) => (weight > carry ? 5 * Math.ceil((weight - carry) / 10) : 0);
+
+/**
+ * Stopnie przeciążenia (zasada domowa, domyślna): do ilu × udźwigu i co wtedy z ruchem.
+ * Ponad ostatni stopień postać stoi — gracz nie ruszy tokena (load.mjs); to samo przy zasadzie z podręcznika.
+ */
+export const LOAD_TIERS = [
+  { upTo: 1, factor: 1 },
+  { upTo: 1.25, factor: 0.75 },
+  { upTo: 1.5, factor: 0.5 },
+  { upTo: 2, crawl: true }
+];
+export const LOAD_STUCK = LOAD_TIERS.at(-1).upTo;
+
+const lbUp = n => Math.ceil(Math.max(0, n) * 10) / 10;
+const lbText = n => (isPL() ? String(n).replace(".", ",") : String(n));
+
+/**
+ * Ruch z ciężarem. speed — prędkość bez ciężaru (ft na akcję, już z okaleczonymi nogami).
+ * rule: "tiers" (stopnie: ¾ → ½ → 5 ft → stoi) albo "book" (s. 150).
+ * Zwraca { speed, level: 0 bez kary · 1 ¾ · 2 ½ · 3 wleczenie 5 ft · 4 stoi (przy „book”: 1 = kara w stopach),
+ *          stuck, cut (ile ft zabrał ciężar), drop (ile lb odłożyć do poprzedniego stopnia), rule }.
+ */
+export function loadMovement(weight, carry, speed, rule = "tiers") {
+  speed = Math.max(0, speed);
+  const none = { speed, level: 0, stuck: false, cut: 0, drop: 0, rule };
+  if (!(weight > carry)) return none;
+  if (carry <= 0 || weight > carry * LOAD_STUCK) {
+    return { speed: 0, level: 4, stuck: true, cut: speed, drop: lbUp(weight - carry * LOAD_STUCK), rule };
+  }
+  if (rule === "book") {
+    const s = Math.max(0, speed - overloadSpeed(weight, carry));
+    return { speed: s, level: 1, stuck: false, cut: speed - s, drop: lbUp(weight - carry), rule };
+  }
+  const level = LOAD_TIERS.findIndex(tier => weight <= carry * tier.upTo);
+  const tier = LOAD_TIERS[level];
+  const s = speed <= 0 ? 0 : tier.crawl ? Math.min(speed, 5) : Math.min(speed, Math.max(5, Math.floor((speed * tier.factor) / 5) * 5));
+  return { speed: s, level, stuck: false, cut: speed - s, drop: lbUp(weight - carry * LOAD_TIERS[level - 1].upTo), rule };
+}
+
+/** Opis przeciążenia na karcie (pusty bez przeciążenia). */
+export function loadNote(load) {
+  if (!load?.level) return "";
+  if (load.stuck) return t("can't move: over twice the carry limit — drop {d} lb to drag along at 5 ft", { d: lbText(load.drop) });
+  if (load.rule === "book") return t("overloaded: −{n} ft", { n: load.cut });
+  if (load.level === 1) return t("overloaded: ¾ speed — drop {d} lb to walk normally", { d: lbText(load.drop) });
+  if (load.level === 2) return t("heavily overloaded: ½ speed — drop {d} lb for ¾ speed", { d: lbText(load.drop) });
+  return t("dragging the load: 5 ft per action, no running or charging — drop {d} lb for ½ speed", { d: lbText(load.drop) });
+}
 /** Skradanie: −5 za każde rozpoczęte 10 lb ponad 50. */
 export const sneakWeightPenalty = weight => (weight > 50 ? 5 * Math.ceil((weight - 50) / 10) : 0);
 

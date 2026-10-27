@@ -6,7 +6,7 @@ import { rollContext, describeFx, shortFx, FX_TYPES, signed } from "./effects.mj
 import { openCreator } from "./creator.mjs";
 import { openCatalog } from "./catalog.mjs";
 import { WEAPON_KINDS } from "./catalog-data.mjs";
-import { LAYER_CATEGORIES, reloadInfo, rangeIncrement, overloadSpeed, SPECIALS, POISONS, specialList } from "./combat.mjs";
+import { LAYER_CATEGORIES, reloadInfo, rangeIncrement, SPECIALS, POISONS, specialList } from "./combat.mjs";
 import { conditionRows, clearCondition, extinguish, resistParalysis, endOfRound } from "./conditions.mjs";
 import { castSpell, endMaintained, spellLimits, COST_LABELS } from "./magic.mjs";
 import { RARITY, MODES, modesOf, ingredientStock, prepareRecipe, castRitual, useProduct, searchIngredients, startingRecipes } from "./zebra.mjs";
@@ -422,7 +422,6 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       });
     }
     ctx.gearGroups = Object.entries(GEAR_CATEGORIES).filter(([k]) => groups.has(k)).map(([k, label]) => ({ key: k, label, items: groups.get(k) }));
-    ctx.overSpeed = overloadSpeed(sys.weight, sys.carry);
 
     const kinds = { trait: t("Trait"), hindrance: t("Hindrance"), perk: "Perk", spell: t("Spell"), implant: t("Implant"), cyberlimb: t("Cyberlimb"), other: t("kind|Other") };
     ctx.features = items.filter(i => i.type === "feature").map(i => ({
