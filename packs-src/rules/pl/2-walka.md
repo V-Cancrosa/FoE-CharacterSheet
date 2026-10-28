@@ -255,7 +255,7 @@ Pełna lista: s. 455. Za postacią w pancerzu jej pancerz liczy się podwójnie 
 - **Elektryczność:** na koniec rundy 3d12 na każdą lokację, metalowy pancerz nie chroni. Przeciw robotom +6d12 od razu i 6d12 potem.
 - **Promieniowanie:** 25 radów za każde 10 obrażeń po DT, minus odporność celu.
 - **Dezintegracja** (broń energetyczna): rany, które okaleczyłyby lokację, albo trafienie zabójcze zamieniają cel w popiół.
-- **Ogłuszenie (shock):** zamiast śmierci — utrata przytomności.
+- **Ogłuszenie (shock):** zamiast śmierci — utrata przytomności. *Zasada domowa:* trafienie (co najmniej 1 obrażenie po DT) zostawia znak „Porażony prądem” do końca następnej rundy, bez dodatkowych obrażeń; pistolet i karabin Shock (FSW-32, FSW-42B) też ją mają.
 - **Trucizna:** rzut END przy trafieniu; potem rany co rundę albo paraliż, zależnie od jadu. Antidotum i antywenom ją usuwają.
 - **Przewracanie:** trafienie przewraca cel (zob. [[combat/damage]]).
 

@@ -35,6 +35,7 @@ import { registerVersionCheck } from "./version-check.mjs";
 import { registerIntegrations } from "./integrations.mjs";
 import { registerRuleLinks } from "./rules.mjs";
 import { registerFxSettings, registerFxHooks } from "./fx.mjs";
+import { registerFxStatusSettings, registerFxStatusHooks } from "./fx-status.mjs";
 
 Hooks.once("init", () => {
   // język systemu (opcja gracza) — najpierw, bo z niego korzystają wszystkie napisy
@@ -106,6 +107,8 @@ Hooks.once("init", () => {
   registerCasinoHooks();
   registerFxSettings();
   registerFxHooks();
+  registerFxStatusSettings();
+  registerFxStatusHooks();
   registerVersionCheck();
   game.foe = { openCatalog, setWeather };
 });
@@ -164,6 +167,29 @@ Hooks.once("ready", async () => {
   }
 });
 
+/**
+ * Jednorazowo (MG, v0.42): pistolet i karabin Shock z katalogu (FSW-32, FSW-42B) dostają cechę Shock
+ * (bez dezintegracji) — także u NPC na scenach.
+ */
+Hooks.once("ready", async () => {
+  if (!game.user.isGM || game.settings.get("foe-rpg", "shockMigrated")) return;
+  try {
+    const fix = items => items.filter(i => i.type === "weapon" && /\bShock (Pistol|Rifle)\b/.test(i.getFlag("foe-rpg", "catalog") ?? "")
+      && !i.system.specials?.shock)
+      .map(i => ({ _id: i.id, "system.specials.shock": true, "system.specials.disintegrate": "" }));
+    const actors = [...game.actors, ...game.scenes.contents.flatMap(s => s.tokens.contents.filter(tk => !tk.actorLink && tk.actor).map(tk => tk.actor))];
+    for (const actor of actors) {
+      const updates = fix(actor.items);
+      if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
+    }
+    const world = fix(game.items);
+    if (world.length) await Item.implementation.updateDocuments(world);
+    await game.settings.set("foe-rpg", "shockMigrated", true);
+  } catch (err) {
+    console.error("foe-rpg | shock weapons migration", err);
+  }
+});
+
 /** Zasady opcjonalne z rozdziału o walce. */
 function registerCombatSettings() {
   game.settings.register("foe-rpg", "powerArmorUntrainedAgi", {
@@ -192,6 +218,7 @@ function registerCombatSettings() {
     }
   });
   game.settings.register("foe-rpg", "specialsMigrated", { scope: "world", config: false, type: Boolean, default: false });
+  game.settings.register("foe-rpg", "shockMigrated", { scope: "world", config: false, type: Boolean, default: false });
   game.settings.register("foe-rpg", "randomHitLocations", {
     name: "Random hit locations",
     hint: "Optional rule (pp. 449–450): the attack dialog defaults to a hit location rolled on a d20 for the target's race instead of the torso. Called shots always work.",

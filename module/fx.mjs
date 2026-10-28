@@ -14,7 +14,7 @@ import { FX, BLASTS, EXTRA, GOLD, TEXTS, planAttack, rng } from "./fx-data.mjs";
 
 const F = "foe-rpg";
 const sleep = ms => new Promise(r => setTimeout(r, Math.max(0, ms)));
-const setting = key => { try { return game.settings.get(F, key); } catch { return undefined; } };
+export const setting = key => { try { return game.settings.get(F, key); } catch { return undefined; } };
 
 export function registerFxSettings() {
   game.settings.register(F, "fxCombat", {
@@ -26,7 +26,8 @@ export function registerFxSettings() {
     name: "Combat animations: look",
     hint: "With the Sequencer and JB2A modules active the animations use JB2A graphics; without them (or with the second option) a built-in PipBuck-style version that needs no modules.",
     scope: "client", config: true, type: String, default: "auto",
-    choices: { auto: "JB2A (Sequencer) when available", builtin: "PipBuck style (built-in)" }
+    choices: { auto: "JB2A (Sequencer) when available", builtin: "PipBuck style (built-in)" },
+    onChange: () => Hooks.callAll("foeFxEngine")   // animacje stanów rysują się od nowa (fx-status.mjs)
   });
 }
 
@@ -127,7 +128,7 @@ function showText(s) {
 }
 
 // ---------- Sequencer + JB2A ----------
-function sequencerOk() {
+export function sequencerOk() {
   if (setting("fxEngine") === "builtin") return false;
   if (!game.modules.get("sequencer")?.active || typeof globalThis.Sequence !== "function" || !globalThis.Sequencer?.Database) return false;
   // Sequencer może zabraniać graczom odtwarzania efektów (ustawienie modułu) — wtedy wygląd wbudowany
@@ -135,7 +136,7 @@ function sequencerOk() {
   return true;
 }
 const exists = p => { try { return !!globalThis.Sequencer.Database.entryExists(p); } catch { return false; } };
-const pick = list => (list ?? []).find(exists) ?? null;
+export const pick = list => (list ?? []).find(exists) ?? null;
 
 function filesFor(s) {
   switch (s.t) {
@@ -244,11 +245,11 @@ function fxLayer() {
   }
   return layer;
 }
-const V8 = () => Number(String(globalThis.PIXI?.VERSION ?? "7").split(".")[0]) >= 8;
-const ADD = () => globalThis.PIXI?.BLEND_MODES?.ADD ?? "add";
+export const V8 = () => Number(String(globalThis.PIXI?.VERSION ?? "7").split(".")[0]) >= 8;
+export const ADD = () => globalThis.PIXI?.BLEND_MODES?.ADD ?? "add";
 
 // rysowanie zgodne z PIXI 7 (Foundry 13) i PIXI 8
-const D = {
+export const D = {
   line(g, a, b, width, color, alpha = 1) {
     if (V8()) g.moveTo(a.x, a.y).lineTo(b.x, b.y).stroke({ width, color, alpha, cap: "round" });
     else { g.lineStyle({ width, color, alpha, cap: PIXI.LINE_CAP.ROUND }); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineStyle(0); }
@@ -268,6 +269,35 @@ const D = {
     const s = { x: c.x + Math.cos(a0) * r, y: c.y + Math.sin(a0) * r };
     if (V8()) g.moveTo(s.x, s.y).arc(c.x, c.y, r, a0, a1).stroke({ width, color, alpha, cap: "round" });
     else { g.lineStyle({ width, color, alpha, cap: PIXI.LINE_CAP.ROUND }); g.moveTo(s.x, s.y); g.arc(c.x, c.y, r, a0, a1); g.lineStyle(0); }
+  },
+  // wielokąt: pts = [x0, y0, x1, y1, …]; fill — kolor wypełnienia (albo null), stroke — { width, color, alpha }
+  poly(g, pts, fill, alpha = 1, stroke = null) {
+    if (alpha <= 0 && !stroke) return;
+    if (V8()) {
+      g.poly(pts);
+      if (fill !== null && fill !== undefined) g.fill({ color: fill, alpha });
+      if (stroke) g.stroke({ ...stroke, join: "round" });
+    } else {
+      g.lineStyle(stroke ? { ...stroke, join: PIXI.LINE_JOIN.ROUND } : 0);
+      if (fill !== null && fill !== undefined) g.beginFill(fill, alpha);
+      g.drawPolygon(pts);
+      if (fill !== null && fill !== undefined) g.endFill();
+      g.lineStyle(0);
+    }
+  },
+  ellipse(g, c, rx, ry, color, alpha = 1, stroke = null) {
+    if (rx <= 0 || ry <= 0) return;
+    if (V8()) {
+      g.ellipse(c.x, c.y, rx, ry);
+      if (color !== null) g.fill({ color, alpha });
+      if (stroke) g.stroke(stroke);
+    } else {
+      g.lineStyle(stroke ?? 0);
+      if (color !== null) g.beginFill(color, alpha);
+      g.drawEllipse(c.x, c.y, rx, ry);
+      if (color !== null) g.endFill();
+      g.lineStyle(0);
+    }
   }
 };
 
