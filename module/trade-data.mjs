@@ -78,7 +78,7 @@ export function throwProfile({ str = 0, int = 0, weight = 0, heave = false, oops
     inc = Math.max(5, Math.floor(s / (light ? 2 : 4)) * 5);
   }
   if (!(w < limit)) {
-    return { ok: false, inc: 0, max: 0, limit, light, reason: tk ? t("too heavy: with telekinesis you can throw something lighter than {limit} lb (this weighs {w} lb)", { limit: fmt(limit), w: fmt(w) }) : t("too heavy: with a hoof you can throw something lighter than {limit} lb (this weighs {w} lb)", { limit: fmt(limit), w: fmt(w) }) };
+    return { ok: false, inc: 0, max: 0, limit, light, reason: tk ? t("too heavy: with telekinesis you can throw something lighter than {limit} lb (this weighs {w} lb)", { limit: fmt(limit), w: fmt(w) }) : t("too heavy: with your strength (STR) you can throw something lighter than {limit} lb (this weighs {w} lb)", { limit: fmt(limit), w: fmt(w) }) };
   }
   if (heave) inc += 5;
   if (oops) inc = Math.max(5, inc - 5);

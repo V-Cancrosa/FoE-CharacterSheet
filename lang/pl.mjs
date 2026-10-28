@@ -2658,7 +2658,7 @@ export default {
   // ---- module/trade-data.mjs
   "telekinesis too weak (INT below 4) — you can't throw anything with it": "za słaba telekineza (INT poniżej 4) — nie rzucisz nią niczego",
   "too heavy: with telekinesis you can throw something lighter than {limit} lb (this weighs {w} lb)": "za ciężkie: telekinezą rzucisz rzecz lżejszą niż {limit} lb (to waży {w} lb)",
-  "too heavy: with a hoof you can throw something lighter than {limit} lb (this weighs {w} lb)": "za ciężkie: kopytem rzucisz rzecz lżejszą niż {limit} lb (to waży {w} lb)",
+  "too heavy: with your strength (STR) you can throw something lighter than {limit} lb (this weighs {w} lb)": "za ciężkie: siłą (STR) rzucisz rzecz lżejszą niż {limit} lb (to waży {w} lb)",
   "to the north": "na północ",
   "to the northeast": "na północny wschód",
   "to the east": "na wschód",
@@ -3481,5 +3481,14 @@ export default {
   "Token settings applied: {a} actors, {n} tokens on scenes.": "Ustawienia tokenów zastosowane: aktorzy — {a}, tokeny na scenach — {n}.",
   "Token settings for existing actors": "Ustawienia tokenów dla istniejących aktorów",
   "Apply FoE token settings": "Zastosuj ustawienia tokenów FoE",
-  "New characters and NPCs get them by themselves. This button sets names, bars (SATS, “To death”) and vision on all existing actors and on tokens on every scene, once.": "Nowe postacie i NPC dostają je same. Ten przycisk jednorazowo ustawia imiona, paski (SATS, „Do śmierci”) i widzenie wszystkim istniejącym aktorom i tokenom na każdej scenie."
+  "New characters and NPCs get them by themselves. This button sets names, bars (SATS, “To death”) and vision on all existing actors and on tokens on every scene, once.": "Nowe postacie i NPC dostają je same. Ten przycisk jednorazowo ustawia imiona, paski (SATS, „Do śmierci”) i widzenie wszystkim istniejącym aktorom i tokenom na każdej scenie.",
+  // ---- module/throw.mjs
+  "Target number 0 or less: only a critical success passes": "Próg 0 lub mniej: przejdzie tylko krytyczny sukces",
+  "PIPBUCK // ON THE GROUND": "PIPBUCK // NA ZIEMI",
+  "dropped": "upuszczone",
+  "{from} put it down where they stand.": "{from} zostawia to tam, gdzie stoi.",
+  "{from} put it down (no token on the map — anyone can pick it up from this card).": "{from} zostawia to na ziemi (bez tokena na mapie — każdy może to podnieść z tej karty).",
+  "Drop: {name}": "Upuść: {name}",
+  "Drop": "Upuść",
+  "Drop on the ground (it stays under your token; anyone next to it can pick it up)": "Upuść na ziemię (zostaje pod twoim tokenem; podniesie je każdy, kto stanie obok)"
 };

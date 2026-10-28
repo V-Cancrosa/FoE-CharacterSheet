@@ -13,7 +13,7 @@
 {{fxTip}}">{{fxLabel}}</span>{{/if}}{{#if tempLabel}}<span class="fxb temp" title="{{t "Temporary change (armor, layers) — counts toward the target number and derived values, gives skills ±5 per point:"}}
 {{tempTip}}">{{tempLabel}}</span>{{/if}}</td>
             <td><input type="number" name="system.attributes.{{key}}.mod" value="{{mod}}"></td>
-            <td class="tn">{{tn}}</td><td class="q">{{q3}}</td><td class="q">{{q2}}</td><td class="q">{{q1}}</td>
+            <td class="tn{{#if tnZero}} warn{{/if}}" {{#if tnZero}}title="{{t "Target number 0 or less: only a critical success passes"}}"{{/if}}>{{tn}}</td><td class="q">{{q3}}</td><td class="q">{{q2}}</td><td class="q">{{q1}}</td>
           </tr>
         {{/each}}
         </tbody>
@@ -47,7 +47,7 @@
 {{rankTip}}">{{rankFx}}</span>{{/if}}</td>
             <td class="nw"><input type="number" name="system.skills.{{key}}.mod" value="{{mod}}">{{#if rollFx}}<span class="fxb" title="{{t "Rolls from features:"}}
 {{rollTip}}">{{rollFx}}</span>{{/if}}</td>
-            <td class="tn">{{tnShown}}</td><td class="q hide-narrow">{{q2}}</td>
+            <td class="tn{{#if tnZero}} warn{{/if}}" {{#if tnZero}}title="{{t "Target number 0 or less: only a critical success passes"}}"{{/if}}>{{tnShown}}</td><td class="q hide-narrow">{{q2}}</td>
           </tr>
         {{/each}}
         </tbody>

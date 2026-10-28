@@ -382,6 +382,11 @@ wybierasz ilość, założony przedmiot zdejmuje się przy wymianie.
   NPC za (Mercantile/5, w dół)×5 % wartości, NPC sprzedaje graczowi za 200% minus tyle samo (Mercantile kupującego),
   między graczami — wartość z podręcznika; cenę można zmienić. Kupujący (jego gracz, za NPC — MG) klika „Kupuję”
   albo „Odrzuć”, sprzedający może „Wycofać”. Kupiec-NPC, który ma za mało kapsli, płaci za zgodą MG tyle, ile ma.
+Upuść na ziemię: strzałka w dół przy broni, pancerzu i ekwipunku (przy stosie pytanie, ile sztuk). Przedmiot schodzi
+z postaci (spada ciężar — tak pozbędziesz się przeciążenia) i leży na polu pod jej tokenem: na mapie znacznik, na czacie
+karta „Podnieś” jak po chybionym rzucie — podniesie go każdy, kto stanie obok i kliknie z zaznaczonym tokenem.
+Znacznik stawia przeglądarka MG; bez MG gracz upuszcza sam, tylko bez znacznika. Ikona kosza nadal usuwa przedmiot
+na dobre (np. zjedzony, zniszczony).
 Zapis zmian u innych robi przeglądarka MG (sprawdza, czy oddajesz swoje rzeczy); ślad zostaje na czacie.
 Żeby gracze widzieli w oknie nazwę kupca, ustaw w jego tokenie wyświetlanie nazwy „po najechaniu” albo „zawsze”.
 Znacznik upuszczonego przedmiotu można wyłączyć w ustawieniach świata.

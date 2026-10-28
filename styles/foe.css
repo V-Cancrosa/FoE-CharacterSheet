@@ -314,12 +314,15 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
 }
 
 .foe-rpg .derived {
-  display: grid; grid-template-columns: auto 1fr; gap: .25rem .7rem;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .25rem .7rem;
   margin: .7rem 0 0; padding: .45rem .55rem;
   border: 1px solid var(--pip-line);
 }
 .foe-rpg .derived dt { color: var(--pip-mid); font-weight: 400; text-transform: uppercase; font-size: 12px; align-self: center; }
-.foe-rpg .derived dd { margin: 0; }
+.foe-rpg .derived dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+/* długie uwagi (przeciążenie, okaleczone nogi) zawijają się w kolumnie zamiast wchodzić na umiejętności */
+.foe-rpg .derived dd .sub { white-space: normal; }
+.foe-rpg .cols > * { min-width: 0; }
 
 /* ---------- Listy przedmiotów ---------- */
 .foe-rpg .item-list { list-style: none; padding: 0; margin: 0; }
@@ -1143,6 +1146,8 @@ body[data-foe-crt="off"] .foe-rpg .term-screen::after { display: none; }
    v0.31 — handel: okno wymiany, oferta sprzedaży, przedmiot na ziemi po chybionym rzucie
    ========================================================================== */
 .foe-rpg .trade-dlg .hint:empty { display: none; }
+/* liczby (ilość, cena do 5 cyfr) mieszczą się w polu */
+.foe-rpg .trade-dlg .atk-row input[type="number"] { width: 7.5rem; flex: 0 0 auto; text-align: right; }
 .foe-card.foe-offer .offer-row { display: grid; grid-template-columns: auto 1fr auto; gap: .4rem; align-items: center; margin-top: .2rem; }
 .foe-card.foe-offer .offer-row img { width: 32px; height: 32px; object-fit: contain; border: 1px solid var(--pip-line); }
 .foe-card.foe-offer .offer-row .nm { color: var(--pip-bright); }

@@ -4,6 +4,7 @@
  * na mapie pojawia się znacznik, a na czacie karta z „Podnieś” dla tego, kto stanie obok.
  * Udany przerzut za kartę szczęścia oddaje przedmiot celowi (o ile nikt go jeszcze nie podniósł).
  * Wynik rozstrzyga przeglądarka MG (bez MG — rzucający, jeśli jest właścicielem celu). Zasady: trade-data.mjs.
+ * Tu też upuszczanie przedmiotu na ziemię z ekwipunku (ta sama karta „Podnieś” i znacznik pod tokenem).
  */
 import {
   F, SOCKET, esc, warn, stacks, qtyOf, capsOf, capsText, itemCopy, putItem, dropItem, transfer, viaGM, gridOf, rectOf, tokenOf
@@ -181,12 +182,88 @@ async function drop(msg, th, src) {
 }
 
 function groundCard(g) {
+  const tag = g.dropped
+    ? `<span>${t("PIPBUCK // ON THE GROUND")}</span><span>${t("dropped")}</span>`
+    : `<span>${t("PIPBUCK // THROW")}</span><span>${t("not caught")}</span>`;
+  const calc = g.dropped
+    ? (g.scene ? t("{from} put it down where they stand.", { from: esc(g.from) }) : t("{from} put it down (no token on the map — anyone can pick it up from this card).", { from: esc(g.from) }))
+    : t("{from} → {to}: lies about {ft} ft {dir} of the target.", { from: esc(g.from), to: esc(g.toName), ft: g.ft, dir: esc(g.dir) });
   return `<div class="foe-card foe-ground">
-    <div class="fc-tag"><span>${t("PIPBUCK // THROW")}</span><span>${t("not caught")}</span></div>
+    <div class="fc-tag">${tag}</div>
     <h3>${t("{label} — on the ground", { label: esc(g.label) })}</h3>
-    <div class="fc-calc">${t("{from} → {to}: lies about {ft} ft {dir} of the target.", { from: esc(g.from), to: esc(g.toName), ft: g.ft, dir: esc(g.dir) })}</div>
+    <div class="fc-calc">${calc}</div>
     <div class="foe-ground-act"></div>
   </div>`;
+}
+
+// ======================================================================
+// Upuszczanie
+// ======================================================================
+
+/** Ile sztuk upuścić (stos): null — anulowano. */
+async function askQty(item, have) {
+  const r = await foundry.applications.api.DialogV2.wait({
+    window: { title: t("Drop: {name}", { name: item.name }) }, classes: ["foe-rpg", "foe-roll-dialog"], position: { width: 380 }, rejectClose: false,
+    content: `<div class="foe-dialog trade-dlg">
+      <div class="atk-info"><div><b>${esc(item.name)}</b> — ${t("you have {n}", { n: have })}</div></div>
+      <label class="atk-row">${t("How many")} <input type="number" name="qty" value="${have}" min="1" max="${have}" step="1" autofocus></label>
+    </div>`,
+    buttons: [{ action: "drop", label: t("Drop"), icon: "fa-solid fa-arrow-down", default: true, callback: (ev, btn) => Number(btn.form.elements.qty.value) || 0 }]
+  });
+  return r ? Math.min(have, Math.max(1, Math.trunc(r))) : null;
+}
+
+/**
+ * Upuszczenie na ziemię (przycisk w ekwipunku): przedmiot schodzi z postaci i leży pod jej tokenem — znacznik na mapie
+ * i karta z „Podnieś” jak po chybionym rzucie (podnosi ten, kto stanie obok). Znacznik stawia MG (kafelek);
+ * bez MG gracz upuszcza sam, tylko bez znacznika.
+ */
+export async function dropToGround(actor, item) {
+  if (!actor?.isOwner || !item) return warn(t("You don't own: {name}.", { name: actor?.name ?? "?" }));
+  const have = qtyOf(item);
+  const n = stacks(item) && have > 1 ? await askQty(item, have) : 1;
+  if (!n) return null;
+  const tok = tokenOf(actor);
+  const payload = { kind: "throw", op: "drop", user: game.user.id, actor: actor.uuid, itemId: item.id, qty: n, token: tok?.uuid ?? null };
+  if (game.user.isGM || !game.users.activeGM) return dropOp(payload);
+  game.socket.emit(SOCKET, payload);
+  return true;
+}
+
+/** Wykonanie upuszczenia (MG albo — bez MG — sam gracz, właściciel postaci). */
+async function dropOp({ op, actor: uuid, itemId, qty, token, user }) {
+  if (op !== "drop") return null;
+  const actor = await fromUuid(uuid).catch(() => null);
+  const who = game.users.get(user);
+  if (!actor || (who && !who.isGM && !actor.testUserPermission?.(who, "OWNER"))) return null;
+  const it = actor.items.get(itemId);
+  if (!it) return null;
+  const n = stacks(it) ? Math.min(qtyOf(it), Math.max(1, Number(qty) || 1)) : 1;
+  if (!n) return null;
+  const data = itemCopy(it, n);
+  const entry = { caps: 0, qty: n, label: `${it.name}${n > 1 ? ` ×${n}` : ""}`, img: it.img || MISC, data };
+  await dropItem(it, n);
+  const tok = token ? await fromUuid(token).catch(() => null) : null;
+  const scene = tok?.parent ?? null;
+  const grid = gridOf(scene);
+  let spot = null, tile = null;
+  if (tok && scene) {
+    // pole pod tokenem (lewy górny róg większego tokena)
+    spot = { x: Math.floor(tok.x / grid.size) * grid.size, y: Math.floor(tok.y / grid.size) * grid.size };
+    if (game.user.isGM && markersOn()) {
+      const k = Math.round(grid.size * 0.5), pad = Math.round((grid.size - k) / 2);
+      try {
+        [tile] = await scene.createEmbeddedDocuments("Tile", [{
+          texture: { src: entry.img }, x: spot.x + pad, y: spot.y + pad, width: k, height: k, flags: { [F]: { ground: "drop" } }
+        }]);
+      } catch (err) { console.warn(`${F} | item marker`, err); }
+    }
+  }
+  const ground = {
+    throwId: foundry.utils.randomID(), dropped: true, scene: scene?.id ?? null, x: spot?.x ?? null, y: spot?.y ?? null, size: grid.size,
+    elevation: Number(tok?.elevation) || 0, tile: tile?.id ?? null, from: actor.name, to: null, toName: "", ft: 0, dir: "", ...entry, taken: null, caught: false
+  };
+  return ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: groundCard(ground), flags: { [F]: { ground } } });
 }
 
 // ======================================================================
@@ -283,7 +360,7 @@ export function registerThrowHooks() {
   Hooks.once("ready", () => {
     game.socket.on(SOCKET, payload => {
       if (payload?.kind !== "throw" || !game.users.activeGM?.isSelf) return;
-      pickupOp(payload).catch(err => console.error(`${F} | pick up`, err));
+      (payload.op === "drop" ? dropOp(payload) : pickupOp(payload)).catch(err => console.error(`${F} | ground item`, err));
     });
   });
   Hooks.on("createChatMessage", msg => {
