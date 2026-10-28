@@ -3449,5 +3449,7 @@ export default {
   "Overloading": "Przeciążenie",
   "House rule (default): up to 125% of the carry limit — ¾ speed, up to 150% — ½ speed, up to twice the limit — dragging along at 5 ft per action, over twice the limit — the character can't move (players can't move the token until they drop or hand over something; the GM can). Rulebook (pp. 19, 150): −5 ft per action for every started 10 lb over the limit.": "Zasada domowa (domyślna): do 125% udźwigu — ¾ prędkości, do 150% — ½ prędkości, do dwukrotności udźwigu — wleczenie się po 5 ft na akcję, ponad dwukrotność — postać się nie rusza (gracz nie przesunie tokena, dopóki czegoś nie porzuci albo nie odda; MG może). Podręcznik (s. 19, 150): −5 ft na akcję za każde rozpoczęte 10 lb ponad udźwig.",
   "Levels (house rule): ¾ → ½ → 5 ft → stuck": "Stopnie (zasada domowa): ¾ → ½ → 5 ft → stoi",
-  "Rulebook: −5 ft for every 10 lb": "Podręcznik: −5 ft za każde 10 lb"
+  "Rulebook: −5 ft for every 10 lb": "Podręcznik: −5 ft za każde 10 lb",
+  // ---- module/ui-theme.mjs
+  "BREAK": "PRZERWA"
 };

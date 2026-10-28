@@ -1,7 +1,7 @@
 <header class="foe-header">
   <div class="pip-bar"><span>PIPBUCK 3000 · STABLE-TEC</span><span><a class="pip-creator" data-action="openCreator" title="{{#if isNpc}}{{t "Open the NPC creator"}}{{else}}{{t "Open the character creator"}}{{/if}}"><i class="fa-solid fa-user-gear"></i> {{t "CREATOR"}}</a>{{#if isNpc}}{{#if isGM}} · <a class="pip-creator" data-action="searchBody" title="{{t "Search the body: loot from the bestiary (or our defaults) and the things the NPC carries — loot card in chat"}}{{#if looted}} {{t "(already searched)"}}{{/if}}"><i class="fa-solid fa-sack-dollar"></i> {{t "LOOT"}}{{#if looted}} ✓{{/if}}</a>{{/if}}{{/if}} · {{#if isNpc}}NPC{{else}}{{t "LVL"}} {{system.level}}{{/if}}</span></div>
   <div class="foe-id">
-    <img class="portrait" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
+    <img class="portrait" src="{{actor.img}}" data-action="portrait" alt="{{actor.name}}">
     <a class="cutie-mark {{#unless system.cutieMark}}empty{{/unless}}" data-action="cutieMark" title="{{#if system.cutieMarkText}}{{t "Cutie mark: {text}" text=system.cutieMarkText}}{{else}}{{t "Cutie mark — click to add an image and a description"}}{{/if}}">{{#if system.cutieMark}}<img src="{{system.cutieMark}}" alt="{{t "Cutie mark"}}">{{else}}<span>{{t "CUTIE MARK"}}</span>{{/if}}</a>
     <div class="identity">
       <input class="name" type="text" name="name" value="{{actor.name}}" placeholder="{{t "Name"}}">

@@ -419,6 +419,13 @@ Inne moduły (działa samo, gdy moduł jest włączony):
   - „FoE: pułapka (obrażenia)” — rzut obrażeń (np. 3d12) i karta z „Nanieś obrażenia” dla postaci na kafelku: jedno
     trafienie (lokację wybiera się w oknie obrażeń) albo wybuch (każda odsłonięta lokacja), z DT pancerza jak przy ataku.
   Uwaga: wbudowanej akcji „Hurt/Heal” nie używaj na postaciach FoE — odejmuje wartość z głównego paska tokena, czyli SATS.
+- Break Time — w czasie przerwy ekran pauzy z drzwiami Stajni pokazuje „PRZERWA” zamiast „GRA WSTRZYMANA” (po przerwie
+  wraca zwykły napis). Z motywem PipBucka okno przerwy (kto wrócił — zielony pasek, kto nie — czerwony), przycisk
+  „Przerwa” i kubek przy graczach, którzy odeszli od stołu, są w kolorach PipBucka.
+- Tokenizer — kliknięcie w portret na karcie (postać, NPC, pojazd, terminal, stół do gry) otwiera Tokenizer, Shift + klik —
+  zwykły wybór obrazka. Jeśli w ustawieniach Tokenizera wyłączono klikanie w awatar, jest odwrotnie; gracze bez prawa
+  wysyłania plików dostają zwykły wybór obrazka (jak w samym Tokenizerze). Przycisk „Tokenizer” w menu okna karty też działa.
+- Custom CSS — style z tego modułu mają pierwszeństwo przed stylami systemu, więc można nimi zmienić wszystko w wyglądzie.
 
 Terminale (osobny typ aktora „Terminal”): MG ustawia typ (biurowy RobronCo, Stable-Tec, ministerialny, chmurowy,
 Unics, przenośny), przy ministerialnym — które z sześciu Ministerstw (Nauk Magicznych, Czadu, Wizerunku, Morale,

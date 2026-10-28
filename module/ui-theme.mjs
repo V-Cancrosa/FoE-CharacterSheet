@@ -1,6 +1,7 @@
 /**
  * Motyw PipBucka dla całego Foundry (v13/v14):
- *   - ekran pauzy: godło Stajni z numerem (ustawienie świata) i „GRA WSTRZYMANA” z zakłóceniami kineskopu,
+ *   - ekran pauzy: godło Stajni z numerem (ustawienie świata) i „GRA WSTRZYMANA” z zakłóceniami kineskopu
+ *     (w czasie przerwy z modułu Break Time — „PRZERWA”),
  *   - interfejs w stylu PipBucka (pasek boczny, czat, gracze, makra, sceny, kontrolki, powiadomienia) — opcja gracza,
  *   - kolory nastawienia tokenów jak radar EFS z PipBucka (zielony — swoi, czerwony — wrogowie, żółty — neutralni),
  *   - ekran powitalny PipBucka po zalogowaniu (tylko u siebie, bez wpisu na czacie),
@@ -14,7 +15,9 @@ const F = "foe-rpg";
 const get = (key, fallback) => { try { return game.settings.get(F, key); } catch { return fallback; } };
 export const PIP_HEX = { green: "#4dff8a", amber: "#ffb547", blue: "#5fd8ff", white: "#e4f2e8" };
 const pipHex = () => PIP_HEX[get("pipColor", "green")] ?? PIP_HEX.green;
-const PAUSE_TEXT = () => t("GAME PAUSED");
+/** Przerwa z modułu Break Time (breaktime) — wtedy ekran pauzy mówi „PRZERWA”. */
+const onBreak = () => { try { return !!game.modules.get("breaktime")?.active && !!game.settings.get("breaktime", "paused"); } catch { return false; } };
+const PAUSE_TEXT = () => (onBreak() ? t("BREAK") : t("GAME PAUSED"));
 
 /** Kolory radaru EFS (Eyes Forward Sparkle) dla obwódek i pierścieni tokenów. */
 export const EFS_COLORS = { HOSTILE: 0xff3b30, NEUTRAL: 0xffd23f, FRIENDLY: 0x4dff8a, PARTY: 0x8affb8 };
@@ -145,6 +148,10 @@ export function registerUiHooks() {
   // pauza: Foundry v13/v14 (GamePause) — hak renderowania i dźwięk przy przełączeniu
   Hooks.on("renderGamePause", (app, element) => { try { decoratePause(element); } catch (err) { console.warn(`${F} | pauza`, err); } });
   Hooks.on("pauseGame", paused => beep(paused ? "pause" : "unpause"));
+  // Break Time: początek i koniec przerwy zmieniają napis na ekranie pauzy
+  const breakChanged = setting => { if (setting?.key === "breaktime.paused") try { ui.pause?.render?.(); } catch { /* brak ekranu pauzy */ } };
+  Hooks.on("createSetting", breakChanged);
+  Hooks.on("updateSetting", breakChanged);
   // kolory EFS przed narysowaniem planszy
   Hooks.once("setup", () => {
     if (!get("efsColors", true)) return;

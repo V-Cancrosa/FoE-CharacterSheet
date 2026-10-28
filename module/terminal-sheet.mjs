@@ -13,6 +13,7 @@ import {
 } from "./terminal.mjs";
 import { MFD_STEPS } from "./data.mjs";
 import { t } from "./i18n.mjs";
+import { onPortrait } from "./portrait.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -26,6 +27,7 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     window: { resizable: true },
     form: { submitOnChange: true },
     actions: {
+      portrait: onPortrait,
       toggleView: FoeTerminalSheet.#onToggleView,
       addEntry: FoeTerminalSheet.#onAddEntry,
       delEntry: FoeTerminalSheet.#onDelEntry,
