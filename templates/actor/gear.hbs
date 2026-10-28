@@ -24,7 +24,7 @@
         <td>{{coverText}}</td>
         <td class="l fx hide-narrow">{{fxText}}</td>
         <td>{{weight}}</td>
-        <td class="ctl">{{#if canName}}<a data-action="nameItem" title="{{t "Named armor (p. 206): 1+1d4 points for DT, weight, attributes, skills, AP"}}"><i class="fa-solid fa-star"></i></a> {{/if}}{{#if named}}<i class="fa-solid fa-star named-mark" title="{{t "Named armor"}}"></i> {{/if}}<a data-action="giveItem" title="{{t "Exchange: give or sell to someone next to you, throw to someone in range (map tokens only)"}}"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></td>
+        <td class="ctl">{{#if canName}}<a data-action="nameItem" title="{{t "Named armor (p. 206): 1+1d4 points for DT, weight, attributes, skills, AP"}}"><i class="fa-solid fa-star"></i></a> {{/if}}{{#if named}}<i class="fa-solid fa-star named-mark" title="{{t "Named armor"}}"></i> {{/if}}<a data-action="giveItem" title="{{t "Exchange: give or sell to someone next to you, throw to someone in range (map tokens only)"}}"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="dropItem" title="{{t "Drop on the ground (it stays under your token; anyone next to it can pick it up)"}}"><i class="fa-solid fa-arrow-down"></i></a> <a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></td>
       </tr>
     {{else}}<tr><td colspan="9" class="empty">{{t "No armor — pick some from the catalog."}}</td></tr>
     {{/each}}
@@ -52,7 +52,7 @@
         {{#if readable}}<span class="book-st" title="{{t "This character's reading progress"}}">{{bookStatus}}</span> <a class="use-btn" data-action="readBook" title="{{readTip}}"><i class="fa-solid fa-book-open"></i> {{t "Read"}}</a>{{/if}}
         {{#if charges includeZero=true}}<span class="charges" title="{{t "Talisman charges"}}">⚡{{charges}}</span>{{/if}}
         <span class="wt">{{weightLabel}}</span>
-        <span class="ctl"><a data-action="giveItem" title="{{t "Exchange: give or sell to someone next to you, throw to someone in range (map tokens only)"}}"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></span>
+        <span class="ctl"><a data-action="giveItem" title="{{t "Exchange: give or sell to someone next to you, throw to someone in range (map tokens only)"}}"><i class="fa-solid fa-hand-holding"></i></a> <a data-action="dropItem" title="{{t "Drop on the ground (it stays under your token; anyone next to it can pick it up)"}}"><i class="fa-solid fa-arrow-down"></i></a> <a data-action="editItem" title="{{t "Edit"}}"><i class="fa-solid fa-pen"></i></a> <a data-action="deleteItem" title="{{t "Delete"}}"><i class="fa-solid fa-trash"></i></a></span>
       </li>
     {{/each}}
     </ul>

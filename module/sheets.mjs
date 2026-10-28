@@ -31,6 +31,7 @@ import { bodyMap } from "./body-map.mjs";
 import { searchBody } from "./loot.mjs";
 import { editCutieMark } from "./cutie-mark.mjs";
 import { giveItem, giveCaps } from "./trade.mjs";
+import { dropToGround } from "./throw.mjs";
 import { promptAdjustCaps } from "./give.mjs";
 import { hitTableFor, tableLocations } from "./combat.mjs";
 import { locationName } from "./rolls.mjs";
@@ -92,6 +93,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       searchBody: FoeActorSheet.#onSearchBody,
       cutieMark: FoeActorSheet.#onCutieMark,
       giveItem: FoeActorSheet.#onGiveItem,
+      dropItem: FoeActorSheet.#onDropItem,
       giveCaps: FoeActorSheet.#onGiveCaps,
       adjustCaps: FoeActorSheet.#onAdjustCaps,
       openCatalog: FoeActorSheet.#onOpenCatalog,
@@ -194,11 +196,13 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       rads: pct(res.rads.value, res.rads.max)
     };
     const tip = list => list?.length ? list.join("\n") : "";
+    // próg 0 i mniej (np. Sneak przy ciężkim ekwipunku): zostaje tylko krytyczny sukces — bez ujemnych liczb
+    const pos = n => Math.max(0, n);
     ctx.attrs = Object.entries(ATTRS).map(([k, label]) => {
       const a = sys.attributes[k];
       return {
         key: k, label, letter: label[0], rest: label.slice(1), ...a,
-        q3: Math.floor(a.tn * .75), q2: Math.floor(a.tn / 2), q1: Math.floor(a.tn / 4),
+        tn: pos(a.tn), q3: pos(Math.floor(a.tn * .75)), q2: pos(Math.floor(a.tn / 2)), q1: pos(Math.floor(a.tn / 4)), tnZero: a.tn <= 0,
         fxLabel: a.fx ? signed(a.fx) : "", fxTip: tip(a.fxSources),
         tempLabel: a.temp ? signed(a.temp) : "", tempTip: tip(a.tempSources),
         rollLabel: a.fxRoll ? signed(a.fxRoll) : "", rollTip: tip(a.fxRollSources)
@@ -211,7 +215,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         key: k, label: def.label, racial: def.racial, ...s,
         attrLabel: s.attr.toUpperCase(),
         attrChoices: def.choice ? def.choice.map(c => ({ v: c, upper: c.toUpperCase(), sel: c === s.attr })) : null,
-        tnShown: s.tn + m, q3: Math.floor(s.tn * .75) + m, q2: Math.floor(s.tn / 2) + m, q1: Math.floor(s.tn / 4) + m,
+        tnShown: pos(s.tn + m), q3: pos(Math.floor(s.tn * .75) + m), q2: pos(Math.floor(s.tn / 2) + m), q1: pos(Math.floor(s.tn / 4) + m),
+        tnZero: s.tn + m <= 0,
         rankFx: s.fxRank ? signed(s.fxRank) : "", rankTip: tip(s.fxRankSources),
         rollFx: s.fxRoll ? signed(s.fxRoll) : "", rollTip: tip(s.fxRollSources),
         tempFx: s.temp ? signed(s.temp) : ""
@@ -727,6 +732,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static #onGiveItem(event, target) {
     return giveItem(this.document, this.#item(target));
+  }
+
+  static #onDropItem(event, target) {
+    return dropToGround(this.document, this.#item(target));
   }
 
   static #onGiveCaps() {
