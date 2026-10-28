@@ -582,6 +582,7 @@ export async function applyDamage(message) {
   }
 
   const lines = [];
+  const anim = [];   // animacja na mapie (fx.mjs): co spotkało każdy cel
   for (const { r, input } of result.hits) {
     const actor = r.tok.actor;
     const sys = actor.system;
@@ -613,6 +614,14 @@ export async function applyDamage(message) {
     const fx = await applySpecials(actor, res, special, d, endT);
     armorNotes.push(...fx.armor);
     const dead = fx.dead;
+    // nowe okaleczenia / utracone kończyny (śmierć ma własny efekt)
+    const crippled = fx.state ? [] : res.filter(x => x.wounds && statusText(x.loc, x.now, sys) && statusText(x.loc, x.now, sys) !== statusText(x.loc, x.before, sys))
+      .map(x => `${statusText(x.loc, x.now, sys)}: ${r.labels[x.loc] ?? locationName(x.loc, r.table)}`);
+    anim.push({
+      token: r.tok.uuid, wounds: res.reduce((s, x) => s + x.wounds, 0), after: res.reduce((s, x) => s + x.after, 0),
+      armor: res.some(x => x.armorDt > 0), machine: !!r.machine, state: fx.state, knocked: !!fx.knocked,
+      loc: input.where === "all" ? null : locOf(input.where), aoe: input.where === "all", crippled: crippled.slice(0, 2)
+    });
     lines.push(`
       <div class="dmg-res">
         <h4>${esc(r.tok.name)}</h4>
@@ -631,7 +640,8 @@ export async function applyDamage(message) {
       ${robotRoll ? `<div class="fc-meta">${t("Electricity against a machine: +6d12 = {n}", { n: robotRoll.total })}</div>` : ""}
       <div class="fc-tag"><span>PIPBUCK // ${t("WOUNDS")}</span><span>${esc(d.itemName)}</span></div>
       ${lines.join("")}
-    </div>`
+    </div>`,
+    flags: { "foe-rpg": { wounds: { fx: anim, kind: d.fx ?? null } } }
   });
 }
 
@@ -684,24 +694,28 @@ async function applySpecials(actor, res, special, d, endT) {
   const sp = d.specials ?? {};
   const hurt = res.some(x => x.after > 0 || x.wounds > 0);
   const wounded = res.some(x => x.wounds > 0);
-  let dead = "", knockedOut = false;
+  let dead = "", knockedOut = false, state = "", knocked = false;   // state, knocked — do animacji (fx.mjs)
 
   if (special.dis && !special.shock && res.some(x => disintegrates({ mode: sp.disintegrate, wounds: x.wounds, now: x.now, endT, crit: !!d.crit }))) {
     await toggleStatus(actor, "dead", true);
     notes.push(t("DISINTEGRATION — the target turns into ash or a glowing puddle"));
     dead = t("DISINTEGRATED");
+    state = "disintegrated";
   } else if (actor.system.dead) {
     if (actor.system.isVehicle) {
       await toggleStatus(actor, "dead", true);
       dead = t("WRECK");
+      state = "wreck";
     } else if (special.shock) {
       await toggleStatus(actor, "unconscious", true);
       notes.push(t("lethal wounds, but the weapon doesn't kill — unconscious"));
       dead = t("UNCONSCIOUS");
       knockedOut = true;
+      state = "unconscious";
     } else {
       await toggleStatus(actor, "dead", true);
       dead = t("DEAD");
+      state = "dead";
     }
   }
   if (special.rads) {
@@ -712,7 +726,7 @@ async function applySpecials(actor, res, special, d, endT) {
       notes.push(t("+{n} rads", { n: rads }));
     }
   }
-  if (dead && !knockedOut) return { notes, armor, dead };
+  if (dead && !knockedOut) return { notes, armor, dead, state, knocked };
 
   if (special.fire) {
     // pancerz metalowy chroni przed podpaleniem, jeśli atak go nie przebił
@@ -736,9 +750,10 @@ async function applySpecials(actor, res, special, d, endT) {
   if (special.knock && wounded) {
     await toggleStatus(actor, "prone", true);
     notes.push(t("knocked down (getting up: AGI ¾)"));
+    knocked = true;
   }
   if (special.poison && hurt) notes.push(await poisonCheck(actor, special.poison));
-  return { notes, armor, dead };
+  return { notes, armor, dead, state, knocked };
 }
 
 // ======================================================================

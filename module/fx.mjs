@@ -9,8 +9,8 @@
  * Wygląd: z modułami Sequencer i JB2A (darmowa albo płatna wersja) — grafiki JB2A; bez nich albo z opcją
  * „Wygląd PipBucka” — wbudowane efekty rysowane na mapie (PIXI). Opcje są osobne dla każdego gracza.
  */
-import { t } from "./i18n.mjs";
-import { FX, BLASTS, EXTRA, GOLD, TEXTS, SPELL_TEXTS, planAttack, planSpell, hexInt, rng } from "./fx-data.mjs";
+import { t, tn } from "./i18n.mjs";
+import { FX, BLASTS, EXTRA, GOLD, TEXTS, SPELL_TEXTS, WOUND_TEXTS, planAttack, planSpell, planWounds, hexInt, rng } from "./fx-data.mjs";
 
 const F = "foe-rpg";
 const sleep = ms => new Promise(r => setTimeout(r, Math.max(0, ms)));
@@ -36,6 +36,7 @@ export function registerFxHooks() {
     const f = msg.flags?.[F];
     if (f?.test?.attack) playAttack(msg).catch(err => console.warn(`${F} | combat animation`, err));
     else if (f?.spell?.fx) playSpell(msg).catch(err => console.warn(`${F} | spell animation`, err));
+    else if (f?.wounds?.fx) playWounds(msg).catch(err => console.warn(`${F} | damage animation`, err));
   });
   Hooks.on("canvasTearDown", () => { layer = null; });
 }
@@ -120,6 +121,23 @@ async function playSpell(msg) {
   if (plan.length) await runPlan(plan, SPELL);
 }
 
+/** Karta ran: krew, iskry albo odbicie od pancerza przy każdym celu, śmierć, dezintegracja, wrak, przewrócenie. */
+async function playWounds(msg) {
+  if (setting("fxCombat") === false || !canvas?.ready || !canvas.scene) return;
+  if (!(msg.isContentVisible ?? msg.visible)) return;
+  const w = msg.flags[F].wounds;
+  await afterDice(msg);   // elektryczność przeciw maszynie: 6d12 na tej karcie
+  if (!canvas?.ready) return;
+  const list = (w.fx ?? []).map(e => {
+    const doc = syncDoc(e.token);
+    const tk = onScene(doc) ? doc.object : null;
+    return alive(tk) && !hiddenFor(tk) ? { ...e, tg: geom(tk) } : null;
+  }).filter(Boolean);
+  if (!list.length) return;
+  const plan = planWounds(list, { grid: canvas.grid?.size ?? 100, seed: msg.id, kind: w.kind });
+  if (plan.length) await runPlan(plan, WOUND);
+}
+
 async function runPlan(plan, R) {
   for (const group of plan) await Promise.all(group.map(s => runStep(s, R)));
 }
@@ -135,18 +153,24 @@ async function runStep(s, R) {
 }
 
 // ---------- napisy nad tokenami ----------
-const TEXT_COLORS = { crit: 0xff4a3d, luck: GOLD, miss: 0xd8d8d8, jam: 0xff9a5a, fumble: 0xff9a5a, fizzle: 0xc9b2ff, dud: 0xff9a5a, burnout: 0xb98cff };
+const TEXT_COLORS = {
+  crit: 0xff4a3d, luck: GOLD, miss: 0xd8d8d8, jam: 0xff9a5a, fumble: 0xff9a5a, fizzle: 0xc9b2ff, dud: 0xff9a5a, burnout: 0xb98cff,
+  wounds: 0xff4a3d, graze: 0xffb547, deflect: 0xb0d8ff, dead: 0xff2a2a, unconscious: 0xdcdcff, wreck: 0xff8a2a, knocked: 0xd8c8a8
+};
+const BIG_TEXT = new Set(["crit", "luck", "overglow", "dead", "disintegrated", "wreck"]);
+const textOf = s => s.label ?? (s.text === "wounds" ? tn(s.n, "−{n} wound", "−{n} wounds")
+  : t(TEXTS[s.text] ?? SPELL_TEXTS[s.text] ?? WOUND_TEXTS[s.text] ?? s.text));
 
 function showText(s) {
   const iface = canvas?.interface;
   if (!iface?.createScrollingText) return;
-  const big = s.text === "crit" || s.text === "luck" || s.text === "overglow";
+  const big = BIG_TEXT.has(s.text);
   const A = CONST.TEXT_ANCHOR_POINTS;
   try {
-    iface.createScrollingText(s.at, t(TEXTS[s.text] ?? SPELL_TEXTS[s.text] ?? s.text), {
+    iface.createScrollingText(s.at, textOf(s), {
       anchor: A.TOP, direction: A.TOP, distance: (canvas.grid?.size ?? 100) * 0.6,
-      duration: big ? 1800 : 1300, jitter: 0,
-      fontSize: big ? 34 : 26, fill: s.fill ?? TEXT_COLORS[s.text] ?? 0xffffff, stroke: 0x000000, strokeThickness: 4
+      duration: s.duration ?? (big ? 1800 : 1300), jitter: 0,
+      fontSize: big ? 34 : 26, fill: s.fill ?? TEXT_COLORS[s.text] ?? (s.label ? 0xff9a5a : 0xffffff), stroke: 0x000000, strokeThickness: 4
     });
   } catch (err) { console.warn(`${F} | combat text`, err); }
 }
@@ -715,6 +739,109 @@ const SPELL_SEQ = {
 /** Czary: każdy krok osobno — JB2A, gdy jest i gracz go nie wyłączył, inaczej wygląd wbudowany. */
 const SPELL = Object.fromEntries(Object.entries(SPELL_BUILTIN).map(([k, fn]) => [k, s => {
   const sq = SPELL_SEQ[k];
+  const file = sq && sequencerOk() ? pick(sq.files) : null;
+  return file ? sq.play(s, file) : fn(s);
+}]));
+
+// ---------- nanoszenie obrażeń ----------
+const WOUND_BUILTIN = {
+  blood(s) {   // krople krwi rozpryskują się i opadają
+    const g0 = grid(), k = s.big ? 1.5 : 1, r = rng(`${s.at.x}:${s.at.y}:blood`);
+    const drops = Array.from({ length: Math.round(10 * k) }, () => [r() * TAU, 0.4 + r() * 0.8, 0.6 + r() * 0.6]);
+    animate(800, (g, p) => {
+      for (const [a, sp, sz] of drops) {
+        const q = toward(s.at, a, g0 * 0.35 * k * sp * easeOut(p));
+        q.y += g0 * 0.25 * p * p;
+        D.dot(g, q, g0 * 0.045 * sz * (1 - 0.4 * p), 0x2a0006, 0.8 * (1 - p * 0.6));
+        D.dot(g, q, g0 * 0.033 * sz * (1 - 0.4 * p), 0xc8102e, 0.95 * (1 - p * 0.6));
+      }
+      D.ellipse(g, s.at, g0 * 0.12 * k * easeOut(p), g0 * 0.07 * k * easeOut(p), 0x7a0012, 0.7 * (1 - p));
+    }, { add: false });
+    animate(200, (g, p) => D.dot(g, s.at, g0 * 0.14 * k * (1 - p), 0xff6a4d, 0.8 * (1 - p)));
+    return sleep(200);
+  },
+  sparks(s) {   // maszyna, pojazd, pancerz wspomagany: iskry i dym
+    const g0 = grid(), k = s.big ? 1.5 : 1, r = rng(`${s.at.x}:${s.at.y}:sp`);
+    const rays = Array.from({ length: Math.round(9 * k) }, () => [r() * TAU, 0.5 + r()]);
+    animate(450, (g, p) => {
+      for (const [a, l] of rays) D.line(g, toward(s.at, a, g0 * 0.1 * p), toward(s.at, a, g0 * (0.12 + 0.35 * l * k * easeOut(p))), 2, 0xffe2a0, 0.95 * (1 - p));
+      D.dot(g, s.at, g0 * 0.12 * k * (1 - p), 0xfff4d0, 0.9 * (1 - p));
+    });
+    animate(1100, (g, p) => D.dot(g, { x: s.at.x, y: s.at.y - g0 * 0.3 * p }, g0 * (0.1 + 0.2 * p) * k, 0x6a6a6a, 0.4 * (1 - p)), { add: false });
+    return sleep(200);
+  },
+  graze(s) {   // otarcie — obrażenia poniżej progu rany
+    const g0 = grid();
+    animate(350, (g, p) => {
+      D.dot(g, s.at, g0 * 0.1 * (1 - p), 0xffb547, 0.8 * (1 - p));
+      D.ring(g, s.at, g0 * (0.08 + 0.2 * p), 2, 0xffb547, 0.7 * (1 - p));
+    });
+    return sleep(150);
+  },
+  deflect(s) {   // pancerz zatrzymał: iskry i rykoszet w bok
+    const g0 = grid(), r = rng(s.seed ?? `${s.at.x}:${s.at.y}`), a0 = r() * TAU;
+    const rays = Array.from({ length: 7 }, () => [a0 + (r() - 0.5) * 1.6, 0.5 + r() * 0.6]);
+    animate(400, (g, p) => {
+      for (const [a, l] of rays) D.line(g, toward(s.at, a, g0 * 0.05), toward(s.at, a, g0 * (0.1 + 0.3 * l * easeOut(p))), 2, 0xdff0ff, 0.95 * (1 - p));
+      D.dot(g, s.at, g0 * 0.1 * (1 - p), 0xffffff, 0.9 * (1 - p));
+    });
+    const end = toward(s.at, a0, g0 * 1.6);
+    const T = 260;
+    animate(T + 120, (g, p) => {
+      const now = p * (T + 120), head = Math.min(1, now / T), back = clamp(now / T - 0.3, 0, 1), a = now > T ? 1 - (now - T) / 120 : 1;
+      D.line(g, lerp(s.at, end, back), lerp(s.at, end, head), g0 * 0.06, 0xb0d8ff, 0.5 * a);
+      D.line(g, lerp(s.at, end, back), lerp(s.at, end, head), g0 * 0.02, 0xffffff, 0.95 * a);
+    });
+    return sleep(200);
+  },
+  disintegrate(s) {   // cel rozpada się w popiół (różowy) albo maź (zielona)
+    const c = s.color ?? 0xff7de0, R = radius(s), r = rng(`${s.at.x}:${s.at.y}:dis`);
+    const parts = Array.from({ length: 46 }, () => [(r() - 0.5) * 1.8, (r() - 0.5) * 1.8, r()]);
+    animate(2200, (g, p) => {
+      for (const [x, y, d] of parts) {
+        const q = clamp((p - d * 0.35) / 0.65, 0, 1);
+        if (q <= 0) continue;
+        const pt = { x: s.at.x + x * R * (1 + q * 0.4), y: s.at.y + y * R - q * R * 1.4 };
+        D.dot(g, pt, R * 0.06 * (1 - q * 0.6), d < 0.5 ? c : mix(c, 0.5), 0.9 * (1 - q));
+      }
+      D.dot(g, s.at, R * 1.05, c, 0.35 * Math.max(0, 1 - p * 2));
+    });
+    animate(2600, (g, p) => D.ellipse(g, { x: s.at.x, y: s.at.y + R * 0.75 }, R * 0.7 * easeOut(Math.min(1, p * 2)), R * 0.18 * easeOut(Math.min(1, p * 2)), c === 0x7dff4d ? 0x3a6a2a : 0x8a7a80, 0.7 * (p < 0.7 ? 1 : (1 - p) / 0.3)), { add: false });
+    return sleep(700);
+  },
+  death(s) {   // czerwony błysk i fala, token gaśnie
+    const R = radius(s);
+    animate(1000, (g, p) => {
+      const e = easeOut(p);
+      D.dot(g, s.at, R * 1.1, 0xff2a2a, 0.35 * (1 - p));
+      D.ring(g, s.at, R * (0.6 + 1.2 * e), 4, 0xff2a2a, 0.8 * (1 - p));
+      D.ring(g, s.at, R * (0.4 + 0.8 * e), 2, 0xffffff, 0.5 * (1 - p));
+    });
+    animate(1400, (g, p) => D.dot(g, s.at, R * 1.05, 0x000000, 0.45 * Math.sin(Math.PI * p)), { add: false });
+    return sleep(400);
+  },
+  dust(s) {   // przewrócony: kurz przy ziemi
+    const R = radius(s);
+    animate(1000, (g, p) => {
+      for (let i = 0; i < 6; i++) {
+        const a = Math.PI * (0.1 + 0.8 * (i / 5)), q = { x: s.at.x + Math.cos(a) * R * (0.4 + 0.6 * easeOut(p)) * (i % 2 ? 1 : -1), y: s.at.y - R * 0.1 * p };
+        D.dot(g, q, R * (0.15 + 0.2 * p), 0xb8a888, 0.45 * (1 - p));
+      }
+    }, { add: false });
+    return sleep(200);
+  },
+  explode: s => BUILTIN.explode(s)
+};
+
+const WOUND_SEQ = {
+  blood: { files: ["jb2a.liquid.splash02.red"], play: (s, f) => { sqFire(seq => seq.effect().file(f).atLocation(s.at).size(s.big ? 1.3 : 0.9, { gridUnits: true }).locally()); return sleep(200); } },
+  death: { files: ["jb2a.markers.skull.dark_orange.02", "jb2a.markers.skull.dark_orange.01"], play: (s, f) => { WOUND_BUILTIN.death(s); sqFire(seq => seq.effect().file(f).atLocation(s.at).size(((radius(s) * 2) / grid()) * 1.3, { gridUnits: true }).duration(2400).fadeIn(200).fadeOut(600).locally()); return sleep(400); } },
+  explode: { files: BLASTS.frag.files, play: s => SEQ.explode(s) }
+};
+
+/** Obrażenia: każdy krok osobno — JB2A (krew, czaszka, wybuch), gdy jest, inaczej wygląd wbudowany. */
+const WOUND = Object.fromEntries(Object.entries(WOUND_BUILTIN).map(([k, fn]) => [k, s => {
+  const sq = WOUND_SEQ[k];
   const file = sq && sequencerOk() ? pick(sq.files) : null;
   return file ? sq.play(s, file) : fn(s);
 }]));

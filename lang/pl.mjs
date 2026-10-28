@@ -3519,5 +3519,15 @@ export default {
   "Overglow!": "Overglow!",
   // ---- templates/actor/magic.hbs
   "Magic color": "Kolor magii",
-  "The color of this unicorn's magic: spell animations, horn light and the stars of maintained spells": "Kolor magii tego jednorożca: animacje czarów, światło rogu i gwiazdki utrzymywanych zaklęć"
+  "The color of this unicorn's magic: spell animations, horn light and the stars of maintained spells": "Kolor magii tego jednorożca: animacje czarów, światło rogu i gwiazdki utrzymywanych zaklęć",
+  // ---- module/fx-data.mjs
+  "Deflected!": "Odbite!",
+  "Graze": "Draśnięcie",
+  "Killed!": "Zabity!",
+  "Disintegrated!": "Dezintegracja!",
+  "Knocked out!": "Nieprzytomny!",
+  "Wrecked!": "Wrak!",
+  "Knocked down!": "Przewrócony!",
+  // ---- module/fx.mjs
+  "−{n} wound|−{n} wounds": ["−{n} rana", "−{n} rany", "−{n} ran"]
 };

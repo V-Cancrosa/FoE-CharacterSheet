@@ -434,3 +434,41 @@ export function planSpell(o) {
   if (after.length || fx.length) groups.push([...after, ...fx]);
   return groups;
 }
+
+// ---------- nanoszenie obrażeń (etap 4) ----------
+export const WOUND_TEXTS = {
+  deflect: N_("Deflected!"), graze: N_("Graze"), dead: N_("Killed!"), disintegrated: N_("Disintegrated!"),
+  unconscious: N_("Knocked out!"), wreck: N_("Wrecked!"), knocked: N_("Knocked down!")
+};
+
+/**
+ * Plan animacji karty ran: przy każdym celu (do 6) krew albo iskry (maszyna) w miejscu trafienia, draśnięcie,
+ * odbicie od pancerza; śmierć, dezintegracja (plazma — zielona maź, reszta — różowy popiół), wrak pojazdu,
+ * przewrócenie; napisy nad tokenem (rany, okaleczenia) jeden pod drugim.
+ * list: [{ tg {x, y, w, h}, wounds, after, armor, machine, state, knocked, loc, aoe, crippled [tekst] }]
+ */
+export function planWounds(list, { grid = 100, seed = "", kind = null } = {}) {
+  const goo = kind === "plasma" || kind === "disintegrate" ? 0x7dff4d : 0xff7de0;
+  const steps = [];
+  (list ?? []).slice(0, 6).forEach((e, i) => {
+    const tg = e.tg;
+    if (!tg) return;
+    const base = i * 180, R = (tg.w ?? grid) / 2, h = tg.h ?? grid;
+    const center = { x: Math.round(tg.x), y: Math.round(tg.y) };
+    const at = e.loc && !e.aoe ? hitPoint(tg, e.loc, `${seed}:${i}`) : center;
+    const push = s => steps.push({ ...s, delay: (s.delay ?? 0) + base });
+    const texts = [];
+    if (e.wounds > 0) { push({ t: e.machine ? "sparks" : "blood", at, r: R, big: e.wounds >= 3 }); texts.push({ text: "wounds", n: e.wounds }); }
+    else if (e.after > 0) { push({ t: "graze", at, r: R }); texts.push({ text: "graze" }); }
+    else { push({ t: "deflect", at, r: R, seed: `${seed}:${i}`, armor: !!e.armor }); texts.push({ text: "deflect" }); }
+    if (e.state === "disintegrated") { push({ t: "disintegrate", at: center, r: R, color: goo, delay: 250 }); texts.push({ text: "disintegrated", fill: goo }); }
+    else if (e.state === "wreck") { push({ t: "explode", kind: "grenade", blast: "frag", at: center, big: true, delay: 250 }); texts.push({ text: "wreck" }); }
+    else if (e.state === "dead") { push({ t: "death", at: center, r: R, delay: 250 }); texts.push({ text: "dead" }); }
+    else if (e.state === "unconscious") texts.push({ text: "unconscious" });
+    for (const label of e.crippled ?? []) texts.push({ label });
+    if (e.knocked) { push({ t: "dust", at: { x: center.x, y: Math.round(tg.y + h * 0.4) }, r: R, delay: 150 }); texts.push({ text: "knocked" }); }
+    // napisy ruszają razem, w równym tempie, jeden nad drugim — nie nachodzą na siebie
+    texts.forEach((x, k) => push({ t: "text", ...x, at: { x: center.x, y: Math.round(tg.y - h / 2 - k * grid * 0.34) }, delay: 150, duration: 2000 }));
+  });
+  return steps.length ? [steps] : [];
+}

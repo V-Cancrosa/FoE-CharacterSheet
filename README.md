@@ -412,6 +412,17 @@ Czary i kolor magii:
   białych grafik JB2A zabarwionych kolorem magii; wiązka, ukrycie, porażka i wypalenie — zawsze wygląd PipBucka.
   Pocisk zaklęcia we własnym kolorze (innym niż domyślny) rysuje system, bo grafiki JB2A pocisków mają stały kolor.
 
+Animacje nanoszenia obrażeń (przycisk „Nanieś obrażenia” → karta ran na czacie; opcja „Animacje walki i czarów”):
+- Przy każdym celu w miejscu trafienia: krew (a u robotów, pojazdów i w pancerzu wspomaganym — iskry i dym) i napis
+  z liczbą ran, np. „−2 rany”; obrażenia poniżej progu rany — „Draśnięcie”; pancerz albo DT zatrzymały wszystko —
+  iskry, rykoszet w bok i „Odbite!”.
+- Nowe okaleczenie albo utracona kończyna — napis z karty (np. „OKALECZONA: Lewa przednia noga”), przewrócenie —
+  kurz i „Przewrócony!”, broń Shock zamiast śmierci — „Nieprzytomny!”.
+- Śmierć — czerwona fala i przygaśnięcie tokena („Zabity!”), dezintegracja — token rozpada się w różowy popiół
+  (broń magiczno-energetyczna) albo zieloną maź (plazma) („Dezintegracja!”), zniszczony pojazd — wybuch („Wrak!”).
+- Z Sequencerem i JB2A: krew, czaszka przy śmierci i wybuch wraku z JB2A; reszta — wygląd PipBucka. Ukryte tokeny
+  i rzuty ukryte przed graczem — bez animacji.
+
 Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL:
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
