@@ -13,6 +13,7 @@ import { promptMfd, rollTest, rollDamage, threshold, stepIndex, shiftStep } from
 import { attackWithWeapon } from "./attack.mjs";
 import { spendActions } from "./tracker.mjs";
 import { t, tn, tmap } from "./i18n.mjs";
+import { spellFx, magicColorOf } from "./fx-data.mjs";
 
 const F = "foe-rpg";
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -176,7 +177,14 @@ export async function castSpell(actor, spell) {
       ${notes.map(n => `<div class="fc-meta">${esc(n)}</div>`).join("")}
       ${buttons}
     </div>`,
-    flags: { [F]: { spell: { actorUuid: actor.uuid, spellUuid: spell.uuid, layers } } }
+    flags: { [F]: { spell: {
+      actorUuid: actor.uuid, spellUuid: spell.uuid, layers,
+      // animacja na mapie (fx.mjs): wynik, rzut testu (czeka na kości), cele, kolor magii, rodzaj zaklęcia
+      fx: {
+        kind: spellFx(spell.name, s), cast, res, burnout, testId: msg?.id ?? null, c: magicColorOf(actor),
+        targets: [...(game.user?.targets ?? [])].map(tk => tk.document?.uuid).filter(Boolean)
+      }
+    } } }
   });
 }
 

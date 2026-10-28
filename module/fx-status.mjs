@@ -8,7 +8,7 @@
  * stany z pasującym znacznikiem JB2A w pętli dostają go (efekt tymczasowy, tylko lokalny), pozostałe — wygląd
  * wbudowany: rysunek PIXI przypięty do tokena (porusza się i znika razem z nim). Martwy token — bez animacji.
  */
-import { STATUS_FX, statusFxKeys, rng } from "./fx-data.mjs";
+import { STATUS_FX, statusFxKeys, rng, customMagic, magicColorOf, hexInt } from "./fx-data.mjs";
 import { D, V8, ADD, setting, sequencerOk, pick } from "./fx.mjs";
 
 const F = "foe-rpg";
@@ -79,7 +79,8 @@ function syncToken(token) {
 
 function start(token, key, seq) {
   const def = STATUS_FX[key];
-  const file = seq ? pick(def.jb2a) : null;
+  // gwiazdki utrzymywanych zaklęć we własnym kolorze magii rysuje system (JB2A ma stały kolor)
+  const file = seq && !(key === "maintained" && customMagic(token.actor)) ? pick(def.jb2a) : null;
   return (file && startSequencer(token, key, def, file)) || startBuiltin(token, key, def);
 }
 
@@ -145,7 +146,10 @@ function startBuiltin(token, key, def) {
   token.addChildAt(g, 0);
   const h = {
     g, t0: performance.now(), stopAt: 0, w: token.w, h: token.h, seed: `${token.id}:${key}`,
-    draw: (gr, time) => { h.w = token.w; h.h = token.h; h.count = maintainedOf(token.actor); draw(gr, time, h); },
+    draw: (gr, time) => {
+      h.w = token.w; h.h = token.h; h.count = maintainedOf(token.actor); h.color = hexInt(magicColorOf(token.actor));
+      draw(gr, time, h);
+    },
     destroy() { live.delete(h); if (!g.destroyed) g.destroy({ children: true }); },
     stop() { if (!h.stopAt) h.stopAt = performance.now(); if (g.destroyed) live.delete(h); },
     dead: () => g.destroyed
@@ -344,12 +348,12 @@ const DRAW = {
   },
   maintained(g, t, h) {
     const { cx, cy, R } = geo(h);
-    const k = Math.max(1, Math.min(3, h.count ?? 1));
-    D.ring(g, pt(cx, cy), R * 1.12, 1.5, 0xc9b2ff, 0.15);
+    const k = Math.max(1, Math.min(3, h.count ?? 1)), color = h.color ?? 0xc9b2ff;
+    D.ring(g, pt(cx, cy), R * 1.12, 1.5, color, 0.15);
     for (let j = 0; j < k; j++) {
       for (let m = 0; m < 6; m++) {
         const a = t * 1.2 + (j * TAU) / k - m * 0.09;
-        D.dot(g, pt(cx + Math.cos(a) * R * 1.12, cy + Math.sin(a) * R * 1.12), R * (0.06 - m * 0.008), 0xc9b2ff, 0.9 - m * 0.14);
+        D.dot(g, pt(cx + Math.cos(a) * R * 1.12, cy + Math.sin(a) * R * 1.12), R * (0.06 - m * 0.008), color, 0.9 - m * 0.14);
       }
       const a = t * 1.2 + (j * TAU) / k;
       D.dot(g, pt(cx + Math.cos(a) * R * 1.12, cy + Math.sin(a) * R * 1.12), R * 0.025, 0xffffff, 0.95);

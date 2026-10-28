@@ -17,7 +17,7 @@ import { degradationOn, weaponCondition, addWear, ammoWearFactor } from "./craft
 import { spendActions } from "./tracker.mjs";
 import { t, tn } from "./i18n.mjs";
 import { ruleLink } from "./rules.mjs";
-import { weaponFx } from "./fx-data.mjs";
+import { weaponFx, customMagic, magicColorOf } from "./fx-data.mjs";
 
 const { DialogV2 } = foundry.applications.api;
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -185,7 +185,8 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     sats: !!ex.sats, satsCost: cost, random: ex.loc === "random", called: ex.loc === "random" ? null : ex.loc ?? "torso",
     table: ex.table ?? table, melee: close, aoe, area: ex.area ?? null, areaLabels: target ? areaLabels(target) : {}, formula: b.formula, lacking: b.lacking, used: b.use, consumable: !!w.consumable,
     targets: targets.map(tk => tk.document?.uuid).filter(Boolean), overglow: spell?.layers ?? 0,
-    fx: weaponFx(w, item.name, { spell: !!spell, close, aoe }),   // wygląd animacji na mapie (fx.mjs)
+    // wygląd animacji na mapie (fx.mjs); czar — w kolorze magii, jeśli ustawiono go na karcie
+    fx: { ...weaponFx(w, item.name, { spell: !!spell, close, aoe }), ...(spell && customMagic(actor) ? { c: magicColorOf(actor) } : {}) },
     ...(vehicle ? { vehicle: vehicle.uuid, gunnerUuid: actor.uuid } : {})
   };
   if (spell) return rollTest(actor, { label: t("Aiming: {name} (Magic)", { name: item.name }), baseTn: sk.tn, magic: true, ...roll, itemUuid: item.uuid, attack });

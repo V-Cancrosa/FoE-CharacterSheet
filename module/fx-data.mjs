@@ -272,6 +272,7 @@ export function planAttack(o) {
   const crit = o.result === "crit-success";
   const explodes = !!(def.explodes || (atk.aoe && kind === "shell"));
   const blast = atk.fx?.b ?? (explodes ? "frag" : null);
+  const color = atk.fx?.c ? hexInt(atk.fx.c) : undefined;   // kolor magii rzucającego
   const src = o.src;
   const showSrc = !src?.hidden;
   // obszar: jeden ładunek w środek celów; inaczej do 3 celów osobno
@@ -310,13 +311,13 @@ export function planAttack(o) {
         : scatter(miss, grid, `${o.seed}:${ti}`, i, def.pellets ? 0.35 : 0.25);
       const then = [];
       if (explodes) { if (i === 0) then.push({ t: "explode", kind, blast, at: to, big: crit }); }
-      else if (hit) then.push({ t: "impact", kind, at: to, big: crit && i === 0 });
+      else if (hit) then.push({ t: "impact", kind, at: to, big: crit && i === 0, ...(color !== undefined ? { color } : {}) });
       else if (style !== "swing") then.push({ t: "ground", kind, at: to });
       if (i === 0 && hit && crit) then.push({ t: "text", at: top(tg), text: "crit" });
       if (i === 0 && !hit && ti === 0) then.push({ t: "text", at: top(tg), text: "miss" });
       // ukryty strzelec: gracze widzą tylko, co doleciało
       if (!showSrc && !origins) fire.push(...then.map(s => ({ ...s, delay })));
-      else fire.push({ t: style === "swing" ? "swing" : "shot", kind, style, from, to, hit, luck: !!origins, delay, then });
+      else fire.push({ t: style === "swing" ? "swing" : "shot", kind, style, from, to, hit, luck: !!origins, delay, then, ...(color !== undefined ? { color } : {}) });
     }
   });
   groups.push(fire);
@@ -351,4 +352,85 @@ export function statusFxKeys(statuses, maintained = 0) {
   const keys = STATUS_ORDER.filter(k => k !== "maintained" && st.has(k));
   if (maintained > 0) keys.push("maintained");
   return keys;
+}
+
+// ---------- kolor magii i czary (etap 3) ----------
+export const MAGIC_DEFAULT = "#c9b2ff";
+/** Kolor magii z karty ("#rrggbb") albo domyślny liliowy. */
+export function magicHex(v) {
+  const s = String(v ?? "").trim().toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(s) ? s : MAGIC_DEFAULT;
+}
+export const hexInt = hex => parseInt(magicHex(hex).slice(1), 16);
+export const magicColorOf = actor => magicHex(actor?.system?.magicColor);
+/** Kolor ustawiony na karcie (inny niż domyślny). */
+export const customMagic = actor => magicColorOf(actor) !== MAGIC_DEFAULT;
+
+/**
+ * Rodzaj animacji zaklęcia z nazwy (katalog po angielsku, własne nazwy też po polsku):
+ * aim — celowane z obrażeniami (animację daje celowanie), heal, shield, teleport, stealth, mind, tk, light, damage, buff.
+ */
+export function spellFx(name, s = {}) {
+  const n = String(name ?? "").toLowerCase();
+  if (s.targeted && s.damage) return "aim";
+  if (/heal|\bmend\b|regenerat|regrow|restore|replenish|cleanse|painkiller|anesthetic|tissue|good as new|tears of the goddess|power of love|kiss|lecz|uzdraw/.test(n)) return "heal";
+  if (/shield|\bward\b|bubble|barrier|back at ya|return to sender|alter trajectory|teleport block|tarcz|bariera|osłon/.test(n)) return "shield";
+  if (/teleport|time hop|door from nowhere|pass through|behind you|\bghost\b|teleport|przeniesien/.test(n)) return "teleport";
+  if (/invisib|disguise|illusion|projected image|phantom|double team|double vision|mask scent|muffle|silence|alter (features|sound|form)|voice alteration|niewidzial|iluzj|przebran/.test(n)) return "stealth";
+  if (/telepath|\bmind\b|memory|dream|dominate|nightmare|sleep|tired|lie detector|\bscry\b|panic|want-it|trottingheimer|stunner|tickling|knock out|nerve pinch|umysł|sen\b|telepat/.test(n)) return "mind";
+  if (/telekine|levitat|featherweight|reverse gravity|animate object|dancing weapon|auto sort|lewitac|telekinez/.test(n)) return "tk";
+  if (/\blight\b|daylight|\bflash\b|\bflare\b|solar|sunbeam|light show|świat|blask/.test(n)) return "light";
+  if (s.damage) return "damage";
+  return "buff";
+}
+
+// skutek przy celu dla rodzaju zaklęcia
+const SPELL_HIT = { heal: "heal", shield: "shield", mind: "mind", tk: "tk", damage: "burst", buff: "sparkle" };
+export const SPELL_TEXTS = { burnout: N_("Burnout!"), overglow: N_("Overglow!") };
+
+/**
+ * Plan animacji zaklęcia (karta wyniku): blask rogu, potem wiązka do celów i skutek (leczenie, tarcza…),
+ * teleport/światło/ukrycie przy rzucającym; porażka — zaklęcie gaśnie; wypalenie — fioletowy dym.
+ * o: { kind, cast, res, burnout, layers, src {x, y, w, h, hidden}, targets [{x, y, w, h}], color, grid }
+ */
+export function planSpell(o) {
+  const src = o.src;
+  if (!src) return [];
+  const grid = o.grid || 100;
+  const color = o.color ?? hexInt(MAGIC_DEFAULT);
+  const layers = Math.max(0, Math.min(3, Number(o.layers) || 0));
+  const horn = { x: Math.round(src.x), y: Math.round(src.y - (src.h ?? grid) * 0.38) };
+  const above = p => ({ x: p.x, y: Math.round(p.y - grid * 0.25) });
+  const mid = p => ({ x: Math.round(p.x), y: Math.round(p.y) });
+  const groups = [];
+  if (!src.hidden) groups.push([{ t: "cast", at: horn, color, layers }]);
+
+  if (!o.cast) {
+    if (src.hidden) return groups;
+    groups.push(o.burnout
+      ? [{ t: "burnout", at: horn }, { t: "text", at: above(horn), text: "burnout" }]
+      : [{ t: "fizzle", at: horn, color }, { t: "text", at: above(horn), text: "fizzle" }]);
+    return groups;
+  }
+  const after = [];
+  if (!src.hidden && o.res === "crit-success") after.push({ t: "text", at: above(horn), text: "overglow", fill: color });
+  if (!src.hidden && o.burnout) after.push({ t: "burnout", at: horn }, { t: "text", at: above(above(horn)), text: "burnout" });
+
+  const kind = o.kind ?? "buff";
+  const fx = [];
+  if (kind === "aim") {
+    // celowanie (karta „Celuj”) ma własną animację pocisku
+  } else if (kind === "teleport" || kind === "light" || kind === "stealth") {
+    if (!src.hidden) fx.push({ t: kind === "teleport" ? "teleport" : kind === "light" ? "flash" : "shimmer", at: kind === "light" ? horn : mid(src), color, r: (src.w ?? grid) / 2, big: layers > 0 });
+  } else {
+    const list = o.targets?.length ? o.targets.slice(0, 3) : [src];
+    list.forEach((tg, i) => {
+      const self = tg === src || (Math.abs(tg.x - src.x) < 1 && Math.abs(tg.y - src.y) < 1);
+      const hit = { t: SPELL_HIT[kind] ?? "sparkle", at: mid(tg), color, r: (tg.w ?? grid) / 2, big: layers > 0 };
+      if (self || src.hidden) fx.push({ ...hit, delay: i * 150 });
+      else fx.push({ t: "beam", from: horn, to: mid(tg), color, delay: i * 150, then: [hit] });
+    });
+  }
+  if (after.length || fx.length) groups.push([...after, ...fx]);
+  return groups;
 }

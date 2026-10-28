@@ -10,7 +10,7 @@
  * „Wygląd PipBucka” — wbudowane efekty rysowane na mapie (PIXI). Opcje są osobne dla każdego gracza.
  */
 import { t } from "./i18n.mjs";
-import { FX, BLASTS, EXTRA, GOLD, TEXTS, planAttack, rng } from "./fx-data.mjs";
+import { FX, BLASTS, EXTRA, GOLD, TEXTS, SPELL_TEXTS, planAttack, planSpell, hexInt, rng } from "./fx-data.mjs";
 
 const F = "foe-rpg";
 const sleep = ms => new Promise(r => setTimeout(r, Math.max(0, ms)));
@@ -18,8 +18,8 @@ export const setting = key => { try { return game.settings.get(F, key); } catch 
 
 export function registerFxSettings() {
   game.settings.register(F, "fxCombat", {
-    name: "Combat animations",
-    hint: "Shots and blows on the map: a hit lands on the target token, a miss next to it, a Luck card reroll ricochets from where the previous shot landed; criticals and jams get their own effect. They play after the dice land. Each player decides for themselves.",
+    name: "Combat and spell animations",
+    hint: "Shots and blows on the map: a hit lands on the target token, a miss next to it, a Luck card reroll ricochets from where the previous shot landed; criticals and jams get their own effect. Spells glow on the horn in the unicorn's magic color and reach their targets (healing, shields, telekinesis…). They play after the dice land. Each player decides for themselves.",
     scope: "client", config: true, type: Boolean, default: true
   });
   game.settings.register(F, "fxEngine", {
@@ -33,8 +33,9 @@ export function registerFxSettings() {
 
 export function registerFxHooks() {
   Hooks.on("createChatMessage", msg => {
-    if (!msg.flags?.[F]?.test?.attack) return;
-    playAttack(msg).catch(err => console.warn(`${F} | combat animation`, err));
+    const f = msg.flags?.[F];
+    if (f?.test?.attack) playAttack(msg).catch(err => console.warn(`${F} | combat animation`, err));
+    else if (f?.spell?.fx) playSpell(msg).catch(err => console.warn(`${F} | spell animation`, err));
   });
   Hooks.on("canvasTearDown", () => { layer = null; });
 }
@@ -96,6 +97,29 @@ async function playAttack(msg) {
   if (plan.length) await runPlan(plan, rendererFor(plan));
 }
 
+/** Karta wyniku zaklęcia: blask rogu, wiązka i skutek przy celu, w kolorze magii rzucającego. */
+async function playSpell(msg) {
+  if (setting("fxCombat") === false || !canvas?.ready || !canvas.scene) return;
+  if (!(msg.isContentVisible ?? msg.visible)) return;
+  const sp = msg.flags[F].spell;
+  const fx = sp.fx;
+  const who = { actorUuid: sp.actorUuid };
+  if (!shooterOf(msg, who, {})) return;
+  // karta testu Magic jest tuż przed tą — czekamy, aż jej kości wylądują
+  const test = fx.testId ? game.messages.get(fx.testId) : null;
+  if (test) await afterDice(test);
+  if (!canvas?.ready) return;
+  const caster = shooterOf(msg, who, {});
+  if (!alive(caster)) return;
+  const plan = planSpell({
+    kind: fx.kind, cast: fx.cast, res: fx.res, burnout: fx.burnout, layers: sp.layers,
+    color: hexInt(fx.c), grid: canvas.grid?.size ?? 100,
+    src: { ...geom(caster), hidden: hiddenFor(caster) },
+    targets: targetTokens({ targets: fx.targets }).map(geom)
+  });
+  if (plan.length) await runPlan(plan, SPELL);
+}
+
 async function runPlan(plan, R) {
   for (const group of plan) await Promise.all(group.map(s => runStep(s, R)));
 }
@@ -103,7 +127,7 @@ async function runPlan(plan, R) {
 async function runStep(s, R) {
   if (s.delay) await sleep(s.delay);
   if (s.t === "text") return showText(s);
-  if (s.t === "shot" || s.t === "swing") {
+  if (s.t === "shot" || s.t === "swing" || s.t === "beam") {
     await R[s.t](s);   // kończy się, gdy pocisk doleci / cios dosięgnie
     return Promise.all((s.then ?? []).map(x => runStep(x, R)));
   }
@@ -111,18 +135,18 @@ async function runStep(s, R) {
 }
 
 // ---------- napisy nad tokenami ----------
-const TEXT_COLORS = { crit: 0xff4a3d, luck: GOLD, miss: 0xd8d8d8, jam: 0xff9a5a, fumble: 0xff9a5a, fizzle: 0xc9b2ff, dud: 0xff9a5a };
+const TEXT_COLORS = { crit: 0xff4a3d, luck: GOLD, miss: 0xd8d8d8, jam: 0xff9a5a, fumble: 0xff9a5a, fizzle: 0xc9b2ff, dud: 0xff9a5a, burnout: 0xb98cff };
 
 function showText(s) {
   const iface = canvas?.interface;
   if (!iface?.createScrollingText) return;
-  const big = s.text === "crit" || s.text === "luck";
+  const big = s.text === "crit" || s.text === "luck" || s.text === "overglow";
   const A = CONST.TEXT_ANCHOR_POINTS;
   try {
-    iface.createScrollingText(s.at, t(TEXTS[s.text] ?? s.text), {
+    iface.createScrollingText(s.at, t(TEXTS[s.text] ?? SPELL_TEXTS[s.text] ?? s.text), {
       anchor: A.TOP, direction: A.TOP, distance: (canvas.grid?.size ?? 100) * 0.6,
       duration: big ? 1800 : 1300, jitter: 0,
-      fontSize: big ? 34 : 26, fill: TEXT_COLORS[s.text] ?? 0xffffff, stroke: 0x000000, strokeThickness: 4
+      fontSize: big ? 34 : 26, fill: s.fill ?? TEXT_COLORS[s.text] ?? 0xffffff, stroke: 0x000000, strokeThickness: 4
     });
   } catch (err) { console.warn(`${F} | combat text`, err); }
 }
@@ -153,6 +177,8 @@ function filesFor(s) {
 function rendererFor(plan) {
   if (!sequencerOk()) return BUILTIN;
   const steps = plan.flat().flatMap(s => [s, ...(s.then ?? [])]);
+  // własny kolor magii: grafiki JB2A mają stałe kolory — rysuje system
+  if (steps.some(s => s.color !== undefined)) return BUILTIN;
   return steps.every(s => !filesFor(s) || pick(filesFor(s))) ? SEQ : BUILTIN;
 }
 
@@ -329,7 +355,7 @@ const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const toward = (c, a, d) => ({ x: c.x + Math.cos(a) * d, y: c.y + Math.sin(a) * d });
 const easeOut = p => 1 - (1 - p) ** 2;
-const colorOf = s => (s.luck ? GOLD : FX[s.kind]?.color ?? 0xffffff);
+const colorOf = s => (s.luck ? GOLD : s.color ?? FX[s.kind]?.color ?? 0xffffff);
 
 function muzzle(at, color) {
   const g0 = grid();
@@ -419,7 +445,7 @@ const BUILTIN = {
     return sleep(170);
   },
   impact(s) {
-    const c = FX[s.kind]?.color ?? 0xffffff, g0 = grid(), k = s.big ? 1.7 : 1;
+    const c = s.color ?? FX[s.kind]?.color ?? 0xffffff, g0 = grid(), k = s.big ? 1.7 : 1;
     animate(s.big ? 520 : 320, (g, p) => {
       const e = easeOut(p);
       D.dot(g, s.at, g0 * (0.12 + 0.2 * e) * k, c, 0.6 * (1 - p));
@@ -496,3 +522,200 @@ const BUILTIN = {
     return sleep(500);
   }
 };
+
+// ---------- czary: wygląd wbudowany w kolorze magii, JB2A — białe grafiki „TMFX” zabarwione tym kolorem ----------
+const TAU = Math.PI * 2;
+/** Kolor rozjaśniony bielą (w — udział bieli 0..1). */
+const mix = (c, w = 0.5) => {
+  const r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+  return (Math.round(r + (255 - r) * w) << 16) | (Math.round(g + (255 - g) * w) << 8) | Math.round(b + (255 - b) * w);
+};
+/** Iskra o 4 ramionach (punkty wielokąta). */
+const sparkle4 = (c, r, rot = 0) => Array.from({ length: 8 }, (_, i) => {
+  const rr = i % 2 ? r * 0.3 : r, a = rot + (i * Math.PI) / 4;
+  return [c.x + Math.cos(a) * rr, c.y + Math.sin(a) * rr];
+}).flat();
+const radius = s => s.r ?? grid() / 2;
+const fadeIO = (p, a = 0.2, b = 0.7) => (p < a ? p / a : p > b ? (1 - p) / (1 - b) : 1);
+
+const SPELL_BUILTIN = {
+  cast(s) {   // energia zbiera się na rogu
+    const g0 = grid(), c = s.color, k = 1 + 0.35 * (s.layers ?? 0);
+    animate(700, (g, p) => {
+      const e = easeOut(p), a = p < 0.7 ? 1 : (1 - p) / 0.3;
+      for (let i = 0; i < 8; i++) D.dot(g, toward(s.at, (i * TAU) / 8 + p * 1.5, g0 * 0.45 * (1 - e) * k), g0 * 0.035, mix(c, 0.4), 0.9 * (1 - p * 0.5));
+      D.dot(g, s.at, g0 * (0.08 + 0.12 * e) * k, c, 0.55 * a);
+      D.dot(g, s.at, g0 * 0.05 * k, 0xffffff, 0.9 * a);
+      for (let l = 0; l < (s.layers ?? 0); l++) D.ring(g, s.at, g0 * (0.2 + 0.12 * l) * e, 2, c, 0.7 * (1 - p));
+    });
+    return sleep(450);
+  },
+  beam(s) {   // strumień magii od rogu do celu, z falującymi iskrami
+    const g0 = grid(), c = s.color, d = dist(s.from, s.to), T = clamp((d / 1600) * 1000, 150, 500), fade = 350;
+    const ux = (s.to.x - s.from.x) / (d || 1), uy = (s.to.y - s.from.y) / (d || 1);
+    animate(T + fade, (g, p) => {
+      const now = p * (T + fade), head = Math.min(1, now / T), a = now > T ? 1 - (now - T) / fade : 1;
+      const B = lerp(s.from, s.to, head);
+      D.line(g, s.from, B, g0 * 0.14, c, 0.3 * a);
+      D.line(g, s.from, B, g0 * 0.045, mix(c, 0.6), 0.9 * a);
+      for (let i = 0; i < 5; i++) {
+        const f = ((now / 400 + i / 5) % 1) * head, q = lerp(s.from, s.to, f), w = Math.sin(f * 12 + i) * g0 * 0.08;
+        D.dot(g, { x: q.x - uy * w, y: q.y + ux * w }, g0 * 0.05, mix(c, 0.3), 0.8 * a);
+      }
+    });
+    return sleep(T);
+  },
+  heal(s) {   // unoszące się krzyżyki i ciepła poświata
+    const c = s.color, R = radius(s), r = rng(`${s.at.x}:${s.at.y}:heal`);
+    const parts = Array.from({ length: 12 }, () => [r(), r()]);
+    animate(1400, (g, p) => {
+      D.dot(g, s.at, R * (0.9 + 0.2 * p), c, 0.28 * (1 - p));
+      for (const [a, d] of parts) {
+        const age = clamp((p - d * 0.4) / 0.6, 0, 1);
+        if (age <= 0) continue;
+        const q = { x: s.at.x + (a - 0.5) * R * 1.6, y: s.at.y + R * 0.6 - age * R * 1.6 }, z = R * 0.13 * (1 - age * 0.3);
+        D.line(g, { x: q.x - z, y: q.y }, { x: q.x + z, y: q.y }, 5, c, 0.6 * (1 - age));
+        D.line(g, { x: q.x, y: q.y - z }, { x: q.x, y: q.y + z }, 5, c, 0.6 * (1 - age));
+        D.line(g, { x: q.x - z, y: q.y }, { x: q.x + z, y: q.y }, 2.5, mix(c, 0.6), 1 - age);
+        D.line(g, { x: q.x, y: q.y - z }, { x: q.x, y: q.y + z }, 2.5, mix(c, 0.6), 1 - age);
+      }
+    });
+    return sleep(300);
+  },
+  shield(s) {   // bańka
+    const c = s.color, R = radius(s) * 1.2;
+    animate(1500, (g, p) => {
+      const e = 1 - (1 - Math.min(1, p / 0.25)) ** 2, fade = p < 0.6 ? 1 : 1 - (p - 0.6) / 0.4;
+      D.dot(g, s.at, R * e, c, 0.12 * fade);
+      D.ring(g, s.at, R * e, 3, mix(c, 0.4), 0.8 * fade);
+      for (let i = 0; i < 6; i++) { const a = p * 2 + (i * TAU) / 6; D.arc(g, s.at, R * e * 0.9, a, a + 0.5, 2, mix(c, 0.7), 0.5 * fade); }
+    });
+    return sleep(350);
+  },
+  tk(s) {   // poświata telekinezy, iskry unoszą się
+    const c = s.color, R = radius(s);
+    animate(1400, (g, p) => {
+      const fade = fadeIO(p), pulse = 0.5 + 0.5 * Math.sin(p * 20);
+      D.ring(g, s.at, R * 1.02, R * 0.16, c, (0.25 + 0.15 * pulse) * fade);
+      D.ring(g, s.at, R * 0.95, 2, mix(c, 0.5), 0.8 * fade);
+      for (let i = 0; i < 8; i++) {
+        const a = (i * TAU) / 8, up = (p * 1.5 + i / 8) % 1;
+        D.dot(g, { x: s.at.x + Math.cos(a) * R * 0.9, y: s.at.y + Math.sin(a) * R * 0.5 - up * R * 0.6 }, R * 0.05, mix(c, 0.4), 0.8 * fade * (1 - up));
+      }
+    });
+    return sleep(300);
+  },
+  mind(s) {   // fale zbiegają się do głowy
+    const c = s.color, R = radius(s), head = { x: s.at.x, y: s.at.y - R * 0.35 };
+    animate(1100, (g, p) => {
+      for (let i = 0; i < 3; i++) {
+        const q = clamp(p * 1.4 - i * 0.2, 0, 1);
+        if (q <= 0 || q >= 1) continue;
+        const rr = R * 1.3 * (1 - q), pts = [];
+        for (let k = 0; k < 36; k++) { const a = (k * TAU) / 36, w = rr * (1 + 0.06 * Math.sin(a * 5 + p * 10)); pts.push(head.x + Math.cos(a) * w, head.y + Math.sin(a) * w * 0.6); }
+        D.poly(g, pts, null, 1, { width: 2.5, color: mix(c, 0.3), alpha: 0.8 * (1 - q) });
+      }
+    });
+    return sleep(300);
+  },
+  burst(s) {   // wybuch magii
+    const c = s.color, R = radius(s) * (s.big ? 1.6 : 1.3);
+    animate(700, (g, p) => {
+      const e = 1 - (1 - p) ** 3;
+      D.dot(g, s.at, R * e, c, 0.5 * (1 - p));
+      D.dot(g, s.at, R * 0.45 * e, mix(c, 0.7), 0.8 * (1 - p) ** 2);
+      D.ring(g, s.at, R * 1.2 * e, 3, mix(c, 0.4), 0.8 * (1 - p));
+    });
+    return sleep(250);
+  },
+  sparkle(s) {   // iskry wokół celu
+    const c = s.color, R = radius(s), r = rng(`${s.at.x}:${s.at.y}:sp`);
+    const parts = Array.from({ length: 10 }, () => [r() * TAU, 0.5 + r() * 0.7, r()]);
+    animate(1100, (g, p) => {
+      for (const [a, d, ph] of parts) {
+        const q = clamp((p - ph * 0.4) / 0.6, 0, 1);
+        if (q > 0) D.poly(g, sparkle4(toward(s.at, a, R * d), R * 0.14 * Math.sin(Math.PI * q), q * 2), mix(c, 0.5), 0.95);
+      }
+      D.ring(g, s.at, R * (0.8 + 0.4 * p), 2, c, 0.4 * (1 - p));
+    });
+    return sleep(300);
+  },
+  teleport(s) {   // zapadnięcie i błysk
+    const c = s.color, R = radius(s) * 1.3;
+    animate(900, (g, p) => {
+      if (p < 0.55) { const q = p / 0.55; D.ring(g, s.at, R * (1 - q), 3, mix(c, 0.4), 0.9); D.dot(g, s.at, R * 0.6 * (1 - q), c, 0.3); return; }
+      const q = (p - 0.55) / 0.45;
+      D.dot(g, s.at, R * 0.5 * (1 - q), 0xffffff, 0.9 * (1 - q));
+      for (let i = 0; i < 8; i++) { const a = (i * TAU) / 8; D.line(g, toward(s.at, a, R * 0.2 * q), toward(s.at, a, R * (0.3 + 0.7 * q)), 2.5, mix(c, 0.5), 0.9 * (1 - q)); }
+    });
+    return sleep(500);
+  },
+  flash(s) {   // światło z rogu
+    const c = s.color, g0 = grid(), k = s.big ? 1.25 : 1;
+    animate(900, (g, p) => {
+      const e = easeOut(Math.min(1, p / 0.3)), a = p < 0.3 ? 1 : 1 - (p - 0.3) / 0.7;
+      D.dot(g, s.at, g0 * 0.85 * k * e, mix(c, 0.6), 0.3 * a);
+      D.dot(g, s.at, g0 * 0.4 * k * e, 0xffffff, 0.7 * a);
+      for (let i = 0; i < 12; i++) { const ang = (i * TAU) / 12; D.line(g, toward(s.at, ang, g0 * 0.2 * e), toward(s.at, ang, g0 * (0.4 + 0.45 * e) * k), 2, mix(c, 0.7), 0.6 * a); }
+    });
+    return sleep(300);
+  },
+  shimmer(s) {   // falujący zarys — ukrycie, iluzja
+    const c = s.color, R = radius(s);
+    animate(1200, (g, p) => {
+      const a = Math.sin(Math.PI * p);
+      for (let i = 0; i < 2; i++) {
+        const pts = [];
+        for (let k = 0; k < 40; k++) { const ang = (k * TAU) / 40, w = R * (1.02 + 0.06 * Math.sin(ang * 7 + p * 18 + i * 2)); pts.push(s.at.x + Math.cos(ang) * w, s.at.y + Math.sin(ang) * w); }
+        D.poly(g, pts, null, 1, { width: 2, color: mix(c, 0.5 + 0.2 * i), alpha: 0.6 * a });
+      }
+    });
+    return sleep(300);
+  },
+  fizzle(s) {   // iskry opadają i gasną
+    const c = s.color ?? 0xc9b2ff, g0 = grid(), r = rng(`${s.at.x}:${s.at.y}:fz`);
+    const parts = Array.from({ length: 7 }, () => [r() * TAU, r()]);
+    animate(800, (g, p) => {
+      for (const [a, d] of parts) { const q = toward(s.at, a, g0 * 0.25 * p * (0.5 + d)); q.y += g0 * 0.35 * p * p; D.dot(g, q, g0 * 0.03 * (1 - p), mix(c, 0.4), 0.9 * (1 - p)); }
+    });
+    animate(900, (g, p) => D.dot(g, { x: s.at.x, y: s.at.y - g0 * 0.2 * p }, g0 * (0.08 + 0.12 * p), 0x8a8a8a, 0.45 * (1 - p)), { add: false });
+    return sleep(400);
+  },
+  burnout(s) {   // fioletowy dym — magia się wypaliła
+    const g0 = grid();
+    animate(250, (g, p) => D.dot(g, s.at, g0 * 0.15 * (1 - p), 0xb98cff, 0.9 * (1 - p)));
+    animate(1300, (g, p) => {
+      const e = easeOut(p);
+      for (let i = 0; i < 5; i++) { const q = toward(s.at, (i * TAU) / 5 + 0.3, g0 * 0.25 * e); q.y -= g0 * 0.4 * p; D.dot(g, q, g0 * (0.1 + 0.18 * e), 0x5a3a7a, 0.55 * (1 - p)); }
+    }, { add: false });
+    return sleep(500);
+  }
+};
+
+// JB2A: białe grafiki do barwienia (wersje „TMFX”); wiązka, ukrycie, porażka i wypalenie — zawsze wygląd wbudowany
+const size = (s, k) => ({ v: ((radius(s) * 2) / grid()) * k, o: { gridUnits: true } });
+const tinted = (file, s, k, delay = 0) => seq => {
+  const z = size(s, k);
+  const e = seq.effect().file(file).atLocation(s.at).size(z.v, z.o).tint(s.color).locally();
+  if (delay) e.delay(delay);
+  return e;
+};
+const SPELL_SEQ = {
+  cast: { files: ["jb2a.extras.tmfx.inpulse.circle.01.normal"], play: (s, f) => { sqFire(seq => { const e = seq.effect().file(f).atLocation(s.at).size(0.9 + 0.3 * (s.layers ?? 0), { gridUnits: true }).tint(s.color).locally(); return e; }); return sleep(450); } },
+  heal: { files: ["jb2a.twinkling_stars.points07.white"], play: (s, f) => { sqFire(tinted(f, s, 1.4)); return sleep(300); } },
+  shield: { files: ["jb2a.extras.tmfx.border.circle.simple.01"], play: (s, f) => { sqFire(tinted(f, s, 1.35)); return sleep(350); } },
+  tk: { files: ["jb2a.extras.tmfx.border.circle.inpulse.01.normal"], play: (s, f) => { sqFire(tinted(f, s, 1.3)); return sleep(300); } },
+  mind: { files: ["jb2a.extras.tmfx.radar.circle.pulse.01.normal"], play: (s, f) => { sqFire(tinted(f, s, 1.4)); return sleep(300); } },
+  burst: { files: ["jb2a.extras.tmfx.outpulse.circle.02.normal", "jb2a.extras.tmfx.outpulse.circle.01.normal"], play: (s, f) => { sqFire(tinted(f, s, s.big ? 2.4 : 1.9)); return sleep(250); } },
+  sparkle: { files: ["jb2a.twinkling_stars.points07.white"], play: (s, f) => { sqFire(tinted(f, s, 1.4)); return sleep(300); } },
+  teleport: { files: ["jb2a.extras.tmfx.inpulse.circle.01.normal"], play: (s, f) => { sqFire(seq => { tinted(f, s, 1.6)(seq); const out = pick(["jb2a.extras.tmfx.outpulse.circle.01.normal"]); if (out) tinted(out, s, 1.8, 500)(seq); }); return sleep(500); } },
+  flash: { files: ["jb2a.extras.tmfx.outpulse.circle.04.normal", "jb2a.extras.tmfx.outpulse.circle.01.normal"], play: (s, f) => { sqFire(seq => seq.effect().file(f).atLocation(s.at).size(s.big ? 3 : 2.2, { gridUnits: true }).tint(mix(s.color, 0.5)).locally()); return sleep(300); } }
+};
+
+/** Czary: każdy krok osobno — JB2A, gdy jest i gracz go nie wyłączył, inaczej wygląd wbudowany. */
+const SPELL = Object.fromEntries(Object.entries(SPELL_BUILTIN).map(([k, fn]) => [k, s => {
+  const sq = SPELL_SEQ[k];
+  const file = sq && sequencerOk() ? pick(sq.files) : null;
+  return file ? sq.play(s, file) : fn(s);
+}]));
+

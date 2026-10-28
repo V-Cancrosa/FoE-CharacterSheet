@@ -357,7 +357,7 @@ Tokeny:
   i gasną same, gdy zmienia się karta (liczy przeglądarka MG); stan włączony ręcznie zostaje, dopóki karta się nie zmieni.
   Niewidzialny i oślepiony działają jak w Foundry (token niewidoczny dla innych, oślepiony nic nie widzi).
 - Światło w HUD tokena (lewa kolumna): żarówka — latarka PipBucka (10 ft jasno, 20 ft przyćmione, w kolorze ekranu
-  PipBucka), różdżka (tylko jednorożce i alikorny) — światło rogu jak zaklęcie Light (15 / 30 ft). Ponowne kliknięcie
+  PipBucka), różdżka (tylko jednorożce i alikorny) — światło rogu jak zaklęcie Light (15 / 30 ft) w kolorze magii z zakładki Magia. Ponowne kliknięcie
   gasi światło i przywraca poprzednie ustawienia światła tokena.
 - Znacznik tury w walce: zielony celownik V.A.T.S. pod tokenem, który ma turę (jeśli w ustawieniach walki Foundry nie
   wybrano innego obrazka).
@@ -382,7 +382,7 @@ Animacje walki (atak bronią albo celowanym zaklęciem z zaznaczonym celem, klaw
   animacje JB2A; bez nich wbudowane efekty w stylu PipBucka (bez żadnych modułów). Na The Forge: Bazaar → Modules →
   wyszukaj „Sequencer” i „JB2A”, zainstaluj i włącz w świecie (Manage Modules). Modułu Automated Animations nie
   włączaj do ataków FoE — dublowałby animacje.
-- Opcje gracza (Ustawienia gry → Fallout: Equestria RPG): „Animacje walki” (wł./wył.) i „Animacje walki: wygląd” (JB2A,
+- Opcje gracza (Ustawienia gry → Fallout: Equestria RPG): „Animacje walki i czarów” (wł./wył.) i „Animacje walki: wygląd” (JB2A,
   gdy są, albo zawsze wygląd PipBucka). Jeśli w Sequencerze MG zabronił graczom efektów, gracze widzą wygląd PipBucka.
 
 Animacje stanów na tokenach (idą za ikonami stanów w HUD tokena — także za tymi, które system zapala sam):
@@ -396,6 +396,21 @@ Animacje stanów na tokenach (idą za ikonami stanów w HUD tokena — także za
   ma wygląd PipBucka. Animacje rysuje każdy gracz u siebie — nic nie zapisuje się w świecie ani w tokenach i nie
   zostaje po wyłączeniu modułów.
 - Opcja gracza „Animacje stanów na tokenach” (wł./wył.); wygląd — jak przy animacjach walki.
+
+Czary i kolor magii:
+- W zakładce Magia (jednorożce i alikorny) jest pole „Kolor magii” — kolor aury jednorożca (domyślnie liliowy). Tym kolorem
+  świecą: animacje rzucania czarów, pocisk zaklęcia przy celowaniu, światło rogu w HUD tokena i gwiazdki utrzymywanych
+  zaklęć.
+- Rzucenie zaklęcia (karta wyniku na czacie, po wylądowaniu kości testu Magic): róg rozbłyska (overglow — mocniej), a dalej
+  zależnie od zaklęcia: wiązka magii do celów (zaznaczonych klawiszem T; bez celu — rzucający) i przy nich leczenie
+  (krzyżyki), tarcza (bańka), telekineza (poświata), umysł (fale do głowy), obrażenia obszarowe (wybuch magii)
+  albo iskry przy pozostałych; teleportacja — zapadnięcie i błysk, światło — rozbłysk z rogu, niewidzialność i iluzje —
+  falujący zarys. Porażka — iskry gasną („Zaklęcie gaśnie!”), wypalenie — fioletowy dym („Wypalenie!”), krytyk —
+  „Overglow!”. Zaklęcia celowane z obrażeniami pokazują pocisk dopiero przy celowaniu.
+- Rodzaj animacji wynika z nazwy zaklęcia (katalog; własne zaklęcia też po polsku, np. „Leczenie”, „Tarcza”).
+- Z Sequencerem i JB2A blask rogu, leczenie, tarcza, telekineza, umysł, wybuch, iskry, teleport i światło używają
+  białych grafik JB2A zabarwionych kolorem magii; wiązka, ukrycie, porażka i wypalenie — zawsze wygląd PipBucka.
+  Pocisk zaklęcia we własnym kolorze (innym niż domyślny) rysuje system, bo grafiki JB2A pocisków mają stały kolor.
 
 Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL:
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`

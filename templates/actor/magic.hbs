@@ -72,6 +72,7 @@
     <span class="cs" title="END + INT + {{#if magic.alicorn}}5{{else}}2{{/if}} + {{t "features; recovers 1 per hour"}}">Strain <b>{{magic.strain}}/{{magic.strainMax}}</b></span>
     <a class="cs act" data-action="strainRest" title="{{t "An hour of rest: +1 strain (Shift: to full)"}}"><i class="fa-solid fa-bed"></i> +1 strain</a>
     <span class="cs">Magic: {{t "rank"}} <b>{{magic.rank}}</b> · MFD 1 <b>{{magic.tn}}</b></span>
+    <label class="cs alt magic-color" title="{{t "The color of this unicorn's magic: spell animations, horn light and the stars of maintained spells"}}">{{t "Magic color"}} <input type="color" name="system.magicColor" value="{{magic.color}}"></label>
     {{#if magic.burnout}}<span class="cs alert">{{t "BURNOUT — no spells for 1d4 weeks"}}</span> <a class="cs act" data-action="clearBurnout" title="{{t "Burnout is over"}}"><i class="fa-solid fa-xmark"></i> {{t "end burnout"}}</a>{{/if}}
   </div>
 
