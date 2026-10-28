@@ -53,7 +53,8 @@ export function specialsFrom(e) {
       : has(/\bFire \(see Special|lit on Fire/) ? "hit" : "",
     electric: has(/\bElectric(ity|al) \(see Special/),
     rads: has(/\bRads \(see Special/),
-    shock: has(/\bShock \(see Special/),
+    // pistolet i karabin Shock (FSW-32, FSW-42B) — w podręczniku bez przypisu, u nas jak broń Shock (zasada domowa)
+    shock: has(/\bShock \(see Special/) || /\bShock (Pistol|Rifle)\b/.test(e.name ?? ""),
     poison: has(/\bPoison \(see Special|Poison \(non-magical|Can be poisoned|Poison and Concealable/) ? "other" : "",
     knockdown: has(/knock down the target|Knocks back/i),
     concealable: has(/Concealable/),

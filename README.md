@@ -84,7 +84,9 @@ Efekty specjalne broni (s. 200–202) — broń z katalogu ma je ustawione z prz
 - Promieniowanie: 25 radów za każde 10 obrażeń po DT, minus odporność celu.
 - Dezintegracja (broń energetyczna): rany, które okaleczyłyby lokację, albo trafienie zabójcze zamieniają cel w popiół;
   pistolet dezintegrujący i Star Disintegrator — zawsze przy krytyku.
-- Ogłuszenie (shock): zamiast śmierci utrata przytomności, krytyk +1d10 ran.
+- Ogłuszenie (shock): zamiast śmierci utrata przytomności, krytyk +1d10 ran. Zasada domowa: trafienie z co najmniej
+  1 obrażeniem po DT zapala na tokenie „Porażony prądem” do końca następnej rundy — sam znak, bez dodatkowych obrażeń
+  (w walce gaśnie sam, poza walką MG zdejmuje go z HUD). Pistolet i karabin Shock (FSW-32, FSW-42B) też mają tę cechę.
 - Trucizna: radskorpion (END ¾, potem 1 rana na rundę w głowę lub tułów) albo mantykora (END ½, paraliż; „Rzut END” na karcie).
 - Przewracanie (np. karabin Gaussa); znaczniki: ukrywalna, luneta, tłumik, zapalnik, mina.
 Stany widać w zakładce Walka (z przyciskami) i jako ikony na tokenie; w walce działają same przy zmianie rundy.
@@ -382,6 +384,18 @@ Animacje walki (atak bronią albo celowanym zaklęciem z zaznaczonym celem, klaw
   włączaj do ataków FoE — dublowałby animacje.
 - Opcje gracza (Ustawienia gry → Fallout: Equestria RPG): „Animacje walki” (wł./wył.) i „Animacje walki: wygląd” (JB2A,
   gdy są, albo zawsze wygląd PipBucka). Jeśli w Sequencerze MG zabronił graczom efektów, gracze widzą wygląd PipBucka.
+
+Animacje stanów na tokenach (idą za ikonami stanów w HUD tokena — także za tymi, które system zapala sam):
+- Płonie — płomienie, porażony prądem — iskry, zatruty — bąbelki, choroba popromienna — zielona poświata, krwawi — krople
+  krwi, ogłuszony — gwiazdki nad głową, przerażony — drżąca obwódka i krople potu, sparaliżowany — kryształowy
+  sześciokąt, unieruchomiony — łańcuchy, nieprzytomny — „Zzz”, wypalenie magii — fioletowy dym, w ukryciu — przerywany
+  krąg, w locie — cień pod tokenem, a jednorożec, który utrzymuje zaklęcia — krążące gwiazdki (tyle, ile zaklęć, do 3).
+  Martwy token nie ma animacji.
+- Z Sequencerem i JB2A stany, dla których JB2A ma znacznik w pętli (ogień, prąd, trucizna, promieniowanie, krew,
+  ogłuszenie, strach, paraliż, łańcuchy, sen, wypalenie, cień lotu, zaklęcia), dostają grafikę JB2A; ukrycie zawsze
+  ma wygląd PipBucka. Animacje rysuje każdy gracz u siebie — nic nie zapisuje się w świecie ani w tokenach i nie
+  zostaje po wyłączeniu modułów.
+- Opcja gracza „Animacje stanów na tokenach” (wł./wył.); wygląd — jak przy animacjach walki.
 
 Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL:
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`

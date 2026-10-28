@@ -3505,5 +3505,13 @@ export default {
   "Jammed!": "Zacięcie!",
   "Fumble!": "Potknięcie!",
   "Fizzle!": "Zaklęcie gaśnie!",
-  "Dud!": "Niewypał!"
+  "Dud!": "Niewypał!",
+  // ---- module/conditions.mjs
+  "Jolted (Shock weapon)": "Porażony (broń Shock)",
+  "marker only, no extra damage; wears off at the end of the next round": "sam znak, bez dodatkowych obrażeń; mija na koniec następnej rundy",
+  // ---- module/attack.mjs
+  "jolted until the end of the next round": "porażony prądem do końca następnej rundy",
+  // ---- module/fx-status.mjs
+  "Status animations on tokens": "Animacje stanów na tokenach",
+  "Flames, sparks, poison bubbles, a radiation glow, blood drops, stars, chains and more on tokens with FoE statuses, and stars around a unicorn maintaining spells. They follow the token's status icons. Each player decides for themselves.": "Płomienie, iskry, bąbelki trucizny, zielona poświata promieniowania, krople krwi, gwiazdki, łańcuchy i inne na tokenach ze stanami FoE, a wokół jednorożca, który utrzymuje zaklęcia — krążące gwiazdki. Idą za ikonami stanów tokena. Każdy gracz decyduje u siebie."
 };

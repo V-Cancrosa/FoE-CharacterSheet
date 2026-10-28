@@ -9,7 +9,7 @@ import {
   rangeIncrement, rangeBands, wieldPenalty, burst, isAoe, isClose, reloadInfo, effectiveDT, woundsFrom,
   POISONS, disintegrates, radsFrom, isMetalArmor
 } from "./combat.mjs";
-import { setCondition, toggleStatus, poisonCheck, endOfRound } from "./conditions.mjs";
+import { setCondition, toggleStatus, poisonCheck, endOfRound, JOLT_ROUNDS } from "./conditions.mjs";
 import { hitStepsAgainst, evasiveActive, AREA_STATUS } from "./vehicle-data.mjs";
 import { implantReserve } from "./cyber.mjs";
 import { loadedVariant, ammoOnHit, SPECIAL_AMMO, variantsFor, specialAmmoOn, variantName } from "./ammo-data.mjs";
@@ -726,6 +726,11 @@ async function applySpecials(actor, res, special, d, endT) {
   if (special.electric) {
     await setCondition(actor, "shocked", { dice: special.robot ? "6d12" : "3d12" });
     notes.push(t("shock: {dice} to every location at the end of the round", { dice: special.robot ? "6d12" : "3d12" }));
+  }
+  // broń Shock (zasada domowa): znak „Porażony prądem” do końca następnej rundy, bez dodatkowych obrażeń
+  if (special.shock && hurt && !actor.system.isVehicle) {
+    await setCondition(actor, "jolted", { rounds: JOLT_ROUNDS });
+    notes.push(t("jolted until the end of the next round"));
   }
   if (special.knock && wounded) {
     await toggleStatus(actor, "prone", true);

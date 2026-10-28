@@ -11,13 +11,15 @@ import { t, tn, tfields } from "./i18n.mjs";
  *   shocked   { dice }              — elektryczność: raz na koniec rundy 3d12 (maszyny 6d12)
  *   poisoned  { type }              — trucizna radskorpiona: 1 rana na rundę w głowę lub tułów do utraty przytomności
  *   paralyzed { ok, bad, locked }   — trucizna mantykory: paraliż, rzuty END ½ (3 sukcesy z rzędu znoszą)
+ *   jolted    { rounds }            — broń Shock (zasada domowa): sam znak „Porażony prądem” do końca następnej rundy
  * Ikony tokenów: stany FoE z tokens.mjs (te same identyfikatory co w Foundry: burning, shock, poison, paralysis).
  */
 export const CONDITIONS = tfields({
   burning: { label: "Burning", status: "burning" },
   shocked: { label: "Shocked", status: "shock" },
   poisoned: { label: "Poisoned (radscorpion)", status: "poison" },
-  paralyzed: { label: "Paralyzed (manticore)", status: "paralysis" }
+  paralyzed: { label: "Paralyzed (manticore)", status: "paralysis" },
+  jolted: { label: "Jolted (Shock weapon)", status: "shock" }
 }, ["label"]);
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -37,8 +39,14 @@ export async function setCondition(actor, key, data) {
 
 export async function clearCondition(actor, key) {
   await clearFlag(actor, `conditions.${key}`);
-  await toggleStatus(actor, CONDITIONS[key].status, false);
+  // ikona zostaje, dopóki trzyma ją inny stan (prąd z Electricity i znak broni Shock mają tę samą)
+  const status = CONDITIONS[key].status;
+  if (Object.keys(conditionsOf(actor)).some(k => k !== key && CONDITIONS[k]?.status === status)) return;
+  await toggleStatus(actor, status, false);
 }
+
+/** Broń Shock: znak do końca następnej rundy (licznik końców rund: ta i następna). */
+export const JOLT_ROUNDS = 2;
 
 /** DT przy obrażeniach z ognia (bez pancerza) albo prądu (tylko pancerz niemetalowy). */
 function ongoingDT(actor, loc, mode) {
@@ -78,6 +86,13 @@ async function afterWounds(actor, notes) {
 /** Efekty końca rundy dla jednego aktora. Zwraca true, jeśli coś się stało. */
 export async function endOfRound(actor) {
   const c = conditionsOf(actor);
+  // znak broni Shock mija po cichu — bez karty na czacie
+  if (c.jolted) {
+    const left = (c.jolted.rounds ?? 1) - 1;
+    if (left > 0) await actor.setFlag("foe-rpg", "conditions.jolted.rounds", left);
+    else await clearCondition(actor, "jolted");
+    delete c.jolted;
+  }
   if (!Object.keys(c).length) return false;
   const blocks = [];
   const rolls = [];
@@ -178,6 +193,7 @@ export function conditionRows(actor) {
     detail: k === "burning" ? t("3d12 to every location at the end of the round, {n} left", { n: v.rounds ?? 1 })
       : k === "shocked" ? t("{dice} to every location at the end of the round", { dice: v.dice || "3d12" })
       : k === "poisoned" ? t("1 wound per round to the head or torso until unconscious")
+      : k === "jolted" ? t("marker only, no extra damage; wears off at the end of the next round")
       : v.locked ? t("paralyzed for 1d4 hours") : t("END ½ roll on every action (successes in a row: {ok}/3, failures: {bad}/3)", { ok: v.ok ?? 0, bad: v.bad ?? 0 }),
     extinguish: k === "burning",
     resist: k === "paralyzed" && !v.locked

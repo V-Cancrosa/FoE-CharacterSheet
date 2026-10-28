@@ -322,3 +322,33 @@ export function planAttack(o) {
   groups.push(fire);
   return groups;
 }
+
+// ---------- stany na tokenach (fx-status.mjs) ----------
+// klucz = identyfikator stanu FoE (tokens.mjs); jb2a — znaczniki w pętli z JB2A (pierwszy istniejący), scale — wielkość
+// względem tokena, below — pod tokenem, offsetY — przesunięcie w polach siatki; reszta rysuje się w wyglądzie wbudowanym
+export const STATUS_FX = {
+  burning:     { color: 0xff8a2a, jb2a: ["jb2a.flames.02.orange", "jb2a.flames.01.orange"], scale: 1.25, normal: true },
+  shock:       { color: 0x7fd0ff, jb2a: ["jb2a.energy_strands.overlay.blue.01"], scale: 1.25 },
+  poison:      { color: 0x7dff4d, jb2a: ["jb2a.markers.poison.dark_green.02", "jb2a.markers.poison.dark_green.01"], scale: 1.5 },
+  irradiated:  { color: 0x9dff4d, jb2a: ["jb2a.particles.swirl.greenyellow.01.01"], scale: 1.4 },
+  bleeding:    { color: 0xb3001b, jb2a: ["jb2a.markers.drop.red.02", "jb2a.markers.drop.red.01"], scale: 1.5, normal: true },
+  stun:        { color: 0xffe066, jb2a: ["jb2a.markers.stun.purple.02", "jb2a.markers.stun.purple.01"], scale: 1.5 },
+  fear:        { color: 0xb48cff, jb2a: ["jb2a.markers.fear.dark_purple.02", "jb2a.markers.fear.dark_purple.01"], scale: 1.5 },
+  paralysis:   { color: 0x9fe3ff, jb2a: ["jb2a.markers.chain.spectral_standard.loop.02.blue"], scale: 1.5 },
+  restrain:    { color: 0xc8c8c8, jb2a: ["jb2a.markers.chain.standard.loop.02.red", "jb2a.markers.chain.standard.loop.01.red"], scale: 1.5, normal: true },
+  unconscious: { color: 0xdcdcff, jb2a: ["jb2a.sleep.symbol.pink", "jb2a.sleep.symbol.dark_pink"], scale: 1.0, normal: true },
+  burnout:     { color: 0x8a6fb0, jb2a: ["jb2a.markers.smoke.ring.loop.bluepurple"], scale: 1.4, normal: true },
+  hidden:      { color: 0x9adfb0, jb2a: null },
+  fly:         { color: 0x000000, jb2a: ["jb2a.drop_shadow.dark_black"], scale: 0.9, below: true, offsetY: 0.3, opacity: 0.6, normal: true },
+  maintained:  { color: 0xc9b2ff, jb2a: ["jb2a.markers.circle_of_stars.blue"], scale: 1.45, tint: 0xc9b2ff }
+};
+export const STATUS_ORDER = Object.keys(STATUS_FX);
+
+/** Efekty do pokazania: stany aktora (Set albo tablica) i liczba utrzymywanych zaklęć. Martwy — żadnych. */
+export function statusFxKeys(statuses, maintained = 0) {
+  const st = new Set(statuses ?? []);
+  if (st.has("dead")) return [];
+  const keys = STATUS_ORDER.filter(k => k !== "maintained" && st.has(k));
+  if (maintained > 0) keys.push("maintained");
+  return keys;
+}
