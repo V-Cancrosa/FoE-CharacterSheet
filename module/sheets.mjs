@@ -39,6 +39,7 @@ import { parseBook } from "./books-data.mjs";
 import { loadedVariant } from "./ammo-data.mjs";
 import { castShadow, addSonicScreech, shapeshift, endDisguise, feedOnLove, detectDisguise, promptLove } from "./shadow.mjs";
 import { t, tn, N_, tmap } from "./i18n.mjs";
+import { onPortrait } from "./portrait.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -77,6 +78,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     window: { resizable: true },
     form: { submitOnChange: true },
     actions: {
+      portrait: onPortrait,
       rollAttr: FoeActorSheet.#onRollAttr,
       rollSkill: FoeActorSheet.#onRollSkill,
       rollWeapon: FoeActorSheet.#onRollWeapon,

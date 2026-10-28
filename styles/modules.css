@@ -22,3 +22,37 @@ body.foe-ui .dice-tray button:hover div.dice { background-color: var(--pip-brigh
 body.foe-ui .dice-tray button.active { background: var(--pip); border-color: var(--pip-bright); color: #021006; outline: 1px solid var(--pip); }
 body.foe-ui .dice-tray .dice-tray__flag { background-color: var(--pip); color: #021006; }
 body.foe-ui .dice-tray input[type="text"]:focus { background: var(--pip-bg-hi); border-color: var(--pip); }
+
+/* Break Time (moduł breaktime): okno przerwy — kto wrócił (zielony pasek), kto jeszcze nie (czerwony) */
+body.foe-ui #breaktime-app .window-content { background: var(--pip-bg); color: var(--pip); font-family: var(--foe-mono); }
+body.foe-ui #breaktime-app .break-start { color: var(--pip-mid); font-family: var(--foe-crt); font-size: 1.15em; letter-spacing: .04em; }
+body.foe-ui #breaktime-app .remaining-timer {
+  background: var(--pip-panel); border: 1px solid var(--pip-line); color: var(--pip-bright);
+  font-family: var(--foe-crt); font-size: 1.5em; letter-spacing: .06em; text-shadow: 0 0 6px var(--pip-glow);
+}
+body.foe-ui #breaktime-app .breaktime-container { border-top-color: var(--pip-line); }
+body.foe-ui #breaktime-app .breaktime-player { border-bottom-color: var(--pip-line); display: flex; align-items: center; gap: 6px; }
+/* szersza czcionka PipBucka nie mieści się w układzie inline-block modułu — wiersz gracza jako flex */
+body.foe-ui #breaktime-app .breaktime-player .breaktime-avatar { flex: 0 0 58px; }
+body.foe-ui #breaktime-app .breaktime-details { flex: 1; width: auto; min-width: 0; padding: 0 28px 0 0; }
+body.foe-ui #breaktime-app .breaktime-player .breaktime-avatar { border-left-color: var(--pip-dim); }
+body.foe-ui #breaktime-app .breaktime-player.back .breaktime-avatar { border-left-color: var(--pip); box-shadow: -4px 0 8px -4px var(--pip-glow); }
+body.foe-ui #breaktime-app .breaktime-player.away .breaktime-avatar { border-left-color: var(--pip-alert); }
+body.foe-ui #breaktime-app .breaktime-player:not(.back) .breaktime-avatar img { filter: grayscale(1) brightness(.75); }
+body.foe-ui #breaktime-app .breaktime-name { font-family: var(--foe-crt); font-size: 1.3em; letter-spacing: .04em; color: var(--pip-bright); }
+body.foe-ui #breaktime-app .breaktime-character { color: var(--pip-mid); }
+body.foe-ui #breaktime-app .breaktime-marker { color: var(--pip-bright); text-shadow: 0 0 6px var(--pip-glow); }
+body.foe-ui #breaktime-app .breaktime-player.away .breaktime-marker { color: var(--pip-alert); text-shadow: 0 0 6px color-mix(in srgb, var(--pip-alert) 55%, transparent); }
+body.foe-ui #breaktime-app button { background: var(--pip-panel); border: 1px solid var(--pip-line); color: var(--pip); }
+/* przyciski z napisem; przyciski-ikony MG (kosz, zegar) zostają przy czcionce ikon */
+body.foe-ui #breaktime-app button:not(.icon) { font-family: var(--foe-crt); font-size: 1.1em; letter-spacing: .05em; text-transform: uppercase; }
+body.foe-ui #breaktime-app button:hover:not(:disabled) { background: var(--pip-bg-hi); border-color: var(--pip); color: var(--pip-bright); text-shadow: 0 0 5px var(--pip-glow); }
+body.foe-ui #breaktime-app button:disabled { opacity: .4; }
+/* lista graczy: przycisk „Przerwa” i kubek przy tych, którzy odeszli od stołu */
+body.foe-ui #players .breaktime-button {
+  background: var(--pip-panel); border-color: var(--pip-line); color: var(--pip);
+  font-family: var(--foe-crt); font-size: 1.1em; letter-spacing: .05em; text-transform: uppercase;
+}
+body.foe-ui #players .breaktime-button:hover > * { color: var(--pip-bright); filter: drop-shadow(0 0 5px var(--pip-glow)); }
+body.foe-ui #players .player.player-away .player-name { color: var(--pip-dim); }
+body.foe-ui #players .player.player-away > i.fa-mug-hot { color: var(--pip-alert); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--pip-alert) 60%, transparent)); }

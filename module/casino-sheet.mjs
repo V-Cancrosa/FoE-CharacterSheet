@@ -10,6 +10,7 @@ import {
 } from "./casino.mjs";
 import { capsOf, capsText, esc } from "./give.mjs";
 import { t, tn } from "./i18n.mjs";
+import { onPortrait } from "./portrait.mjs";
 
 const { HandlebarsApplicationMixin, DialogV2 } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -44,6 +45,7 @@ export class FoeCasinoSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     window: { resizable: true },
     form: { submitOnChange: true },
     actions: {
+      portrait: onPortrait,
       toggleView: FoeCasinoSheet.#onToggleView,
       sit: FoeCasinoSheet.#onSit,
       leave: FoeCasinoSheet.#onLeave,

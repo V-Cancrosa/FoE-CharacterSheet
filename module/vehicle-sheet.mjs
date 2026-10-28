@@ -13,6 +13,7 @@ import { rangeIncrement, reloadInfo, specialList, SPECIALS } from "./combat.mjs"
 import { VEHICLE_SIZES, VEHICLE_KINDS, VEHICLE_POWER, CREW_ROLES, vehicleAreas, defaultStructure, defaultPilotSkill, evasiveActive } from "./vehicle-data.mjs";
 import { addCrew, removeCrew, setCrewRole, driveVehicle, fireVehicleWeapon, ramWithVehicle, crashVehicle, repairVehicle } from "./vehicle.mjs";
 import { t } from "./i18n.mjs";
+import { onPortrait } from "./portrait.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -28,6 +29,7 @@ export class FoeVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     window: { resizable: true },
     form: { submitOnChange: true },
     actions: {
+      portrait: onPortrait,
       drive: FoeVehicleSheet.#onDrive,
       ram: FoeVehicleSheet.#onRam,
       crash: FoeVehicleSheet.#onCrash,
