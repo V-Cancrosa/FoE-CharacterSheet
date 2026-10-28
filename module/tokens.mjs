@@ -12,6 +12,7 @@
 import { t, N_, tfields } from "./i18n.mjs";
 import { radLevel } from "./body.mjs";
 import { PIP_HEX } from "./ui-theme.mjs";
+import { magicColorOf } from "./fx-data.mjs";
 
 const F = "foe-rpg";
 const ICON = id => `systems/${F}/icons/status/${id}.svg`;
@@ -143,7 +144,6 @@ export const LIGHTS = {
   pipbuck: { bright: 10, dim: 20, alpha: 0.35 },   // latarka PipBucka (stałe sztuczne światło, s. 49)
   horn: { bright: 15, dim: 30, alpha: 0.45 }       // zaklęcie Light: 10–15 ft jasno, dwa razy tyle przyćmione
 };
-const HORN_COLOR = "#c9b2ff";
 
 export function lightData(kind, color) {
   const l = LIGHTS[kind];
@@ -155,7 +155,8 @@ export async function toggleLight(token, kind) {
   const cur = token.getFlag(F, "light");
   if (cur?.kind === kind) return token.update({ light: cur.prev ?? {}, [`flags.${F}.light`]: null });
   const prev = cur?.prev ?? token.toObject().light;
-  const color = kind === "pipbuck" ? (PIP_HEX[game.settings.get(F, "pipColor")] ?? PIP_HEX.green) : HORN_COLOR;
+  // róg świeci kolorem magii jednorożca (zakładka Magia)
+  const color = kind === "pipbuck" ? (PIP_HEX[game.settings.get(F, "pipColor")] ?? PIP_HEX.green) : magicColorOf(token.actor);
   return token.update({ light: lightData(kind, color), [`flags.${F}.light`]: { kind, prev } });
 }
 

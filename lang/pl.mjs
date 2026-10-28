@@ -3492,8 +3492,8 @@ export default {
   "Drop": "Upuść",
   "Drop on the ground (it stays under your token; anyone next to it can pick it up)": "Upuść na ziemię (zostaje pod twoim tokenem; podniesie je każdy, kto stanie obok)",
   // ---- module/fx.mjs
-  "Combat animations": "Animacje walki",
-  "Shots and blows on the map: a hit lands on the target token, a miss next to it, a Luck card reroll ricochets from where the previous shot landed; criticals and jams get their own effect. They play after the dice land. Each player decides for themselves.": "Strzały i ciosy na mapie: trafienie ląduje w tokenie celu, pudło obok niego, a przerzut kartą Szczęścia odbija się rykoszetem od miejsca, w które trafiła poprzednia kula; krytyki i zacięcia mają własny efekt. Animacja rusza, gdy kości wylądują. Każdy gracz decyduje u siebie.",
+  "Combat and spell animations": "Animacje walki i czarów",
+  "Shots and blows on the map: a hit lands on the target token, a miss next to it, a Luck card reroll ricochets from where the previous shot landed; criticals and jams get their own effect. Spells glow on the horn in the unicorn's magic color and reach their targets (healing, shields, telekinesis…). They play after the dice land. Each player decides for themselves.": "Strzały i ciosy na mapie: trafienie ląduje w tokenie celu, pudło obok niego, a przerzut kartą Szczęścia odbija się rykoszetem od miejsca, w które trafiła poprzednia kula; krytyki i zacięcia mają własny efekt. Czary rozbłyskują na rogu w kolorze magii jednorożca i docierają do celów (leczenie, tarcze, telekineza…). Animacja rusza, gdy kości wylądują. Każdy gracz decyduje u siebie.",
   "Combat animations: look": "Animacje walki: wygląd",
   "With the Sequencer and JB2A modules active the animations use JB2A graphics; without them (or with the second option) a built-in PipBuck-style version that needs no modules.": "Z włączonymi modułami Sequencer i JB2A animacje używają grafik JB2A; bez nich (albo przy drugiej opcji) — wbudowany wygląd w stylu PipBucka, który nie wymaga żadnych modułów.",
   "JB2A (Sequencer) when available": "JB2A (Sequencer), gdy są włączone",
@@ -3513,5 +3513,11 @@ export default {
   "jolted until the end of the next round": "porażony prądem do końca następnej rundy",
   // ---- module/fx-status.mjs
   "Status animations on tokens": "Animacje stanów na tokenach",
-  "Flames, sparks, poison bubbles, a radiation glow, blood drops, stars, chains and more on tokens with FoE statuses, and stars around a unicorn maintaining spells. They follow the token's status icons. Each player decides for themselves.": "Płomienie, iskry, bąbelki trucizny, zielona poświata promieniowania, krople krwi, gwiazdki, łańcuchy i inne na tokenach ze stanami FoE, a wokół jednorożca, który utrzymuje zaklęcia — krążące gwiazdki. Idą za ikonami stanów tokena. Każdy gracz decyduje u siebie."
+  "Flames, sparks, poison bubbles, a radiation glow, blood drops, stars, chains and more on tokens with FoE statuses, and stars around a unicorn maintaining spells. They follow the token's status icons. Each player decides for themselves.": "Płomienie, iskry, bąbelki trucizny, zielona poświata promieniowania, krople krwi, gwiazdki, łańcuchy i inne na tokenach ze stanami FoE, a wokół jednorożca, który utrzymuje zaklęcia — krążące gwiazdki. Idą za ikonami stanów tokena. Każdy gracz decyduje u siebie.",
+  // ---- module/fx-data.mjs
+  "Burnout!": "Wypalenie!",
+  "Overglow!": "Overglow!",
+  // ---- templates/actor/magic.hbs
+  "Magic color": "Kolor magii",
+  "The color of this unicorn's magic: spell animations, horn light and the stars of maintained spells": "Kolor magii tego jednorożca: animacje czarów, światło rogu i gwiazdki utrzymywanych zaklęć"
 };

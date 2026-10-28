@@ -41,6 +41,7 @@ import { loadedVariant } from "./ammo-data.mjs";
 import { castShadow, addSonicScreech, shapeshift, endDisguise, feedOnLove, detectDisguise, promptLove } from "./shadow.mjs";
 import { t, tn, N_, tmap } from "./i18n.mjs";
 import { onPortrait } from "./portrait.mjs";
+import { magicHex } from "./fx-data.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -277,7 +278,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const lim = spellLimits(this.document);
     const held = new Set((sys.maintained ?? []).map(m => m.id));
     ctx.magic = {
-      caster: sys.caster, burnout: sys.burnout, alicorn: sys.alicorn,
+      caster: sys.caster, burnout: sys.burnout, alicorn: sys.alicorn, color: magicHex(sys.magicColor),
       strain: sys.resources.strain.value, strainMax: sys.strainMax,
       tn: sys.skills.magic?.tn ?? 0, rank: sys.skills.magic?.rank ?? 0,
       maintained: (sys.maintained ?? []).map(m => ({ ...m, perRound: (m.cost || 0) + (m.layers || 0) })),
