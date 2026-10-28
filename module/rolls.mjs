@@ -414,6 +414,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
           actorUuid: actor.uuid, itemUuid: item.uuid ?? null, itemName: item.name, total, pre, critMult, crit: !!crit, aoe,
           loc: hit?.loc ?? null, called: hit?.called ?? null, table: attack?.table ?? null,
           ignoreDT: item.type === "weapon" ? ammoIgnoreDT(w) : Number(w.ignoreDT) || 0, targets,
+          fx: attack?.fx?.k ?? null,   // rodzaj broni do animacji (np. kolor dezintegracji)
           ...(w.armorless ? { ignoreArmor: true, noDegrade: true } : {})
         }
       }
