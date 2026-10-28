@@ -362,6 +362,27 @@ Tokeny:
 - Widzenie ras: kucyk-nietoperz „widzi” echolokacją na 60 ft w ciemności — nowy aktor od razu, a przy zmianie rasy na
   karcie prototyp i połączone tokeny same (większy zasięg ustawiony przez MG zostaje).
 
+Animacje walki (atak bronią albo celowanym zaklęciem z zaznaczonym celem, klawisz T):
+- Ruszają, gdy kości wylądują (Dice So Nice), u wszystkich tak samo. Trafienie: pocisk albo cios dosięga tokenu celu —
+  przy strzale celowanym w głowę wyżej, w nogi niżej (także przy losowej lokacji z k20). Pudło: kula przelatuje obok
+  celu i ląduje za nim (kurz, iskry, napis „Pudło”), cios trafia w powietrze obok. Seria — kilka pocisków (do 5),
+  strzelba — śrut, granat i wyrzutnia — lot łukiem i wybuch (odłamkowy, ogień, plazma, impuls, błysk, gaz, mróz,
+  balefire — z nazwy), miotacz ognia — strumień, broń energetyczna — laser, plazma, impuls, prąd, dezintegracja, tęcza
+  (AER-17)…, wręcz — cięcie, młot, klucz, topór, pazury, kopyto. Miny kładzione nie mają animacji.
+- Przerzut kartą Szczęścia: w miejscu, w które wbiła się poprzednia kula, błyska złota koniczynka („Szczęście!”), a kula
+  odbija się rykoszetem — udany przerzut trafia w cel, nieudany znowu chybia (kolejny przerzut to kolejne odbicie).
+  Po zacięciu broni (krytyczna porażka) albo w walce wręcz szczęście błyska przy strzelcu albo celu.
+- Krytyczny sukces — większe trafienie i „Krytyk!”, krytyczna porażka — dym przy strzelcu i „Zacięcie!” (wręcz
+  „Potknięcie!”, czar „Zaklęcie gaśnie!”, granat „Niewypał!”).
+- Rzut ukryty przed graczem (tylko MG, na ślepo) nie ma u niego animacji; strzał z ukrytego tokena gracze widzą tylko
+  tam, gdzie doleciał; cele ukryte i na innej scenie są pomijane.
+- Wygląd: z modułami **Sequencer** i **JB2A** (darmowe „JB2A - Jules&Ben's Animated Assets”, albo wersja z Patreona) —
+  animacje JB2A; bez nich wbudowane efekty w stylu PipBucka (bez żadnych modułów). Na The Forge: Bazaar → Modules →
+  wyszukaj „Sequencer” i „JB2A”, zainstaluj i włącz w świecie (Manage Modules). Modułu Automated Animations nie
+  włączaj do ataków FoE — dublowałby animacje.
+- Opcje gracza (Ustawienia gry → Fallout: Equestria RPG): „Animacje walki” (wł./wył.) i „Animacje walki: wygląd” (JB2A,
+  gdy są, albo zawsze wygląd PipBucka). Jeśli w Sequencerze MG zabronił graczom efektów, gracze widzą wygląd PipBucka.
+
 Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL:
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.

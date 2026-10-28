@@ -3490,5 +3490,20 @@ export default {
   "{from} put it down (no token on the map — anyone can pick it up from this card).": "{from} zostawia to na ziemi (bez tokena na mapie — każdy może to podnieść z tej karty).",
   "Drop: {name}": "Upuść: {name}",
   "Drop": "Upuść",
-  "Drop on the ground (it stays under your token; anyone next to it can pick it up)": "Upuść na ziemię (zostaje pod twoim tokenem; podniesie je każdy, kto stanie obok)"
+  "Drop on the ground (it stays under your token; anyone next to it can pick it up)": "Upuść na ziemię (zostaje pod twoim tokenem; podniesie je każdy, kto stanie obok)",
+  // ---- module/fx.mjs
+  "Combat animations": "Animacje walki",
+  "Shots and blows on the map: a hit lands on the target token, a miss next to it, a Luck card reroll ricochets from where the previous shot landed; criticals and jams get their own effect. They play after the dice land. Each player decides for themselves.": "Strzały i ciosy na mapie: trafienie ląduje w tokenie celu, pudło obok niego, a przerzut kartą Szczęścia odbija się rykoszetem od miejsca, w które trafiła poprzednia kula; krytyki i zacięcia mają własny efekt. Animacja rusza, gdy kości wylądują. Każdy gracz decyduje u siebie.",
+  "Combat animations: look": "Animacje walki: wygląd",
+  "With the Sequencer and JB2A modules active the animations use JB2A graphics; without them (or with the second option) a built-in PipBuck-style version that needs no modules.": "Z włączonymi modułami Sequencer i JB2A animacje używają grafik JB2A; bez nich (albo przy drugiej opcji) — wbudowany wygląd w stylu PipBucka, który nie wymaga żadnych modułów.",
+  "JB2A (Sequencer) when available": "JB2A (Sequencer), gdy są włączone",
+  "PipBuck style (built-in)": "Wygląd PipBucka (wbudowany)",
+  // ---- module/fx-data.mjs
+  "Critical!": "Krytyk!",
+  "Lucky!": "Szczęście!",
+  "fx|Miss": "Pudło",
+  "Jammed!": "Zacięcie!",
+  "Fumble!": "Potknięcie!",
+  "Fizzle!": "Zaklęcie gaśnie!",
+  "Dud!": "Niewypał!"
 };

@@ -34,6 +34,7 @@ import { registerLanguageSetting, registerI18nHelpers, localizeRegistrations } f
 import { registerVersionCheck } from "./version-check.mjs";
 import { registerIntegrations } from "./integrations.mjs";
 import { registerRuleLinks } from "./rules.mjs";
+import { registerFxSettings, registerFxHooks } from "./fx.mjs";
 
 Hooks.once("init", () => {
   // język systemu (opcja gracza) — najpierw, bo z niego korzystają wszystkie napisy
@@ -103,6 +104,8 @@ Hooks.once("init", () => {
   registerUiHooks();
   registerCasinoSettings();
   registerCasinoHooks();
+  registerFxSettings();
+  registerFxHooks();
   registerVersionCheck();
   game.foe = { openCatalog, setWeather };
 });
