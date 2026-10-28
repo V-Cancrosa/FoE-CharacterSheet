@@ -340,6 +340,28 @@ Motyw PipBucka dla całego Foundry (v13/v14; grafiki rysowane od zera, bez logo 
 - Dźwięki PipBucka (opcja gracza, domyślnie wyłączona): ciche piknięcia przy pauzie, otwieraniu kart systemu i własnych
   rzutach, generowane w przeglądarce; głośność jak „Interfejs” w ustawieniach dźwięku Foundry.
 
+Tokeny:
+- Nowa postać gracza dostaje token połączony z aktorem, przyjazny, z imieniem widocznym po najechaniu i paskami SATS
+  oraz „Do śmierci” (ile ran zostało do śmierci w głowie albo tułowiu, s. 465), które widzi właściciel i MG; widzenie
+  włączone. Nowy NPC: każdy token osobno (osobne rany), wrogi, imię i paski widzi tylko MG. Nie zmienia się to, co podano
+  przy tworzeniu (kopia, kompendium, bestiariusz) ani to, co MG ustawił w domyślnym tokenie świata Foundry.
+- Istniejących aktorów i tokenów nic nie zmienia samo: MG może raz kliknąć *Ustawienia systemu → „Zastosuj ustawienia
+  tokenów FoE”* — imiona, paski i widzenie dla wszystkich postaci i NPC (prototypy i tokeny na każdej scenie);
+  połączenie z aktorem i nastawienie (np. przyjazny kupiec) zostają.
+- Stany FoE w HUD tokena (prawy przycisk na tokenie → ikony): martwy, nieprzytomny, przewrócony, płonie, porażony prądem,
+  zatruty, sparaliżowany, ogłuszony, krwawi, oślepiony, głuchy, przerażony, w ukryciu, niewidzialny (pole maskujące),
+  w locie, pod ziemią, w osłonie, unieruchomiony, okaleczony, przeciążony, choroba popromienna, wypalenie magii.
+  „Przeciążony”, „W locie” (wysokość lotu na karcie), „Okaleczony”, „Choroba popromienna” i „Wypalenie magii” zapalają się
+  i gasną same, gdy zmienia się karta (liczy przeglądarka MG); stan włączony ręcznie zostaje, dopóki karta się nie zmieni.
+  Niewidzialny i oślepiony działają jak w Foundry (token niewidoczny dla innych, oślepiony nic nie widzi).
+- Światło w HUD tokena (lewa kolumna): żarówka — latarka PipBucka (10 ft jasno, 20 ft przyćmione, w kolorze ekranu
+  PipBucka), różdżka (tylko jednorożce i alikorny) — światło rogu jak zaklęcie Light (15 / 30 ft). Ponowne kliknięcie
+  gasi światło i przywraca poprzednie ustawienia światła tokena.
+- Znacznik tury w walce: zielony celownik V.A.T.S. pod tokenem, który ma turę (jeśli w ustawieniach walki Foundry nie
+  wybrano innego obrazka).
+- Widzenie ras: kucyk-nietoperz „widzi” echolokacją na 60 ft w ciemności — nowy aktor od razu, a przy zmianie rasy na
+  karcie prototyp i połączone tokeny same (większy zasięg ustawiony przez MG zostaje).
+
 Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL:
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
 Ręcznie: wrzuć zawartość repo jako folder `foe-rpg` do `Data/systems/`.
@@ -495,3 +517,4 @@ Nowe wydanie: zmień `"version"` w system.json (np. na `0.2.0`) i scal to do `ma
 workflow `.github/workflows/release.yml` sam utworzy wydanie `v0.2.0` z plikami `foe-rpg.zip` i `system.json`.
 
 Czcionki: VT323 i IBM Plex Mono (SIL Open Font License, pliki licencji w `fonts/`).
+Ikony stanów tokenów (`icons/status/`): Font Awesome Free 6.5.2 (CC BY 4.0, https://fontawesome.com/license/free) — informacja o licencji jest w każdym pliku.

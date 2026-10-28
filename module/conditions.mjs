@@ -11,7 +11,7 @@ import { t, tn, tfields } from "./i18n.mjs";
  *   shocked   { dice }              — elektryczność: raz na koniec rundy 3d12 (maszyny 6d12)
  *   poisoned  { type }              — trucizna radskorpiona: 1 rana na rundę w głowę lub tułów do utraty przytomności
  *   paralyzed { ok, bad, locked }   — trucizna mantykory: paraliż, rzuty END ½ (3 sukcesy z rzędu znoszą)
- * Ikony tokenów to standardowe statusy Foundry.
+ * Ikony tokenów: stany FoE z tokens.mjs (te same identyfikatory co w Foundry: burning, shock, poison, paralysis).
  */
 export const CONDITIONS = tfields({
   burning: { label: "Burning", status: "burning" },

@@ -274,3 +274,11 @@ body[data-foe-crt="off"] .foe-welcome .fw-frame::after { display: none; }
   margin: 0; padding: 0; background: none; border: 0; white-space: pre-wrap; color: inherit; min-height: 7.5em;
   font-family: var(--foe-crt); font-size: 22px; line-height: 1.2; text-shadow: 0 0 5px var(--pip-glow);
 }
+
+/* HUD tokena: stany FoE (białe ikony; aktywne świecą) i światło PipBucka / rogu */
+body.foe-ui #token-hud .status-effects { background: var(--pip-panel); border: 1px solid var(--pip-line); box-shadow: 0 0 8px var(--pip-faint); }
+body.foe-ui #token-hud .status-effects .effect-control { opacity: .45; }
+body.foe-ui #token-hud .status-effects .effect-control:hover { opacity: .8; }
+body.foe-ui #token-hud .status-effects .effect-control.active { opacity: 1; filter: drop-shadow(0 0 4px var(--pip-glow)); }
+#token-hud .foe-light.active i { color: #fff8c8; text-shadow: 0 0 6px #ffe680; }
+body.foe-ui #token-hud .foe-light.active i { color: var(--pip-bright); text-shadow: 0 0 6px var(--pip-glow); }
