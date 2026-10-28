@@ -23,6 +23,7 @@ import { registerRollTableClass, registerTableHooks } from "./tables.mjs";
 import { registerLootSettings, registerLootHooks } from "./loot.mjs";
 import { registerGiveHooks } from "./give.mjs";
 import { registerLoadHooks } from "./load.mjs";
+import { configureTokens, registerTokenSettings, registerTokenHooks } from "./tokens.mjs";
 import { registerThrowSettings, registerThrowHooks } from "./throw.mjs";
 import { registerSaleHooks } from "./sale.mjs";
 import { registerUiSettings, registerUiHooks } from "./ui-theme.mjs";
@@ -41,6 +42,10 @@ Hooks.once("init", () => {
   registerRuleLinks();
   CONFIG.Actor.dataModels = { character: CharacterData, npc: NpcData, vehicle: VehicleData, terminal: terminalDataClass(), casino: casinoDataClass() };
   CONFIG.Item.dataModels = { weapon: WeaponData, armor: ArmorData, gear: GearData, feature: FeatureData, spell: SpellData };
+  // tokeny: stany FoE, celownik V.A.T.S. jako znacznik tury, paski (z „Do śmierci”), domyślne ustawienia nowych postaci
+  configureTokens();
+  registerTokenSettings();
+  registerTokenHooks();
   CONFIG.Combat.documentClass = FoeCombat;
   // d100 − ¼ progu Agility; FoeCombat.rollInitiative pyta gracza: odjąć czy dodać (s. 436)
   CONFIG.Combat.initiative = { formula: "1d100 - @initMod", decimals: 0 };

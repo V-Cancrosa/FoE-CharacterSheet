@@ -254,6 +254,9 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
     }
     const L = this.locations;
     this.totalWounds = totalWounds;
+    // pasek tokena „Do śmierci”: ile ran zostało do śmierci w głowie albo tułowiu (s. 465)
+    const left = k => Math.max(0, (L[k]?.limit ?? 0) - (L[k]?.wounds ?? 0));
+    this.vitals = { value: Math.min(left("head"), left("torso")), max: Math.min(L.head?.limit ?? 0, L.torso?.limit ?? 0) };
     this.dead = L.head.lethal || L.torso.lethal;
     this.unconsciousAt = 4 * endT;
     this.unconsciousRisk = endT > 0 && totalWounds >= 4 * endT;
