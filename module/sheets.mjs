@@ -42,6 +42,7 @@ import { castShadow, addSonicScreech, shapeshift, endDisguise, feedOnLove, detec
 import { t, tn, N_, tmap } from "./i18n.mjs";
 import { onPortrait } from "./portrait.mjs";
 import { magicHex } from "./fx-data.mjs";
+import { rollLockpick } from "./doors.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -471,6 +472,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onRollSkill(event, target) {
     const k = target.dataset.key;
+    // Lockpicking obok zamkniętych na klucz drzwi: rzut od razu na ich zamek (doors.mjs)
+    if (k === "lockpick" && await rollLockpick(this.document)) return;
     const s = this.document.system.skills[k];
     const rc = rollContext(this.document, { kind: "skill", skill: k, skillAttr: s.attr }, { manualMod: s.mod });
     const r = await promptMfd(SKILLS[k].label, s.tn, rc);

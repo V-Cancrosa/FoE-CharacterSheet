@@ -14,6 +14,7 @@ import {
 import { MFD_STEPS } from "./data.mjs";
 import { t } from "./i18n.mjs";
 import { onPortrait } from "./portrait.mjs";
+import { isControllable } from "./doors.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -315,9 +316,9 @@ export class FoeTerminalSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const c = cmds[i];
     if (!c) return;
     const picked = c.kind === "door"
-      ? (canvas?.walls?.controlled ?? []).filter(w => w.document.door > 0).map(w => w.document.uuid)
+      ? (canvas?.walls?.controlled ?? []).filter(w => isControllable(w.document)).map(w => w.document.uuid)
       : (canvas?.tokens?.controlled ?? []).filter(ts => ts.actor !== this.document).map(ts => ts.document.uuid);
-    if (!picked.length) return ui.notifications.warn(c.kind === "door" ? t("Select doors on the scene (walls layer, Shift-click for several).") : t("Select tokens on the scene."));
+    if (!picked.length) return ui.notifications.warn(c.kind === "door" ? t("Select doors or Threshold barriers on the scene (walls layer, Shift-click for several).") : t("Select tokens on the scene."));
     c.targets = [...new Set([...(c.targets ?? []), ...picked])];
     ui.notifications.info(t("{label}: linked {n}.", { label: c.label, n: picked.length }));
     return this.document.update({ "system.commands": cmds });

@@ -551,6 +551,27 @@ a raz na grę „Analiza zrzutu” — rzut Science z trudnością terminala: su
   pasek ładowania skaczący o losowe wartości, a na koniec logo producenta z hasłem — inne dla każdego typu: biurowy
   (RobronCo), Stable-Tec, ministerialny (logo wybranego Ministerstwa: M.A.S., MoA, MoI, MoM, MoP, M.W.T.), chmurowy
   (Enklawa), Unics i przenośny. Kliknięcie pomija; opcja gracza „Terminale: animacja uruchamiania”.
+- Komendy drzwi (otwórz, zamknij, zablokuj, odblokuj, przełącz, uchyl) sterują zwykłymi drzwiami Foundry, a z modułem
+  Threshold także jego barierami — zob. „Drzwi, zamki i bariery” niżej.
+
+Drzwi, zamki i bariery (zwykłe drzwi Foundry; z modułem **Threshold** — także jego bariery, Foundry v14):
+- Wytrych: postać stoi przy drzwiach zamkniętych na klucz (token dotyka drzwi albo pola, przez które przechodzą), a gracz
+  klika Lockpicking na karcie. Okno rzutu od razu celuje w zamek: pokazuje jego trudność, narzędzia z ekwipunku (Bobby Pin,
+  wytrych elektroniczny, zaklęcie Conjure Tool — bez nich MG decyduje, czy można próbować) i ustawia MFD zamka.
+  Drzwi odblokowuje sukces na MFD zamka (łatwiejsze MFD wybrane w oknie się nie liczy) — zostają zamknięte, ale już
+  bez zamka. Krytyczna porażka psuje zamek: nie da się go już otworzyć wytrychem, a z perkiem Infiltrator — jeszcze
+  raz (drugie zepsucie jest na dobre). Przerzut kartą Szczęścia zastępuje wynik, także zepsucie zamka. Wynik pokazuje
+  karta „ZAMEK” na czacie.
+- Jednorożec z telekinezą (zna zaklęcie Telekinesis, bez wypalenia) otwiera zamek z daleka: do 5×INT ft, o ile widzi drzwi.
+- Gdy w zasięgu nie ma zamkniętych drzwi, Lockpicking to zwykły rzut (sejf, kajdanki…). Drzwi ukryte widzi tylko MG.
+- Zamek ustawia MG w oknie ściany (dwuklik na drzwiach): sekcja „Zamek (Fallout: Equestria)” — trudność (MFD 2 … 1/10
+  albo „nie do otwarcia wytrychem” — tylko klucz albo terminal) i stan zamka (sprawny / zepsuty / zepsuty na dobre;
+  tu MG też go naprawia). Bez ustawienia trudność wynika z materiału bariery Threshold: tkanina 1,5, drewno, szkło 1,
+  kamień, żelazo, polimer ¾, stal i szkło pancerne ½; zwykłe drzwi — MFD 1.
+- Zamek otwiera aktywny MG (jego przeglądarka zapisuje drzwi), więc MG musi być zalogowany.
+- Terminale z Threshold: komenda działa przez Threshold, więc drzwi uchylają się naprawdę (komenda „uchyl”), a do
+  terminala można podpiąć też bariery bez drzwi — „otwórz” wyłącza pole siłowe albo odsłania zasłony, „zamknij” je
+  przywraca. Podpinanie: zaznacz drzwi albo bariery na warstwie ścian i kliknij „dodaj zaznaczone” przy komendzie.
 
 Kasyno (osobny typ aktora „Stół do gry”): blackjack z automatycznym krupierem albo Texas Hold'em bez limitu. Talia jak
 w podręczniku (s. 220): damą kier jest Celestia, trefl — Luna, karo — Cadance, pik — Nightmare Moon (jokerów, Discorda
