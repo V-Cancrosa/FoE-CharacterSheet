@@ -123,7 +123,8 @@ sekcja „Lot i manewry” w zakładce „Magia i lot”.
 - Limity (ostrzeżenia przy dodawaniu): ranga Flight / 10 manewrów, poziomy od rang 25/50/75/100, poziom 2 — AGI, 3 — AGI/3, 4 — jeden,
   jeden pasywny na poziom; Flight School Dropout i Ace Flyer zmieniają limity. Kreator daje lotnikom manewry poziomu 0.
 - Pogoda: MG wybiera ją w zakładce walki (albo w ustawieniach). Modyfikatory z tabeli podręcznika same trafiają do okna rzutu
-  (celność, percepcja, skradanie, lot) jako zaznaczona pozycja — w budynku wystarczy ją odznaczyć.
+  (celność, percepcja, skradanie, lot) jako zaznaczona pozycja — w budynku wystarczy ją odznaczyć. Z modułem
+  Weather Forging pogoda w FoE i na mapie to jedno — zob. „Pogoda na mapie (Weather Forging)” niżej.
 - Upadek (przycisk w zakładkach Walka i Magia): 1d20 na 10 ft (kontrolowany 1d10), ignoruje DT pancerza, lokacja k8 (ze skrzydłami)
   albo k6, powyżej 100 ft — każda lokacja; „Nanieś obrażenia” jak przy broni.
 
@@ -422,6 +423,17 @@ Animacje nanoszenia obrażeń (przycisk „Nanieś obrażenia” → karta ran n
   (broń magiczno-energetyczna) albo zieloną maź (plazma) („Dezintegracja!”), zniszczony pojazd — wybuch („Wrak!”).
 - Z Sequencerem i JB2A: krew, czaszka przy śmierci i wybuch wraku z JB2A; reszta — wygląd PipBucka. Ukryte tokeny
   i rzuty ukryte przed graczem — bez animacji.
+
+Pogoda na mapie (moduł **Weather Forging**, wymaga Foundry v14):
+- Gdy moduł jest włączony w świecie, modyfikatory pogody idą za tym, co widać na oglądanej scenie: deszcz w panelu
+  Weather Forging to „Burza (deszcz)” w FoE, mgła — „Mgła / chmury / dym”, śnieżyca — „Zamieć” itd. Po zmianie
+  w panelu modyfikatory przechodzą na nową pogodę razem z obrazem (po płynnym przejściu).
+- Wybór pogody w zakładce walki albo w ustawieniach FoE ustawia ją w Weather Forging na oglądanej scenie (płynne przejście,
+  20 s). Rodzaje, których Weather Forging nie ma (magiczna mgła, zaćmienie, burza piaskowa…), dostają najbliższy obraz,
+  a FoE pamięta dokładny wybór — modyfikatory są te z podręcznika.
+- Scena bez pogody Weather Forging (ani wbudowanej pogody sceny) używa pogody wybranej w FoE — jak bez modułu.
+- Opcja świata „Weather Forging: wspólna pogoda” (widoczna, gdy moduł jest zainstalowany) wyłącza to powiązanie.
+  W zakładce walki dopisek „· Weather Forging” w podpowiedzi pogody mówi, że pogoda pochodzi ze sceny.
 
 Instalacja: w Foundry VTT → Game Systems → Install System wklej manifest URL:
 `https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json`
