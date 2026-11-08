@@ -17,6 +17,7 @@ import { gridOf, rectOf, tokenOf as tokenDocOf } from "./give.mjs";
 import { isAdjacent, tokenDistance } from "./trade-data.mjs";
 import { powerState } from "./cyber-data.mjs";
 import { t } from "./i18n.mjs";
+import { doorAction } from "./doors.mjs";
 
 const F = "foe-rpg";
 const SOCKET = `system.${F}`;
@@ -278,9 +279,8 @@ async function runCommand(terminal, c) {
     const doc = await fromUuid(u);
     if (!doc) continue;
     if (c.kind === "door" && doc.documentName === "Wall") {
-      const S = CONST.WALL_DOOR_STATES;
-      const ds = { open: S.OPEN, close: S.CLOSED, lock: S.LOCKED, unlock: S.CLOSED, toggle: doc.ds === S.OPEN ? S.CLOSED : S.OPEN }[c.action];
-      if (ds !== undefined) { await doc.update({ ds }); ok++; }
+      // drzwi Foundry albo bariera Threshold (uchylenie, pole siłowe, zasłony) — doors.mjs
+      if (await doorAction(doc, c.action)) ok++;
     } else if (c.kind === "token" && doc.documentName === "Token") {
       const D = CONST.TOKEN_DISPOSITIONS;
       if (c.action === "friendly") await doc.update({ disposition: D.FRIENDLY });

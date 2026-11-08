@@ -18,6 +18,7 @@ import { registerSatsSettings, registerSatsHooks } from "./sats-targeting.mjs";
 import { terminalDataClass } from "./terminal-data.mjs";
 import { FoeTerminalSheet } from "./terminal-sheet.mjs";
 import { registerTerminalSettings, registerTerminalHooks } from "./terminal.mjs";
+import { registerDoorHooks } from "./doors.mjs";
 import { registerDice3d, registerDice3dSettings } from "./dice3d.mjs";
 import { registerRollTableClass, registerTableHooks } from "./tables.mjs";
 import { registerLootSettings, registerLootHooks } from "./loot.mjs";
@@ -88,6 +89,7 @@ Hooks.once("init", () => {
   registerSatsHooks();
   registerTerminalSettings();
   registerTerminalHooks();
+  registerDoorHooks();
   registerDice3d();
   registerDice3dSettings();
   // Carousel Combat Tracker, Dice Tray (przed ich init/i18nInit) i wysokość lotu → token

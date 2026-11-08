@@ -69,7 +69,7 @@ export const TRAP_SCREWS = tfields({
 export const trapScrew = ts => (Object.hasOwn(TRAP_SCREWS, ts?.trap?.screw ?? "") ? ts.trap.screw : "br");
 export const COMMAND_KINDS = tmap({ door: N_("Door"), token: N_("Tokens (turrets, robots)"), message: N_("Chat message") });
 export const COMMAND_ACTIONS = {
-  door: tmap({ open: N_("open"), close: N_("close"), lock: N_("lock"), unlock: N_("unlock"), toggle: N_("toggle") }),
+  door: tmap({ open: N_("open"), close: N_("close"), lock: N_("lock"), unlock: N_("unlock"), toggle: N_("toggle"), ajar: N_("set ajar (Threshold)") }),
   token: tmap({ off: N_("turn off"), on: N_("turn on"), friendly: N_("against enemies (friendly)"), hostile: N_("hostile") }),
   message: tmap({ say: N_("send") })
 };
