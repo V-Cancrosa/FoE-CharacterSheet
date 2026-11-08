@@ -4,8 +4,11 @@
  *   - celność i percepcja: kroki MFD albo −5 do rzutu,
  *   - skradanie: osobna kolumna (słońce utrudnia, burza ułatwia),
  *   - lot: manewry wykonuje się z modyfikatorem celności (wiatr też przeszkadza).
+ * Z modułem Weather Forging (pogoda na mapie) obie pogody są jedną: modyfikatory idą za tym, co widać na oglądanej
+ * scenie, a wybór pogody w FoE ustawia ją w Weather Forging (weather-wf.mjs). Scena bez jego pogody — jak dotąd.
  */
 import { t, tfields } from "./i18n.mjs";
+import { WF_ID, WF_FLAG, WF_CORE_WEATHER, wfWeatherKey, wfFromFoe, wfExtKey } from "./weather-wf.mjs";
 const F = "foe-rpg";
 
 // acc: { steps, mod } — celność/percepcja; accOnly — nie dotyczy percepcji; sneak — kroki MFD skradania; vis — zasięg widzenia ×PER (ft)
@@ -29,9 +32,45 @@ export const WEATHER = tfields({
 }, ["label"]);
 
 export function currentWeather() {
-  let k = "overcast";
-  try { k = game.settings.get(F, "weather") || "overcast"; } catch { /* brak ustawień (testy) */ }
-  return WEATHER[k] ? { key: k, ...WEATHER[k] } : { key: "overcast", ...WEATHER.overcast };
+  const wf = wfSceneWeather();
+  let k = wf ?? "overcast";
+  if (!wf) try { k = game.settings.get(F, "weather") || "overcast"; } catch { /* brak ustawień (testy) */ }
+  return WEATHER[k] ? { key: k, ...WEATHER[k], wf: !!wf } : { key: "overcast", ...WEATHER.overcast };
+}
+
+// ---------- Weather Forging ----------
+const wfLinked = () => { try { return game.settings.get(F, "weatherForging") !== false; } catch { return true; } };
+const wfApi = () => {
+  const mod = globalThis.game?.modules?.get?.(WF_ID);
+  return mod?.active && mod.api?.getWeather ? mod.api : null;
+};
+const viewedScene = () => globalThis.canvas?.scene ?? globalThis.game?.scenes?.active ?? null;
+
+/**
+ * Rodzaj pogody FoE z pogody Weather Forging na oglądanej scenie; null — moduł wyłączony, powiązanie wyłączone
+ * albo scena bez jego pogody (wtedy zostaje pogoda wybrana w FoE).
+ */
+export function wfSceneWeather(scene = viewedScene()) {
+  const api = wfApi();
+  if (!api || !scene || !wfLinked()) return null;
+  try {
+    // Weather Forging przejmuje też wbudowaną pogodę sceny Foundry
+    if (!scene.getFlag?.(WF_ID, WF_FLAG) && !WF_CORE_WEATHER.includes(scene.weather)) return null;
+    return wfWeatherKey(api.getWeather(scene), api.getTarget?.(scene));
+  } catch { return null; }
+}
+
+/** MG: pogoda z FoE trafia do Weather Forging na oglądanej scenie (płynne przejście); raz — gdy już tam jest, nic. */
+async function syncToWF(key) {
+  const api = wfApi(), scene = viewedScene();
+  if (!api?.setWeather || !scene || !wfLinked() || !game.user?.isGM || !WEATHER[key]) return;
+  if (wfExtKey(api.getTarget?.(scene)) === key) return;
+  try { await api.setWeather(scene, wfFromFoe(key)); } catch (err) { console.warn(`${F} | Weather Forging`, err); }
+}
+
+function rerender() {
+  ui.combat?.render?.();
+  for (const app of foundry.applications.instances.values()) if (app.document?.documentName === "Actor") app.render();
 }
 
 const stepsText = n => `${n > 0 ? "+" : "−"}${Math.abs(n)} ${t("st.")}`;
@@ -68,15 +107,24 @@ export function registerWeatherSettings() {
     hint: "Weather modifiers (p. 628) are added automatically to accuracy, perception, sneaking and flight rolls. You can also change it in the combat tab.",
     scope: "world", config: true, type: String, default: "overcast",
     choices: Object.fromEntries(Object.entries(WEATHER).map(([k, v]) => [k, v.label])),
-    onChange: () => {
-      ui.combat?.render?.();
-      for (const app of foundry.applications.instances.values()) if (app.document?.documentName === "Actor") app.render();
+    onChange: value => {
+      rerender();
+      // zmiana w ustawieniach świata: ta sama pogoda w Weather Forging (zapisuje aktywny MG)
+      if (game.users?.activeGM?.isSelf) syncToWF(value);
     }
+  });
+  game.settings.register(F, "weatherForging", {
+    name: "Weather Forging: shared weather",
+    hint: "With the Weather Forging module active, weather modifiers follow the weather it shows on the scene you are viewing, and choosing the weather here or in the combat tab sets it in Weather Forging with a smooth transition. Scenes without Weather Forging weather use the weather chosen here.",
+    scope: "world", config: !!globalThis.game?.modules?.get?.(WF_ID), type: Boolean, default: true,
+    onChange: () => rerender()
   });
 }
 
-export function setWeather(key) {
+export async function setWeather(key) {
   if (!WEATHER[key]) return ui.notifications.warn(t("Unknown weather: {k}", { k: key }));
+  // najpierw Weather Forging — zmiana ustawienia niżej nie dubluje zapisu (sprawdza, czy już tam jest)
+  await syncToWF(key);
   return game.settings.set(F, "weather", key);
 }
 
@@ -87,7 +135,7 @@ export function registerWeatherHooks() {
     const w = currentWeather();
     const box = document.createElement("div");
     box.className = "foe-weather";
-    box.title = weatherSummary(w);
+    box.title = `${weatherSummary(w)}${w.wf ? " · Weather Forging" : ""}`;
     box.innerHTML = game.user.isGM
       ? `<i class="fa-solid fa-cloud-sun-rain"></i> <select>${Object.entries(WEATHER).map(([k, v]) => `<option value="${k}" ${k === w.key ? "selected" : ""}>${v.label}</option>`).join("")}</select>`
       : `<i class="fa-solid fa-cloud-sun-rain"></i> ${w.label}`;
@@ -95,4 +143,21 @@ export function registerWeatherHooks() {
     const head = root.querySelector(".combat-tracker-header, header") ?? root;
     head.append(box);
   });
+
+  // Weather Forging: nowa pogoda na scenie albo zmiana sceny — modyfikatory na kartach i w zakładce walki od nowa
+  let shown = null;
+  const refresh = () => {
+    const k = currentWeather().key;
+    if (k !== shown) { shown = k; rerender(); }
+  };
+  Hooks.on(`${WF_ID}.changed`, (scene, target, transition) => {
+    if (scene !== viewedScene()) return;
+    refresh();
+    // zmiana z panelu Weather Forging idzie płynnie — jeszcze raz po przejściu
+    const ms = (Number(transition?.duration) || 0) * 1000;
+    if (ms > 0) setTimeout(refresh, ms + 300);
+  });
+  Hooks.on("canvasReady", () => { if (wfApi()) refresh(); });
+  // wbudowana pogoda sceny (bez wpisu Weather Forging) też się liczy
+  Hooks.on("updateScene", (scene, changes) => { if ("weather" in changes && scene === viewedScene() && wfApi()) refresh(); });
 }

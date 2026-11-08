@@ -1657,6 +1657,8 @@ export default {
   "Weather": "Pogoda",
   "Weather modifiers (p. 628) are added automatically to accuracy, perception, sneaking and flight rolls. You can also change it in the combat tab.": "Modyfikatory pogody (s. 628) dodają się same do rzutów na celność, percepcję, skradanie i lot. Zmienisz ją też w zakładce walki.",
   "Unknown weather: {k}": "Nieznana pogoda: {k}",
+  "Weather Forging: shared weather": "Weather Forging: wspólna pogoda",
+  "With the Weather Forging module active, weather modifiers follow the weather it shows on the scene you are viewing, and choosing the weather here or in the combat tab sets it in Weather Forging with a smooth transition. Scenes without Weather Forging weather use the weather chosen here.": "Gdy moduł Weather Forging jest włączony, modyfikatory pogody idą za pogodą, którą pokazuje na oglądanej scenie, a wybór pogody tutaj albo w zakładce walki ustawia ją w Weather Forging z płynnym przejściem. Sceny bez pogody Weather Forging używają pogody wybranej tutaj.",
   // ---- module/shadow-data.mjs
   "Dodge (Shadowflash)": "Unik (Shadowflash)",
   "success = an automatic successful dodge; a reaction, no action": "sukces = unik udany automatycznie; reakcja, bez akcji",
