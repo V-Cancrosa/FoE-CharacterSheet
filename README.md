@@ -554,6 +554,25 @@ a raz na grę „Analiza zrzutu” — rzut Science z trudnością terminala: su
 - Komendy drzwi (otwórz, zamknij, zablokuj, odblokuj, przełącz, uchyl) sterują zwykłymi drzwiami Foundry, a z modułem
   Threshold także jego barierami — zob. „Drzwi, zamki i bariery” niżej.
 
+Kalendarz Equestrii (z modułem **Simple Calendar Reborn** — pełny kalendarz; bez niego data z czasu świata):
+- Dwie ery naraz: **PA** (po Apokalipsie; rok 0 PA to Ostatni Dzień, gdy spadły megazaklęcia zebr — Littlepip wychodzi
+  ze Stajni około 200 PA) i **E** (rachuba Equestrii: lata od wygnania Nightmare Moon — jedyna rachuba z serialu,
+  1. sezon to rok 1000 E). Data wygląda tak: „23 paź, 200 PA · 1240 E”; przed wojną „1035 E (przed Apokalipsą)”.
+- Kanon nie podaje roku Ostatniego Dnia w rachubie Equestrii — domyślnie 1040 E (założenie). MG zmienia go w ustawieniach
+  („Kalendarz: Ostatni Dzień w rachubie Equestrii”), tak samo jak rok startu kampanii (domyślnie 200 PA).
+- Miesiące i dni tygodnia zwykłe (365 dni, lata przestępne), pory roku ze wschodem i zachodem słońca, księżyc z fazami.
+  Święta z serialu jako notatki w kalendarzu (co roku): Dzień Serc i Kopyt (14 lutego), Pożegnanie Zimy (20 marca),
+  Święto Letniego Słońca (21 czerwca, przesilenie), Bieg Liści (22 września), Noc Koszmarów (31 października),
+  Wigilia Serdeczności (24 grudnia), a do tego Ostatni Dzień (23 października 0 PA) i jego rocznica. 23 października
+  to data Wielkiej Wojny z serii Fallout — kanon FoE jej nie podaje; MG przesunie notatkę w kalendarzu, jeśli chce.
+- Simple Calendar Reborn: przy pierwszym uruchomieniu świata z modułem MG dostaje pytanie, czy ustawić kalendarz
+  Equestrii (później: Ustawienia gry → Fallout: Equestria RPG → „Ustaw kalendarz Equestrii”). Okno pyta o rok startu,
+  rok Ostatniego Dnia, datę (1 stycznia roku startu, 8:00) i święta (dodaje tylko brakujące). Zastępuje miesiące, dni
+  i pory roku modułu; notatki zostają. Ciemny motyw modułu (domyślny) dostaje kolory PipBucka przy włączonym motywie
+  interfejsu; motyw jasny i klasyczny zostają, jeśli gracz je wybierze.
+- Data w zakładce walki pod pogodą (z godziną i świętem tego dnia; najechanie pokazuje opis święta). MG klika ją, żeby
+  otworzyć Simple Calendar. Upływ czasu w module (zegar, przesunięcie daty) liczy też czas działania używek i głód nałogów.
+
 Drzwi, zamki i bariery (zwykłe drzwi Foundry; z modułem **Threshold** — także jego bariery, Foundry v14):
 - Wytrych: postać stoi przy drzwiach zamkniętych na klucz (token dotyka drzwi albo pola, przez które przechodzą), a gracz
   klika Lockpicking na karcie. Okno rzutu od razu celuje w zamek: pokazuje jego trudność, narzędzia z ekwipunku (Bobby Pin,
