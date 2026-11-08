@@ -56,3 +56,40 @@ body.foe-ui #players .breaktime-button {
 body.foe-ui #players .breaktime-button:hover > * { color: var(--pip-bright); filter: drop-shadow(0 0 5px var(--pip-glow)); }
 body.foe-ui #players .player.player-away .player-name { color: var(--pip-dim); }
 body.foe-ui #players .player.player-away > i.fa-mug-hot { color: var(--pip-alert); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--pip-alert) 60%, transparent)); }
+
+/* Simple Calendar Reborn: ciemny motyw modułu (domyślny) w kolorach PipBucka — motyw jasny i klasyczny zostają bez zmian,
+   jeśli gracz je wybierze w ustawieniach modułu. Moduł trzyma kolory w zmiennych na .simple-calendar.dark. */
+body.foe-ui .simple-calendar.dark {
+  --font-family: var(--foe-mono);
+  --heading-font-family: var(--foe-crt);
+  --input-bg-color: var(--pip-bg); --input-border-color: var(--pip-line); --input-color: var(--pip);
+  --link-color: var(--pip-bright); --link-hover-color: var(--pip);
+  --heading-border-color: var(--pip-line); --about-heading-border-color: var(--pip-line);
+  --app-header-bg-color: var(--pip-bg-hi); --app-header-color: var(--pip-bright);
+  --app-bg-color: var(--pip-bg); --app-color: var(--pip);
+  --section-bg-color: var(--pip-bg-hi); --section-border-color: var(--pip-line); --section-color: var(--pip);
+  --side-drawer-color: var(--pip); --side-drawer-bg-color: var(--pip-bg); --side-drawer-border-color: var(--pip-line);
+  --scrollbar-background-color: var(--pip-dim); --scrollbar-border-color: var(--pip-line);
+  --cal-weekend-bg-color: var(--pip-faint); --cal-day-border-color: var(--pip-line); --cal-day-hover-color: var(--pip-faint);
+  --cal-day-current-bg-color: var(--pip-dim); --cal-day-current-box-shadow-color: var(--pip); --cal-day-current-hover-bg-color: var(--pip-mid);
+  --cal-day-selected-bg-color: color-mix(in srgb, var(--pip) 25%, black); --cal-day-selected-box-shadow-color: var(--pip-bright);
+  --cal-day-selected-hover-bg-color: var(--pip-dim);
+  --cal-note-indicator-bg-color: var(--pip-alert); --cal-note-indicator-color: #000;
+  --cal-moon-group-bg-color: var(--pip-bg); --cal-moon-group-border-color: var(--pip-line);
+  --clock-started-color: var(--pip-bright); --clock-stopped-color: var(--pip-alert); --clock-paused-color: var(--pip-mid);
+  --context-menu-color: var(--pip); --context-menu-border-color: var(--pip-line); --context-menu-bg-color: var(--pip-panel);
+  --context-menu-action-hover-color: var(--pip-bright);
+  --btn-primary-border-color: var(--pip-line); --btn-primary-bg-color: var(--pip-bg-hi); --btn-primary-color: var(--pip); --btn-primary-bg-hover-color: var(--pip-dim);
+  --btn-secondary-border-color: var(--pip); --btn-secondary-bg-color: var(--pip-dim); --btn-secondary-color: var(--pip-bright); --btn-secondary-bg-hover-color: var(--pip-mid);
+  --btn-grey-border-color: var(--pip-line); --btn-grey-bg-color: var(--pip-bg-hi); --btn-grey-color: var(--pip-mid); --btn-grey-bg-hover-color: var(--pip-dim);
+  --form-group-bg-color: var(--pip-bg); --form-group-bg-hover-color: var(--pip-bg-hi); --form-group-border-color: var(--pip-line);
+  --form-group-label-color: var(--pip-bright); --form-group-help-color: var(--pip-mid);
+  --form-group-input-bg-color: var(--pip-bg); --form-group-input-border-color: var(--pip-line); --form-group-input-color: var(--pip);
+  --note-list-note-border-color: var(--pip-line); --note-list-note-bg-hover-color: var(--pip-dim); --note-list-note-hover-color: var(--pip-bright);
+  --time-selector-color: var(--pip); --time-selector-input-bg-color: var(--pip-bg); --time-selector-input-border-color: var(--pip-line);
+  --progress-bar-fill-color: var(--pip); --search-box-color: var(--pip);
+}
+/* data, rok i zegar — czcionka ekranu PipBucka z poświatą */
+body.foe-ui .simple-calendar.dark :is(.fsc-date-text, .fsc-month-year, .fsc-current-date, .fsc-current-time, .fsc-clock) {
+  font-family: var(--foe-crt); letter-spacing: .04em; text-shadow: 0 0 6px var(--pip-glow);
+}

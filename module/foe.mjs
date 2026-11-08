@@ -12,6 +12,7 @@ import { openCatalog, registerCatalogButton, loadCatalog } from "./catalog.mjs";
 import { specialsFrom } from "./catalog-data.mjs";
 import { FoeCombat, registerTrackerHooks, registerTrackerSettings } from "./tracker.mjs";
 import { registerWeatherSettings, registerWeatherHooks, setWeather } from "./weather.mjs";
+import { registerCalendarSettings, registerCalendarHooks, promptApply as applyCalendar } from "./calendar.mjs";
 import { registerPerkSettings } from "./perks.mjs";
 import { registerChemSettings, registerChemHooks } from "./chems.mjs";
 import { registerSatsSettings, registerSatsHooks } from "./sats-targeting.mjs";
@@ -69,6 +70,7 @@ Hooks.once("init", () => {
   registerMagicHooks();
   registerTrackerSettings();
   registerWeatherSettings();
+  registerCalendarSettings();
   registerPerkSettings();
   registerChemSettings();
   registerChemHooks();
@@ -81,6 +83,7 @@ Hooks.once("init", () => {
   // runda walki = 6 sekund czasu gry (s. 389: „30 sekund, czyli pięć rund”) — czas działania chemii płynie w walce
   CONFIG.time.roundTime = 6;
   registerWeatherHooks();
+  registerCalendarHooks();
   registerCatalogButton();
   registerDisplaySettings();
   registerCreatorSettings();
@@ -112,7 +115,7 @@ Hooks.once("init", () => {
   registerFxStatusSettings();
   registerFxStatusHooks();
   registerVersionCheck();
-  game.foe = { openCatalog, setWeather };
+  game.foe = { openCatalog, setWeather, applyCalendar };
 });
 
 /** Tłumaczenia Foundry wczytane: ustawienia, typy i etykiety kart w języku gracza. */
