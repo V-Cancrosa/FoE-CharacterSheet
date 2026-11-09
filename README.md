@@ -75,6 +75,24 @@ Walka:
 - Przeładowanie (ikonka przy amunicji): bierze naboje z ekwipunku o tym samym typie amunicji; akcją (pół magazynka
   w Internal, 1d4+1 naboi w Breech) albo w SATS za AP (DTM 10, DTM+5 15, Revolver 20, Internal 20, Breech 25).
 - SATS odnawia się o 5 AP na rundę walki (liczy MG), „Nowa sesja” uzupełnia SATS i karty szczęścia.
+- Utrata przytomności: przy ranach łącznie 4×END lub więcej (napis „TRACI PRZYTOMNOŚĆ” w zakładce Walka) każda akcja
+  zaczyna się od rzutu END MFD ¾ — przed oknem rzutu (rzut z karty, atak, czar, manewr, terminal…) i przed
+  przeładowaniem, gaszeniem się i przemianą podmieńca. Porażka — stan „nieprzytomny” i akcji nie ma. Opcja świata
+  „Utrata przytomności: rzut END ¾ przed każdą akcją” (domyślnie włączona).
+- Karty szczęścia (s. 53–57) — gracz postaci decyduje sam, MG za nią tylko, gdy jej gracz nie jest zalogowany; NPC nie mają kart:
+  - przerzut porażki — przycisk na karcie testu (każdy przerzut poszerza zakres krytyków o 5),
+  - przed rzutem — pole „Karty szczęścia przed rzutem” w każdym oknie rzutu: +10 do progu za kartę, najwyżej 5; krytyczny
+    sukces zwraca wydane karty,
+  - ratowanie krytycznej porażki — zaraz po krytycznej porażce pytanie: karta + rzut Luck × 10. Sukces — zwykła porażka
+    bez skutków ubocznych (np. zamek się nie psuje), krytyczny sukces — sukces, porażka — karta przepada (można dać
+    następną), krytyczna porażka — koniec prób,
+  - unik trafienia — na karcie trafienia gracz celu ma przycisk „Szczęście: … unika trafienia” (karta + Luck MFD 1),
+    dopóki nikt nie naniósł obrażeń; udany unik — „Nanieś obrażenia” pomija ten cel,
+  - mniej ran — na karcie ran gracz trafionego ma przycisk „Szczęście: mniej ran” (tylko na najnowszej karcie ran tego
+    celu): karta zdejmuje od razu 1 ranę, potem rzut najniższym atrybutem na MFD 1 — każdy krok trudniej niż 1 to
+    kolejna rana mniej, krytyk zdejmuje wszystkie rany z tego trafienia; jeśli rany już nie zabijają, znika znacznik śmierci,
+  - koniczynka przy pasku Szczęścia na karcie postaci: coś niesamowitego (1–3 karty) i poprawa fabuły (1 karta) — kartka
+    na czacie, decyduje MG — albo oddanie karty innemu graczowi za dwie swoje (s. 57).
 - W ustawieniach świata: losowe lokacje trafień i degradacja pancerza (zasady opcjonalne).
 
 Efekty specjalne broni (s. 200–202) — broń z katalogu ma je ustawione z przypisów podręcznika, własną broń zaznaczasz w jej karcie:

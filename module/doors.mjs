@@ -166,7 +166,8 @@ export async function resolvePick(msg) {
     return card("fail", t("The lock won't budge"), can.why === "broken" ? t("The lock is broken — it can't be picked any more.")
       : t("This lock can't be picked — it needs a key or a terminal."));
   }
-  const res = pickResult({ total: msg.rolls?.[0]?.total, cls: test.result, baseTn: test.baseTn, mod: test.mod, steps: test.steps, lockMfd: mfd });
+  // sukces uratowany kartą szczęścia (krytyczna porażka → sukces) liczy się jak sukces na MFD zamka
+  const res = test.luckSave === "success" ? "open" : pickResult({ total: msg.rolls?.[0]?.total, cls: test.result, baseTn: test.baseTn, mod: test.mod, steps: test.steps, lockMfd: mfd });
   if (res === "open") {
     if (undo) await save({ broken: lock.broken, brokenBy: null });
     await unlock(wall);

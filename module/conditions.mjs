@@ -148,8 +148,38 @@ export async function quickTest(actor, label, baseTn, step) {
 }
 const passed = r => r === "success" || r === "crit-success";
 
+/**
+ * Ranny ponad 4×END (pasek „TRACI PRZYTOMNOŚĆ”): przed każdą akcją rzut END ¾. Porażka — utrata przytomności, akcji nie ma.
+ * Wołane z okna rzutu (promptMfd) i z akcji bez rzutu (przeładowanie, gaszenie się, przemiana). Zwraca true, gdy można działać.
+ */
+export async function stayConscious(actor) {
+  const sys = actor?.system;
+  if (!sys || sys.dead || !sys.unconsciousRisk) return true;
+  let on = true;
+  try { on = game.settings.get("foe-rpg", "consciousnessRolls") !== false; } catch { /* brak ustawienia */ }
+  if (!on) return true;
+  if (actor.statuses?.has("unconscious")) {
+    ui.notifications.warn(t("{name} is unconscious.", { name: actor.name }));
+    return false;
+  }
+  const res = await quickTest(actor, t("Staying conscious (END ¾, wounds {n}/{max})", { n: sys.totalWounds, max: sys.unconsciousAt }), sys.attributes.end.tn, "3/4");
+  if (passed(res)) return true;
+  await toggleStatus(actor, "unconscious", true);
+  ui.notifications.warn(t("{name} passes out — the action doesn't happen.", { name: actor.name }));
+  return false;
+}
+
+export function registerConditionSettings() {
+  game.settings.register("foe-rpg", "consciousnessRolls", {
+    name: "Losing consciousness: END ¾ roll before every action",
+    hint: "With wounds totalling 4×END or more, every action (a roll from the sheet, an attack, a spell, reloading…) first rolls END MFD ¾; a failure knocks the character out and the action doesn't happen.",
+    scope: "world", config: true, type: Boolean, default: true
+  });
+}
+
 /** Gaszenie się: AGI MFD ½ (dwie akcje), sukces gasi ogień. */
 export async function extinguish(actor) {
+  if (!(await stayConscious(actor))) return;
   await spendActions(actor, 2, t("putting out fire"));
   const res = await quickTest(actor, t("Putting out fire (AGI, 2 actions)"), actor.system.attributes.agi.tn, "1/2");
   if (passed(res)) { await clearCondition(actor, "burning"); ui.notifications.info(t("{name}: fire put out.", { name: actor.name })); }

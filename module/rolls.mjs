@@ -10,6 +10,7 @@ import { loadedVariant, ammoIgnoreDT, shiftDice, dieOf } from "./ammo-data.mjs";
 import { degradationOn } from "./craft-data.mjs";
 import { t, tn, isPL } from "./i18n.mjs";
 import { ruleLink } from "./rules.mjs";
+import { MAX_BEFORE, beforeCards } from "./luck-data.mjs";
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
@@ -37,9 +38,17 @@ export function locationName(loc, table = null) {
  * Zwraca { step, chosen, mod, notes, crit, extra? } albo null.
  */
 export async function promptMfd(title, baseTn, rc = {}, opts = {}) {
+  // ranny ponad 4×END: przed każdą akcją rzut END ¾ — porażka to utrata przytomności i akcji nie ma (conditions.mjs)
+  if (rc.actor && !opts.noConsciousCheck) {
+    const { stayConscious } = await import("./conditions.mjs");
+    if (!(await stayConscious(rc.actor))) return null;
+  }
   const mods = rc.mods ?? [], steps = rc.steps ?? [], situational = rc.situational ?? [];
   const fixedMod = rc.fixedMod ?? 0, fixedSteps = rc.fixedSteps ?? 0;
   const defaultStep = opts.defaultStep ?? "1";
+  // karty szczęścia przed rzutem: +10 za kartę, najwyżej 5 (luck-data.mjs)
+  const luckHave = rc.actor?.type === "character" && rc.actor.system?.resources?.luck ? Math.max(0, Number(rc.actor.system.resources.luck.value) || 0) : 0;
+  const luckMax = Math.min(MAX_BEFORE, luckHave);
 
   const rows = MFD_STEPS.map((s, i) => `
     <label>
@@ -64,16 +73,18 @@ export async function promptMfd(title, baseTn, rc = {}, opts = {}) {
       ${sitList ? `<div class="dlg-sit"><span>${t("Situational — tick them if they apply to this roll")}</span>${sitList}</div>` : ""}
       <div class="mfd-pick">${rows}</div>
       <label class="mod-row">${t("Extra modifier (+ easier, − harder)")} <input type="number" name="mod" value="0" step="1"></label>
+      ${luckMax ? `<label class="mod-row" title="${esc(t("Spent before the roll: +10 to the threshold per card, up to 5 cards. A critical success gives them back."))}">${t("Luck cards before the roll (+10 each)")} <input type="number" name="luckCards" value="0" min="0" max="${luckMax}" step="1"></label>` : ""}
     </div>`;
 
   const read = form => {
     const on = new Set([...form.querySelectorAll("input[name=sit]:checked")].map(i => i.value));
     const picked = situational.filter(g => on.has(g.id));
     const extra = Number(form.querySelector("input[name=mod]")?.value) || 0;
+    const luck = beforeCards(form.querySelector("input[name=luckCards]")?.value, luckMax);
     const ex = opts.readExtra?.(form) ?? { steps: 0, mod: 0, notes: [], data: null };
     return {
-      picked, extra, ex,
-      mod: fixedMod + extra + picked.reduce((t, g) => t + g.mod, 0) + (ex.mod ?? 0),
+      picked, extra, ex, luck,
+      mod: fixedMod + extra + 10 * luck + picked.reduce((t, g) => t + g.mod, 0) + (ex.mod ?? 0),
       steps: fixedSteps + picked.reduce((t, g) => t + g.steps, 0) + (ex.steps ?? 0)
     };
   };
@@ -115,9 +126,11 @@ export async function promptMfd(title, baseTn, rc = {}, opts = {}) {
           ...steps.map(m => `${m.label} ${stepsLabel(m.value)}`),
           ...r.picked.map(g => `${g.label} ${[g.mod ? signed(g.mod) : "", g.steps ? stepsLabel(g.steps) : ""].filter(Boolean).join(", ")}`),
           ...(r.ex.notes ?? []),
-          ...(r.extra ? [t("Extra {v}", { v: signed(r.extra) })] : [])
+          ...(r.extra ? [t("Extra {v}", { v: signed(r.extra) })] : []),
+          ...(r.luck ? [t("Luck cards ×{n} +{v}", { n: r.luck, v: 10 * r.luck })] : [])
         ];
         const out = { step, chosen, steps: r.steps, mod: r.mod, notes, crit: rc.crit ?? { success: 0, fail: 0 } };
+        if (r.luck) out.luckCards = r.luck;
         if (r.ex.data) out.extra = r.ex.data;
         return out;
       }
@@ -159,6 +172,15 @@ export async function rollTest(actor, data) {
   const step = MFD_STEPS.find(s => s.key === data.step) ?? MFD_STEPS[2];
   const tn = threshold(data.baseTn, step, data.mod);
 
+  // karty szczęścia przed rzutem (premia jest już w mod): schodzą raz — przerzut ich nie bierze ponownie
+  const luckLines = [];
+  const luckIn = Math.max(0, Math.trunc(Number(data.luckCards) || 0));
+  if (luckIn && !data.luckPaid && actor?.system?.resources?.luck) {
+    const have = Math.max(0, Number(actor.system.resources.luck.value) || 0);
+    await actor.update({ "system.resources.luck.value": Math.max(0, have - luckIn) });
+    data = { ...data, luckPaid: true };
+  }
+
   const roll = await new Roll("1d100").evaluate();
   const r = roll.total;
   let outcome, cls;
@@ -167,10 +189,32 @@ export async function rollTest(actor, data) {
   else if (r <= tn) { outcome = t("Success"); cls = "success"; }
   else { outcome = t("Failure"); cls = "fail"; }
 
+  // krytyczna porażka: karta + rzut Luck × 10 (pytanie przed kartą na czacie — reszta systemu widzi już uratowany wynik)
+  const luckRolls = [];
+  if (cls === "crit-fail" && !data.noLuckSave && actor) {
+    const { offerCritSave } = await import("./luck.mjs");
+    const save = await offerCritSave(actor, r);
+    if (save) {
+      luckRolls.push(...save.rolls);
+      luckLines.push(...save.lines);
+      if (save.cls !== "crit-fail") {
+        cls = save.cls;
+        outcome = cls === "success" ? t("Success (Luck)") : t("Failure (saved by Luck)");
+        data = { ...data, luckSave: cls };
+      }
+    }
+  }
+  // krytyczny sukces zwraca karty wydane przed rzutem
+  if (cls === "crit-success" && luckIn && data.luckPaid && !data.luckRefunded && actor?.system?.resources?.luck) {
+    await actor.update({ "system.resources.luck.value": (Number(actor.system.resources.luck.value) || 0) + luckIn });
+    data = { ...data, luckRefunded: true };
+    luckLines.push(t("Critical success — the Luck cards come back (+{n}).", { n: luckIn }));
+  }
+
   markCrit(roll, cls);
   tint(roll, rerolls ? "luck" : data.attack?.sats ? "sats" : data.magic || /^(Zaklęcie|Celowanie)/.test(data.label ?? "") ? "magic" : "test");   // pl-ok: stare przerzuty   // efekt Dice So Nice na krytyk (jeśli moduł jest włączony)
-  // Krytyczna porażka nie osiąga żadnego poziomu
-  const ach = cls === "crit-fail" ? null : achievedStep(r, data.baseTn, data.mod);
+  // Krytyczna porażka nie osiąga żadnego poziomu; sukces uratowany kartą — tyle, ile wymagano
+  const ach = cls === "crit-fail" ? null : data.luckSave === "success" ? step : achievedStep(r, data.baseTn, data.mod);
   const failed = cls === "fail" || cls === "crit-fail";
   const canReroll = failed && critS < 50;
 
@@ -239,7 +283,7 @@ export async function rollTest(actor, data) {
       ${data.notes?.length ? `<div>${t("Modifiers:")} ${data.notes.map(esc).join(" · ")}${data.mod ? ` ${t("(total {v})", { v: signed(data.mod) })}` : ""}</div>` : data.mod ? `<div>${t("Modifier {v}", { v: signed(data.mod) })}</div>` : ""}
       ${atkMeta ? `<div>${esc(atkMeta)}</div>` : ""}
       <div>${meta}</div>
-      ${cls === "crit-fail" ? `<div>${t("A Luck card plus a Luck×10 roll can turn a critical failure into a regular one.")}</div>` : ""}
+      ${luckLines.map(l => `<div><i class="fa-solid fa-clover"></i> ${esc(l)}</div>`).join("")}
     </div>
     ${data.itemUuid && !failed ? `<button type="button" class="foe-luck" data-action="foeDamage"><i class="fa-solid fa-burst"></i> ${cls === "crit-success" ? t("Critical damage") : t("Roll damage")}</button>` : ""}
     ${canReroll ? `<button type="button" class="foe-luck" data-action="foeLuckReroll"><i class="fa-solid fa-clover"></i> ${t("Reroll with a Luck card")}</button>` : ""}
@@ -248,7 +292,7 @@ export async function rollTest(actor, data) {
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content,
-    rolls: [roll, ...extraRolls],
+    rolls: [roll, ...extraRolls, ...luckRolls],
     sound: CONFIG.sounds.dice,
     flags: { "foe-rpg": { test: { ...data, attack: atk ?? undefined, actorUuid: actor.uuid, rerolls, result: cls } } }
   });
@@ -415,6 +459,7 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
           loc: hit?.loc ?? null, called: hit?.called ?? null, table: attack?.table ?? null,
           ignoreDT: item.type === "weapon" ? ammoIgnoreDT(w) : Number(w.ignoreDT) || 0, targets,
           fx: attack?.fx?.k ?? null,   // rodzaj broni do animacji (np. kolor dezintegracji)
+          attackMsg: attack?.msgId ?? null,   // karta trafienia (unik kartą szczęścia)
           ...(w.armorless ? { ignoreArmor: true, noDegrade: true } : {})
         }
       }
