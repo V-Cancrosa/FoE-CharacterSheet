@@ -918,6 +918,8 @@ button.foe-surprise { flex: 0 0 auto; width: auto; margin: 2px 0; font-size: 12p
 .foe-date.clickable { cursor: pointer; }
 .foe-date-holiday { font-weight: bold; color: var(--color-warm-2, #ee9b3a); }
 .foe-date-holiday:empty { display: none; }
+.foe-rads { display: flex; align-items: center; gap: .4rem; padding: 0 .5rem .25rem; font-size: 12px; font-weight: bold; color: #c8e83a; }
+.gear-cat .gear-note { font-weight: normal; opacity: .8; margin-left: .4rem; }
 
 /* v0.11 — perki i awans */
 .foe-rpg .foe-id .row .adv-btns { display: inline-flex; align-items: center; gap: .5rem; margin-left: .3rem; }

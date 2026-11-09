@@ -44,6 +44,7 @@ import { onPortrait } from "./portrait.mjs";
 import { magicHex } from "./fx-data.mjs";
 import { rollLockpick } from "./doors.mjs";
 import { spendLuckDialog } from "./luck.mjs";
+import { eatItem, eatLabel, survivalNote } from "./survival.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -416,7 +417,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const w = Number(i.system.weight) || 0;
       groups.get(cat).push({
         id: i.id, name: i.name, img: i.img, qty: i.system.qty, ammoType: i.system.ammoType,
-        usable: ["potion", "talisman", "drug", "medical"].includes(cat),
+        usable: ["potion", "talisman", "drug", "medical", "food"].includes(cat),
         equippable: cat === "saddle", equipped: !!i.system.equipped,
         readable: cat === "book", bookStatus: cat === "book" ? bookStatus(this.document, i) : "",
         readTip: cat === "book" ? (() => {
@@ -426,13 +427,16 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         })() : "",
         reserve: cat === "saddle" && reserveCapacity(i.name) ? `${i.system.charges}/${reserveCapacity(i.name)}` : "",
         useLabel: cat === "medical" ? t("{kind} — on yourself or the targeted token", { kind: HEAL_KINDS[i.system.heal]?.label ?? t("Healing") })
-          : cat === "drug" ? t("Take (effect, duration, addiction roll)") : MODES[i.system.usage]?.label ?? t("Use"),
+          : cat === "drug" ? t("Take (effect, duration, addiction roll)")
+            : cat === "food" ? t("{what}: meals, hydration, rads and healing from the description", { what: eatLabel(i) }) : MODES[i.system.usage]?.label ?? t("Use"),
+        useText: cat === "food" ? eatLabel(i) : t("Use"),
         charges: /talisman/i.test(i.system.heal ?? "") ? i.system.charges : null,
         weightLabel: cat === "ammo" ? "—" : w ? `${Math.round(w * (i.system.qty || 0) * 10) / 10} lb` : "",
         notes: String(i.system.description ?? "").replace(/<[^>]+>/g, "").slice(0, 300)
       });
     }
-    ctx.gearGroups = Object.entries(GEAR_CATEGORIES).filter(([k]) => groups.has(k)).map(([k, label]) => ({ key: k, label, items: groups.get(k) }));
+    ctx.gearGroups = Object.entries(GEAR_CATEGORIES).filter(([k]) => groups.has(k))
+      .map(([k, label]) => ({ key: k, label, items: groups.get(k), note: k === "food" ? survivalNote(this.document) : "" }));
 
     const kinds = { trait: t("Trait"), hindrance: t("Hindrance"), perk: "Perk", spell: t("Spell"), implant: t("Implant"), cyberlimb: t("Cyberlimb"), other: t("kind|Other") };
     ctx.features = items.filter(i => i.type === "feature").map(i => ({
@@ -595,6 +599,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!item) return;
     if (item.system.category === "drug") return useChem(this.document, item);
     if (item.system.category === "medical") return useHealItem(this.document, item);
+    if (item.system.category === "food") return eatItem(this.document, item);
     await useProduct(this.document, item);
   }
 

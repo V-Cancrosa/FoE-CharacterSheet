@@ -40,7 +40,7 @@
     <a class="plus" data-action="createItem" data-type="gear" title="{{t "Blank item"}}"><i class="fa-solid fa-plus"></i></a>
   </h3>
   {{#each gearGroups}}
-    <h4 class="gear-cat">{{label}}</h4>
+    <h4 class="gear-cat">{{label}}{{#if note}} <small class="gear-note">{{note}}</small>{{/if}}</h4>
     <ul class="item-list gear">
     {{#each items}}
       <li data-item-id="{{id}}">
@@ -48,7 +48,7 @@
         <img class="icon" src="{{img}}" alt="">
         <span class="nm" {{#if notes}}title="{{notes}}"{{/if}}>{{name}}{{#if reserve}} <small class="sub" title="{{t "Reserve contents (edit on the item sheet)"}}">{{reserve}}</small>{{/if}}</span>
         <span class="qty"><a data-action="qty" data-d="-1" title="−1 (Shift: −10)"><i class="fa-solid fa-minus"></i></a><b>×{{qty}}</b><a data-action="qty" data-d="1" title="+1 (Shift: +10)"><i class="fa-solid fa-plus"></i></a></span>
-        {{#if usable}}<a class="use-btn" data-action="useProduct" title="{{useLabel}}"><i class="fa-solid fa-flask"></i> {{t "Use"}}</a>{{/if}}
+        {{#if usable}}<a class="use-btn" data-action="useProduct" title="{{useLabel}}"><i class="fa-solid {{#if (eq ../key "food")}}fa-utensils{{else}}fa-flask{{/if}}"></i> {{useText}}</a>{{/if}}
         {{#if readable}}<span class="book-st" title="{{t "This character's reading progress"}}">{{bookStatus}}</span> <a class="use-btn" data-action="readBook" title="{{readTip}}"><i class="fa-solid fa-book-open"></i> {{t "Read"}}</a>{{/if}}
         {{#if charges includeZero=true}}<span class="charges" title="{{t "Talisman charges"}}">⚡{{charges}}</span>{{/if}}
         <span class="wt">{{weightLabel}}</span>
