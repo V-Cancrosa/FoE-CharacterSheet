@@ -7,7 +7,7 @@
  *   - MG z zaznaczonymi ścianami (bez celów) nanosi kartą obrażeń obrażenia na te przeszkody — strzał w drzwi.
  */
 import { t } from "./i18n.mjs";
-import { thrApi } from "./doors.mjs";
+import { thrApi } from "./doors-data.mjs";
 import { lineOfFire, inBlast, barrierDt, barrierDamage } from "./cover-data.mjs";
 
 const F = "foe-rpg";

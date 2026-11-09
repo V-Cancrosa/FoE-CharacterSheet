@@ -16,17 +16,14 @@ import { direction, DIR_NAMES } from "./trade-data.mjs";
 import { knowsTK } from "./throw.mjs";
 import {
   THR_ID, THR_FLAG, LOCK_FLAG, DS, DOOR, LOCK_CHOICES,
-  lockOf, canPick, pickResult, doorReach, wallPoint, thresholdOp, nativeDoorState
+  lockOf, canPick, pickResult, doorReach, wallPoint, thresholdOp, nativeDoorState, thrApi
 } from "./doors-data.mjs";
+export { thrApi };
 
 const F = "foe-rpg";
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 
 /** API Threshold, gdy moduł jest włączony. */
-export function thrApi() {
-  const mod = globalThis.game?.modules?.get?.(THR_ID);
-  return mod?.active && mod.api?.barriers ? mod.api : null;
-}
 // flagi czytane wprost: getFlag rzuca dla wyłączonego modułu
 const barrierOf = wall => wall?.flags?.[THR_ID]?.[THR_FLAG] ?? null;
 const lockFlag = wall => wall?.flags?.[F]?.[LOCK_FLAG] ?? {};

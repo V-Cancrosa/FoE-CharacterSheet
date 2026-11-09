@@ -40,6 +40,8 @@ Kompendium pojawia się po aktualizacji systemu i ponownym uruchomieniu świata.
 
 Dla twórców: treść jest w plikach Markdown `packs-src/rules/pl/*.md` (`# Dziennik {#klucz}`, `## Strona {#klucz}`,
 linki `[[walka/sats]]`). Paczkę `packs/rules` buduje `npm ci && node tools/build-packs.mjs` — przy wydaniu robi to GitHub sam.
+Przed spakowaniem wydanie sprawdza też, czy system w ogóle startuje (`node tools/boot-check.mjs`: wczytanie modułów
+i rejestracja kart) — jeśli nie, wydanie nie powstaje.
 
 Co działa: S.P.E.C.I.A.L. z progami MFD, 17 umiejętności (baza = 2×ATR + Luck/2 + 2, min 5; tag +15; próg MFD 1 = ranga + ATR×5),
 rzut d100 pod próg z wyborem MFD (2 … 1/10) i modyfikatorem, krytyki 1–5 / 96–100, poziom osiągnięty do rzutów przeciwstawnych,
