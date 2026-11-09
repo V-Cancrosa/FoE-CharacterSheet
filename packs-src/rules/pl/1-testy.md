@@ -117,7 +117,7 @@ Zasada opcjonalna „Live by Luck”, zalecana przez podręcznik. (s. 53–57)
 | **Uniknięcie trafienia** | Po ogłoszeniu trafienia, przed obrażeniami: karta + Luck MFD 1. Sukces — pocisk chybia; krytyczny sukces — chybia z korzyścią dla ciebie. |
 | **Zmniejszenie ran** | Karta od razu zdejmuje 1 ranę, potem rzucasz najniższym atrybutem na MFD 1 — każdy osiągnięty krok trudniej niż 1 zdejmuje kolejną ranę, krytyk zdejmuje wszystkie. Tylko w chwili otrzymania ran. |
 
-> **Na karcie:** pasek *Szczęście* w nagłówku, przycisk *Nowa sesja* uzupełnia karty i SATS. Po nieudanym rzucie karta na czacie ma przycisk *Przerzuć za kartę szczęścia* — zakres krytyków poszerza się sam. Okno rzutu ma pole *Karty szczęścia przed rzutem*, po krytycznej porażce system sam pyta o ratowanie kartą, karta trafienia ma przycisk uniku dla celu, a karta ran — przycisk *Szczęście: mniej ran*. Koniczynka przy pasku *Szczęście*: coś niesamowitego, poprawa fabuły albo karta dla innego gracza.
+> **Na karcie:** pasek *Szczęście* w nagłówku, *Nowa sesja* na górnym pasku karty uzupełnia karty i SATS. Po nieudanym rzucie karta na czacie ma przycisk *Przerzuć za kartę szczęścia* — zakres krytyków poszerza się sam. Okno rzutu ma pole *Karty szczęścia przed rzutem*, po krytycznej porażce system sam pyta o ratowanie kartą, karta trafienia ma przycisk uniku dla celu, a karta ran — przycisk *Szczęście: mniej ran*. Koniczynka przy liczbie kart *Szczęścia*: coś niesamowitego, poprawa fabuły albo karta dla innego gracza.
 
 ## S.P.E.C.I.A.L. {#attributes}
 

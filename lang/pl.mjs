@@ -899,7 +899,7 @@ export default {
   "From features": "Z cech",
   "Rads": "Rady",
   "Restore Luck cards and SATS": "Odnów karty szczęścia i SATS",
-  "New session": "Nowa sesja",
+  "NEW SESSION": "NOWA SESJA",
   // ---- templates/actor/main.hbs
   "Attribute": "Atrybut",
   "Val.": "Wart.",
@@ -3676,6 +3676,7 @@ export default {
   "Luck: {name} dodges": "Szczęście: {name} unika trafienia",
   "Pick a character.": "Wybierz postać.",
   "Something amazing — {n} Luck cards (the GM decides)": "Coś niesamowitego — kart szczęścia: {n} (decyduje MG)",
+  "e.g. the bullet ricochets off the helmet": "np. kula odbija się od hełmu",
   "Something amazing": "Coś niesamowitego",
   "Spend a Luck card": "Wydaj kartę szczęścia",
   "Spend a Luck card: something amazing, story improvement or a card for another player": "Wydaj kartę szczęścia: coś niesamowitego, poprawa fabuły albo karta dla innego gracza",
