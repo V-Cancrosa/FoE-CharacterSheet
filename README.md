@@ -646,6 +646,11 @@ daty; rozlicza aktywny MG, kartkami dla gracza i MG):
     wybiera MG), krytyczna porażka — choroba popromienna: kary jak przy 800 radach i śmierć po dobie, chyba że rady spadną
     (RadAway albo inne leczenie, które je zmniejsza). „Krótki czas” z podręcznika system liczy jako godzinę.
   - przekroczenie 1000 radów — od razu END 1/10, porażka — śmierć.
+  - kary tymczasowe do END (choroba popromienna, odwodnienie, głód) liczą się w tych rzutach — przy 1000 radach
+    śmiertelna dawka zabiera 3 END, więc zwykle ratuje tylko krytyczny sukces. Karta rzutu pokazuje wyliczenie END
+    i skutek porażki. Tak samo działają END ¾ przy odwodnieniu i END ½ przy utrzymaniu jedzenia.
+  - przerzut kartą szczęścia (przycisk na karcie rzutu) cofa skutek, jeśli się uda: postać jednak przeżywa, nie traci
+    przytomności, zjada jedzenie, a przy silnym napromieniowaniu choroba popromienna zmienia się w mutację albo znika.
 
 Drzwi, zamki i bariery (zwykłe drzwi Foundry; z modułem **Threshold** — także jego bariery, Foundry v14):
 - Wytrych: postać stoi przy drzwiach zamkniętych na klucz (token dotyka drzwi albo pola, przez które przechodzą), a gracz

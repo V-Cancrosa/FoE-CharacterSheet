@@ -56,12 +56,31 @@ export function rateText(rate) {
   return t("{n} rads/min", { n: r < 10 ? round(r) : Math.round(r) });
 }
 
-/** Rzut na END z cechami postaci (stałe modyfikatory i kroki MFD, np. +15 dobrze najedzonego, kary odwodnienia). */
-async function endTest(actor, label, stepKey) {
+/** Skutki porażki automatycznych rzutów (do karty rzutu). */
+const CHECK_STAKES = {
+  lethal: N_("failure — death (p. 483)"),
+  severe: N_("failure — a mutation, critical failure — radiation poisoning (p. 483)"),
+  faint: N_("failure — passes out (p. 478)"),
+  keep: N_("failure — the food comes back up (p. 477)")
+};
+
+/**
+ * Rzut na END z cechami postaci (stałe modyfikatory i kroki MFD, np. +15 dobrze najedzonego). Kary tymczasowe do END
+ * (choroba popromienna, odwodnienie, głód) są już w progu — karta pokazuje wyliczenie. check — { kind, … }: znacznik
+ * automatycznego rzutu; udany przerzut kartą szczęścia cofa jego skutek (onReroll).
+ */
+async function endTest(actor, label, stepKey, check = null) {
+  const end = actor.system.attributes.end;
   const rc = rollContext(actor, { kind: "attr", attr: "end" });
   const step = MFD_STEPS[shiftStep(stepIndex(stepKey), rc.fixedSteps)].key;
-  const notes = rc.mods.map(m => `${m.label} ${m.value > 0 ? "+" : ""}${m.value}`);
-  const msg = await rollTest(actor, { label, baseTn: actor.system.attributes.end.tn, step, mod: rc.fixedMod, notes });
+  const notes = [
+    end.temp ? t("END {v} (base {b}; {list})", { v: end.total, b: end.base, list: (end.tempSources ?? []).join(", ") }) : "",
+    ...rc.mods.map(m => `${m.label} ${m.value > 0 ? "+" : ""}${m.value}`),
+    check ? t(CHECK_STAKES[check.kind]) : ""
+  ].filter(Boolean);
+  const data = { label, baseTn: end.tn, step, mod: rc.fixedMod, notes };
+  if (check) data.check = { id: foundry.utils.randomID(), ...check };
+  const msg = await rollTest(actor, data);
   return msg?.getFlag?.(F, "test")?.result ?? msg?.flags?.[F]?.test?.result ?? "fail";
 }
 
@@ -251,7 +270,7 @@ async function thirstTick(actor, w) {
       }
     } else if (ev === "faint") {
       lines.push(t("Stage 11: exhaustion — END ¾ or pass out (only a drink brings them round)."));
-      if (!actor.statuses?.has?.("unconscious") && !passed(await endTest(actor, t("Dehydration: staying conscious (END ¾)"), "3/4"))) {
+      if (!actor.statuses?.has?.("unconscious") && !passed(await endTest(actor, t("Dehydration: staying conscious (END ¾)"), "3/4", { kind: "faint" }))) {
         await toggleStatus(actor, "unconscious", true);
         await actor.setFlag(F, "thirst.out", true);
         lines.push(t("{name} passes out.", { name: actor.name }));
@@ -275,12 +294,9 @@ export async function eatItem(actor, item) {
   if ((Number(item.system.qty) || 0) < 1) return ui.notifications.warn(t("{name}: you don't have any left.", { name: item.name }));
   const info = foodInfo(item.system.description);
   const traits = traitNames(actor);
-  const diet = dietOf(actor.system.race, traits);
-  const cannibal = traits.some(x => /^cannibal\b|^kanibal/i.test(x));
-  const fits = !setting("survivalDiet") || fitsDiet(info, diet, cannibal);
+  const fits = !setting("survivalDiet") || fitsDiet(info, dietOf(actor.system.race, traits), traits.some(x => /^cannibal\b|^kanibal/i.test(x)));
   const ghoul = isGhoul(actor);
   const lines = [];
-  const w = now();
 
   // dzień: najpierw rozliczenie zaległych (np. MG był niezalogowany)
   await settleActor(actor);
@@ -289,12 +305,26 @@ export async function eatItem(actor, item) {
 
   // po tygodniu głodu jedzenie za 2+ posiłki trzeba utrzymać (END ½; poza Oatmeal i Slop)
   const keep = setting("survivalHunger") && fits && !ghoul && mustKeepDown(st.hungerDays, info.meals, item.name);
-  const kept = !keep || passed(await endTest(actor, t("Keeping food down after a week of starvation (END ½)"), "1/2"));
+  const kept = !keep || passed(await endTest(actor, t("Keeping food down after a week of starvation (END ½)"), "1/2", { kind: "keep", name: item.name, description: item.system.description }));
   await item.update({ "system.qty": Math.max(0, (Number(item.system.qty) || 0) - 1) });
   if (!kept) {
     lines.push(t("{name} can't keep it down — no nourishment, no healing.", { name: actor.name }));
     return eatCard(actor, item, info, lines);
   }
+  return feed(actor, item, lines);
+}
+
+/** Skutki zjedzenia (bez zdejmowania sztuki): posiłki, picie, rady, leczenie, kary głodu. item — { name, system.description }. */
+async function feed(actor, item, lines = []) {
+  const info = foodInfo(item.system.description);
+  const traits = traitNames(actor);
+  const diet = dietOf(actor.system.race, traits);
+  const cannibal = traits.some(x => /^cannibal\b|^kanibal/i.test(x));
+  const fits = !setting("survivalDiet") || fitsDiet(info, diet, cannibal);
+  const ghoul = isGhoul(actor);
+  const w = now();
+  const st = { ...freshState(today()), ...(stateOf(actor) ?? {}) };
+  if (st.day !== today()) Object.assign(st, freshState(today(), st));
 
   const meals = fits && !ghoul ? info.meals : 0;
   if (ghoul && info.meals) lines.push(t("Ghouls live on radiation ({n} rads a day), not food.", { n: RADS_FOR_FOOD }));
@@ -453,11 +483,11 @@ export async function radiationTick(actor, w = now()) {
   const lines = [];
   let warn = "";
   if (lethal) {
-    if (passed(await endTest(actor, t("1000 rads: surviving (END 1/10)"), "1/10"))) lines.push(t("{name} survives 1000 rads — for now (see “They Were Ponies, Once”; the GM decides what follows).", { name: actor.name }));
+    if (passed(await endTest(actor, t("1000 rads: surviving (END 1/10)"), "1/10", { kind: "lethal" }))) lines.push(t("{name} survives 1000 rads — for now (see “They Were Ponies, Once”; the GM decides what follows).", { name: actor.name }));
     else { await toggleStatus(actor, "dead", true); warn = t("{name} dies of severe radiation poisoning.", { name: actor.name }); }
   }
   if (severe && !warn) {
-    const res = await endTest(actor, t("Severe radiation exposure (END ¼)"), "1/4");
+    const res = await endTest(actor, t("Severe radiation exposure (END ¼)"), "1/4", { kind: "severe" });
     if (res === "crit-fail") {
       await actor.setFlag(F, "radlog.poison", { at: w });
       lines.push(t("Critical failure: radiation poisoning — penalties as at 800 rads; death within 24 hours unless the rads are reduced (RadAway or any treatment that lowers them)."));
@@ -683,6 +713,42 @@ export function registerSurvivalSettings() {
   });
 }
 
+/**
+ * Przerzut kartą szczęścia automatycznego rzutu (endTest z check): lepszy wynik cofa skutek pierwszego rzutu.
+ * Rzuty MG (1000 radów, silne napromieniowanie, utrata przytomności) poprawia aktywny MG; jedzenie — klient,
+ * który przerzucał (właściciel postaci).
+ */
+export async function onReroll(message) {
+  const test = message?.flags?.[F]?.test;
+  const check = test?.check;
+  if (!check || !(Number(test.rerolls) > 0)) return null;
+  const res = test.result;
+  const actor = await fromUuid(test.actorUuid).catch(() => null);
+  if (!actor) return null;
+  if (check.kind === "keep") {
+    if (!(message.isAuthor ?? message.author?.isSelf) || !passed(res)) return null;
+    const done = stateOf(actor)?.kept ?? [];
+    if (done.includes(check.id)) return null;
+    await actor.setFlag(F, "survival.kept", [...done.slice(-9), check.id]);
+    return feed(actor, { name: check.name, system: { description: check.description } }, [t("Luck card: {name} keeps it down after all.", { name: actor.name })]);
+  }
+  if (!game.users.activeGM?.isSelf) return null;
+  const lines = [];
+  if (check.kind === "lethal" && passed(res) && actor.statuses?.has?.("dead")) {
+    await toggleStatus(actor, "dead", false);
+    lines.push(t("Luck card: {name} survives 1000 rads after all.", { name: actor.name }));
+  } else if (check.kind === "faint" && passed(res) && flagOf(actor, "thirst")?.out) {
+    await toggleStatus(actor, "unconscious", false);
+    await actor.setFlag(F, "thirst.out", false);
+    lines.push(t("Luck card: {name} stays conscious after all.", { name: actor.name }));
+  } else if (check.kind === "severe" && res !== "crit-fail") {
+    if (flagOf(actor, "radlog")?.poison) await actor.setFlag(F, "radlog.poison", null);
+    lines.push(passed(res) ? t("Luck card: the severe exposure passes without effects — no mutation, no radiation poisoning.")
+      : t("Luck card: only a mutation, no radiation poisoning."));
+  }
+  return card(actor, lines, { tag: t("LUCK") });
+}
+
 /** Zmiana radów: dziennik (rady dziś, seria w godzinę, silne napromieniowanie, 1000 radów) w tej samej zmianie. */
 export function trackRads(actor, changes) {
   if (actor?.type !== "character") return;
@@ -719,6 +785,9 @@ export function registerSurvivalHooks() {
   });
   Hooks.on("preUpdateActor", (actor, changes) => {
     try { trackRads(actor, changes); } catch (err) { console.warn(`${F} | rads log`, err); }
+  });
+  Hooks.on("createChatMessage", message => {
+    onReroll(message).catch(err => console.error(`${F} | survival reroll`, err));
   });
   // 1000 radów: rzut od razu (aktywny MG)
   Hooks.on("updateActor", (actor, changes) => {
