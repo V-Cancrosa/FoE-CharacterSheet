@@ -66,6 +66,7 @@
   {{#if body.any}}
   <ul class="item-list conditions body">
     {{#if body.rad}}<li><span class="nm">{{t "Radiation"}}</span><span class="cdesc">{{body.rad}}: {{body.radFx}}</span></li>{{/if}}
+    {{#each body.survival}}<li class="{{#if alert}}alert{{/if}}"><span class="nm">{{name}}</span><span class="cdesc">{{desc}}</span></li>{{/each}}
     {{#each body.active}}
     <li data-chem="{{id}}"><span class="nm">{{name}}</span><span class="cdesc">{{fx}}{{#if note}} · {{note}}{{/if}}{{#if left}} · {{t "{n} left" n=left}}{{/if}}</span>
       <span class="ctl"><a data-action="endChem" title="{{t "End the effect"}}"><i class="fa-solid fa-xmark"></i></a></span></li>

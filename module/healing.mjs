@@ -175,6 +175,9 @@ export async function useHealItem(actor, item) {
   } else {
     formula = potionFormula(med.rank ?? 0, kind.mult);
     await item.update({ "system.qty": item.system.qty - 1 });
+    // mikstura lecznicza nawadnia (s. 479) — także w ostatnich 6 h przed śmiercią z odwodnienia
+    const { hydrate } = await import("./survival.mjs");
+    lines.push(...(await hydrate(target, 1, { potion: true })).map(l => esc(l)));
   }
   const roll = tint(await new Roll(formula).evaluate(), "heal");
   const healed = await healWounds(target, roll.total, { source: item.name, mends: !!kind.mends });

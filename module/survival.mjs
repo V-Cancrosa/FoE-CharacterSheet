@@ -1,39 +1,85 @@
 /**
- * Jedzenie, picie i promieniowanie z upływem czasu świata (zasady i obliczenia: survival-data.mjs).
+ * Jedzenie, picie i promieniowanie z upływem czasu świata (zasady i obliczenia: survival-data.mjs, kary: body.mjs).
  *   - „Zjedz” / „Wypij” przy produktach z kategorii „Jedzenie i picie”: posiłki, nawodnienie, rady (Iron Stomach — połowa,
- *     odporność na promieniowanie), leczenie ran (bez okaleczeń) i dieta rasy; posiłek zdejmuje karę głodu, napój — pragnienia,
- *   - o północy (czas świata; z kalendarzem — każdy dzień) aktywny MG rozlicza postacie graczy: dzień bez pełnego posiłku
- *     to −1 do losowego atrybutu w cesze „Głód” (s. 477), po 3 tygodniach śmierć; dzień bez picia (zasada domowa) — to samo
- *     w cesze „Odwodnienie”, po 3 dniach śmierć (domyślnie wyłączone),
- *   - promieniowanie: tło sceny (konfiguracja sceny), regiony (stała dawka w środku) i źródła — kafelki (pełna dawka przy
- *     źródle, dalej słabnie z kwadratem odległości, do zasięgu); postacie graczy na aktywnej scenie dostają sumę z upływem
- *     czasu (minus odporność); licznik Geigera w zakładce walki i trzaski przy ruchu własnego tokenu.
+ *     odporność na promieniowanie), leczenie ran (bez okaleczeń) i dieta rasy; posiłek zdejmuje karę głodu,
+ *   - głód (s. 477, tabela XXXII): o północy aktywny MG rozlicza postacie graczy — dzień bez pełnego posiłku to −1 do
+ *     losowego atrybutu w cesze „Głód”, po 3 tygodniach śmierć; jedzenie niesycące — 8 h bez kar; po tygodniu głodu
+ *     jedzenie za 2+ posiłki trzeba utrzymać (END ½); 4 posiłki co 4 h — +15 do rzutów END; ghule żywią się radami,
+ *   - odwodnienie (s. 478–479, tabela XXXIII): co 6 h bez picia etap wyżej; aktywny MG pilnuje etapów (rany tułowia,
+ *     utrata przytomności, zapaść i śmierć), rekonwalescencję liczy północ,
+ *   - promieniowanie (s. 483–484, tabela XXXV): poziomy 0–7 w radach na minutę — tło sceny, regiony i źródła (kafelki;
+ *     pełna dawka przy źródle, dalej słabnie z kwadratem odległości); postacie graczy na aktywnej scenie dostają sumę
+ *     z upływem czasu (minus odporność); licznik Geigera w zakładce walki (PipBuck rejestruje od poziomu 2) i trzaski;
+ *     silne napromieniowanie (ponad 400 radów w godzinę, nieusunięte przez 6 h) — END ¼, 1000 radów — END 1/10.
  */
 import { t, tn, N_ } from "./i18n.mjs";
-import { ATTRS } from "./data.mjs";
+import { ATTRS, MFD_STEPS } from "./data.mjs";
 import { healWounds } from "./healing.mjs";
 import { toggleStatus } from "./conditions.mjs";
+import { rollTest, stepIndex, shiftStep } from "./rolls.mjs";
+import { rollContext } from "./effects.mjs";
+import { isGhoul, isAlicorn, dehydrationLevel } from "./body.mjs";
 import {
-  foodInfo, dietOf, fitsDiet, foodRads, dayOf, freshState, settleDays, ambientRads, exposure, clickCount, STARVE_DEATH, THIRST_DEATH
+  foodInfo, dietOf, fitsDiet, foodRads, dayOf, freshState, settleDays, ambientRads, exposure, clickCount, STARVE_DEATH,
+  spacedMeals, WELL_FED, mustKeepDown, H6, freshThirst, thirstStage, stageAt, drink, dehydrate, settleRecovery, thirstEffects,
+  thirstSats, THIRST_EVENTS, RAD_ZONES, radLevelOf, absorbedRate, GEIGER_MIN_LEVEL, radLog, radsOnDay, RADS_FOR_FOOD,
+  SEVERE_WAIT, POISON_DEATH
 } from "./survival-data.mjs";
 
 const F = "foe-rpg";
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const setting = (key, fallback = true) => { try { return game.settings.get(F, key) ?? fallback; } catch { return fallback; } };
-const today = () => dayOf(game.time?.worldTime ?? 0);
-const stateOf = actor => actor?.flags?.[F]?.survival ?? null;
+const now = () => Number(game.time?.worldTime) || 0;
+const today = () => dayOf(now());
+const flagOf = (actor, key) => actor?.flags?.[F]?.[key] ?? null;
+const stateOf = actor => flagOf(actor, "survival");
 const traitNames = actor => (actor?.items ?? []).filter(i => i.type === "feature" && i.system?.active !== false).map(i => i.name);
 const ownersAndGM = actor => game.users.filter(u => u.isGM || actor.testUserPermission?.(u, "OWNER")).map(u => u.id);
 const DIET = { herbivore: N_("diet|herbivore"), omnivore: N_("diet|omnivore"), carnivore: N_("diet|carnivore") };
-const d6 = () => Math.ceil((CONFIG.Dice?.randomUniform?.() ?? Math.random()) * 6) || 1;
+const rnd = () => CONFIG.Dice?.randomUniform?.() ?? Math.random();
+const d6 = () => Math.ceil(rnd() * 6) || 1;
+const d4 = () => Math.ceil(rnd() * 4) || 1;
+const passed = r => r === "success" || r === "crit-success";
+const isDead = actor => !!actor?.system?.dead || !!actor?.statuses?.has?.("dead");
+/** Czy postać pije (odwodnienie włączone; ghule nie piją). */
+const thirstOn = actor => actor?.type === "character" && !!setting("survivalDehydration") && !isGhoul(actor);
 
 /** Postacie, których głód i pragnienie liczy system: postacie graczy (nie martwe). */
-const tracked = () => (game.actors?.filter?.(a => a.type === "character" && a.hasPlayerOwner && !a.system?.dead) ?? []);
+const tracked = () => (game.actors?.filter?.(a => a.type === "character" && a.hasPlayerOwner && !isDead(a)) ?? []);
 
-// ---------- kary (cechy „Głód” i „Odwodnienie”) ----------
+/** Dawka do odczytu: „20 rad/min”, „6 rad/h”, „4 rady/dobę”. */
+export function rateText(rate) {
+  const r = Math.max(0, Number(rate) || 0);
+  const round = (x, d = 1) => Math.round(x * 10 ** d) / 10 ** d;
+  if (r && r < 0.1) return t("{n} rads/day", { n: round(r * 1440, 0) });
+  if (r && r < 1) return t("{n} rads/h", { n: round(r * 60) });
+  return t("{n} rads/min", { n: r < 10 ? round(r) : Math.round(r) });
+}
+
+/** Rzut na END z cechami postaci (stałe modyfikatory i kroki MFD, np. +15 dobrze najedzonego, kary odwodnienia). */
+async function endTest(actor, label, stepKey) {
+  const rc = rollContext(actor, { kind: "attr", attr: "end" });
+  const step = MFD_STEPS[shiftStep(stepIndex(stepKey), rc.fixedSteps)].key;
+  const notes = rc.mods.map(m => `${m.label} ${m.value > 0 ? "+" : ""}${m.value}`);
+  const msg = await rollTest(actor, { label, baseTn: actor.system.attributes.end.tn, step, mod: rc.fixedMod, notes });
+  return msg?.getFlag?.(F, "test")?.result ?? msg?.flags?.[F]?.test?.result ?? "fail";
+}
+
+/** Karta PipBucka dla gracza i MG. */
+function card(actor, lines, { warn = "", rolls = [], tag = t("SURVIVAL") } = {}) {
+  if (!lines.length && !warn) return null;
+  return ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }), whisper: ownersAndGM(actor), rolls,
+    content: `<div class="foe-card wounds"><div class="fc-tag"><span>PIPBUCK // ${esc(tag)}</span><span>${esc(actor.name)}</span></div>
+      ${lines.map(l => `<div class="fc-meta">${esc(l)}</div>`).join("")}
+      ${warn ? `<div class="fc-meta"><b class="warn">${esc(warn)}</b></div>` : ""}
+    </div>`
+  });
+}
+
+// ---------- kara głodu (cecha „Głód”) ----------
 const PENALTY = {
-  starvation: { name: () => t("Starvation"), desc: () => t("Table XXXII (p. 477): every day without a full meal is −1 temporarily to a random attribute. Remove this feature when the character eats (a nourishing meal); non-nourishing food lets you ignore the penalties for 8 hours.") },
-  thirst: { name: () => t("Dehydration"), desc: () => t("House rule: every day without a drink is −1 temporarily to a random attribute (like starvation); after 3 days without water the character dies. Drinking removes this feature.") }
+  starvation: { name: () => t("Starvation"), desc: () => t("Table XXXII (p. 477): every day without a full meal is −1 temporarily to a random attribute. Remove this feature when the character eats (a nourishing meal); non-nourishing food lets you ignore the penalties for 8 hours.") }
 };
 
 async function addPenalty(actor, kind, attrs) {
@@ -57,53 +103,170 @@ async function clearPenalty(actor, kind) {
   if (feats.length) await actor.deleteEmbeddedDocuments("Item", feats.map(i => i.id));
   return feats.length > 0;
 }
+const starving = actor => (actor?.items ?? []).some(i => i.type === "feature" && i.flags?.[F]?.starvation);
 
-// ---------- rozliczenie dni ----------
-/** Rozlicz dni od ostatniego rozliczenia do dziś (karta na czacie dla gracza i MG). */
+// ---------- rozliczenie dnia (północ) ----------
+/** Rozlicz dni od ostatniego rozliczenia do dziś: głód i doba rekonwalescencji po odwodnieniu (karta dla gracza i MG). */
 export async function settleActor(actor, day = today()) {
-  const hunger = setting("survivalHunger"), thirst = setting("survivalThirst", false);
+  const hunger = setting("survivalHunger");
   const st = stateOf(actor);
   if (!st || day < st.day) return actor.setFlag(F, "survival", freshState(day, st ?? {}));
   if (day === st.day) return null;
-  if (!hunger && !thirst) return actor.setFlag(F, "survival", freshState(day, st));
-  const res = settleDays(st, day, { thirst, roll: d6 });
-  await actor.setFlag(F, "survival", res.state);
   const lines = [];
-  if (hunger && res.starve.length) {
+
+  const th = flagOf(actor, "thirst");
+  if (th?.rec && thirstOn(actor)) {
+    const r = settleRecovery(th, st.day);
+    await actor.setFlag(F, "thirst", r.th);
+    if (r.done) lines.push(t("Dehydration: recovered — the penalties are gone."));
+    else if (r.counted) lines.push(t("Dehydration: a day of recovery done ({n} left).", { n: tn(r.th.rec.days, "{n} day", "{n} days") }));
+  }
+
+  if (!hunger) {
+    await actor.setFlag(F, "survival", freshState(day, st));
+    return card(actor, lines);
+  }
+  // ghule: co najmniej 5 radów na dobę zamiast jedzenia; alikorny mogą nimi zastąpić posiłek (s. 477)
+  const ghoul = isGhoul(actor);
+  const rads = radsOnDay(flagOf(actor, "radlog"), st.day);
+  const byRads = (ghoul || isAlicorn(actor)) && rads >= RADS_FOR_FOOD;
+  const res = settleDays(st, day, { roll: d6, fed: ghoul ? byRads : byRads || null });
+  await actor.setFlag(F, "survival", res.state);
+  if (byRads && await clearPenalty(actor, "starvation")) lines.push(t("Radiation fed {name} ({n} rads that day): the starvation penalties are gone.", { name: actor.name, n: rads }));
+  let warn = "";
+  if (res.starve.length) {
     await addPenalty(actor, "starvation", res.starve);
-    lines.push(t("Hunger: {n} without a full meal — {list} −1 (feature “Starvation”).", { n: tn(res.starve.length, "{n} day", "{n} days"), list: res.starve.map(a => ATTRS[a]).join(", ") }));
+    const n = tn(res.starve.length, "{n} day", "{n} days");
+    const list = res.starve.map(a => ATTRS[a]).join(", ");
+    lines.push(ghoul ? t("Hunger (ghoul): {n} with fewer than {r} rads — {list} −1 (feature “Starvation”).", { n, r: RADS_FOR_FOOD, list })
+      : t("Hunger: {n} without a full meal — {list} −1 (feature “Starvation”).", { n, list }));
+    if (res.starvedToDeath) {
+      warn = t("{name} dies of starvation ({n} days without food).", { name: actor.name, n: STARVE_DEATH });
+      await toggleStatus(actor, "dead", true);
+    } else lines.push(t("Days in a row without food: {h}.", { h: res.state.hungerDays }));
   }
-  if (thirst && res.thirst.length) {
-    await addPenalty(actor, "thirst", res.thirst);
-    lines.push(t("Thirst: {n} without a drink — {list} −1 (feature “Dehydration”).", { n: tn(res.thirst.length, "{n} day", "{n} days"), list: res.thirst.map(a => ATTRS[a]).join(", ") }));
-  }
-  let death = "";
-  if (hunger && res.starvedToDeath) death = t("{name} dies of starvation ({n} days without food).", { name: actor.name, n: STARVE_DEATH });
-  else if (thirst && res.diedOfThirst) death = t("{name} dies of thirst ({n} days without water).", { name: actor.name, n: THIRST_DEATH });
-  if (death) await toggleStatus(actor, "dead", true);
-  if (!lines.length && !death) return null;
-  return ChatMessage.create({
-    speaker: ChatMessage.getSpeaker({ actor }), whisper: ownersAndGM(actor),
-    content: `<div class="foe-card wounds"><div class="fc-tag"><span>PIPBUCK // ${t("SURVIVAL")}</span><span>${esc(actor.name)}</span></div>
-      ${lines.map(l => `<div class="fc-meta">${esc(l)}</div>`).join("")}
-      ${death ? `<div class="fc-meta"><b class="warn">${esc(death)}</b></div>` : `<div class="fc-meta">${t("Days in a row — without food: {h}, without a drink: {d}.", { h: res.state.hungerDays, d: res.state.thirstDays })}</div>`}
-    </div>`
-  });
+  return card(actor, lines, { warn });
 }
 
-/** Dzisiejszy stan do karty postaci: „Dziś: posiłki 1/1 · picie 0/1 · bez jedzenia 2 dni”. */
+/** Dzisiejszy stan do karty postaci: „dziś: posiłki 1/1 · nawodniony 18 h”. */
 export function survivalNote(actor) {
-  if (actor?.type !== "character" || (!setting("survivalHunger") && !setting("survivalThirst", false))) return "";
+  if (actor?.type !== "character") return "";
+  const hunger = setting("survivalHunger"), thirst = thirstOn(actor);
+  if (!hunger && !thirst) return "";
   const st = stateOf(actor);
   const fresh = !st || st.day !== today();
-  const meals = fresh ? 0 : st.meals, drinks = fresh ? 0 : st.drinks, dry = fresh ? 0 : st.dehydrating;
-  return [
-    t("today:"),
-    setting("survivalHunger") ? t("meals {a}/{b}", { a: meals, b: 1 }) : "",
-    setting("survivalThirst", false) ? t("drinks {a}/{b}", { a: drinks, b: 1 + dry }) : "",
-    st?.hungerDays ? t("without food: {n}", { n: tn(st.hungerDays, "{n} day", "{n} days") }) : "",
-    st?.thirstDays ? t("without a drink: {n}", { n: tn(st.thirstDays, "{n} day", "{n} days") }) : ""
-  ].filter(Boolean).join(" · ").replace(/: · /, ": ");
+  const parts = [];
+  if (hunger) {
+    if (isGhoul(actor)) parts.push(t("rads {a}/{b}", { a: radsOnDay(flagOf(actor, "radlog"), today()), b: RADS_FOR_FOOD }));
+    else parts.push(t("meals {a}/{b}", { a: fresh ? 0 : st.meals, b: 1 }));
+    if (st?.hungerDays) parts.push(t("without food: {n}", { n: tn(st.hungerDays, "{n} day", "{n} days") }));
+  }
+  if (thirst) {
+    const th = flagOf(actor, "thirst"), w = now();
+    const stage = thirstStage(th, w);
+    if (stage) parts.push(t("dehydration: stage {n}/12", { n: stage }));
+    else if (th && th.until > w) parts.push(t("hydrated for {h} h", { h: Math.floor((th.until - w) / 3600) }));
+    else if (th) parts.push(t("thirsty — stage 1 in {h} h", { h: Math.max(0, Math.ceil((th.until + H6 - w) / 3600)) }));
+    if (th?.rec) parts.push(t("recovery: drinks {a}/{b} today, {n} left", { a: th.rec.day === today() ? th.rec.count : 0, b: th.rec.need, n: tn(th.rec.days, "{n} day", "{n} days") }));
+  }
+  return [t("today:"), ...parts].join(" · ").replace(": · ", ": ");
+}
+
+// ---------- picie (odwodnienie, tabela XXXIII) ----------
+/**
+ * Nawodnienie postaci: `items` produktów (woda, napój, mikstura lecznicza). Zwraca linie do karty (bez karty).
+ * potion — mikstura lecznicza: wystarcza też w ostatnich 6 h przed śmiercią (s. 479).
+ */
+export async function hydrate(actor, items = 1, { potion = false } = {}) {
+  if (!thirstOn(actor)) return [];
+  await settleActor(actor);
+  const w = now();
+  const before = flagOf(actor, "thirst");
+  const r = drink(before, w, items, () => 2 + d4() + d4());
+  const lines = [];
+  const half = Math.floor((r.th.max || 0) / 2);
+  if (r.kind === "ok") lines.push(t("Hydrated for {h} h.", { h: Math.floor((r.th.until - w) / 3600) }));
+  else if (r.kind === "reversed") lines.push(t("Dehydration (stage {s}) reversed by the drink.", { s: r.stage }));
+  else if (r.kind === "recovery") {
+    lines.push(r.th.max >= 6
+      ? t("Dehydration stage {s}: recovery — at least {need} drinks (2d4+2) a day for {n}; until then the penalties of stage {half}.", { s: r.stage, need: r.th.rec.need, n: tn(r.th.rec.days, "{n} day", "{n} days"), half })
+      : t("Dehydration stage {s}: recovery — at least 4 drinks over a full day; until then the penalties of stage {half}.", { s: r.stage, half }));
+    if (r.th.max >= 6) lines.push(t("From stage 6 the character needs medical care or supervision (Medicine or Survival MFD 1; ¾ to manage alone) — drinking too fast can kill."));
+  } else lines.push(t("Recovery: {a}/{b} drinks today ({n} left).", { a: r.th.rec.count, b: r.th.rec.need, n: tn(r.th.rec.days, "{n} day", "{n} days") }));
+  if (r.stage >= 11 && !potion) lines.push(t("Within 6 hours of death: water alone is not enough — healing magic is needed as well (a healing potion is enough)."));
+  await actor.setFlag(F, "thirst", r.th);
+  if (before?.out && actor.statuses?.has?.("unconscious")) {
+    await toggleStatus(actor, "unconscious", false);
+    lines.push(t("{name} comes round.", { name: actor.name }));
+  }
+  if (await clearPenalty(actor, "thirst")) lines.push(t("The old “Dehydration” feature is removed (dehydration now works in stages)."));
+  return lines;
+}
+
+async function dehydrateActor(actor) {
+  if (!thirstOn(actor)) return [];
+  await actor.setFlag(F, "thirst", dehydrate(flagOf(actor, "thirst"), now()));
+  return [t("Dehydrating: −6 h of hydration (one more drink needed).")];
+}
+
+/** Opis etapu (od wejścia na etap; kary sumują się z poprzednimi). */
+const STAGE_TEXT = {
+  1: N_("Stage 1: dry mouth."),
+  2: N_("Stage 2: dry throat — CHA and its skills 1 MFD step harder (optional). Up to here a drink reverses everything."),
+  3: N_("Stage 3: weakening muscles — STR, END and AGI −1 (optional)."),
+  4: N_("Stage 4 (24 h): slowed reflexes — SATS costs +10 AP, initiative −10."),
+  5: N_("Stage 5: weakening muscles — another −1 to STR, END and AGI."),
+  7: N_("Stage 7: hazy vision — all attack rolls 1 MFD step harder."),
+  8: N_("Stage 8 (48 h): slowed reflexes — SATS costs another +10 AP, only one action per turn in combat."),
+  9: N_("Stage 9: tunnel vision — attack rolls another MFD step harder.")
+};
+
+/** Aktywny MG: etapy odwodnienia z upływem czasu (zdarzenia na wejściu na etap, śmierć godzinę po zapaści). */
+async function thirstTick(actor, w) {
+  if (!thirstOn(actor)) return null;
+  const th = flagOf(actor, "thirst");
+  if (!th) {
+    await actor.setFlag(F, "thirst", freshThirst(w));
+    await clearPenalty(actor, "thirst");
+    return null;
+  }
+  const stage = thirstStage(th, w);
+  const seen = Number(th.seen) || 0;
+  const dies = stage >= 12 && w >= stageAt(th, 12) + 3600 && !isDead(actor);
+  if (stage === seen && !dies) return null;
+  if (stage < seen) return actor.setFlag(F, "thirst", { ...th, seen: stage });
+  await actor.setFlag(F, "thirst", { ...th, seen: stage });
+  const lines = [], rolls = [];
+  let warn = "";
+  for (let s = seen + 1; s <= stage; s++) {
+    const ev = THIRST_EVENTS[s];
+    if (ev === "wounds4" || ev === "wounds6") {
+      const roll = await new Roll(ev === "wounds4" ? "1d4" : "1d6").evaluate();
+      rolls.push(roll);
+      await actor.update({ "system.locations.torso.wounds": (Number(actor.system.locations?.torso?.wounds) || 0) + roll.total });
+      lines.push(t("Stage {s}: organ damage — {n} wounds to the torso (only drink heals them; a healing potion removes 1 per potion).", { s, n: roll.total }));
+      if (actor.system.dead) {
+        await toggleStatus(actor, "dead", true);
+        return card(actor, lines, { warn: t("{name} dies of organ damage.", { name: actor.name }), rolls, tag: t("DEHYDRATION") });
+      }
+    } else if (ev === "faint") {
+      lines.push(t("Stage 11: exhaustion — END ¾ or pass out (only a drink brings them round)."));
+      if (!actor.statuses?.has?.("unconscious") && !passed(await endTest(actor, t("Dehydration: staying conscious (END ¾)"), "3/4"))) {
+        await toggleStatus(actor, "unconscious", true);
+        await actor.setFlag(F, "thirst.out", true);
+        lines.push(t("{name} passes out.", { name: actor.name }));
+      }
+    } else if (ev === "collapse") {
+      await toggleStatus(actor, "unconscious", true);
+      await actor.setFlag(F, "thirst.out", true);
+      warn = t("Stage 12 (72 h): {name} collapses and will die within an hour unless revived with water and medical attention (Medicine ¾; healing magic or a healing potion).", { name: actor.name });
+    } else if (STAGE_TEXT[s]) lines.push(t(STAGE_TEXT[s]));
+  }
+  if (dies) {
+    await toggleStatus(actor, "dead", true);
+    warn = t("{name} dies of dehydration.", { name: actor.name });
+  }
+  return card(actor, lines, { warn, rolls, tag: t("DEHYDRATION") });
 }
 
 // ---------- jedzenie ----------
@@ -115,21 +278,45 @@ export async function eatItem(actor, item) {
   const diet = dietOf(actor.system.race, traits);
   const cannibal = traits.some(x => /^cannibal\b|^kanibal/i.test(x));
   const fits = !setting("survivalDiet") || fitsDiet(info, diet, cannibal);
+  const ghoul = isGhoul(actor);
   const lines = [];
+  const w = now();
 
   // dzień: najpierw rozliczenie zaległych (np. MG był niezalogowany)
   await settleActor(actor);
   const st = { ...freshState(today()), ...(stateOf(actor) ?? {}) };
   if (st.day !== today()) Object.assign(st, freshState(today(), st));
 
+  // po tygodniu głodu jedzenie za 2+ posiłki trzeba utrzymać (END ½; poza Oatmeal i Slop)
+  const keep = setting("survivalHunger") && fits && !ghoul && mustKeepDown(st.hungerDays, info.meals, item.name);
+  const kept = !keep || passed(await endTest(actor, t("Keeping food down after a week of starvation (END ½)"), "1/2"));
   await item.update({ "system.qty": Math.max(0, (Number(item.system.qty) || 0) - 1) });
+  if (!kept) {
+    lines.push(t("{name} can't keep it down — no nourishment, no healing.", { name: actor.name }));
+    return eatCard(actor, item, info, lines);
+  }
 
-  const meals = fits ? info.meals : 0;
-  if (!fits) lines.push(t("{name} gets no sustenance from it (diet: {diet}).", { name: actor.name, diet: t(DIET[diet]) }));
-  if (meals) { st.meals += meals; lines.push(t("Meals +{n} (today {a}/{b}).", { n: meals, a: st.meals, b: 1 })); }
-  if (info.hydrate) { st.drinks += 1; lines.push(t("Hydration (drinks today {a}/{b}).", { a: st.drinks, b: 1 + st.dehydrating })); }
-  if (info.dehydrating) { st.dehydrating += 1; lines.push(t("Dehydrating: one more drink needed today ({a}/{b}).", { a: st.drinks, b: 1 + st.dehydrating })); }
+  const meals = fits && !ghoul ? info.meals : 0;
+  if (ghoul && info.meals) lines.push(t("Ghouls live on radiation ({n} rads a day), not food.", { n: RADS_FOR_FOOD }));
+  else if (!fits) lines.push(t("{name} gets no sustenance from it (diet: {diet}).", { name: actor.name, diet: t(DIET[diet]) }));
+  if (meals) {
+    st.meals += meals;
+    st.mealTimes = [...(st.mealTimes ?? []), w];
+    lines.push(t("Meals +{n} (today {a}/{b}).", { n: meals, a: st.meals, b: 1 }));
+    if (spacedMeals(st.mealTimes) >= WELL_FED && st.wellFed !== today()) {
+      st.wellFed = today();
+      lines.push(t("Well fed (4 meals at least 4 hours apart): +15 to END rolls for the rest of the day."));
+    }
+  }
+  // jedzenie niesycące (wbrew diecie albo „nie liczy się jako posiłek”): 8 h bez kar głodu
+  if (!info.drink && !meals && !ghoul) {
+    st.ignoreUntil = w + 8 * 3600;
+    if (starving(actor)) lines.push(t("Non-nourishing food: the starvation penalties are ignored for the next 8 hours."));
+  }
   await actor.setFlag(F, "survival", st);
+
+  if (info.hydrate) lines.push(...await hydrate(actor, 1));
+  if (info.dehydrating) lines.push(...await dehydrateActor(actor));
 
   const rads = foodRads(info.rads, { resist: actor.system.radResistTotal ?? 0, ironStomach: traits.some(x => /^iron stomach\b|^żelazny żołądek/i.test(x)) });
   if (rads) {
@@ -143,28 +330,67 @@ export async function eatItem(actor, item) {
     if (healed?.healed) lines.push(t("Heals: {list}.", { list: healed.text }));
   }
   if (meals && await clearPenalty(actor, "starvation")) lines.push(t("A full meal: the starvation penalties are gone."));
-  if (info.hydrate && await clearPenalty(actor, "thirst")) lines.push(t("A drink: the dehydration penalties are gone."));
   if (info.effects.length) lines.push(t("Effects (the GM applies them): {list}.", { list: info.effects.join("; ") }));
-
-  return ChatMessage.create({
-    speaker: ChatMessage.getSpeaker({ actor }),
-    content: `<div class="foe-card spell success"><div class="fc-tag"><span>PIPBUCK // ${info.drink ? t("DRINK") : t("FOOD")}</span><span><i class="fa-solid fa-utensils"></i></span></div>
-      <h3>${esc(info.drink ? t("{name} drinks: {item}", { name: actor.name, item: item.name }) : t("{name} eats: {item}", { name: actor.name, item: item.name }))}</h3>
-      ${lines.map(l => `<div class="fc-meta">${esc(l)}</div>`).join("")}</div>`
-  });
+  return eatCard(actor, item, info, lines);
 }
+
+const eatCard = (actor, item, info, lines) => ChatMessage.create({
+  speaker: ChatMessage.getSpeaker({ actor }),
+  content: `<div class="foe-card spell success"><div class="fc-tag"><span>PIPBUCK // ${info.drink ? t("DRINK") : t("FOOD")}</span><span><i class="fa-solid fa-utensils"></i></span></div>
+    <h3>${esc(info.drink ? t("{name} drinks: {item}", { name: actor.name, item: item.name }) : t("{name} eats: {item}", { name: actor.name, item: item.name }))}</h3>
+    ${lines.map(l => `<div class="fc-meta">${esc(l)}</div>`).join("")}</div>`
+});
 /** Etykieta przycisku przy produkcie. */
 export const eatLabel = item => (foodInfo(item?.system?.description).drink ? t("Drink") : t("Eat"));
 
+/** Wiersze stanu do sekcji „Zdrowie, chemia i promieniowanie” na karcie: [{ name, desc, alert }]. */
+export function survivalRows(actor) {
+  if (actor?.type !== "character") return [];
+  const rows = [];
+  const w = now();
+  const lvl = dehydrationLevel(actor, w);
+  const th = flagOf(actor, "thirst");
+  if (lvl) {
+    const fx = thirstEffects(lvl, { optional: !!setting("dehydrationOptional") });
+    const weak = fx.find(e => e.type === "tempAttr")?.value;
+    const aim = fx.find(e => e.type === "mfdStep")?.value;
+    const parts = [
+      fx.some(e => e.type === "basedStep") ? t("CHA −1 MFD step") : "",
+      weak ? t("STR, END, AGI {v}", { v: weak }) : "",
+      lvl >= 4 ? t("initiative −10") : "",
+      thirstSats(lvl) ? t("SATS +{n} AP", { n: thirstSats(lvl) }) : "",
+      lvl >= 8 ? t("1 action per turn") : "",
+      aim ? tn(-aim, "attacks {n} MFD step harder", "attacks {n} MFD steps harder") : ""
+    ].filter(Boolean);
+    const rec = th?.rec ? t("recovering: {a}/{b} drinks today, {n} left", { a: th.rec.day === today() ? th.rec.count : 0, b: th.rec.need, n: tn(th.rec.days, "{n} day", "{n} days") }) : "";
+    rows.push({ name: t("Dehydration, stage {n}", { n: lvl }), desc: [parts.join(", "), rec].filter(Boolean).join(" · "), alert: lvl >= 6 });
+  }
+  const st = stateOf(actor);
+  if (st?.ignoreUntil > w && starving(actor)) rows.push({ name: t("Starvation ignored"), desc: t("for {h} h more (non-nourishing food)", { h: Math.ceil((st.ignoreUntil - w) / 3600) }) });
+  if (st?.wellFed != null && st.wellFed === dayOf(w)) rows.push({ name: t("Well fed"), desc: t("+15 to END rolls until midnight") });
+  const log = flagOf(actor, "radlog");
+  if (log?.severe && setting("radiationChecks")) rows.push({ name: t("Severe radiation exposure"), desc: t("END ¼ roll in {h} h unless the rads are reduced (failure — a mutation)", { h: Math.max(0, Math.ceil((log.severe.at + SEVERE_WAIT - w) / 3600)) }), alert: true });
+  if (log?.poison) rows.push({ name: t("Radiation poisoning"), desc: t("penalties as at 800 rads; death in {h} h unless the rads are reduced (RadAway)", { h: Math.max(0, Math.ceil((log.poison.at + POISON_DEATH - w) / 3600)) }), alert: true });
+  return rows;
+}
+
 // ---------- promieniowanie: tło sceny, regiony i źródła (kafelki) ----------
-export const sceneRads = scene => Math.max(0, Number(scene?.flags?.[F]?.radiation) || 0);
-/** Region z promieniowaniem: rady na godzinę w środku. */
-export const regionRads = region => Math.max(0, Number(region?.flags?.[F]?.radiation) || 0);
-/** Kafelek-źródło: { rate (rad/h przy źródle), range (ft) } albo null. */
+/** Dawka w rad/min z flagi `rads` (od 0.52); starsza flaga `radiation` była w rad/h. */
+function rateOf(flags) {
+  const f = flags?.[F];
+  if (f?.rads && f.rads.rate !== undefined) return Math.max(0, Number(f.rads.rate) || 0);
+  return Math.max(0, Number(f?.radiation) || 0) / 60;
+}
+export const sceneRads = scene => rateOf(scene?.flags);
+/** Region z promieniowaniem: rady na minutę w środku. */
+export const regionRads = region => rateOf(region?.flags);
+/** Kafelek-źródło: { rate (rad/min przy źródle), range (ft) } albo null. */
 export function tileSource(tile) {
-  const r = tile?.flags?.[F]?.radiation;
-  const rate = Math.max(0, Number(r?.rate) || 0);
-  return rate ? { rate, range: Math.max(0, Number(r?.range ?? 30) || 0) } : null;
+  const f = tile?.flags?.[F];
+  const r = f?.rads;
+  const rate = r && r.rate !== undefined ? Math.max(0, Number(r.rate) || 0) : Math.max(0, Number(f?.radiation?.rate) || 0) / 60;
+  const range = r?.range ?? f?.radiation?.range ?? 30;
+  return rate ? { rate, range: Math.max(0, Number(range) || 0) } : null;
 }
 const carry = new Map();
 
@@ -176,7 +402,7 @@ function inRegion(td, region) {
   try { return !!(region.testPoint?.(c) ?? region.object?.testPoint?.(c, c.elevation)); } catch { return false; }
 }
 
-/** Dawka (rad/h) dla tokenu na jego scenie: { total, parts }. */
+/** Dawka (rad/min) dla tokenu na jego scenie: { total, parts }. */
 export function tokenExposure(td) {
   const scene = td?.parent;
   if (!scene) return { total: 0, parts: [] };
@@ -194,7 +420,7 @@ function exposedOnActive() {
   const out = new Map();
   for (const td of scene?.tokens ?? []) {
     const a = td.actor;
-    if (a?.type !== "character" || !a.hasPlayerOwner || a.system?.dead) continue;
+    if (a?.type !== "character" || !a.hasPlayerOwner || isDead(a)) continue;
     const e = tokenExposure(td);
     if (!out.has(a) || out.get(a).total < e.total) out.set(a, e);
   }
@@ -204,26 +430,73 @@ function exposedOnActive() {
 async function irradiate(dt) {
   if (!(dt > 0)) return;
   for (const [a, e] of exposedOnActive()) {
-    if (!e.total) continue;
-    const r = ambientRads(e.total, dt, a.system.radResistTotal ?? 0, carry.get(a.uuid) ?? 0);
+    const resist = a.system.radResistTotal ?? 0;
+    const rate = absorbedRate(e.total, resist);
+    if (!rate) continue;
+    const r = ambientRads(rate, dt, resist, carry.get(a.uuid) ?? 0);
     carry.set(a.uuid, r.carry);
     if (r.rads) await a.update({ "system.resources.rads.value": (Number(a.system.resources?.rads?.value) || 0) + r.rads });
   }
 }
 
+/** Aktywny MG: silne napromieniowanie (END ¼ po 6 h), choroba popromienna (śmierć po dobie), 1000 radów (END 1/10). */
+export async function radiationTick(actor, w = now()) {
+  if (!setting("radiationChecks") || isGhoul(actor) || isDead(actor)) return null;
+  const log = flagOf(actor, "radlog");
+  if (!log) return null;
+  const lethal = log.lethal != null;
+  const severe = !!log.severe && w >= log.severe.at + SEVERE_WAIT;
+  const poisonDeath = !!log.poison && w >= log.poison.at + POISON_DEATH;
+  if (!lethal && !severe && !poisonDeath) return null;
+  // najpierw zapis (żeby kolejny upływ czasu nie rzucał drugi raz), potem rzuty
+  await actor.setFlag(F, "radlog", { ...log, ...(lethal ? { lethal: null } : {}), ...(severe ? { severe: null, burst: null } : {}), ...(poisonDeath ? { poison: null } : {}) });
+  const lines = [];
+  let warn = "";
+  if (lethal) {
+    if (passed(await endTest(actor, t("1000 rads: surviving (END 1/10)"), "1/10"))) lines.push(t("{name} survives 1000 rads — for now (see “They Were Ponies, Once”; the GM decides what follows).", { name: actor.name }));
+    else { await toggleStatus(actor, "dead", true); warn = t("{name} dies of severe radiation poisoning.", { name: actor.name }); }
+  }
+  if (severe && !warn) {
+    const res = await endTest(actor, t("Severe radiation exposure (END ¼)"), "1/4");
+    if (res === "crit-fail") {
+      await actor.setFlag(F, "radlog.poison", { at: w });
+      lines.push(t("Critical failure: radiation poisoning — penalties as at 800 rads; death within 24 hours unless the rads are reduced (RadAway or any treatment that lowers them)."));
+    } else if (!passed(res)) lines.push(t("Failure: a mutation (the Mutation hindrance — the GM chooses; see “They Were Ponies, Once”)."));
+    else lines.push(t("Severe radiation exposure: the END roll succeeded — nothing happens."));
+  }
+  if (poisonDeath && !warn) {
+    await toggleStatus(actor, "dead", true);
+    warn = t("{name} dies of radiation poisoning (24 hours without treatment).", { name: actor.name });
+  }
+  return card(actor, lines, { warn, tag: t("RADIATION") });
+}
+
+/** Jedno przetwarzanie postaci naraz (rzuty mogą czekać na okno, a czas płynie dalej). */
+const busy = new Set();
+async function guarded(actor, fn) {
+  if (busy.has(actor.uuid)) return null;
+  busy.add(actor.uuid);
+  try { return await fn(); } finally { busy.delete(actor.uuid); }
+}
+
 // ---------- licznik Geigera ----------
+const levelText = rate => t("level {n}", { n: radLevelOf(rate) ?? 0 });
+const ZONE_LABEL = [N_("Negligible"), N_("Residual"), N_("Extremely low"), N_("Low"), N_("Medium"), N_("High"), N_("Extremely high"), N_("Deadly")];
 function geigerText() {
   const scene = game.scenes?.active;
-  const exp = [...exposedOnActive()].filter(([a, e]) => e.total > 0 && (game.user.isGM || a.isOwner));
+  const gm = game.user.isGM;
+  // PipBuck nie rejestruje promieniowania poniżej poziomu 2 (s. 484) — gracz go nie widzi, MG tak
+  const shows = rate => rate > 0 && (gm || (radLevelOf(rate) ?? 0) >= GEIGER_MIN_LEVEL);
+  const exp = [...exposedOnActive()].filter(([a, e]) => shows(e.total) && (gm || a.isOwner));
   const amb = sceneRads(scene);
-  if (!exp.length && !amb) return null;
-  const who = exp.sort((x, y) => y[1].total - x[1].total).slice(0, game.user.isGM ? 4 : 2)
-    .map(([a, e]) => `${a.name} ${t("{n} rads/h", { n: e.total })}`);
-  const title = exp.map(([a, e]) => `${a.name}: ${e.parts.map(p => p.kind === "scene" ? t("scene {n}", { n: p.rate })
-    : p.kind === "region" ? t("region {name} {n}", { name: p.name, n: p.rate }) : t("source {ft} ft away {n}", { ft: p.ft, n: p.rate })).join(" + ")}`);
+  if (!exp.length && !shows(amb)) return null;
+  const who = exp.sort((x, y) => y[1].total - x[1].total).slice(0, gm ? 4 : 2)
+    .map(([a, e]) => `${a.name} ${levelText(e.total)} (${rateText(e.total)})`);
+  const title = exp.map(([a, e]) => `${a.name}: ${e.parts.map(p => p.kind === "scene" ? t("scene {n}", { n: rateText(p.rate) })
+    : p.kind === "region" ? t("region {name} {n}", { name: p.name, n: rateText(p.rate) }) : t("source {ft} ft away {n}", { ft: p.ft, n: rateText(p.rate) })).join(" + ")}`);
   return {
-    html: `<i class="fa-solid fa-radiation"></i> ${esc([amb ? t("scene {n} rads/h", { n: amb }) : "", ...who].filter(Boolean).join(" · "))}`,
-    title: [t("Radiation on the active scene: characters get it as time passes (minus their radiation resistance)."), ...title].join("\n")
+    html: `<i class="fa-solid fa-radiation"></i> ${esc([shows(amb) ? t("scene {lvl} ({n})", { lvl: levelText(amb), n: rateText(amb) }) : "", ...who].filter(Boolean).join(" · "))}`,
+    title: [t("Radiation on the active scene (Table XXXV, levels 0–7): characters get it as time passes, minus their radiation resistance. A PipBuck registers it from level 2."), ...title].join("\n")
   };
 }
 
@@ -252,9 +525,10 @@ const queueGeiger = () => {
   setTimeout(() => { geigerQueued = false; refreshGeiger(); }, 100);
 };
 
-/** Trzaski licznika Geigera po ruchu własnego tokenu w promieniowaniu (Web Audio, bez plików). */
+/** Trzaski licznika Geigera po ruchu własnego tokenu w promieniowaniu od poziomu 2 (Web Audio, bez plików). */
 let AC = null;
 function clicks(rate) {
+  if ((radLevelOf(rate) ?? 0) < GEIGER_MIN_LEVEL) return;
   const n = clickCount(rate);
   if (!n || !setting("geigerSound", true)) return;
   const Ctx = globalThis.AudioContext ?? globalThis.webkitAudioContext;
@@ -287,6 +561,29 @@ function insertGroup(root, group, selectors) {
   else (root.querySelector("footer, .form-footer")?.before(group) ?? root.append(group));
 }
 
+/** Wybór poziomu z tabeli XXXV + dawka w rad/min (poziom wpisuje typową dawkę; własna — „inna”). */
+function radsControl(name, rate) {
+  const preset = RAD_ZONES.find(z => Math.abs(z.rate - rate) < 1e-9);
+  const opts = [
+    `<option value="0"${rate > 0 ? "" : " selected"}>${t("none")}</option>`,
+    ...RAD_ZONES.map(z => `<option value="${z.rate}"${preset === z ? " selected" : ""}>${esc(t("Level {n} — {what} ({rate})", { n: z.level, what: t(ZONE_LABEL[z.level]), rate: rateText(z.rate) }))}</option>`),
+    `<option value="custom"${rate > 0 && !preset ? " selected" : ""}>${esc(t("other (level {n})", { n: radLevelOf(rate) ?? 0 }))}</option>`
+  ];
+  return `<div class="form-fields"><select class="foe-rad-level">${opts.join("")}</select>
+    <input type="number" name="${name}" value="${Math.round(rate * 1000) / 1000}" min="0" step="any" style="max-width:6em"> <span>${t("rads/min")}</span></div>`;
+}
+function wireRads(el) {
+  const sel = el.querySelector(".foe-rad-level"), num = el.querySelector(".foe-rad-level ~ input[type=number]");
+  if (!sel || !num) return;
+  sel.addEventListener("change", () => { if (sel.value !== "custom") num.value = sel.value; });
+  num.addEventListener("input", () => {
+    const v = Number(num.value) || 0;
+    const z = RAD_ZONES.find(x => Math.abs(x.rate - v) < 1e-9);
+    sel.value = v > 0 ? (z ? String(z.rate) : "custom") : "0";
+  });
+}
+const LEVELS_HINT = () => t("Table XXXV (p. 484): 0 — most of the wasteland (under 5 rads a day); 1 — 5–10 rads/min (over 25% resistance protects fully); 2 — 20/min (a PipBuck registers it from here); 3 — 40/min (most water sources); 4 — 100/min (waste dumps); 5 — 200/min (leaking spark generators); 6 — 640/min (an active spark reactor); 7 — over 1200/min (deadly in under a minute).");
+
 function sceneField(app, html) {
   if (!game.user?.isGM) return;
   const root = html instanceof HTMLElement ? html : html?.[0];
@@ -294,9 +591,9 @@ function sceneField(app, html) {
   if (!root || !doc || root.querySelector(".foe-scene-rads")) return;
   const group = document.createElement("div");
   group.className = "form-group foe-scene-rads";
-  group.innerHTML = `<label>${t("Radiation (Fallout: Equestria)")}</label>
-    <div class="form-fields"><input type="number" name="flags.${F}.radiation" value="${sceneRads(doc)}" min="0" step="1"> <span>${t("rads/h")}</span></div>
-    <p class="hint">${t("Characters on this scene (when it is the active one) get this many rads per hour of world time, minus their radiation resistance. 0 — no radiation.")}</p>`;
+  group.innerHTML = `<label>${t("Radiation (Fallout: Equestria)")}</label>${radsControl(`flags.${F}.rads.rate`, sceneRads(doc))}
+    <p class="hint">${t("Characters on this scene (when it is the active one) get this dose as world time passes, minus their radiation resistance.")} ${LEVELS_HINT()}</p>`;
+  wireRads(group);
   const weather = root.querySelector("[name=weather]")?.closest(".form-group");
   if (weather) weather.after(group);
   else insertGroup(root, group, ['.tab[data-tab="ambience"]', '.tab[data-tab="basics"]']);
@@ -307,15 +604,15 @@ function tileField(app, html) {
   const root = html instanceof HTMLElement ? html : html?.[0];
   const doc = app?.document;
   if (!root || !doc || root.querySelector(".foe-tile-rads")) return;
-  const src = doc.flags?.[F]?.radiation ?? {};
+  const src = tileSource(doc);
   const fs = document.createElement("fieldset");
   fs.className = "foe-tile-rads";
   fs.innerHTML = `<legend>${t("Radiation source (Fallout: Equestria)")}</legend>
-    <div class="form-group"><label>${t("At the source")}</label>
-      <div class="form-fields"><input type="number" name="flags.${F}.radiation.rate" value="${Math.max(0, Number(src.rate) || 0)}" min="0" step="1"> <span>${t("rads/h")}</span></div></div>
+    <div class="form-group"><label>${t("At the source")}</label>${radsControl(`flags.${F}.rads.rate`, src?.rate ?? 0)}</div>
     <div class="form-group"><label>${t("Range")}</label>
-      <div class="form-fields"><input type="number" name="flags.${F}.radiation.range" value="${Math.max(0, Number(src.range ?? 30) || 0)}" min="0" step="5"> <span>ft</span></div></div>
-    <p class="hint">${t("A token touching the tile (or within one square of it) gets the full dose; further away it fades with the square of the distance — 2 squares ¼, 3 squares 1/9 — and stops at the range. Characters get it as time passes, minus their radiation resistance. A hidden tile still emits. 0 — not a source.")}</p>`;
+      <div class="form-fields"><input type="number" name="flags.${F}.rads.range" value="${src?.range ?? 30}" min="0" step="5"> <span>ft</span></div></div>
+    <p class="hint">${t("A token touching the tile (or within one square of it) gets the full dose; further away it fades with the square of the distance — 2 squares ¼, 3 squares 1/9 — and stops at the range. Characters get it as time passes, minus their radiation resistance. A hidden tile still emits. None — not a source.")} ${LEVELS_HINT()}</p>`;
+  wireRads(fs);
   insertGroup(root, fs, ['.tab[data-tab="basic"]', '.tab[data-tab="basics"]', '.tab[data-tab="appearance"]']);
   app.setPosition?.({ height: "auto" });
 }
@@ -327,34 +624,64 @@ function regionField(app, html) {
   if (!root || !doc || root.querySelector(".foe-region-rads")) return;
   const group = document.createElement("div");
   group.className = "form-group foe-region-rads";
-  group.innerHTML = `<label>${t("Radiation (Fallout: Equestria)")}</label>
-    <div class="form-fields"><input type="number" name="flags.${F}.radiation" value="${regionRads(doc)}" min="0" step="1"> <span>${t("rads/h")}</span></div>
-    <p class="hint">${t("Characters standing inside this region get this many rads per hour of world time (minus their radiation resistance), on top of the scene's radiation. 0 — none.")}</p>`;
+  group.innerHTML = `<label>${t("Radiation (Fallout: Equestria)")}</label>${radsControl(`flags.${F}.rads.rate`, regionRads(doc))}
+    <p class="hint">${t("Characters standing inside this region get this dose as world time passes (minus their radiation resistance), on top of the scene's radiation.")} ${LEVELS_HINT()}</p>`;
+  wireRads(group);
   insertGroup(root, group, ['.tab[data-tab="identity"]', '.tab[data-tab="area"]']);
 }
 
 // ---------- ustawienia i haki ----------
+const reprep = () => {
+  for (const a of game.actors ?? []) a.prepareData();
+  for (const app of foundry.applications.instances.values()) if (app.document?.documentName === "Actor") app.render();
+};
+
 export function registerSurvivalSettings() {
   game.settings.register(F, "survivalHunger", {
     name: "Hunger: a day without a full meal (p. 477)",
-    hint: "At midnight of world time (the calendar) every player character who hasn't eaten a full meal that day gets −1 to a random attribute (feature “Starvation”); after 3 weeks of starvation the character dies. Eating a meal (the “Eat” button by food) removes the penalties.",
+    hint: "At midnight of world time (the calendar) every player character who hasn't eaten a full meal that day gets −1 to a random attribute (feature “Starvation”); after 3 weeks of starvation the character dies. Eating a meal (the “Eat” button by food) removes the penalties. Ghouls need 5 rads a day instead; alicorns can replace a meal with them.",
     scope: "world", config: true, type: Boolean, default: true
   });
-  game.settings.register(F, "survivalThirst", {
-    name: "Thirst: a day without a drink (house rule)",
-    hint: "Like hunger: a day without a drink (one more for each dehydrating thing eaten) is −1 to a random attribute (feature “Dehydration”), after 3 days without water — death. Drinking removes the penalties.",
-    scope: "world", config: true, type: Boolean, default: false
+  game.settings.register(F, "survivalDehydration", {
+    name: "Dehydration (p. 478, Table XXXIII)",
+    hint: "Every hydrating item (water, drinks, a healing potion) covers 6 hours, at most a day ahead. Every 6 hours without one moves the character a stage down the table: penalties to CHA, STR, END, AGI, initiative, SATS and attacks, torso wounds at stages 6 and 10, passing out at 11, death at 12 (72 hours). Recovery from stage 3 — drinking for a full day (from stage 6: 2d4+2 items a day).",
+    scope: "world", config: true, type: Boolean, default: true, onChange: reprep
   });
-  game.settings.register(F, "geigerSound", {
-    name: "Geiger counter clicks",
-    hint: "Clicks when your character's token moves within radiation (a radiating tile, region or scene) — the stronger the dose, the more clicks.",
-    scope: "client", config: true, type: Boolean, default: true
+  game.settings.register(F, "dehydrationOptional", {
+    name: "Dehydration: optional penalties of stages 2–3",
+    hint: "The handbook marks them optional: stage 2 — CHA and its skills 1 MFD step harder, stage 3 — STR, END and AGI −1.",
+    scope: "world", config: true, type: Boolean, default: true, onChange: reprep
   });
   game.settings.register(F, "survivalDiet", {
     name: "Food: the race's diet matters",
     hint: "Ponies, zebras, buffalo and donkeys don't get sustenance from meat (unless Cannibal or Omnivore), griffins, dogs and minotaurs eat everything. Off — any food feeds anyone.",
     scope: "world", config: true, type: Boolean, default: true
   });
+  game.settings.register(F, "radiationChecks", {
+    name: "Radiation: severe exposure and 1000 rads (p. 483)",
+    hint: "Over 400 rads within an hour that aren't removed for 6 hours — END ¼ (failure: a mutation, critical failure: radiation poisoning, death in 24 hours without treatment). Reaching 1000 rads — END 1/10, failure: death. Rolled automatically (by the active GM).",
+    scope: "world", config: true, type: Boolean, default: true
+  });
+  game.settings.register(F, "geigerSound", {
+    name: "Geiger counter clicks",
+    hint: "Clicks when your character's token moves within radiation of level 2 or more (a radiating tile, region or scene) — the stronger the dose, the more clicks.",
+    scope: "client", config: true, type: Boolean, default: true
+  });
+}
+
+/** Zmiana radów: dziennik (rady dziś, seria w godzinę, silne napromieniowanie, 1000 radów) w tej samej zmianie. */
+export function trackRads(actor, changes) {
+  if (actor?.type !== "character") return;
+  const key = "system.resources.rads.value";
+  const flat = Object.hasOwn(changes, key);
+  const after = flat ? changes[key] : foundry.utils.getProperty(changes, key);
+  if (after === undefined) return;
+  const before = Number(actor.system.resources?.rads?.value) || 0;
+  const a = Number(after) || 0;
+  if (a === before) return;
+  const log = radLog(flagOf(actor, "radlog"), before, a, now());
+  if (flat) changes[`flags.${F}.radlog`] = log;
+  else foundry.utils.setProperty(changes, `flags.${F}.radlog`, log);
 }
 
 export function registerSurvivalHooks() {
@@ -364,17 +691,33 @@ export function registerSurvivalHooks() {
     (async () => {
       await irradiate(Number(dt) || 0);
       for (const a of tracked()) {
-        const st = stateOf(a);
-        if (!st || st.day !== day) await settleActor(a, day);
+        // błąd przy jednej postaci nie zatrzymuje pozostałych
+        await guarded(a, async () => {
+          const st = stateOf(a);
+          if (!st || st.day !== day) await settleActor(a, day);
+          await thirstTick(a, worldTime);
+          await radiationTick(a, worldTime);
+          // koniec 8 h bez kar głodu — przelicz kartę
+          if (st?.ignoreUntil && st.ignoreUntil <= worldTime) await a.setFlag(F, "survival.ignoreUntil", null);
+        }).catch(err => console.error(`${F} | survival: ${a.name}`, err));
       }
     })().catch(err => console.error(`${F} | survival`, err));
+  });
+  Hooks.on("preUpdateActor", (actor, changes) => {
+    try { trackRads(actor, changes); } catch (err) { console.warn(`${F} | rads log`, err); }
+  });
+  // 1000 radów: rzut od razu (aktywny MG)
+  Hooks.on("updateActor", (actor, changes) => {
+    if (!game.users.activeGM?.isSelf) return;
+    const lethal = foundry.utils.getProperty(changes, `flags.${F}.radlog.lethal`);
+    if (lethal != null) guarded(actor, () => radiationTick(actor, now())).catch(err => console.error(`${F} | radiation`, err));
   });
   Hooks.on("renderCombatTracker", (app, html) => {
     const root = html instanceof HTMLElement ? html : html?.[0];
     if (root) geiger(root);
   });
   Hooks.on("updateScene", (scene, changes) => {
-    if (scene.active && (foundry.utils.hasProperty(changes, `flags.${F}.radiation`) || "active" in changes)) queueGeiger();
+    if (scene.active && (foundry.utils.hasProperty(changes, `flags.${F}.radiation`) || foundry.utils.hasProperty(changes, `flags.${F}.rads`) || "active" in changes)) queueGeiger();
   });
   for (const h of ["createTile", "updateTile", "deleteTile", "createRegion", "updateRegion", "deleteRegion"]) Hooks.on(h, doc => { if (doc.parent?.active) queueGeiger(); });
   // ruch tokenu: licznik i trzaski u gracza tej postaci (u MG — przy zaznaczonym tokenie)

@@ -591,32 +591,59 @@ Kalendarz Equestrii (z modułem **Simple Calendar Reborn** — pełny kalendarz;
 - Data w zakładce walki pod pogodą (z godziną i świętem tego dnia; najechanie pokazuje opis święta). MG klika ją, żeby
   otworzyć Simple Calendar. Upływ czasu w module (zegar, przesunięcie daty) liczy też czas działania używek i głód nałogów.
 
-Jedzenie, picie i promieniowanie (z upływem czasu świata — zegar Simple Calendar, przesunięcie daty):
+Jedzenie, picie i promieniowanie (podręcznik s. 477–484; z upływem czasu świata — zegar Simple Calendar, przesunięcie
+daty; rozlicza aktywny MG, kartkami dla gracza i MG):
 - „Zjedz” / „Wypij” przy produktach z kategorii „Jedzenie i picie” (zakładka Ekwipunek). Z opisu produktu system liczy:
-  posiłki (zwykle 1, „counts as two meals” 2…), nawodnienie (napoje i „provides hydration”; napoje odwadniające —
-  np. Sparkle Cola — wymagają tego dnia dodatkowego picia), rady (Iron Stomach — połowa, odporność na promieniowanie
-  zmniejsza resztę; „Removes 10 rads” zdejmuje), leczenie ran (bazowo 1, „double wounds” 2…, „does not heal” 0, bez
-  okaleczeń) i dietę: kucyki, zebry, bawoły i osły nie najedzą się mięsem (chyba że Cannibal albo cecha Omnivore),
-  gryfy, psy i minotaury jedzą wszystko (opcja świata „Jedzenie: liczy się dieta rasy”). Efekty chwilowe z opisu
-  (np. „−1 STR for 2 min”) są na karcie na czacie dla MG. Nad listą jedzenia: „dziś: posiłki 1/1 · picie 1/1”.
-- Głód (s. 477, tabela XXXII, opcja świata, domyślnie włączona): o północy czasu świata każda postać gracza, która tego
-  dnia nie zjadła pełnego posiłku, dostaje −1 do losowego atrybutu (bez Szczęścia, nie ten sam dwa dni z rzędu) w cesze
-  „Głód”; po 3 tygodniach głodu — śmierć. Posiłek zdejmuje cechę. Rozlicza aktywny MG, kartką dla gracza i MG; przeskok
-  czasu o kilka dni rozlicza każdy dzień (najwyżej 60 naraz).
-- Pragnienie (zasada domowa, opcja świata, domyślnie wyłączona): tak samo dla picia, cecha „Odwodnienie”, po 3 dniach
-  bez wody — śmierć; napój zdejmuje cechę.
-- Promieniowanie z otoczenia (rady na godzinę czasu świata; postacie graczy na aktywnej scenie dostają sumę z upływem
-  czasu, minus odporność na promieniowanie; RadAway i inne leki działają jak dotąd):
-  - tło sceny — w konfiguracji sceny pole „Promieniowanie (Fallout: Equestria)”,
+  posiłki (zwykle 1, „counts as two meals” 2…), nawodnienie (napoje i „provides hydration”), rady (Iron Stomach — połowa,
+  odporność na promieniowanie zmniejsza resztę; „Removes 10 rads” zdejmuje), leczenie ran (bazowo 1, „double wounds” 2…,
+  „does not heal” 0, bez okaleczeń) i dietę: kucyki, zebry, bawoły i osły nie najedzą się mięsem (chyba że Cannibal albo
+  cecha Omnivore), gryfy, psy i minotaury jedzą wszystko (opcja świata „Jedzenie: liczy się dieta rasy”). Efekty chwilowe
+  z opisu (np. „−1 STR for 2 min”) są na karcie na czacie dla MG. Nad listą jedzenia: „dziś: posiłki 1/1 · nawodniony
+  18 h”, a stan (odwodnienie, najedzenie, choroba popromienna) — w sekcji „Zdrowie, chemia i promieniowanie” w zakładce Walka.
+- Głód (tabela XXXII, opcja świata, domyślnie włączona): o północy każda postać gracza, która tego dnia nie zjadła
+  pełnego posiłku, dostaje −1 do losowego atrybutu (bez Szczęścia, nie ten sam dwa dni z rzędu) w cesze „Głód”; po
+  3 tygodniach — śmierć. Posiłek zdejmuje cechę. Do tego:
+  - jedzenie niesycące (wbrew diecie albo „nie liczy się jako posiłek”, np. Sweet Roll) — przez 8 godzin kary głodu się
+    nie liczą,
+  - po ponad tygodniu głodu jedzenie za 2+ posiłki trzeba utrzymać: rzut END ½ (poza Oatmeal i Slop); porażka — produkt
+    przepada bez sytości i leczenia,
+  - 4 posiłki dziennie, co najmniej 4 godziny od siebie — +15 do rzutów END do północy,
+  - ghule nie jedzą i nie piją: potrzebują co najmniej 5 radów na dobę (inaczej głód), alikorny mogą radami zastąpić posiłek.
+- Odwodnienie (tabela XXXIII, opcja świata, domyślnie włączona — zastępuje dawną zasadę domową „dzień bez picia”):
+  - każdy nawadniający produkt (woda, napoje, mikstura lecznicza) to 6 godzin nawodnienia, najwyżej doba naprzód
+    (podręcznik: 4 produkty na dobę); odwadniające (np. Sparkle Cola) zabierają 6 godzin,
+  - każde 6 godzin bez picia to etap wyżej, kary się sumują: 2 — CHA i jej umiejętności o krok MFD trudniej,
+    3 — STR/END/AGI −1 (te dwa etapy podręcznik oznacza jako opcjonalne — osobna opcja świata), 4 (doba) — inicjatywa −10
+    i SATS droższy o 10 AP (doliczany w oknie ataku), 5 — kolejne −1 do STR/END/AGI, 6 — 1k4 ran tułowia, 7 i 9 —
+    rzuty na trafienie o krok MFD trudniej, 8 — SATS o kolejne 10 AP i jedna akcja w walce (przypomnienie na karcie),
+    10 — 1k6 ran tułowia, 11 — END ¾ albo utrata przytomności (ocuca tylko napój), 12 (72 h) — zapaść i śmierć po
+    godzinie, jeśli postać nie dostanie wody i pomocy (Medicine ¾),
+  - do etapu 2 napój cofa wszystko. Od etapu 3 — rekonwalescencja: kary połowy najwyższego etapu, aż postać przepije pełną
+    dobę (od etapu 6: 2k4+2 napoje na dobę przez tyle dób, ile była odwodniona — po pierwszych 24 h bez picia, w górę).
+    Przerwa w nawodnieniu w trakcie — odwodnienie rusza od etapu, którego kary już działają. Na ostatnich 6 godzinach
+    sama woda nie wystarcza (potrzebna magia lecznicza; mikstura lecznicza wystarcza — system przypomina na karcie).
+  - Interpretacja tam, gdzie podręcznik milczy: przy etapach 3–5 rekonwalescencja to doba normalnego picia (4 napoje).
+- Promieniowanie z otoczenia — poziomy z tabeli XXXV, dawki w radach na minutę: 0 — większość pustkowi (ok. 4 rady na
+  dobę), 1 — 8/min (ponad 25% odporności chroni całkowicie), 2 — 20/min, 3 — 40/min (większość źródeł wody), 4 — 100/min
+  (składowiska odpadów), 5 — 200/min, 6 — 640/min (reaktor iskrowy), 7 — 1200/min (zabija w mniej niż minutę). Postacie
+  graczy na aktywnej scenie dostają sumę z upływem czasu (w walce co rundę), minus odporność. Uwaga: to dawki z podręcznika —
+  poziom 2 przez godzinę to 1200 radów, więc długie przeskoki czasu w promieniowaniu są zabójcze.
+  - tło sceny — w konfiguracji sceny pole „Promieniowanie (Fallout: Equestria)”: lista poziomów albo własna dawka,
   - region (np. skażona kałuża, krater) — w konfiguracji regionu to samo pole: stała dawka dla tokenów w środku,
   - źródło punktowe (beczka odpadów, rdzeń reaktora) — kafelek z sekcją „Źródło promieniowania”: dawka przy źródle
     i zasięg (domyślnie 30 ft). Token przy kafelku albo pole od niego dostaje pełną dawkę, dalej słabnie ona
     z kwadratem odległości (2 pola — ¼, 3 pola — 1/9), poza zasięgiem — nic. Ukryty kafelek też promieniuje.
-  - Licznik Geigera w zakładce walki: tło sceny i dawki postaci (gracz widzi swoją, MG — najbardziej napromieniowane;
-    po najechaniu — z czego się składa). Ruch własnego tokenu w promieniowaniu trzeszczy tym gęściej, im silniejsza
-    dawka (opcja gracza „Trzaski licznika Geigera”).
-- Do sprawdzenia z podręcznikiem: pragnienie (zasada domowa — podręcznik w repozytorium nie podaje zasad picia)
-  i słabnięcie dawki z odległością (założenie: kwadrat odległości). Po weryfikacji dopasujemy liczby.
+    (Podręcznik nie opisuje słabnięcia z odległością — to założenie systemu.)
+  - wartości ustawione w wersji 0.50–0.51 (rady na godzinę) system sam przelicza na minuty (÷60); po zapisaniu okna
+    konfiguracji zostaje już nowa wartość,
+  - licznik Geigera w zakładce walki: poziom i dawka (gracz widzi swoją postać od poziomu 2 — PipBuck nie rejestruje
+    słabszego promieniowania; MG widzi wszystko; po najechaniu — z czego się składa). Ruch własnego tokenu w promieniowaniu
+    od poziomu 2 trzeszczy tym gęściej, im silniejsza dawka (opcja gracza „Trzaski licznika Geigera”).
+- Silne napromieniowanie i 1000 radów (s. 483, opcja świata, domyślnie włączona; rzuca automatycznie aktywny MG):
+  - ponad 400 radów w ciągu godziny, nieusuniętych przez 6 godzin — END ¼: sukces — nic, porażka — mutacja (wada Mutation,
+    wybiera MG), krytyczna porażka — choroba popromienna: kary jak przy 800 radach i śmierć po dobie, chyba że rady spadną
+    (RadAway albo inne leczenie, które je zmniejsza). „Krótki czas” z podręcznika system liczy jako godzinę.
+  - przekroczenie 1000 radów — od razu END 1/10, porażka — śmierć.
 
 Drzwi, zamki i bariery (zwykłe drzwi Foundry; z modułem **Threshold** — także jego bariery, Foundry v14):
 - Wytrych: postać stoi przy drzwiach zamkniętych na klucz (token dotyka drzwi albo pola, przez które przechodzą), a gracz
