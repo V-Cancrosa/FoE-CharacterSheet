@@ -591,6 +591,24 @@ Kalendarz Equestrii (z modułem **Simple Calendar Reborn** — pełny kalendarz;
 - Data w zakładce walki pod pogodą (z godziną i świętem tego dnia; najechanie pokazuje opis święta). MG klika ją, żeby
   otworzyć Simple Calendar. Upływ czasu w module (zegar, przesunięcie daty) liczy też czas działania używek i głód nałogów.
 
+Jedzenie, picie i promieniowanie (z upływem czasu świata — zegar Simple Calendar, przesunięcie daty):
+- „Zjedz” / „Wypij” przy produktach z kategorii „Jedzenie i picie” (zakładka Ekwipunek). Z opisu produktu system liczy:
+  posiłki (zwykle 1, „counts as two meals” 2…), nawodnienie (napoje i „provides hydration”; napoje odwadniające —
+  np. Sparkle Cola — wymagają tego dnia dodatkowego picia), rady (Iron Stomach — połowa, odporność na promieniowanie
+  zmniejsza resztę; „Removes 10 rads” zdejmuje), leczenie ran (bazowo 1, „double wounds” 2…, „does not heal” 0, bez
+  okaleczeń) i dietę: kucyki, zebry, bawoły i osły nie najedzą się mięsem (chyba że Cannibal albo cecha Omnivore),
+  gryfy, psy i minotaury jedzą wszystko (opcja świata „Jedzenie: liczy się dieta rasy”). Efekty chwilowe z opisu
+  (np. „−1 STR for 2 min”) są na karcie na czacie dla MG. Nad listą jedzenia: „dziś: posiłki 1/1 · picie 1/1”.
+- Głód (s. 477, tabela XXXII, opcja świata, domyślnie włączona): o północy czasu świata każda postać gracza, która tego
+  dnia nie zjadła pełnego posiłku, dostaje −1 do losowego atrybutu (bez Szczęścia, nie ten sam dwa dni z rzędu) w cesze
+  „Głód”; po 3 tygodniach głodu — śmierć. Posiłek zdejmuje cechę. Rozlicza aktywny MG, kartką dla gracza i MG; przeskok
+  czasu o kilka dni rozlicza każdy dzień (najwyżej 60 naraz).
+- Pragnienie (zasada domowa, opcja świata, domyślnie wyłączona): tak samo dla picia, cecha „Odwodnienie”, po 3 dniach
+  bez wody — śmierć; napój zdejmuje cechę.
+- Promieniowanie sceny: w konfiguracji sceny pole „Promieniowanie (Fallout: Equestria)” — rady na godzinę. Postacie
+  graczy na aktywnej scenie dostają je z upływem czasu (minus odporność na promieniowanie), a zakładka walki pokazuje
+  licznik Geigera. RadAway i inne leki działają jak dotąd.
+
 Drzwi, zamki i bariery (zwykłe drzwi Foundry; z modułem **Threshold** — także jego bariery, Foundry v14):
 - Wytrych: postać stoi przy drzwiach zamkniętych na klucz (token dotyka drzwi albo pola, przez które przechodzą), a gracz
   klika Lockpicking na karcie. Okno rzutu od razu celuje w zamek: pokazuje jego trudność, narzędzia z ekwipunku (Bobby Pin,
