@@ -7,6 +7,12 @@
  */
 export const THR_ID = "threshold";
 export const THR_FLAG = "barrier";
+/** API modułu Threshold (włączonego, z barierami) albo null. Tu, a nie w doors.mjs — cover.mjs nie może importować
+ *  doors.mjs (pętla importów: katalog → magia → atak → osłona → drzwi → rzucanie → przekazywanie → katalog). */
+export function thrApi() {
+  const mod = globalThis.game?.modules?.get?.(THR_ID);
+  return mod?.active && mod.api?.barriers ? mod.api : null;
+}
 export const LOCK_FLAG = "lock";
 /** CONST.WALL_DOOR_STATES / CONST.WALL_DOOR_TYPES */
 export const DS = Object.freeze({ CLOSED: 0, OPEN: 1, LOCKED: 2 });

@@ -44,6 +44,10 @@ jobs:
         with:
           node-version: 22
 
+      - name: Sprawdź, czy system startuje
+        if: steps.check.outputs.exists != 'true'
+        run: node tools/boot-check.mjs
+
       - name: Zbuduj kompendium zasad
         if: steps.check.outputs.exists != 'true'
         run: |
