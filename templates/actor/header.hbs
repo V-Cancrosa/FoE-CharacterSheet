@@ -28,7 +28,7 @@
       <div class="meter"><span style="width: {{meters.sats}}%"></span></div>
     </div>
     <div class="res">
-      <span class="res-lbl" title="{{t "Luck cards"}}">{{t "Luck"}} {{rule "tests/luck"}}</span>
+      <span class="res-lbl" title="{{t "Luck cards"}}">{{t "Luck"}} {{rule "tests/luck"}} <a data-action="spendLuck" title="{{t "Spend a Luck card: something amazing, story improvement or a card for another player"}}"><i class="fa-solid fa-clover"></i></a></span>
       <span class="res-val"><input type="number" name="system.resources.luck.value" value="{{system.resources.luck.value}}"> / {{system.resources.luck.max}}</span>
       <div class="meter"><span style="width: {{meters.luck}}%"></span></div>
     </div>

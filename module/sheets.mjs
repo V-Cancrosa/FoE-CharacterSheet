@@ -43,6 +43,7 @@ import { t, tn, N_, tmap } from "./i18n.mjs";
 import { onPortrait } from "./portrait.mjs";
 import { magicHex } from "./fx-data.mjs";
 import { rollLockpick } from "./doors.mjs";
+import { spendLuckDialog } from "./luck.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -91,6 +92,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       editItem: FoeActorSheet.#onEditItem,
       deleteItem: FoeActorSheet.#onDeleteItem,
       newSession: FoeActorSheet.#onNewSession,
+      spendLuck: FoeActorSheet.#onSpendLuck,
       openCreator: FoeActorSheet.#onOpenCreator,
       searchBody: FoeActorSheet.#onSearchBody,
       cutieMark: FoeActorSheet.#onCutieMark,
@@ -753,6 +755,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static #onOpenCatalog(event, target) {
     openCatalog(this.document, target.dataset.tab || "weapons");
   }
+
+  static #onSpendLuck() { return spendLuckDialog(this.document); }
 
   static async #onNewSession() {
     const sys = this.document.system;

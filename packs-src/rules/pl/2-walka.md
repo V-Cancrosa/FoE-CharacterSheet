@@ -202,7 +202,7 @@ Mikstura lecznicza zdejmuje rany według rangi Medicine tego, kto ją podaje:
 
 Okaleczoną lokację trzeba najpierw nastawić (Medicine ¾), inaczej mikstura jej nie wyleczy.
 
-> **Na karcie:** sylwetka V.A.T.S. w zakładce *Walka* — klik dodaje ranę, prawy klik (albo Shift + klik) odejmuje; kolor pokazuje stan części ciała. Pasek *Rany x / y* na górze zakładki pokazuje próg utraty przytomności.
+> **Na karcie:** sylwetka V.A.T.S. w zakładce *Walka* — klik dodaje ranę, prawy klik (albo Shift + klik) odejmuje; kolor pokazuje stan części ciała. Pasek *Rany x / y* na górze zakładki pokazuje próg utraty przytomności; po jego przekroczeniu system sam rzuca END ¾ przed każdą akcją (okno rzutu, przeładowanie, gaszenie się) i przy porażce oznacza postać jako nieprzytomną.
 
 ## Unik, blok i osłona {#defense}
 

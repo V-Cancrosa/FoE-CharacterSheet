@@ -20,6 +20,8 @@ import { terminalDataClass } from "./terminal-data.mjs";
 import { FoeTerminalSheet } from "./terminal-sheet.mjs";
 import { registerTerminalSettings, registerTerminalHooks } from "./terminal.mjs";
 import { registerDoorHooks } from "./doors.mjs";
+import { registerLuckHooks } from "./luck.mjs";
+import { registerConditionSettings } from "./conditions.mjs";
 import { registerDice3d, registerDice3dSettings } from "./dice3d.mjs";
 import { registerRollTableClass, registerTableHooks } from "./tables.mjs";
 import { registerLootSettings, registerLootHooks } from "./loot.mjs";
@@ -73,6 +75,7 @@ Hooks.once("init", () => {
   registerCalendarSettings();
   registerPerkSettings();
   registerChemSettings();
+  registerConditionSettings();
   registerChemHooks();
   registerVehicleHooks();
   registerCyberSettings();
@@ -93,6 +96,7 @@ Hooks.once("init", () => {
   registerTerminalSettings();
   registerTerminalHooks();
   registerDoorHooks();
+  registerLuckHooks();
   registerDice3d();
   registerDice3dSettings();
   // Carousel Combat Tracker, Dice Tray (przed ich init/i18nInit) i wysokość lotu → token

@@ -1,6 +1,7 @@
 /**
  * Magia cieni (Shadowflash, Shadow Form) i podmieńcy w grze. Zasady: shadow-data.mjs.
  */
+import { stayConscious } from "./conditions.mjs";
 import { clearFlag } from "./flags.mjs";
 import { ATTRS } from "./data.mjs";
 import { rollContext } from "./effects.mjs";
@@ -69,6 +70,7 @@ const raceOptions = () => Object.entries(RACES).filter(([k]) => !["other", "chan
 /** Przemiana: wygląd i głos wybranego kucyka; tokeny dostają jego imię. Koszt 1 miłości. */
 export async function shapeshift(actor) {
   if (!isChangeling(actor)) return warn(t("{name} is not a changeling.", { name: actor.name }));
+  if (!(await stayConscious(actor))) return null;
   const s = loveState(actor);
   if (s.value < 1) return warn(t("{name}: no love for a transformation — feed first.", { name: actor.name }));
   const cur = disguiseOf(actor);

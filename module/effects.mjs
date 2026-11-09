@@ -191,7 +191,7 @@ export function rollContext(actor, ctx, { manualMod = 0, manualLabel = t("Sheet 
 
   const situational = [...groups.values()].filter(g => g.mod || g.steps);
   return {
-    mods, steps, crit, situational,
+    actor, mods, steps, crit, situational,
     fixedMod: mods.reduce((t, m) => t + m.value, 0),
     fixedSteps: steps.reduce((t, m) => t + m.value, 0)
   };

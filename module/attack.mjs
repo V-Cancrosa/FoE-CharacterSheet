@@ -9,7 +9,8 @@ import {
   rangeIncrement, rangeBands, wieldPenalty, burst, isAoe, isClose, reloadInfo, effectiveDT, woundsFrom,
   POISONS, disintegrates, radsFrom, isMetalArmor
 } from "./combat.mjs";
-import { setCondition, toggleStatus, poisonCheck, endOfRound, JOLT_ROUNDS } from "./conditions.mjs";
+import { setCondition, toggleStatus, poisonCheck, endOfRound, JOLT_ROUNDS, stayConscious } from "./conditions.mjs";
+import { dodged } from "./luck.mjs";
 import { hitStepsAgainst, evasiveActive, AREA_STATUS } from "./vehicle-data.mjs";
 import { implantReserve } from "./cyber.mjs";
 import { loadedVariant, ammoOnHit, SPECIAL_AMMO, variantsFor, specialAmmoOn, variantName } from "./ammo-data.mjs";
@@ -213,6 +214,7 @@ async function wearWeapon(item, amount) {
 export async function reloadWeapon(actor, item) {
   const w = item.system;
   if (!(w.ammo.max > 0)) return warn(t("{name} has no magazine to reload.", { name: item.name }));
+  if (!(await stayConscious(actor))) return null;
   const ri = reloadInfo(w.reload, { energy: w.skill === "energy" });
   const sats = actor.system.resources.sats;
 
@@ -452,8 +454,13 @@ function statusText(loc, wounds, sys) {
 export async function applyDamage(message) {
   const d = message.getFlag("foe-rpg", "damage");
   if (!d) return null;
-  const tokens = await resolveTargets(d.targets);
-  if (!tokens.length) return warn(t("No target: target a token with the T key (or select it) and click again."));
+  const all = await resolveTargets(d.targets);
+  if (!all.length) return warn(t("No target: target a token with the T key (or select it) and click again."));
+  // cele, które uniknęły trafienia kartą szczęścia
+  const lucky = all.filter(tk => dodged(tk.actor, d.attackMsg));
+  const tokens = all.filter(tk => !lucky.includes(tk));
+  if (lucky.length) ui.notifications.info(t("Dodged thanks to Luck: {list}.", { list: lucky.map(tk => tk.name).join(", ") }));
+  if (!tokens.length) return null;
   const allowed = tokens.filter(tk => tk.actor.isOwner);
   const denied = tokens.filter(tk => !tk.actor.isOwner);
   if (!allowed.length) return warn(t("You can't modify {list} — ask the GM to click “Apply damage” on this card.", { list: tokens.map(tk => tk.name).join(", ") }));
@@ -619,6 +626,7 @@ export async function applyDamage(message) {
       .map(x => `${statusText(x.loc, x.now, sys)}: ${r.labels[x.loc] ?? locationName(x.loc, r.table)}`);
     anim.push({
       token: r.tok.uuid, wounds: res.reduce((s, x) => s + x.wounds, 0), after: res.reduce((s, x) => s + x.after, 0),
+      locs: res.filter(x => x.wounds).map(x => ({ loc: x.loc, n: x.wounds })),   // karta szczęścia: mniej ran (luck.mjs)
       armor: res.some(x => x.armorDt > 0), machine: !!r.machine, state: fx.state, knocked: !!fx.knocked,
       loc: input.where === "all" ? null : locOf(input.where), aoe: input.where === "all", crippled: crippled.slice(0, 2)
     });
@@ -641,7 +649,7 @@ export async function applyDamage(message) {
       <div class="fc-tag"><span>PIPBUCK // ${t("WOUNDS")}</span><span>${esc(d.itemName)}</span></div>
       ${lines.join("")}
     </div>`,
-    flags: { "foe-rpg": { wounds: { fx: anim, kind: d.fx ?? null } } }
+    flags: { "foe-rpg": { wounds: { fx: anim, kind: d.fx ?? null, attackMsg: d.attackMsg ?? null } } }
   });
 }
 
@@ -771,7 +779,8 @@ export function registerCombatHooks() {
       const crit = html.querySelector(".foe-card")?.classList.contains("crit-success");
       // broń pokładowa: premie z umiejętności strzelca, nie pojazdu
       const shooter = test.attack?.gunnerUuid ? await fromUuid(test.attack.gunnerUuid).catch(() => null) : null;
-      await rollDamage(shooter ?? item.parent ?? item.actor, item, { crit, attack: test.attack ?? null });
+      // id karty trafienia: unik kartą szczęścia (luck.mjs) zdejmuje cel przy nanoszeniu obrażeń
+      await rollDamage(shooter ?? item.parent ?? item.actor, item, { crit, attack: test.attack ? { ...test.attack, msgId: message.id } : null });
     });
 
     html.querySelector("[data-action=foeApply]")?.addEventListener("click", ev => {
@@ -790,7 +799,7 @@ export function registerCombatHooks() {
       await actor.update({ "system.resources.luck.value": cards - 1 });
       btn.disabled = true;
       // prevId: animacja rykoszetu startuje z miejsca, w które trafiła poprzednia kula
-      await rollTest(actor, { ...test, rerolls: (test.rerolls ?? 0) + 1, prevId: message.id });
+      await rollTest(actor, { ...test, luckSave: undefined, rerolls: (test.rerolls ?? 0) + 1, prevId: message.id });
     });
   });
 
