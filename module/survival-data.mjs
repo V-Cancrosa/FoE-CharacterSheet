@@ -143,3 +143,43 @@ export function ambientRads(perHour, seconds, resist = 0, carry = 0) {
   const whole = Math.floor(raw);
   return { rads: whole, carry: raw - whole };
 }
+
+// ---------- lokalne źródła promieniowania (kafelki i regiony) ----------
+/** Odległość (px) między prostokątami { x, y, w, h }; 0 — nachodzą albo się stykają. */
+export function rectGap(a, b) {
+  const dx = Math.max(0, b.x - (a.x + a.w), a.x - (b.x + b.w));
+  const dy = Math.max(0, b.y - (a.y + a.h), a.y - (b.y + b.h));
+  return Math.hypot(dx, dy);
+}
+
+/**
+ * Dawka od źródła punktowego (rad/h): pełna przy źródle (do jednego pola), dalej słabnie z kwadratem odległości
+ * (2 pola — ¼, 3 pola — 1/9), poza zasięgiem 0. dFt, rangeFt, cellFt — w stopach.
+ */
+export function sourceDose(rate, dFt, rangeFt, cellFt = 5) {
+  const r = Math.max(0, Number(rate) || 0), d = Math.max(0, Number(dFt) || 0), cell = Math.max(0.1, Number(cellFt) || 5);
+  if (!r || d > Math.max(0, Number(rangeFt) || 0)) return 0;
+  return d <= cell ? r : r * (cell / d) ** 2;
+}
+
+/**
+ * Łączna dawka dla tokenu (rad/h): tło sceny + regiony, w których stoi, + źródła (kafelki) w zasięgu.
+ * token — { x, y, w, h } (px), grid — { size (px), distance (ft na pole) }, regions — [{ rate, name }] (już te, w których
+ * stoi), sources — [{ rect, rate, range (ft), name }]. Zwraca { total, parts: [{ kind, name, rate }] } (zaokrąglone do 0,1).
+ */
+export function exposure({ token, grid = {}, ambient = 0, regions = [], sources = [] }) {
+  const size = Number(grid.size) || 100, per = Number(grid.distance) || 5;
+  const parts = [];
+  if (ambient > 0) parts.push({ kind: "scene", name: "", rate: Number(ambient) });
+  for (const r of regions) if (r.rate > 0) parts.push({ kind: "region", name: r.name ?? "", rate: Number(r.rate) });
+  for (const s of sources) {
+    const dFt = (rectGap(token, s.rect) / size) * per;
+    const rate = sourceDose(s.rate, dFt, s.range, per);
+    if (rate > 0) parts.push({ kind: "source", name: s.name ?? "", rate, ft: Math.round(dFt * 10) / 10 });
+  }
+  const total = Math.round(parts.reduce((t, p) => t + p.rate, 0) * 10) / 10;
+  return { total, parts: parts.map(p => ({ ...p, rate: Math.round(p.rate * 10) / 10 })) };
+}
+
+/** Ile trzasków licznika Geigera przy danej dawce (0 — cisza). */
+export const clickCount = rate => (rate > 0 ? Math.min(14, 2 + Math.round(Math.log2(1 + rate))) : 0);
