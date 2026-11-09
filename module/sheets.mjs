@@ -44,7 +44,7 @@ import { onPortrait } from "./portrait.mjs";
 import { magicHex } from "./fx-data.mjs";
 import { rollLockpick } from "./doors.mjs";
 import { spendLuckDialog } from "./luck.mjs";
-import { eatItem, eatLabel, survivalNote } from "./survival.mjs";
+import { eatItem, eatLabel, survivalNote, survivalRows } from "./survival.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -260,7 +260,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const rads = sys.resources.rads.value || 0;
     const rl = radLevel(rads);
     ctx.body = { ...chemRows(this.document), rad: rl ? rl.label : "", radFx: rl ? Object.entries(rl.fx).map(([k, v]) => `${v} ${k.toUpperCase()}`).join(", ") : "" };
-    ctx.body.any = ctx.body.active.length || ctx.body.addictions.length || ctx.body.rad;
+    ctx.body.survival = survivalRows(this.document);
+    ctx.body.any = ctx.body.active.length || ctx.body.addictions.length || ctx.body.rad || ctx.body.survival.length;
     // cybernetyka (s. 104–107, 178)
     const cyb = cyberItems(this.document);
     const cs = sys.cyber ?? {};
