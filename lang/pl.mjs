@@ -3755,6 +3755,17 @@ export default {
   "{n} rads/h": "{n} radów/h",
   "{what}: meals, hydration, rads and healing from the description": "{what}: posiłki, nawodnienie, rady i leczenie z opisu",
   "{n} day|{n} days": ["{n} dzień", "{n} dni", "{n} dni"],
+  // ---- module/survival.mjs (źródła promieniowania)
+  "A token touching the tile (or within one square of it) gets the full dose; further away it fades with the square of the distance — 2 squares ¼, 3 squares 1/9 — and stops at the range. Characters get it as time passes, minus their radiation resistance. A hidden tile still emits. 0 — not a source.": "Token przy kafelku (albo w odległości jednego pola) dostaje pełną dawkę; dalej słabnie ona z kwadratem odległości — 2 pola ¼, 3 pola 1/9 — i kończy się na zasięgu. Postacie dostają ją z upływem czasu, minus odporność na promieniowanie. Ukryty kafelek też promieniuje. 0 — nie jest źródłem.",
+  "At the source": "Przy źródle",
+  "Characters standing inside this region get this many rads per hour of world time (minus their radiation resistance), on top of the scene's radiation. 0 — none.": "Postacie stojące w tym regionie dostają tyle radów na godzinę czasu świata (minus odporność na promieniowanie), oprócz promieniowania sceny. 0 — brak.",
+  "Clicks when your character's token moves within radiation (a radiating tile, region or scene) — the stronger the dose, the more clicks.": "Trzaski, gdy token twojej postaci rusza się w promieniowaniu (kafelek-źródło, region albo scena) — im silniejsza dawka, tym więcej trzasków.",
+  "Geiger counter clicks": "Trzaski licznika Geigera",
+  "Radiation source (Fallout: Equestria)": "Źródło promieniowania (Fallout: Equestria)",
+  "region {name} {n}": "region {name} {n}",
+  "scene {n} rads/h": "scena {n} radów/h",
+  "scene {n}": "scena {n}",
+  "source {ft} ft away {n}": "źródło {ft} ft dalej {n}",
   // ---- module/fx.mjs
   "−{n} wound|−{n} wounds": ["−{n} rana", "−{n} rany", "−{n} ran"]
 };

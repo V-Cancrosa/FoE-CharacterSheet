@@ -605,9 +605,18 @@ Jedzenie, picie i promieniowanie (z upływem czasu świata — zegar Simple Cale
   czasu o kilka dni rozlicza każdy dzień (najwyżej 60 naraz).
 - Pragnienie (zasada domowa, opcja świata, domyślnie wyłączona): tak samo dla picia, cecha „Odwodnienie”, po 3 dniach
   bez wody — śmierć; napój zdejmuje cechę.
-- Promieniowanie sceny: w konfiguracji sceny pole „Promieniowanie (Fallout: Equestria)” — rady na godzinę. Postacie
-  graczy na aktywnej scenie dostają je z upływem czasu (minus odporność na promieniowanie), a zakładka walki pokazuje
-  licznik Geigera. RadAway i inne leki działają jak dotąd.
+- Promieniowanie z otoczenia (rady na godzinę czasu świata; postacie graczy na aktywnej scenie dostają sumę z upływem
+  czasu, minus odporność na promieniowanie; RadAway i inne leki działają jak dotąd):
+  - tło sceny — w konfiguracji sceny pole „Promieniowanie (Fallout: Equestria)”,
+  - region (np. skażona kałuża, krater) — w konfiguracji regionu to samo pole: stała dawka dla tokenów w środku,
+  - źródło punktowe (beczka odpadów, rdzeń reaktora) — kafelek z sekcją „Źródło promieniowania”: dawka przy źródle
+    i zasięg (domyślnie 30 ft). Token przy kafelku albo pole od niego dostaje pełną dawkę, dalej słabnie ona
+    z kwadratem odległości (2 pola — ¼, 3 pola — 1/9), poza zasięgiem — nic. Ukryty kafelek też promieniuje.
+  - Licznik Geigera w zakładce walki: tło sceny i dawki postaci (gracz widzi swoją, MG — najbardziej napromieniowane;
+    po najechaniu — z czego się składa). Ruch własnego tokenu w promieniowaniu trzeszczy tym gęściej, im silniejsza
+    dawka (opcja gracza „Trzaski licznika Geigera”).
+- Do sprawdzenia z podręcznikiem: pragnienie (zasada domowa — podręcznik w repozytorium nie podaje zasad picia)
+  i słabnięcie dawki z odległością (założenie: kwadrat odległości). Po weryfikacji dopasujemy liczby.
 
 Drzwi, zamki i bariery (zwykłe drzwi Foundry; z modułem **Threshold** — także jego bariery, Foundry v14):
 - Wytrych: postać stoi przy drzwiach zamkniętych na klucz (token dotyka drzwi albo pola, przez które przechodzą), a gracz
