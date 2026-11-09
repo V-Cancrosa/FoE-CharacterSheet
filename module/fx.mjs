@@ -93,7 +93,8 @@ async function playAttack(msg) {
     result: test.result, atk, grid: canvas.grid?.size ?? 100, seed: msg.id, rerolls: test.rerolls ?? 0,
     prev: prevTest ? { seed: test.prevId, result: prevTest.result } : null,
     src: { ...geom(shooter), hidden: hiddenFor(shooter) },
-    targets: targetTokens(atk).map(geom)
+    // bariera Threshold zatrzymała pocisk: lot kończy się na niej (cover.mjs)
+    targets: targetTokens(atk).map(tk => ({ ...geom(tk), block: atk.cover?.[tk.document?.uuid]?.blocked?.at ?? null }))
   });
   if (plan.length) await runPlan(plan, rendererFor(plan));
 }

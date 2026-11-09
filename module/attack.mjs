@@ -19,6 +19,8 @@ import { spendActions } from "./tracker.mjs";
 import { t, tn } from "./i18n.mjs";
 import { ruleLink } from "./rules.mjs";
 import { weaponFx, customMagic, magicColorOf } from "./fx-data.mjs";
+import { coverInfo, hitBarriers, blastWalls, selectedBarriers } from "./cover.mjs";
+import { PCT_CHOICES, nearestPct } from "./cover-data.mjs";
 
 const { DialogV2 } = foundry.applications.api;
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -80,6 +82,11 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   const vsys = vehicle?.system;
   const ammoV = loadedVariant(w);   // amunicja specjalna (zasada opcjonalna, s. 202–203)
   const moving = !!vsys?.vehicle?.currentSpeed;
+  // osłona z barier Threshold na linii strzału (tylko broń dystansowa; cover.mjs)
+  const shooterTok = (canvas?.tokens?.controlled ?? []).find(tk => tk.actor === (vehicle ?? actor))?.document
+    ?? (vehicle ?? actor).getActiveTokens?.(false, true)?.[0] ?? null;
+  const cov = !close && !spell ? coverInfo(shooterTok, targets.map(tk => tk.document).filter(Boolean)) : null;
+  const cov1 = cov?.first ?? null;
 
   const info = [
     targets.length ? t("Target: {list}", { list: `<b>${targets.map(tk => esc(tk.name)).join(", ")}</b>` }) : `${t("Target:")} <i>${t("none — target a token (T) so the damage goes straight to it")}</i>`,
@@ -102,6 +109,14 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
         <option value="-1">${t("−1 step (smoke, fog, darkness, point-blank shot)")}</option>
         <option value="-2">${t("−2 steps")}</option><option value="-3">${t("−3 steps")}</option><option value="-4">${t("−4 steps")}</option>
       </select></label>
+      ${cov1 ? `<label class="atk-row">${t("Cover (Threshold)")} ${ruleLink("combat/defense")} <select name="cover">
+        ${PCT_CHOICES.map(p => `<option value="${p}" ${p === nearestPct(cov1.pct) ? "selected" : ""}>${p ? `${p}% (−${p})` : t("none")}</option>`).join("")}
+      </select></label>
+      <div class="atk-info">
+        <div>${t("Line of fire: {list}", { list: cov1.barriers.map(b => `<b>${esc(b.name)}</b>${b.dt ? ` (DT ${b.dt})` : ""}`).join(", ") })}</div>
+        ${cov1.dt ? `<div>${t("Thin cover: the projectile goes through and loses {n} DT (counted when applying damage).", { n: cov1.dt })}</div>` : ""}
+        ${cov1.blocked ? `<div class="warn">${t("{name} stops the shot — a hit lands on the barrier, not the target.", { name: esc(cov1.blocked.name) })}</div>` : ""}
+      </div>` : ""}
       ${bands.length ? `<label class="atk-row">${t("Distance")} ${ruleLink("combat/attack")} <select name="range">${bands.map(x => `<option value="${x.steps}">${x.label}${x.steps ? ` (${x.steps} ${t("st.")})` : ""}</option>`).join("")}</select></label>` : ""}
       ${aoe ? "" : `<label class="atk-row">${t("Attack target")} ${ruleLink("combat/locations")} <select name="loc">
         ${areas.length
@@ -134,6 +149,7 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     const gunSteps = vehicle ? vsys.gunSteps || 0 : 0;
     const bigSteps = sizeSteps.reduce((sum, x) => sum + x.steps, 0);
     const ammoSteps = ammoV?.steps ?? 0;
+    const coverPct = satsOn ? 0 : Number(el.cover?.value) || 0;
     const notes = [];
     if (satsOn) notes.push(followUp ? t("SATS (volley)") : `SATS −${cost} AP${envRaw ? ` ${t("(environment penalties skipped)")}` : ""}`);
     if (env) notes.push(t("Environment {s}", { s: stepsLabel(env) }));
@@ -145,7 +161,9 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     if (gunSteps) notes.push(t("Damaged weapons {s}", { s: stepsLabel(gunSteps) }));
     for (const x of sizeSteps) notes.push(`${x.label} ${stepsLabel(x.steps)}`);
     if (ammoSteps) notes.push(t("Ammo {a} {s}", { a: ammoV.label, s: stepsLabel(ammoSteps) }));
-    return { steps: env + rng + called + heavySteps + volleySteps + movingSteps + gunSteps + bigSteps + ammoSteps, mod: 0, notes, data: { sats: satsOn, loc: raw === "random" ? "random" : loc, area: area?.label ?? null, table: el.table?.value ?? table } };
+    if (coverPct) notes.push(t("Cover {p}% −{p}", { p: coverPct }));
+    else if (satsOn && Number(el.cover?.value)) notes.push(t("(cover skipped in SATS)"));
+    return { steps: env + rng + called + heavySteps + volleySteps + movingSteps + gunSteps + bigSteps + ammoSteps, mod: -coverPct, notes, data: { sats: satsOn, loc: raw === "random" ? "random" : loc, area: area?.label ?? null, table: el.table?.value ?? table } };
   };
 
   const onRender = (form, update) => {
@@ -153,6 +171,7 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     const tableRow = form.querySelector(".atk-table");
     const sync = () => {
       if (el.env) el.env.disabled = !!el.sats?.checked;
+      if (el.cover) el.cover.disabled = !!el.sats?.checked;   // SATS znosi zasłonięcie (s. 455)
       if (tableRow) tableRow.hidden = el.loc?.value !== "random";
     };
     // efekty sytuacyjne z „SATS” w opisie zaznaczają się razem z SATS
@@ -188,6 +207,8 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     targets: targets.map(tk => tk.document?.uuid).filter(Boolean), overglow: spell?.layers ?? 0,
     // wygląd animacji na mapie (fx.mjs); czar — w kolorze magii, jeśli ustawiono go na karcie
     fx: { ...weaponFx(w, item.name, { spell: !!spell, close, aoe }), ...(spell && customMagic(actor) ? { c: magicColorOf(actor) } : {}) },
+    // bariery Threshold: DT osłony i zatrzymanie pocisku dla każdego celu (do nanoszenia obrażeń i animacji)
+    ...(cov ? { cover: Object.fromEntries(Object.entries(cov.targets).map(([u, c]) => [u, { dt: c.dt, blocked: c.blocked, names: c.names }])) } : {}),
     ...(vehicle ? { vehicle: vehicle.uuid, gunnerUuid: actor.uuid } : {})
   };
   if (spell) return rollTest(actor, { label: t("Aiming: {name} (Magic)", { name: item.name }), baseTn: sk.tn, magic: true, ...roll, itemUuid: item.uuid, attack });
@@ -423,9 +444,10 @@ async function resolveTargets(uuids = []) {
 
 /** Wynik trafienia jednego celu: obrażenia na lokację po DT i rany. */
 export function computeHit(sys, { pre, mult, where, locs, dt = null, ignore = 0, ignoreAll = false, bonusWounds = 0, armorless = false, fire = false,
-  ammo = null, armored = null, living = true, machineBonus = 0 }) {
+  ammo = null, armored = null, living = true, machineBonus = 0, coverDt = 0 }) {
   const list = where === "all" ? locs : [locOf(where)];
-  const base = Math.floor((pre + (machineBonus || 0)) * mult);
+  // cienka osłona (bariera Threshold na linii strzału): pocisk traci jej DT, zanim dotrze do celu (s. 454)
+  const base = Math.floor(Math.max(0, pre + (machineBonus || 0) - Math.max(0, Number(coverDt) || 0)) * mult);
   const bonus = where === "all" ? 0 : Math.max(0, bonusWounds);
   return list.filter(k => sys.locations[k]).map(k => {
     const L = sys.locations[k];
@@ -455,11 +477,24 @@ export async function applyDamage(message) {
   const d = message.getFlag("foe-rpg", "damage");
   if (!d) return null;
   const all = await resolveTargets(d.targets);
-  if (!all.length) return warn(t("No target: target a token with the T key (or select it) and click again."));
+  const hitAmount = Math.floor((Number(d.pre) || 0) * (Number(d.critMult) || 1));
+  if (!all.length) {
+    // MG bez celów, z zaznaczonymi ścianami: strzał w drzwi, okno, barykadę (Threshold)
+    const walls = selectedBarriers();
+    if (walls.length) return hitBarriers(walls.map(w => w.uuid), hitAmount, d.itemName);
+    return warn(t("No target: target a token with the T key (or select it) and click again."));
+  }
   // cele, które uniknęły trafienia kartą szczęścia
   const lucky = all.filter(tk => dodged(tk.actor, d.attackMsg));
-  const tokens = all.filter(tk => !lucky.includes(tk));
+  // bariera Threshold zatrzymała pocisk: trafienie ląduje na niej (wybuch — i tak wybucha, MG ocenia zasięg)
+  const stopped = d.aoe ? [] : all.filter(tk => !lucky.includes(tk) && d.cover?.[tk.uuid]?.blocked);
+  const tokens = all.filter(tk => !lucky.includes(tk) && !stopped.includes(tk));
   if (lucky.length) ui.notifications.info(t("Dodged thanks to Luck: {list}.", { list: lucky.map(tk => tk.name).join(", ") }));
+  if (stopped.length) {
+    const walls = [...new Set(stopped.map(tk => d.cover[tk.uuid].blocked.wall))];
+    ui.notifications.info(t("The shot stops on a barrier: {list}.", { list: stopped.map(tk => `${tk.name} — ${d.cover[tk.uuid].blocked.name}`).join(", ") }));
+    await hitBarriers(walls, hitAmount, d.itemName);
+  }
   if (!tokens.length) return null;
   const allowed = tokens.filter(tk => tk.actor.isOwner);
   const denied = tokens.filter(tk => !tk.actor.isOwner);
@@ -506,6 +541,7 @@ export async function applyDamage(message) {
         <label class="dt-row">DT <input type="number" name="dt-${r.i}" value="${r.sel === "all" ? "" : dtOf(r.sys, r.sel)}" ${r.sel === "all" ? `disabled placeholder="${t("by location")}"` : ""}></label>
         <label>${t("Ignores DT")} <input type="number" name="ign-${r.i}" value="${d.ignoreDT ?? 0}" min="0"></label>
         <label class="atk-check"><input type="checkbox" name="all-${r.i}"> <span>${t("Ignore all DT")}</span></label>
+        ${d.cover?.[r.tok.uuid]?.dt ? `<label title="${esc(t("Thin cover on the line of fire: {list}", { list: (d.cover[r.tok.uuid].names ?? []).join(", ") }))}">${t("Cover DT")} <input type="number" name="cov-${r.i}" value="${d.cover[r.tok.uuid].dt}" min="0"></label>` : ""}
         ${ammo?.machineBonus ? `<label class="atk-check"><input type="checkbox" name="mach-${r.i}" ${r.machine ? "checked" : ""}> <span>${t("Machine / robot / power armor (+{n})", { n: ammo.machineBonus })}</span></label>` : ""}
         ${ammo?.living4 ? `<label class="atk-check"><input type="checkbox" name="live-${r.i}" ${r.machine ? "" : "checked"}> <span>${t("Living target or ghoul (×4)")}</span></label>` : ""}
         <div class="dmg-out" data-out="${r.i}"></div>
@@ -529,7 +565,8 @@ export async function applyDamage(message) {
       fire: !!d.specials?.fire,
       ammo, armored: r.armored,
       living: ammo?.living4 ? !!el[`live-${r.i}`]?.checked : true,
-      machineBonus: ammo?.machineBonus && el[`mach-${r.i}`]?.checked ? ammo.machineBonus : 0
+      machineBonus: ammo?.machineBonus && el[`mach-${r.i}`]?.checked ? ammo.machineBonus : 0,
+      coverDt: Math.max(0, Number(el[`cov-${r.i}`]?.value) || 0)
     };
   };
   const describe = (r, res) => res.map(x => {
@@ -634,10 +671,21 @@ export async function applyDamage(message) {
       <div class="dmg-res">
         <h4>${esc(r.tok.name)}</h4>
         ${describe(r, res)}
+        ${input.coverDt ? `<div class="fc-meta">${t("Cover: −{n} damage ({list})", { n: input.coverDt, list: esc((d.cover?.[r.tok.uuid]?.names ?? []).join(", ")) })}</div>` : ""}
         ${armorNotes.length ? `<div class="fc-meta">${t("Armor: {list}", { list: armorNotes.map(esc).join(" · ") })}</div>` : ""}
         ${fx.notes.length ? `<div class="fc-special">${fx.notes.map(n => `<span>${esc(n)}</span>`).join("")}</div>` : ""}
         ${sys.isVehicle ? vehicleNotes(actor, res) : `<div class="fc-meta">${t("Total wounds: {n}/{max}", { n: total, max: 4 * endT })}${dead ? ` · <b class="warn">${esc(dead)}</b>` : actor.system.unconsciousRisk ? ` · <b class="warn">${t("losing consciousness: END MFD ¾ roll on every action")}</b>` : ""}</div>`}
       </div>`);
+  }
+
+  // wybuch: przeszkody Threshold w promieniu (okna, barykady, drzwi) też obrywają
+  if (d.aoe && d.radius > 0) {
+    const first = all[0];
+    const blk = d.cover?.[first?.uuid]?.blocked?.at;
+    const size = first?.parent?.grid?.size ?? 100;
+    const center = blk ?? (first ? { x: first.x + ((first.width ?? 1) * size) / 2, y: first.y + ((first.height ?? 1) * size) / 2 } : null);
+    const walls = center ? blastWalls(first.parent, center, d.radius) : [];
+    if (walls.length) await hitBarriers(walls, Number(d.pre) || 0, t("{item}: explosion", { item: d.itemName }));
   }
 
   return ChatMessage.create({

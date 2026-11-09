@@ -636,6 +636,19 @@ Drzwi, zamki i bariery (zwykłe drzwi Foundry; z modułem **Threshold** — tak�
 - Terminale z Threshold: komenda działa przez Threshold, więc drzwi uchylają się naprawdę (komenda „uchyl”), a do
   terminala można podpiąć też bariery bez drzwi — „otwórz” wyłącza pole siłowe albo odsłania zasłony, „zamknij” je
   przywraca. Podpinanie: zaznacz drzwi albo bariery na warstwie ścian i kliknij „dodaj zaznaczone” przy komendzie.
+- Osłona i balistyka z Threshold (s. 452–455). Przy ataku bronią dystansową system sprawdza bariery na linii od strzelca
+  do celu (w ich obecnym stanie — otwarte drzwi nie osłaniają, rozbite okno już nie zatrzymuje):
+  - okno ataku ma pole „Osłona (Threshold)” — zasłonięcie ustawione z barier (pełna osłona 75%, częściowa 25%; można
+    zmienić) jako kara do rzutu; SATS je znosi. Pod nim lista barier na linii strzału,
+  - cienka osłona (np. drewniane drzwi, ścianka, barykada): pocisk przechodzi, ale traci DT osłony z tabeli podręcznika
+    (drewno 6, szkło 2, szkło pancerne i żelazo 20, stal 30, kamień 50; kraty, furtki i strzelnice — bez DT). W oknie
+    „Nanieś obrażenia” jest pole „DT osłony”, odejmowane przed mnożnikiem lokacji i DT celu,
+  - bariera, która zatrzymuje pocisk (okno, szkło pancerne, pole siłowe, drzwi wzmocnione): trafienie ląduje na niej,
+    nie na celu — „Nanieś obrażenia” uszkadza barierę (obrażenia minus DT materiału; przy wytrzymałości 0 rozbita),
+    a animacja kończy się iskrami na barierze i napisem „Zatrzymane!”. Niezniszczalne (szkło pancerne, pole) wytrzymują,
+  - wybuch (broń z promieniem) uszkadza też zniszczalne bariery w promieniu wokół celu,
+  - strzał w drzwi albo okno: MG zaznacza ściany na warstwie ścian (bez celów) i klika „Nanieś obrażenia” na karcie
+    obrażeń — wynik na karcie „PRZESZKODA”. Uszkodzenia nanosi aktywny MG (gracz wysyła prośbę).
 
 Kasyno (osobny typ aktora „Stół do gry”): blackjack z automatycznym krupierem albo Texas Hold'em bez limitu. Talia jak
 w podręczniku (s. 220): damą kier jest Celestia, trefl — Luna, karo — Cadance, pik — Nightmare Moon (jokerów, Discorda
