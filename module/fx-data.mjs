@@ -172,7 +172,8 @@ export const TEXTS = {
   jam: N_("Jammed!"),
   fumble: N_("Fumble!"),
   fizzle: N_("Fizzle!"),
-  dud: N_("Dud!")
+  dud: N_("Dud!"),
+  blocked: N_("Stopped!")
 };
 
 /** Napis krytycznej porażki: broń palna/energetyczna się zacina, cios — potknięcie, czar gaśnie, granat — niewypał. */
@@ -304,16 +305,21 @@ export function planAttack(o) {
     const from = origins?.[ti] ?? { x: src.x, y: src.y };
     const n = shotsFor(kind, atk.used);
     const miss = hit ? null : missPoint(src, tg, grid, `${o.seed}:${ti}`, style);
+    // bariera zatrzymała pocisk (Threshold): trafienie kończy się na niej iskrami i napisem „Zatrzymane!”
+    const block = hit && tg.block && style !== "swing" ? tg.block : null;
     for (let i = 0; i < n; i++) {
       const delay = ti * 160 + (def.pellets ? i * 25 : i * 110);
-      const to = hit
-        ? (explodes ? { x: Math.round(tg.x), y: Math.round(tg.y) } : hitPoint(tg, atk.hit?.loc, `${o.seed}:${ti}`, i, def.pellets ? 0.22 : 0.12))
-        : scatter(miss, grid, `${o.seed}:${ti}`, i, def.pellets ? 0.35 : 0.25);
+      const to = block ? scatter(block, grid, `${o.seed}:${ti}`, i, def.pellets ? 0.12 : 0.05)
+        : hit
+          ? (explodes ? { x: Math.round(tg.x), y: Math.round(tg.y) } : hitPoint(tg, atk.hit?.loc, `${o.seed}:${ti}`, i, def.pellets ? 0.22 : 0.12))
+          : scatter(miss, grid, `${o.seed}:${ti}`, i, def.pellets ? 0.35 : 0.25);
       const then = [];
       if (explodes) { if (i === 0) then.push({ t: "explode", kind, blast, at: to, big: crit }); }
+      else if (block) then.push({ t: "ground", kind, at: to });
       else if (hit) then.push({ t: "impact", kind, at: to, big: crit && i === 0, ...(color !== undefined ? { color } : {}) });
       else if (style !== "swing") then.push({ t: "ground", kind, at: to });
-      if (i === 0 && hit && crit) then.push({ t: "text", at: top(tg), text: "crit" });
+      if (i === 0 && block) then.push({ t: "text", at: { x: block.x, y: block.y - grid / 3 }, text: "blocked" });
+      if (i === 0 && hit && crit && !block) then.push({ t: "text", at: top(tg), text: "crit" });
       if (i === 0 && !hit && ti === 0) then.push({ t: "text", at: top(tg), text: "miss" });
       // ukryty strzelec: gracze widzą tylko, co doleciało
       if (!showSrc && !origins) fire.push(...then.map(s => ({ ...s, delay })));

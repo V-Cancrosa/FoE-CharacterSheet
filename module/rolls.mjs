@@ -11,6 +11,7 @@ import { degradationOn } from "./craft-data.mjs";
 import { t, tn, isPL } from "./i18n.mjs";
 import { ruleLink } from "./rules.mjs";
 import { MAX_BEFORE, beforeCards } from "./luck-data.mjs";
+import { radiusFt } from "./cover-data.mjs";
 
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
 const signed = n => (n > 0 ? `+${n}` : `${n}`).replace("-", "−");
@@ -460,6 +461,8 @@ export async function rollDamage(actor, item, { crit = false, attack = null } = 
           ignoreDT: item.type === "weapon" ? ammoIgnoreDT(w) : Number(w.ignoreDT) || 0, targets,
           fx: attack?.fx?.k ?? null,   // rodzaj broni do animacji (np. kolor dezintegracji)
           attackMsg: attack?.msgId ?? null,   // karta trafienia (unik kartą szczęścia)
+          cover: attack?.cover ?? null,        // bariery Threshold na linii strzału (DT osłony, zatrzymanie pocisku)
+          radius: item.type === "weapon" ? radiusFt(w.aoe?.radius) : 0,   // wybuch: przeszkody w promieniu
           ...(w.armorless ? { ignoreArmor: true, noDegrade: true } : {})
         }
       }

@@ -3766,6 +3766,25 @@ export default {
   "scene {n} rads/h": "scena {n} radów/h",
   "scene {n}": "scena {n}",
   "source {ft} ft away {n}": "źródło {ft} ft dalej {n}",
+  // ---- module/cover.mjs, attack.mjs (osłona i balistyka z Threshold)
+  "(cover skipped in SATS)": "(osłona pominięta w SATS)",
+  "BARRIER": "PRZESZKODA",
+  "BROKEN": "ROZBITA",
+  "Barrier damage needs the GM logged in.": "Obrażenia przeszkód wymagają zalogowanego MG.",
+  "Cover (Threshold)": "Osłona (Threshold)",
+  "Cover DT": "DT osłony",
+  "Cover {p}% −{p}": "Osłona {p}% −{p}",
+  "Cover: −{n} damage ({list})": "Osłona: −{n} obrażeń ({list})",
+  "Line of fire: {list}": "Na linii strzału: {list}",
+  "Stopped!": "Zatrzymane!",
+  "The shot stops on a barrier: {list}.": "Pocisk zatrzymuje się na przeszkodzie: {list}.",
+  "Thin cover on the line of fire: {list}": "Cienka osłona na linii strzału: {list}",
+  "Thin cover: the projectile goes through and loses {n} DT (counted when applying damage).": "Cienka osłona: pocisk przechodzi i traci {n} DT (liczone przy nanoszeniu obrażeń).",
+  "{item}: explosion": "{item}: wybuch",
+  "{name} stops the shot — a hit lands on the barrier, not the target.": "{name} zatrzymuje pocisk — trafienie ląduje na przeszkodzie, nie na celu.",
+  "{name}: {a} − DT {dt} = {d} → durability {now}/{max}{x}": "{name}: {a} − DT {dt} = {d} → wytrzymałość {now}/{max}{x}",
+  "{name}: {a} − DT {dt} — holds (indestructible).": "{name}: {a} − DT {dt} — wytrzymuje (niezniszczalna).",
+  "{name}: {a} − DT {dt} — holds.": "{name}: {a} − DT {dt} — wytrzymuje.",
   // ---- module/fx.mjs
   "−{n} wound|−{n} wounds": ["−{n} rana", "−{n} rany", "−{n} ran"]
 };

@@ -20,6 +20,7 @@ import { terminalDataClass } from "./terminal-data.mjs";
 import { FoeTerminalSheet } from "./terminal-sheet.mjs";
 import { registerTerminalSettings, registerTerminalHooks } from "./terminal.mjs";
 import { registerDoorHooks } from "./doors.mjs";
+import { registerCoverHooks } from "./cover.mjs";
 import { registerLuckHooks } from "./luck.mjs";
 import { registerSurvivalSettings, registerSurvivalHooks } from "./survival.mjs";
 import { registerConditionSettings } from "./conditions.mjs";
@@ -98,6 +99,7 @@ Hooks.once("init", () => {
   registerTerminalSettings();
   registerTerminalHooks();
   registerDoorHooks();
+  registerCoverHooks();
   registerLuckHooks();
   registerSurvivalHooks();
   registerDice3d();
