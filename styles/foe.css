@@ -215,12 +215,14 @@ body[data-foe-crt="off"] .foe-card::after { display: none; }
   background: var(--pip-faint);
 }
 .foe-rpg .res { display: grid; grid-template-columns: auto 1fr; gap: .1rem .5rem; align-items: center; }
-.foe-rpg .res-lbl { font-family: var(--foe-crt); font-size: 1.15rem; letter-spacing: .06em; text-transform: uppercase; }
+.foe-rpg .res-lbl { font-family: var(--foe-crt); font-size: 1.15rem; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
 .foe-rpg .res-val { justify-self: end; white-space: nowrap; color: var(--pip-mid); }
 .foe-rpg .meter { grid-column: 1 / -1; height: 7px; border: 1px solid var(--pip-dim); padding: 1px; }
 .foe-rpg .meter > span { display: block; height: 100%; background: var(--pip); box-shadow: 0 0 6px var(--pip-glow); transition: width .3s; }
 .foe-rpg .meter.alert > span { background: var(--pip-alert); }
-.foe-rpg .resources button { align-self: center; justify-self: stretch; }
+/* koniczynka: wydanie karty szczęścia — przy liczbie kart, nie w osobnej linii */
+.foe-rpg .res-val .luck-spend { margin-right: .4rem; color: var(--pip); cursor: pointer; }
+.foe-rpg .res-val .luck-spend:hover { color: var(--pip-bright, var(--pip)); text-shadow: 0 0 6px var(--pip-glow); }
 
 /* ---------- Zakładki ---------- */
 .foe-rpg nav.tabs {
@@ -792,6 +794,14 @@ body[data-foe-pip="white"] :is(.foe-rpg, .foe-card) img[src*="foe-rpg/icons/"] {
 .foe-rpg .foe-dialog .atk-check span { color: var(--pip); }
 .foe-rpg .foe-dialog .atk-check small { flex: 1 0 100%; padding-left: calc(14px + .45rem); color: var(--pip-mid); font-size: 11px; text-transform: none; text-shadow: none; }
 .foe-rpg .foe-dialog .atk-check:has(input:disabled) { opacity: .5; cursor: not-allowed; }
+/* okno „Wydaj kartę szczęścia”: opcje w blokach, pole opcji wcięte pod nią, opis na całą szerokość */
+.foe-rpg .luck-dlg .luck-opt { padding: .3rem .4rem; margin: .25rem 0; border: 1px solid var(--pip-line); background: var(--pip-faint); }
+.foe-rpg .luck-dlg .luck-opt:has(input[name=kind]:checked) { border-color: var(--pip-dim); }
+.foe-rpg .luck-dlg .luck-sub { justify-content: flex-start; gap: .6rem; padding: .25rem 0 0 calc(14px + .45rem); }
+.foe-rpg .luck-dlg .luck-sub select { flex: 1; min-width: 0; text-transform: none; }
+.foe-rpg .luck-dlg .luck-sub.off { opacity: .4; }
+.foe-rpg .luck-dlg .luck-what { display: flex; flex-direction: column; gap: .25rem; margin-top: .5rem; text-transform: uppercase; font-size: 12px; }
+.foe-rpg .luck-dlg .luck-what input { width: 100%; box-sizing: border-box; text-transform: none; }
 .foe-rpg .foe-dialog .rl-opts { margin: 0; padding-left: 1.1rem; }
 .foe-rpg .foe-dialog .rl-opts b { color: var(--pip-bright); }
 .foe-rpg .dmg-apply fieldset.dmg-target {

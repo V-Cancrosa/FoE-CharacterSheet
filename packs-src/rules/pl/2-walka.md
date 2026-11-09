@@ -76,7 +76,7 @@ Stable-Tec Assisted Targeting Spell — zaklęcie celownicze PipBucka i pancerzy
 - Krytyk bronią do walki wręcz albo Unarmed w SATS ma **podwójny** mnożnik krytyczny; część broni białej ma specjalne ataki tylko w SATS.
 - Przeładowanie w SATS zawsze ładuje do pełna. (s. 451)
 
-> **Na karcie:** zaznacz *SATS* w oknie ataku — koszt AP odejmie się sam, kary otoczenia znikną. W walce SATS odnawia się o 5 AP co rundę, a *Nowa sesja* napełnia pulę.
+> **Na karcie:** zaznacz *SATS* w oknie ataku — koszt AP odejmie się sam, kary otoczenia znikną. W walce SATS odnawia się o 5 AP co rundę, a *Nowa sesja* (górny pasek karty) napełnia pulę.
 
 ## Atak i trafienie {#attack}
 

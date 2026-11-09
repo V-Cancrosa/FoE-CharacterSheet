@@ -159,24 +159,46 @@ export async function spendLuckDialog(actor) {
   if (!have) return warn(t("No Luck cards left."));
   const others = playerCharacters(actor);
   const content = `
-    <div class="foe-dialog">
+    <div class="foe-dialog luck-dlg">
       <p>${t("{name} has {n} Luck cards.", { name: esc(actor.name), n: have })}</p>
-      <label class="atk-row atk-check"><input type="radio" name="kind" value="amazing" checked> <span>${t("Something amazing")}</span>
-        <small>${t("a feat beyond the character's abilities, if the GM agrees (1–3 cards, may still need a roll)")}</small></label>
-      <label class="mod-row">${t("Cards")} <input type="number" name="n" value="1" min="1" max="${Math.min(3, have)}" step="1"></label>
-      <label class="atk-row atk-check"><input type="radio" name="kind" value="story"> <span>${t("Story improvement")}</span>
-        <small>${t("with the GM's consent, change what has just happened (1 card)")}</small></label>
-      ${others.length ? `<label class="atk-row atk-check"><input type="radio" name="kind" value="give" ${have < GIVE_COST ? "disabled" : ""}> <span>${t("Give a card to another player")}</span>
-        <small>${t("costs two of your cards (p. 57)")}</small></label>
-      <label class="mod-row">${t("To")} <select name="to">${others.map(a => `<option value="${a.uuid}">${esc(a.name)}</option>`).join("")}</select></label>` : ""}
-      <label class="mod-row">${t("What happens")} <input type="text" name="what" value=""></label>
+      <div class="luck-opt">
+        <label class="atk-row atk-check"><input type="radio" name="kind" value="amazing" checked> <span>${t("Something amazing")}</span>
+          <small>${t("a feat beyond the character's abilities, if the GM agrees (1–3 cards, may still need a roll)")}</small></label>
+        <label class="mod-row luck-sub" data-for="amazing">${t("Cards")} <input type="number" name="n" value="1" min="1" max="${Math.min(3, have)}" step="1"></label>
+      </div>
+      <div class="luck-opt">
+        <label class="atk-row atk-check"><input type="radio" name="kind" value="story"> <span>${t("Story improvement")}</span>
+          <small>${t("with the GM's consent, change what has just happened (1 card)")}</small></label>
+      </div>
+      ${others.length ? `<div class="luck-opt">
+        <label class="atk-row atk-check"><input type="radio" name="kind" value="give" ${have < GIVE_COST ? "disabled" : ""}> <span>${t("Give a card to another player")}</span>
+          <small>${t("costs two of your cards (p. 57)")}</small></label>
+        <label class="mod-row luck-sub" data-for="give">${t("To")} <select name="to">${others.map(a => `<option value="${a.uuid}">${esc(a.name)}</option>`).join("")}</select></label>
+      </div>` : ""}
+      <label class="luck-what">${t("What happens")} <input type="text" name="what" value="" placeholder="${esc(t("e.g. the bullet ricochets off the helmet"))}"></label>
     </div>`;
+  // pola dodatkowe działają tylko przy swojej opcji (liczba kart — „coś niesamowitego”, odbiorca — „daj kartę”)
+  const sync = form => {
+    const kind = form?.querySelector("input[name=kind]:checked")?.value;
+    for (const row of form?.querySelectorAll(".luck-sub") ?? []) {
+      const on = row.dataset.for === kind;
+      row.classList.toggle("off", !on);
+      for (const el of row.querySelectorAll("input, select")) el.disabled = !on;
+    }
+  };
   const res = await foundry.applications.api.DialogV2.wait({
     window: { title: t("Spend a Luck card") },
     classes: ["foe-rpg", "foe-roll-dialog"],
     position: { width: 460 },
     content,
     rejectClose: false,
+    render: (ev, dialog) => {
+      const root = dialog instanceof HTMLElement ? dialog : dialog?.element ?? ev?.target?.element;
+      const form = root?.tagName === "FORM" ? root : root?.querySelector?.("form");
+      if (!form) return;
+      form.addEventListener("change", () => sync(form));
+      sync(form);
+    },
     buttons: [{ action: "ok", label: t("Spend"), icon: "fa-solid fa-clover", default: true,
       callback: (ev, btn) => { const el = btn.form.elements; return { kind: el.kind.value, n: Number(el.n.value) || 1, to: el.to?.value ?? null, what: el.what.value.trim() }; } }]
   });

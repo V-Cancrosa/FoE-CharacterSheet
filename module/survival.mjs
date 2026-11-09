@@ -554,11 +554,27 @@ function clicks(rate) {
 }
 
 // ---------- pola w oknach konfiguracji ----------
-function insertGroup(root, group, selectors) {
-  const anchor = selectors.map(s => root.querySelector(s)).find(Boolean);
-  if (anchor?.matches?.(".tab")) anchor.append(group);
-  else if (anchor) anchor.after(group);
-  else (root.querySelector("footer, .form-footer")?.before(group) ?? root.append(group));
+/**
+ * Wstawia pole do okna konfiguracji obok znanego pola (ten sam kontener — wygląd i zapis jak reszta formularza):
+ * zaraz za jego grupą albo (end) za ostatnią grupą tej samej zakładki, przed stopką z przyciskiem. Bez znanego pola —
+ * na końcu jednej z zakładek, w ostateczności przed stopką formularza. Nigdy poza formularzem.
+ */
+function insertGroup(root, group, { fields = [], tabs = [], end = false } = {}) {
+  for (const name of fields) {
+    const el = root.querySelector(`[name="${name}"]`);
+    const fg = el?.closest(".form-group, fieldset");
+    if (!fg) continue;
+    const tab = end ? el.closest(".tab") : null;
+    const last = tab ? [...tab.querySelectorAll(":scope > .form-group, :scope > fieldset")].at(-1) : null;
+    return (last ?? fg).after(group);
+  }
+  for (const sel of [...tabs.map(id => `.tab[data-tab="${id}"]`), "section.tab[data-tab]", ".tab[data-tab]"]) {
+    const tab = root.querySelector(sel);
+    if (tab) return tab.append(group);
+  }
+  const footer = root.querySelector(".form-footer");
+  if (footer) return footer.before(group);
+  return (root.querySelector(".window-content") ?? root).append(group);
 }
 
 /** Wybór poziomu z tabeli XXXV + dawka w rad/min (poziom wpisuje typową dawkę; własna — „inna”). */
@@ -594,9 +610,7 @@ function sceneField(app, html) {
   group.innerHTML = `<label>${t("Radiation (Fallout: Equestria)")}</label>${radsControl(`flags.${F}.rads.rate`, sceneRads(doc))}
     <p class="hint">${t("Characters on this scene (when it is the active one) get this dose as world time passes, minus their radiation resistance.")} ${LEVELS_HINT()}</p>`;
   wireRads(group);
-  const weather = root.querySelector("[name=weather]")?.closest(".form-group");
-  if (weather) weather.after(group);
-  else insertGroup(root, group, ['.tab[data-tab="ambience"]', '.tab[data-tab="basics"]']);
+  insertGroup(root, group, { fields: ["weather", "environment.weather"], tabs: ["ambience", "environment", "basics"] });
 }
 
 function tileField(app, html) {
@@ -613,7 +627,7 @@ function tileField(app, html) {
       <div class="form-fields"><input type="number" name="flags.${F}.rads.range" value="${src?.range ?? 30}" min="0" step="5"> <span>ft</span></div></div>
     <p class="hint">${t("A token touching the tile (or within one square of it) gets the full dose; further away it fades with the square of the distance — 2 squares ¼, 3 squares 1/9 — and stops at the range. Characters get it as time passes, minus their radiation resistance. A hidden tile still emits. None — not a source.")} ${LEVELS_HINT()}</p>`;
   wireRads(fs);
-  insertGroup(root, fs, ['.tab[data-tab="basic"]', '.tab[data-tab="basics"]', '.tab[data-tab="appearance"]']);
+  insertGroup(root, fs, { fields: ["alpha", "texture.tint", "texture.src"], tabs: ["appearance", "basic", "basics"], end: true });
   app.setPosition?.({ height: "auto" });
 }
 
@@ -627,7 +641,7 @@ function regionField(app, html) {
   group.innerHTML = `<label>${t("Radiation (Fallout: Equestria)")}</label>${radsControl(`flags.${F}.rads.rate`, regionRads(doc))}
     <p class="hint">${t("Characters standing inside this region get this dose as world time passes (minus their radiation resistance), on top of the scene's radiation.")} ${LEVELS_HINT()}</p>`;
   wireRads(group);
-  insertGroup(root, group, ['.tab[data-tab="identity"]', '.tab[data-tab="area"]']);
+  insertGroup(root, group, { fields: ["displayMeasurements", "highlightMode", "locked", "visibility", "color"], tabs: ["appearance", "identity", "area"], end: true });
 }
 
 // ---------- ustawienia i haki ----------
