@@ -70,24 +70,26 @@ export function coverInfo(shooter, targets = []) {
 
 // ---------- obrażenia przeszkód ----------
 /** Obrażenia jednej przeszkody (aktywny MG). Zwraca linię do karty. */
-async function damageWall(api, wall, amount, cause) {
+async function damageWall(api, wall, amount, cause, through = false) {
   const b = wall.flags?.threshold?.barrier;
   if (!b) return null;
   const name = barrierName(b);
   const dt = barrierDt(b);
-  const after = barrierDamage(amount, b);
+  // pocisk przeszedł przez cienką osłonę: przeszkoda przyjmuje to, co zatrzymała (już po DT — bez ponownego odejmowania)
+  const after = through ? amount : barrierDamage(amount, b);
   const max = Number(b.material?.durability) || 0;
   if (!b.interaction?.destructible || !max) return t("{name}: {a} − DT {dt} — holds (indestructible).", { name, a: amount, dt });
   const before = Number.isFinite(Number(b.integrity?.current)) ? Number(b.integrity.current) : max;
   let next = b;
   try {
-    next = await api.barriers.damage(wall, amount, { source: { foe: true, cause } });
+    next = await api.barriers.damage(wall, amount, { source: { foe: true, cause, through } });
   } catch (err) {
     console.warn(`${F} | barrier damage`, err);
     return t("{name}: {a} − DT {dt} — holds.", { name, a: amount, dt });
   }
   const now = Number.isFinite(Number(next?.integrity?.current)) ? Number(next.integrity.current) : before;
   const broken = next?.state === "damaged" && b.state !== "damaged";
+  if (through) return t("{name}: the shot goes through and loses {d} → durability {now}/{max}{x}", { name, d: after, now, max, x: broken ? ` — ${t("BROKEN")}` : "" });
   return t("{name}: {a} − DT {dt} = {d} → durability {now}/{max}{x}", { name, a: amount, dt, d: after, now, max, x: broken ? ` — ${t("BROKEN")}` : "" });
 }
 
@@ -100,23 +102,23 @@ async function postCard(title, lines) {
 }
 
 /** Wykonanie u aktywnego MG: { walls: [uuid], amount, cause }. */
-async function applyOp({ walls = [], amount = 0, cause = "" }) {
+async function applyOp({ walls = [], amount = 0, cause = "", through = false }) {
   const api = thrApi();
   if (!api) return null;
   const lines = [];
   for (const u of walls) {
     const wall = await fromUuid(u).catch(() => null);
     if (wall?.documentName !== "Wall") continue;
-    const l = await damageWall(api, wall, Math.max(0, Math.floor(Number(amount) || 0)), cause);
+    const l = await damageWall(api, wall, Math.max(0, Math.floor(Number(amount) || 0)), cause, !!through);
     if (l) lines.push(l);
   }
   return postCard(cause, lines);
 }
 
 /** Trafienie w przeszkody: MG od razu, gracz — prośba do aktywnego MG. */
-export async function hitBarriers(walls, amount, cause) {
+export async function hitBarriers(walls, amount, cause, { through = false } = {}) {
   if (!walls?.length || !thrApi()) return null;
-  const op = { kind: "barrier-hit", walls, amount, cause, user: game.user.id };
+  const op = { kind: "barrier-hit", walls, amount, cause, through, user: game.user.id };
   if (game.user.isGM) return applyOp(op);
   if (!game.users.activeGM) return ui.notifications.warn(t("Barrier damage needs the GM logged in."));
   game.socket.emit(SOCKET, op);
@@ -140,7 +142,7 @@ export function registerCoverHooks() {
   });
   // obrażenia od FoE: DT materiału z tabeli osłon FoE (Threshold sam niczego nie odejmuje)
   Hooks.on("threshold.preDamage", ctx => {
-    if (!ctx?.source?.foe) return;
+    if (!ctx?.source?.foe || ctx.source.through) return;
     ctx.amount = barrierDamage(ctx.amount, ctx.barrier);
   });
 }

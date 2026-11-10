@@ -27,7 +27,7 @@ Terminale RobronCo, Stable-Tec, ministerialne, chmurowe, Unics i przenośne.
 Z modułem Threshold bariery na mapie (drzwi, okna, kraty, pola siłowe) działają w walce. Zasady osłony: [[combat/defense|Unik, blok i osłona]]. (s. 452–455)
 
 - **Zasłonięcie** z barier na linii strzału to kara do trafienia: pełna osłona 75%, częściowa 25%. SATS ją znosi.
-- **Cienka osłona** (drewniane drzwi, ścianka, barykada): pocisk przechodzi, ale traci DT osłony — drewno 6, szkło 2, szkło pancerne i żelazo 20, stal 30, kamień 50; kraty, furtki i strzelnice — bez DT.
+- **Cienka osłona** (drewniane drzwi, ścianka, barykada): pocisk przechodzi, ale traci DT osłony — drewno 6, szkło 2, szkło pancerne i żelazo 20, stal 30, kamień 50; kraty, furtki i strzelnice — bez DT. Sama osłona traci przy tym tyle wytrzymałości, ile zatrzymała.
 - **Bariera zatrzymująca pocisk** (okno, szkło pancerne, pole siłowe): trafienie ląduje na niej. Obrażenia minus DT materiału zmniejszają jej wytrzymałość; przy zerze bariera pęka.
 - Wybuch uszkadza też zniszczalne bariery w promieniu.
 

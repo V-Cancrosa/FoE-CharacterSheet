@@ -210,7 +210,8 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
     // wygląd animacji na mapie (fx.mjs); czar — w kolorze magii, jeśli ustawiono go na karcie
     fx: { ...weaponFx(w, item.name, { spell: !!spell, close, aoe }), ...(spell && customMagic(actor) ? { c: magicColorOf(actor) } : {}) },
     // bariery Threshold: DT osłony i zatrzymanie pocisku dla każdego celu (do nanoszenia obrażeń i animacji)
-    ...(cov ? { cover: Object.fromEntries(Object.entries(cov.targets).map(([u, c]) => [u, { dt: c.dt, blocked: c.blocked, names: c.names }])) } : {}),
+    ...(cov ? { cover: Object.fromEntries(Object.entries(cov.targets).map(([u, c]) => [u, { dt: c.dt, blocked: c.blocked, names: c.names,
+      thin: (c.barriers ?? []).filter(b => b.ballistic === "conditional" && b.dt > 0 && b.destructible).map(b => ({ wall: b.uuid, dt: b.dt })) }])) } : {}),
     ...(vehicle ? { vehicle: vehicle.uuid, gunnerUuid: actor.uuid } : {})
   };
   if (spell) return rollTest(actor, { label: t("Aiming: {name} (Magic)", { name: item.name }), baseTn: sk.tn, magic: true, ...roll, itemUuid: item.uuid, attack });
@@ -496,6 +497,14 @@ export async function applyDamage(message) {
     const walls = [...new Set(stopped.map(tk => d.cover[tk.uuid].blocked.wall))];
     ui.notifications.info(t("The shot stops on a barrier: {list}.", { list: stopped.map(tk => `${tk.name} — ${d.cover[tk.uuid].blocked.name}`).join(", ") }));
     await hitBarriers(walls, hitAmount, d.itemName);
+  }
+  // cienka osłona (drewniane drzwi, ścianka): pocisk przechodzi, a przeszkoda przyjmuje to, co zatrzymała (jej DT)
+  if (!d.aoe) {
+    const absorbed = new Map();
+    for (const tk of tokens) for (const b of d.cover?.[tk.uuid]?.thin ?? []) absorbed.set(b.wall, Math.max(absorbed.get(b.wall) ?? 0, Math.min(hitAmount, b.dt)));
+    const byAmount = new Map();
+    for (const [w, n] of absorbed) if (n > 0) byAmount.set(n, [...(byAmount.get(n) ?? []), w]);
+    for (const [n, walls] of byAmount) await hitBarriers(walls, n, d.itemName, { through: true });
   }
   if (!tokens.length) return null;
   const allowed = tokens.filter(tk => tk.actor.isOwner);

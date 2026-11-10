@@ -704,7 +704,8 @@ Drzwi, zamki i bariery (zwykłe drzwi Foundry; z modułem **Threshold** — tak�
     zmienić) jako kara do rzutu; SATS je znosi. Pod nim lista barier na linii strzału,
   - cienka osłona (np. drewniane drzwi, ścianka, barykada): pocisk przechodzi, ale traci DT osłony z tabeli podręcznika
     (drewno 6, szkło 2, szkło pancerne i żelazo 20, stal 30, kamień 50; kraty, furtki i strzelnice — bez DT). W oknie
-    „Nanieś obrażenia” jest pole „DT osłony”, odejmowane przed mnożnikiem lokacji i DT celu,
+    „Nanieś obrażenia” jest pole „DT osłony”, odejmowane przed mnożnikiem lokacji i DT celu; sama osłona (np. zwykłe
+    drewniane drzwi Threshold) traci przy tym tyle wytrzymałości, ile zatrzymała (swoje DT, nie więcej niż obrażenia),
   - bariera, która zatrzymuje pocisk (okno, szkło pancerne, pole siłowe, drzwi wzmocnione): trafienie ląduje na niej,
     nie na celu — „Nanieś obrażenia” uszkadza barierę (obrażenia minus DT materiału; przy wytrzymałości 0 rozbita),
     a animacja kończy się iskrami na barierze i napisem „Zatrzymane!”. Niezniszczalne (szkło pancerne, pole) wytrzymują,
