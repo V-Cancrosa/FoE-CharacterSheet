@@ -150,26 +150,40 @@ export async function detectDisguise(changeling) {
   return rollTest(obs, { label: t("Detect disguise ({attr})", { attr: ATTRS.per }), baseTn: a.tn, ...roll });
 }
 
-/** Odpoczynek / upływ czasu: utrzymanie 1 miłości dziennie (liczy MG przy przesuwaniu czasu). */
-export function registerShadowHooks() {
-  Hooks.on("updateWorldTime", async worldTime => {
-    if (!game.users.activeGM?.isSelf) return;
-    for (const actor of game.actors ?? []) {
-      if (!isChangeling(actor)) continue;
-      const s = loveState(actor);
-      const { today, days } = upkeepDays(s, worldTime);
-      if (!s.day) { await actor.setFlag(F, "love", { value: s.value, day: today }); continue; }
-      if (!days) continue;
-      const value = Math.max(0, s.value - days);
-      await actor.setFlag(F, "love", { value, day: today });
-      if (value <= 0 && s.value > 0) ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor }), whisper: game.users.filter(u => u.isGM || actor.testUserPermission?.(u, "OWNER")).map(u => u.id),
-        content: `<div class="foe-card spell"><div class="fc-tag"><span>PIPBUCK // ${t("CHANGELING")}</span><span>${t("hunger")}</span></div><h3>${esc(actor.name)}</h3>
-          <div class="fc-meta">${t("The love pool is empty: −1 step to END and CHA rolls until the changeling feeds.")}</div></div>`
-      });
-    }
-  });
+/** Upływ czasu: utrzymanie 1 miłości dziennie (aktywny MG; wołane przez timeskip.mjs). actors — tylko te podmieńce. */
+export async function loveUpkeep(worldTime, actors = null) {
+  for (const actor of actors ?? game.actors ?? []) {
+    if (!isChangeling(actor)) continue;
+    const s = loveState(actor);
+    const { today, days } = upkeepDays(s, worldTime);
+    if (!s.day) { await actor.setFlag(F, "love", { value: s.value, day: today }); continue; }
+    if (!days) continue;
+    const value = Math.max(0, s.value - days);
+    await actor.setFlag(F, "love", { value, day: today });
+    if (value <= 0 && s.value > 0) ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }), whisper: game.users.filter(u => u.isGM || actor.testUserPermission?.(u, "OWNER")).map(u => u.id),
+      content: `<div class="foe-card spell"><div class="fc-tag"><span>PIPBUCK // ${t("CHANGELING")}</span><span>${t("hunger")}</span></div><h3>${esc(actor.name)}</h3>
+        <div class="fc-meta">${t("The love pool is empty: −1 step to END and CHA rolls until the changeling feeds.")}</div></div>`
+    });
+  }
 }
+
+/** Przeskok czasu: podmieńce, którym minie choć jedna doba utrzymania. */
+export const changelingsDue = (from, to) => (game.actors?.filter?.(a => isChangeling(a) && loveState(a).day && Math.floor(to / 86400) > Math.floor(from / 86400)) ?? []);
+/** Zamrożenie utrzymania na czas przeskoku (doba rozliczenia przesuwa się o liczbę dób). */
+export async function freezeLove(actor, days) {
+  const s = loveState(actor);
+  if (s.day && days) await actor.setFlag(F, "love", { value: s.value, day: s.day + days });
+}
+/** Decyzja MG „licz”: cofnij zamrożenie i rozlicz utrzymanie. */
+export async function resolveLove(actor, days, worldTime) {
+  const s = loveState(actor);
+  if (s.day && days) await actor.setFlag(F, "love", { value: s.value, day: s.day - days });
+  return loveUpkeep(worldTime, [actor]);
+}
+
+/** Dawniej hak upływu czasu — teraz liczy timeskip.mjs (bramka przeskoku). */
+export function registerShadowHooks() {}
 
 /** Ręczne ustawienie puli miłości (MG albo właściciel). */
 export async function promptLove(actor) {

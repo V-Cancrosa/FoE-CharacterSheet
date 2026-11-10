@@ -106,9 +106,10 @@ export const freshState = (day, prev = {}) => ({ hungerDays: 0, lastStarve: null
 /**
  * Rozliczenie głodu od state.day do day (bez bieżącego). roll() — k6 (1–6) do tabeli głodu. Zwraca
  * { state, starve: [atrybuty], starvedToDeath, days }. needMeals — pełnych posiłków na dzień (1); fed — czy pierwszy
- * dzień jest „najedzony” mimo braku posiłków (ghule i alikorny: rady), kolejne pominięte dni — bez jedzenia.
+ * dzień jest „najedzony” mimo braku posiłków (ghule i alikorny: rady); fedDays — ile kolejnych dni po pierwszym jest
+ * najedzonych (przeskok czasu: zapasy, osada), dalsze pominięte dni — bez jedzenia.
  */
-export function settleDays(state, day, { needMeals = 1, roll = () => 1, fed = null } = {}) {
+export function settleDays(state, day, { needMeals = 1, roll = () => 1, fed = null, fedDays = 0 } = {}) {
   let s = { ...freshState(state?.day ?? day), ...(state ?? {}) };
   const out = { starve: [], starvedToDeath: false, days: 0 };
   if (!(day > s.day)) return { state: s, ...out };
@@ -121,7 +122,7 @@ export function settleDays(state, day, { needMeals = 1, roll = () => 1, fed = nu
     return STARVE_ATTRS.find(a => a !== last);
   };
   for (let i = 0; i < days; i++) {
-    const ok = i === 0 ? (fed ?? (s.meals >= needMeals)) : false;
+    const ok = i === 0 ? (fed ?? (s.meals >= needMeals)) : i <= fedDays;
     if (!ok) {
       s.hungerDays += 1;
       const a = pick(s.lastStarve);
@@ -144,6 +145,66 @@ export function spacedMeals(times = [], gap = 4 * 3600) {
 export const WELL_FED = 4;
 /** Po tygodniu głodu jedzenie za 2+ posiłki trzeba utrzymać (END ½) — poza Oatmeal i Slop. */
 export const mustKeepDown = (hungerDays, meals, name = "") => hungerDays > 7 && meals >= 2 && !/oatmeal|slop|owsiank|pomyj/i.test(name);
+
+// ---------- przeskok czasu: potrzeby i zapasy ----------
+/** Ile północy między from i to (doby do rozliczenia głodu). */
+export const midnights = (from, to) => Math.max(0, dayOf(to) - dayOf(from));
+
+/**
+ * Czego postać potrzebuje na przeskok from→to, żeby nie głodować i nie wejść na etap odwodnienia:
+ * { days, meals, drinks, recDays, stageWithout (etap na końcu bez picia), mealsToday }.
+ * st — flaga survival, th — flaga thirst (null — postać nie pije), hunger — czy liczyć głód, ghoul — żywi się radami.
+ */
+export function skipNeeds({ st = null, th = null, from, to, hunger = true, ghoul = false }) {
+  const days = midnights(from, to);
+  const mealsToday = st && st.day === dayOf(from) ? Number(st.meals) || 0 : 0;
+  const meals = hunger && !ghoul && days ? (mealsToday >= 1 ? 0 : 1) + (days - 1) : 0;
+  let drinks = 0, recDays = 0, stageWithout = 0;
+  if (th) {
+    stageWithout = thirstStage(th, to);
+    const base = Math.max(Number(th.until) || from, from);
+    drinks = Math.max(0, Math.floor((to - base) / H6));
+    if (!drinks && (stageWithout >= 1 || thirstStage(th, from) >= 1)) drinks = 1;
+    if (th.rec) {
+      // doby rekonwalescencji kończące się w przeskoku (pierwsza doba — tylko pełna)
+      for (let d = dayOf(from); d < dayOf(to); d++) if (th.rec.from < d) recDays++;
+      drinks = Math.max(drinks, recDays * (Number(th.rec.need) || 4));
+    }
+  }
+  return { days, meals, drinks, recDays, stageWithout, mealsToday };
+}
+
+/**
+ * Dobór zapasów z ekwipunku: items — [{ id, name, qty, info (foodInfo), fits (dieta) }]. Najpierw posiłki (bez radów,
+ * najmniejsze, nawadniające liczą się też jako picie), potem napoje (bez radów, najpierw te, które nie są posiłkiem).
+ * Zwraca { use: [{ id, name, n }], meals, drinks, rads (przed odpornością), wounds }.
+ */
+export function pickSupplies(items = [], { meals = 0, drinks = 0 } = {}) {
+  const left = new Map(items.map(i => [i.id, Math.max(0, Number(i.qty) || 0)]));
+  const used = new Map();
+  let gotMeals = 0, gotDrinks = 0, rads = 0, wounds = 0;
+  const take = it => {
+    left.set(it.id, left.get(it.id) - 1);
+    used.set(it.id, (used.get(it.id) ?? 0) + 1);
+    rads += Math.max(0, Number(it.info.rads) || 0);
+    if (it.fits) wounds += Number(it.info.wounds) || 0;
+    if (it.info.hydrate) gotDrinks++;
+  };
+  const byRads = (a, b) => (a.info.rads > 0) - (b.info.rads > 0) || a.info.rads - b.info.rads;
+  const food = items.filter(i => i.fits && i.info.meals >= 1).sort((a, b) => byRads(a, b) || a.info.meals - b.info.meals || b.info.hydrate - a.info.hydrate);
+  for (const it of food) while (gotMeals < meals && left.get(it.id) > 0) { take(it); gotMeals++; }
+  const water = items.filter(i => i.info.hydrate && !i.info.dehydrating).sort((a, b) => byRads(a, b) || (a.info.meals > 0) - (b.info.meals > 0));
+  for (const it of water) while (gotDrinks < drinks && left.get(it.id) > 0) take(it);
+  return { use: [...used].map(([id, n]) => ({ id, name: items.find(i => i.id === id)?.name ?? "", n })), meals: gotMeals, drinks: gotDrinks, rads, wounds };
+}
+
+/** Kiedy coś było: { day: 0 — dziś, 1 — wczoraj, n — n dni temu; hhmm }. null — nigdy. */
+export function whenParts(time, now) {
+  if (time === null || time === undefined || !Number.isFinite(Number(time))) return null;
+  const s = ((Number(time) % DAY) + DAY) % DAY;
+  const hhmm = `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}`;
+  return { day: dayOf(now) - dayOf(time), hhmm };
+}
 
 // ---------- odwodnienie (tabela XXXIII) ----------
 export const H6 = 6 * 3600;
