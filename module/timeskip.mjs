@@ -10,6 +10,7 @@
  */
 import { t, tn, N_ } from "./i18n.mjs";
 import { timeTick, skipInfo, freezeSkip, resolveSkip, trackedActors, survivalCard, whenText, rateText } from "./survival.mjs";
+import { ruleLink } from "./rules.mjs";
 import { loveUpkeep, changelingsDue, freezeLove, resolveLove } from "./shadow.mjs";
 
 const F = "foe-rpg";
@@ -50,7 +51,7 @@ async function askGM(skip) {
   const { from, to, infos, love } = skip;
   const rads = infos.filter(i => i.rate > 0 || i.due);
   const content = `<div class="foe-dialog skip-dlg">
-    <p>${esc(t("Time skip: {d}. The counters are frozen until you decide.", { d: durationText(to - from) }))}</p>
+    <p>${esc(t("Time skip: {d}. The counters are frozen until you decide.", { d: durationText(to - from) }))} ${ruleLink("survival/timeskip")}</p>
     <label class="atk-row">${t("Food and water — everyone")} <select class="skip-all"><option value="">—</option>${Object.entries(FOOD).map(([k, l]) => `<option value="${k}">${t(l)}</option>`).join("")}</select></label>
     <table class="skip-table"><thead><tr><th>${t("Character")}</th><th>${t("Last ate / drank")}</th><th>${t("Needs")}</th><th>${t("From supplies")}</th><th>${t("Decision")}</th></tr></thead>
       <tbody>${infos.map(rowHtml).join("")}</tbody></table>

@@ -20,6 +20,7 @@ import { rollTest, stepIndex, shiftStep } from "./rolls.mjs";
 import { rollContext } from "./effects.mjs";
 import { isGhoul, isAlicorn, dehydrationLevel } from "./body.mjs";
 import { deadly, registerConfirmAction } from "./confirm.mjs";
+import { ruleLink } from "./rules.mjs";
 import {
   foodInfo, dietOf, fitsDiet, foodRads, dayOf, freshState, settleDays, ambientRads, exposure, clickCount, STARVE_DEATH,
   spacedMeals, WELL_FED, mustKeepDown, whenParts, midnights, skipNeeds, pickSupplies, H6, freshThirst, thirstStage, stageAt, drink, dehydrate, settleRecovery, thirstEffects,
@@ -437,14 +438,14 @@ export function survivalRows(actor) {
       aim ? tn(-aim, "attacks {n} MFD step harder", "attacks {n} MFD steps harder") : ""
     ].filter(Boolean);
     const rec = th?.rec ? t("recovering: {a}/{b} drinks today, {n} left", { a: th.rec.day === today() ? th.rec.count : 0, b: th.rec.need, n: tn(th.rec.days, "{n} day", "{n} days") }) : "";
-    rows.push({ name: t("Dehydration, stage {n}", { n: lvl }), desc: [parts.join(", "), rec].filter(Boolean).join(" · "), alert: lvl >= 6 });
+    rows.push({ ruleHtml: ruleLink("survival/dehydration"), name: t("Dehydration, stage {n}", { n: lvl }), desc: [parts.join(", "), rec].filter(Boolean).join(" · "), alert: lvl >= 6 });
   }
   const st = stateOf(actor);
-  if (st?.ignoreUntil > w && starving(actor)) rows.push({ name: t("Starvation ignored"), desc: t("for {h} h more (non-nourishing food)", { h: Math.ceil((st.ignoreUntil - w) / 3600) }) });
-  if (st?.wellFed != null && st.wellFed === dayOf(w)) rows.push({ name: t("Well fed"), desc: t("+15 to END rolls until midnight") });
+  if (st?.ignoreUntil > w && starving(actor)) rows.push({ ruleHtml: ruleLink("survival/food"), name: t("Starvation ignored"), desc: t("for {h} h more (non-nourishing food)", { h: Math.ceil((st.ignoreUntil - w) / 3600) }) });
+  if (st?.wellFed != null && st.wellFed === dayOf(w)) rows.push({ ruleHtml: ruleLink("survival/food"), name: t("Well fed"), desc: t("+15 to END rolls until midnight") });
   const log = flagOf(actor, "radlog");
-  if (log?.severe && setting("radiationChecks")) rows.push({ name: t("Severe radiation exposure"), desc: t("END ¼ roll in {h} h unless the rads are reduced (failure — a mutation)", { h: Math.max(0, Math.ceil((log.severe.at + SEVERE_WAIT - w) / 3600)) }), alert: true });
-  if (log?.poison) rows.push({ name: t("Radiation poisoning"), desc: t("penalties as at 800 rads; death in {h} h unless the rads are reduced (RadAway)", { h: Math.max(0, Math.ceil((log.poison.at + POISON_DEATH - w) / 3600)) }), alert: true });
+  if (log?.severe && setting("radiationChecks")) rows.push({ ruleHtml: ruleLink("survival/radiation"), name: t("Severe radiation exposure"), desc: t("END ¼ roll in {h} h unless the rads are reduced (failure — a mutation)", { h: Math.max(0, Math.ceil((log.severe.at + SEVERE_WAIT - w) / 3600)) }), alert: true });
+  if (log?.poison) rows.push({ ruleHtml: ruleLink("survival/radiation"), name: t("Radiation poisoning"), desc: t("penalties as at 800 rads; death in {h} h unless the rads are reduced (RadAway)", { h: Math.max(0, Math.ceil((log.poison.at + POISON_DEATH - w) / 3600)) }), alert: true });
   return rows;
 }
 

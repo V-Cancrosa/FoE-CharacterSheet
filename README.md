@@ -23,13 +23,21 @@ ponownie po angielsku. Tłumaczenie jest w pliku `lang/pl.mjs` (angielski tekst 
 
 ## Kompendium zasad
 Najważniejsze zasady systemu, własnymi słowami i z numerami stron podręcznika v1.22 — dla MG i dla graczy (na razie po polsku):
-zakładka **Kompendia** (ikona książek) → **„Zasady Fallout: Equestria (PL)”**. Trzy dzienniki:
+zakładka **Kompendia** (ikona książek) → **„Zasady Fallout: Equestria (PL)”**. Pięć dzienników:
 - **1. Testy i umiejętności** — test d100 i próg, MFD i kroki, krytyki, rzuty przeciwstawne, skradanie i światło, pomoc,
   karty szczęścia, S.P.E.C.I.A.L. i wartości pochodne, umiejętności, awans i tabela PD;
 - **2. Walka** — runda i inicjatywa, zaskoczenie, akcje i ruch, SATS, atak i zasięg, przeładowanie, strzał celowany i lokacje,
   obrażenia, krytyki i DT, rany, okaleczenia i śmierć, unik, blok i osłona, efekty broni i stany;
 - **3. Rasy i zdolności** — tworzenie postaci w skrócie, przegląd ras, kucyki, gryfy i zebry, rasy alternatywne,
-  magia jednorożców i alikornów, magia zebr, lot i manewry.
+  magia jednorożców i alikornów, magia zebr, lot i manewry;
+- **4. Przetrwanie i pustkowia** — jedzenie i głód, picie i odwodnienie, promieniowanie, skażenie, sen, podróż,
+  przeskok czasu (s. 477–487);
+- **5. Otoczenie i sprzęt** — zamki i wytrychy, terminale, bariery i osłona z Threshold, pogoda, kalendarz.
+
+**Okno zasad PipBucka:** przycisk **ZASADY** na górnym pasku karty postaci albo „Zasady Fallout: Equestria” w zakładce
+dzienników otwiera kompendium w osobnym oknie w stylu PipBucka — spis rozdziałów po lewej, wyszukiwarka, przycisk wstecz,
+strzałki do poprzedniej i następnej strony, linki między stronami w tym samym oknie; okno pamięta ostatnio czytaną stronę.
+Ikonki **?** też otwierają to okno (opcja gracza „Zasady: okno PipBucka”; wyłączona — zwykły dziennik).
 
 Na każdej stronie ramka „Na karcie” mówi, gdzie dana zasada działa w systemie, a podkreślone nazwy prowadzą do innych stron.
 **Szybki skok do zasad:** mała ikonka **?** przy nagłówkach karty postaci (S.P.E.C.I.A.L., umiejętności, krytyki, inicjatywa,

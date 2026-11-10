@@ -5,6 +5,7 @@
  */
 import { t } from "./i18n.mjs";
 import { ruleUuid } from "./rules-ids.mjs";
+import { openRulesReader, readerOn, registerRulesReader } from "./rules-reader.mjs";
 
 /** HTML linku „?” do strony zasad („combat/sats”). */
 export const ruleLink = key =>
@@ -12,6 +13,7 @@ export const ruleLink = key =>
 
 /** Otwiera stronę zasad w dzienniku kompendium. */
 export async function openRule(key) {
+  if (!key || readerOn()) return openRulesReader(key || null);
   const doc = await fromUuid(ruleUuid(key)).catch(() => null);
   if (!doc) {
     ui.notifications.warn(t("The rules compendium is missing. After updating the system, restart the world (Return to Setup → Launch World)."));
@@ -22,6 +24,7 @@ export async function openRule(key) {
 }
 
 export function registerRuleLinks() {
+  registerRulesReader();
   Handlebars.registerHelper("rule", key => new Handlebars.SafeString(ruleLink(String(key))));
   // przechwycenie przed obsługą akcji kart i okien: „?” bywa w nagłówkach z innymi przyciskami
   document.addEventListener("click", ev => {
