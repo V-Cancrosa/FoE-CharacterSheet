@@ -1241,3 +1241,38 @@ body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
 .foe-rpg .skip-dlg .warn, .foe-card .warn { color: var(--pip-alert, #ff6b4a); }
 .foe-card .fc-confirm { display: flex; gap: .4rem; margin-top: .45rem; }
 .foe-card .fc-confirm button { flex: 1; }
+
+/* ---------- Okno zasad (PipBuck) ---------- */
+.foe-rpg.foe-rules .window-content { padding: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--pip-bg, #04100a); }
+.foe-rules .rules-bar { display: flex; align-items: center; gap: .5rem; padding: .35rem .6rem; background: var(--pip); color: #000; font-family: var(--foe-crt); letter-spacing: .08em; text-transform: uppercase; }
+.foe-rules .rules-bar > span { flex: 0 0 auto; font-size: 1.05rem; }
+.foe-rules .rules-bar .rules-search { flex: 1; min-width: 6rem; background: #000; color: var(--pip); border: 1px solid #000; font-family: var(--foe-mono, monospace); text-transform: none; letter-spacing: 0; }
+.foe-rules .rules-bar button, .foe-rules .rules-bar a { flex: 0 0 auto; width: auto; min-width: 2rem; color: #000; background: transparent; border: 1px solid #000; cursor: pointer; padding: .1rem .4rem; line-height: 1.4; }
+.foe-rules .rules-bar button:disabled { opacity: .35; cursor: default; }
+.foe-rules .rules-body { flex: 1; display: grid; grid-template-columns: 15rem 1fr; min-height: 0; }
+.foe-rules .rules-nav { overflow-y: auto; border-right: 1px solid var(--pip-line); padding: .4rem 0; }
+.foe-rules .rules-ch { display: block; padding: .3rem .6rem; font-family: var(--foe-crt); text-transform: uppercase; letter-spacing: .05em; color: var(--pip); cursor: pointer; }
+.foe-rules .rules-chapter .rules-page { display: none; }
+.foe-rules .rules-chapter.open .rules-page, .foe-rules .rules-nav > .rules-page { display: block; }
+.foe-rules .rules-page { padding: .2rem .6rem .2rem 1.2rem; color: var(--pip-mid); cursor: pointer; font-size: 13px; }
+.foe-rules .rules-page small { display: block; font-size: 10px; text-transform: uppercase; color: var(--pip-dim); }
+.foe-rules .rules-page:hover, .foe-rules .rules-ch:hover { color: var(--pip-bright, var(--pip)); text-shadow: 0 0 6px var(--pip-glow); }
+.foe-rules .rules-page.active { color: #000; background: var(--pip); text-shadow: none; }
+.foe-rules .rules-hits { padding: .2rem .6rem; font-size: 11px; text-transform: uppercase; color: var(--pip-dim); }
+.foe-rules .rules-content { overflow-y: auto; padding: .8rem 1.2rem 1.5rem; color: var(--pip); line-height: 1.5; }
+.foe-rules .rules-content .rules-crumb { font-size: 11px; text-transform: uppercase; color: var(--pip-dim); letter-spacing: .06em; }
+.foe-rules .rules-content h1, .foe-rules .rules-content h2, .foe-rules .rules-content h3 { font-family: var(--foe-crt); color: var(--pip); text-transform: uppercase; letter-spacing: .05em; border: 0; text-shadow: 0 0 6px var(--pip-glow); }
+.foe-rules .rules-content h1 { font-size: 1.6rem; margin: .1rem 0 .6rem; border-bottom: 1px solid var(--pip-line); }
+.foe-rules .rules-content h3 { font-size: 1.1rem; margin-top: 1rem; }
+.foe-rules .rules-content table { width: 100%; border-collapse: collapse; margin: .5rem 0; font-size: 13px; background: none; border: 1px solid var(--pip-line); }
+.foe-rules .rules-content th { background: var(--pip-faint); color: var(--pip); text-align: left; padding: .25rem .4rem; border-bottom: 1px solid var(--pip-line); }
+.foe-rules .rules-content td { padding: .25rem .4rem; border-bottom: 1px solid var(--pip-faint); vertical-align: top; }
+.foe-rules .rules-content tr:nth-child(even) td { background: rgba(0, 0, 0, .25); }
+.foe-rules .rules-content blockquote { margin: .8rem 0; padding: .4rem .7rem; border: 1px solid var(--pip-dim); border-left: 4px solid var(--pip); background: var(--pip-faint); color: var(--pip); }
+.foe-rules .rules-content strong { color: var(--pip-bright, var(--pip)); }
+.foe-rules .rules-content a.content-link { color: var(--pip-bright, var(--pip)); background: none; border: 0; border-bottom: 1px dotted var(--pip); }
+.foe-rules .rules-pager { display: flex; justify-content: space-between; margin-top: 1.4rem; padding-top: .5rem; border-top: 1px solid var(--pip-line); }
+.foe-rules .rules-pager a { color: var(--pip-mid); cursor: pointer; }
+.foe-rules .rules-pager a:hover { color: var(--pip); }
+.foe-rules .rules-empty { padding: 2rem; color: var(--pip); }
+.foe-rules-open { margin: .3rem 0; width: 100%; }

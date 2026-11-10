@@ -3936,6 +3936,16 @@ export default {
   "{n} drink|{n} drinks": ["{n} napój", "{n} napoje", "{n} napojów"],
   "{n} meal|{n} meals": ["{n} posiłek", "{n} posiłki", "{n} posiłków"],
   "“Later” changes nothing — the counters stay frozen; the card in the chat (GM only) lets you settle it later.": "„Później” niczego nie zmienia — liczniki stoją; karta na czacie (tylko dla MG) pozwala rozliczyć to później.",
+  // ---- module/rules-reader.mjs (okno zasad)
+  "Fallout: Equestria rules": "Zasady Fallout: Equestria",
+  "Fallout: Equestria — rules": "Fallout: Equestria — zasady",
+  "Open as a journal": "Otwórz jako dziennik",
+  "RULES": "ZASADY",
+  "Results: {n}": "Wyniki: {n}",
+  "Rules compendium (PipBuck window)": "Kompendium zasad (okno PipBucka)",
+  "Rules: PipBuck window": "Zasady: okno PipBucka",
+  "Search the rules…": "Szukaj w zasadach…",
+  "The “?” links and the RULES button open the rules in a PipBuck-style window (chapters, search, back). Off — the ordinary journal.": "Linki „?” i przycisk ZASADY otwierają zasady w oknie w stylu PipBucka (rozdziały, wyszukiwarka, wstecz). Wyłączone — zwykły dziennik.",
   // ---- module/cover.mjs, attack.mjs (osłona i balistyka z Threshold)
   "(cover skipped in SATS)": "(osłona pominięta w SATS)",
   "BARRIER": "PRZESZKODA",

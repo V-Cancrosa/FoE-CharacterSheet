@@ -40,7 +40,7 @@
     <a class="plus" data-action="createItem" data-type="gear" title="{{t "Blank item"}}"><i class="fa-solid fa-plus"></i></a>
   </h3>
   {{#each gearGroups}}
-    <h4 class="gear-cat">{{label}}{{#if note}} <small class="gear-note">{{note}}</small>{{/if}}</h4>
+    <h4 class="gear-cat">{{label}}{{#if note}} <small class="gear-note">{{note}} {{rule "survival/food"}}</small>{{/if}}</h4>
     <ul class="item-list gear">
     {{#each items}}
       <li data-item-id="{{id}}">
