@@ -23,6 +23,8 @@ import { registerDoorHooks } from "./doors.mjs";
 import { registerCoverHooks } from "./cover.mjs";
 import { registerLuckHooks } from "./luck.mjs";
 import { registerSurvivalSettings, registerSurvivalHooks } from "./survival.mjs";
+import { registerConfirmSettings, registerConfirmHooks } from "./confirm.mjs";
+import { registerTimeSkipSettings, registerTimeSkipHooks } from "./timeskip.mjs";
 import { registerConditionSettings } from "./conditions.mjs";
 import { registerDice3d, registerDice3dSettings } from "./dice3d.mjs";
 import { registerRollTableClass, registerTableHooks } from "./tables.mjs";
@@ -79,6 +81,8 @@ Hooks.once("init", () => {
   registerChemSettings();
   registerConditionSettings();
   registerSurvivalSettings();
+  registerTimeSkipSettings();
+  registerConfirmSettings();
   registerChemHooks();
   registerVehicleHooks();
   registerCyberSettings();
@@ -102,6 +106,8 @@ Hooks.once("init", () => {
   registerCoverHooks();
   registerLuckHooks();
   registerSurvivalHooks();
+  registerTimeSkipHooks();
+  registerConfirmHooks();
   registerDice3d();
   registerDice3dSettings();
   // Carousel Combat Tracker, Dice Tray (przed ich init/i18nInit) i wysokość lotu → token

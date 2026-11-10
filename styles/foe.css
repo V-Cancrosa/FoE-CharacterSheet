@@ -1228,3 +1228,16 @@ body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
 /* w nagłówkach sekcji „?” stoi przy tytule; przyciski sekcji zostają po prawej */
 .foe-rpg h3 a.foe-rule { margin-left: .4rem; font-size: .8rem; }
 .foe-rpg h3 a.foe-rule + a { margin-left: auto; }
+
+/* ---------- Przeskok czasu (okno MG) i karty decyzji MG ---------- */
+.foe-rpg .skip-dlg > p:first-child { color: var(--pip); margin: 0; }
+.foe-rpg .skip-dlg .skip-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: .4rem 0; }
+.foe-rpg .skip-dlg .skip-table th { text-align: left; font-family: var(--foe-crt); text-transform: uppercase; letter-spacing: .04em; font-size: 11px; color: var(--pip-mid); border-bottom: 1px solid var(--pip-line); padding: .2rem .3rem; }
+.foe-rpg .skip-dlg .skip-table td { vertical-align: top; padding: .3rem; border-bottom: 1px solid var(--pip-faint); color: var(--pip); }
+.foe-rpg .skip-dlg .skip-table td small { color: var(--pip-mid); text-transform: none; }
+.foe-rpg .skip-dlg .skip-table td:last-child { width: 11.5rem; }
+.foe-rpg .skip-dlg .skip-table select { width: 100%; text-transform: none; }
+.foe-rpg .skip-dlg .skip-tag { border: 1px solid var(--pip-dim); padding: 0 .25rem; font-size: 10px; text-transform: uppercase; }
+.foe-rpg .skip-dlg .warn, .foe-card .warn { color: var(--pip-alert, #ff6b4a); }
+.foe-card .fc-confirm { display: flex; gap: .4rem; margin-top: .45rem; }
+.foe-card .fc-confirm button { flex: 1; }

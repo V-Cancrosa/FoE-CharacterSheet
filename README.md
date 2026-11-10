@@ -652,6 +652,26 @@ daty; rozlicza aktywny MG, kartkami dla gracza i MG):
   - przerzut kartą szczęścia (przycisk na karcie rzutu) cofa skutek, jeśli się uda: postać jednak przeżywa, nie traci
     przytomności, zjada jedzenie, a przy silnym napromieniowaniu choroba popromienna zmienia się w mutację albo znika.
 
+Przeskok czasu i decyzje MG (żeby planowy przeskok nie zagłodził ani nie zabił drużyny):
+- Upływ czasu poniżej progu (rundy walki, minuty, marsz) liczy się jak zwykle. Od progu (opcja świata „Przeskok czasu:
+  pytaj MG od (godzin)”, domyślnie 1 godzina; 0 — zawsze od razu) system nie liczy od razu jedzenia, picia,
+  promieniowania ani utrzymania podmieńców:
+  - jeśli nikt niczego nie potrzebuje (najedzony dziś, nawodniony na cały ten czas, bez promieniowania) — liczy po cichu,
+  - jeśli wszyscy potrzebujący stoją na scenie z wyżywieniem (osada) — rozlicza sam, z kartką dla MG,
+  - inaczej liczniki stoją (jakby czas nie minął) i MG dostaje okno: dla każdej postaci kiedy ostatnio jadła i piła,
+    do kiedy jest nawodniona, czego potrzebuje na ten czas, co weźmie z plecaka i czego zabraknie (dni głodu, etap
+    odwodnienia). Decyzja dla każdej postaci: z zapasów (system sam zjada i wypija z ekwipunku — najpierw bez radów,
+    z dietą rasy; brakująca część liczy się jak zwykle), zapewnione (osada, gospoda — najedzony i napojony), bez
+    jedzenia (licz) albo pomiń ten czas. Osobno: promieniowanie w przeskoku (licz — byli na tej scenie / pomiń) i
+    utrzymanie podmieńców. „Później” niczego nie zmienia; karta na czacie (tylko MG) pozwala rozliczyć to później.
+- Scena „Wyżywienie zapewnione” (konfiguracja sceny, pod promieniowaniem): postacie z tokenem na niej (gdy jest
+  aktywna) jedzą i piją, ile trzeba, bez zużywania zapasów.
+- Na karcie (nad listą jedzenia) widać, kiedy postać ostatnio jadła i piła.
+- Śmiertelne skutki automatów czekają na decyzję MG (opcja świata, domyślnie włączona): 1000 radów, silne
+  napromieniowanie, rany i zapaść z odwodnienia, śmierć z głodu, odwodnienia albo choroby popromiennej. Zamiast od razu
+  MG dostaje kartę „Rozegraj / Pomiń” (widzi ją tylko MG) — np. przy korekcie wartości na karcie albo scenie fabularnej.
+  Kary (atrybuty, etapy odwodnienia) działają od razu jak dotąd.
+
 Drzwi, zamki i bariery (zwykłe drzwi Foundry; z modułem **Threshold** — także jego bariery, Foundry v14):
 - Wytrych: postać stoi przy drzwiach zamkniętych na klucz (token dotyka drzwi albo pola, przez które przechodzą), a gracz
   klika Lockpicking na karcie. Okno rzutu od razu celuje w zamek: pokazuje jego trudność, narzędzia z ekwipunku (Bobby Pin,
