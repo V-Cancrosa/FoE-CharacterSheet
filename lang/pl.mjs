@@ -3963,6 +3963,7 @@ export default {
   "{item}: explosion": "{item}: wybuch",
   "{name} stops the shot — a hit lands on the barrier, not the target.": "{name} zatrzymuje pocisk — trafienie ląduje na przeszkodzie, nie na celu.",
   "{name}: {a} − DT {dt} = {d} → durability {now}/{max}{x}": "{name}: {a} − DT {dt} = {d} → wytrzymałość {now}/{max}{x}",
+  "{name}: the shot goes through and loses {d} → durability {now}/{max}{x}": "{name}: pocisk przechodzi, przeszkoda przyjmuje {d} → wytrzymałość {now}/{max}{x}",
   "{name}: {a} − DT {dt} — holds (indestructible).": "{name}: {a} − DT {dt} — wytrzymuje (niezniszczalna).",
   "{name}: {a} − DT {dt} — holds.": "{name}: {a} − DT {dt} — wytrzymuje.",
   // ---- module/fx.mjs
