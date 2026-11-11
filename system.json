@@ -2,11 +2,11 @@
   "id": "foe-rpg",
   "title": "Fallout: Equestria RPG (fan, v1.22)",
   "description": "Unofficial system for the Fallout: Equestria RPG System v1.22 (English as in the rulebook, with a Polish translation): d100 roll-under with MFD, S.P.E.C.I.A.L., character creator, SATS, armor and wounds per location, the rulebook's weapon, armor and gear catalog.",
-  "version": "0.54.1",
+  "version": "0.55.0",
   "authors": [{ "name": "V_Cancrosa" }],
   "compatibility": { "minimum": "13", "verified": "14" },
   "esmodules": ["module/foe.mjs"],
-  "styles": ["styles/foe.css", "styles/sats.css", "styles/ui.css", "styles/casino.css"],
+  "styles": ["styles/foe.css", "styles/sats.css", "styles/ui.css", "styles/casino.css", "styles/skins.css"],
   "languages": [
     { "lang": "pl", "name": "Polski", "path": "lang/pl.json" },
     { "lang": "en", "name": "English", "path": "lang/en.json" }
