@@ -803,7 +803,8 @@ i Chrysalis, te gry nie używają). Same zasady gier są jak w kasynach.
 Celownik S.A.T.S. (opcja, domyślnie wyłączona; na podstawie modułu foe-sats): MG włącza go w Ustawieniach gry →
 Fallout: Equestria RPG → „Celownik S.A.T.S. (opcja)”. Po namierzeniu celu (T) i zaznaczeniu SATS w oknie ataku
 kamera najeżdża na cel, a na ekranie pojawia się jego sylwetka V.A.T.S. z szansą trafienia każdej części ciała —
-klik ustawia strzał celowany, Esc wychodzi z SATS. Przycisk ⌖ przy „Cel ataku” otwiera celownik bez zaznaczania SATS.
+klik ustawia strzał celowany i zaznacza SATS (jeśli wystarcza AP), Esc albo „Wyjdź z SATS” przywraca stan checkboxa
+sprzed otwarcia. Przycisk ⌖ przy „Cel ataku” otwiera celownik także przy niezaznaczonym SATS.
 Każdy gracz może u siebie wyłączyć auto-otwieranie, przybliżanie kamery i zwijanie kart na czas celowania oraz ustawić powrót kamery. Gdy w świecie
 jest włączony osobny moduł foe-sats, wersja wbudowana się nie uruchamia (nie dubluje się).
 
