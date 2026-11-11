@@ -216,7 +216,7 @@ export function computePc(state, pool = CREATION.pool) {
 }
 
 /** Przedmiot-cecha do zapisania na karcie. */
-function featureItem(f) {
+export function featureItem(f) {
   const kind = f.kind === "hindrance" ? "hindrance" : f.kind === "trait" ? "trait" : f.kind;
   const picked = (f.visible ?? []).map(c => {
     const vals = Array.isArray(c.value) ? c.value : [c.value];

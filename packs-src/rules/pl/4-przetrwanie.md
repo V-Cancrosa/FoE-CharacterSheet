@@ -61,7 +61,7 @@ Promieniowanie z otoczenia ma **poziomy 0–7**; dawka liczy się w radach na mi
 - **1000 radów:** od razu **END 1/10**, porażka — śmierć. Kary choroby liczą się w tym rzucie, więc zwykle ratuje tylko krytyczny sukces.
 - Ghule nie mają kar choroby popromiennej.
 
-> **Na karcie:** MG ustawia promieniowanie sceny i regionu (lista poziomów) oraz kafelki-źródła (dawka przy źródle i zasięg; słabnie z kwadratem odległości — założenie systemu). Licznik Geigera w zakładce walki pokazuje poziom; ruch tokenu trzeszczy od poziomu 2. Rzuty na silne napromieniowanie i 1000 radów czekają na decyzję MG; przerzut kartą szczęścia cofa skutek.
+> **Na karcie:** MG ustawia promieniowanie sceny i regionu (lista poziomów) oraz kafelki-źródła (dawka przy źródle i zasięg; słabnie z kwadratem odległości — założenie systemu). Licznik Geigera w zakładce walki pokazuje poziom; ruch tokenu trzeszczy od poziomu 2. Rzuty na silne napromieniowanie i 1000 radów czekają na decyzję MG; przerzut kartą szczęścia cofa skutek. Mutacja z silnego napromieniowania trafia na kartę jako wada Mutation z podpowiedzią; śmierć od promieniowania daje szansę na zamianę w ghula — [[survival/mutations|Mutacje, ghule i szaleństwo]].
 
 ## Skażenie (Taint) {#taint}
 
@@ -76,7 +76,22 @@ Skażenie (biomagiczny flux) działa tylko przy bezpośrednim kontakcie, ale jes
 - Krytyczny sukces liczy się jak dwa sukcesy (poza 4. rombem), krytyczna porażka zeruje sukcesy. Trzy udane rzuty z rzędu na dowolnym poziomie — cechy alikorna zamiast negatywnych skutków.
 - Skażenie usuwa tylko Tenpony Tower; zmiany w ciele zostają.
 
-> **Na karcie:** suwak skażenia jest w przygotowaniu — na razie MG prowadzi skażenie ręcznie według tej strony.
+> **Na karcie:** suwak skażenia jest w zakładce walki pod zdrowiem (gracz go widzi, gdy postać ma skażenie). MG daje **Dawkę** (drobna ekspozycja, kleks, kałuża albo własna liczba kresek) — system sam rzuca Szczęście na pozycji, na której suwak stanął, liczy sukcesy i przeskoczone etapy. Ciężkie skutki czekają na decyzję MG: mutacja (wada Mutation z podpowiedzią — opisujesz ją sam), abominacja (END ¼, INT ¼), 5. romb (Luck ¼), etapy przemiany w alikorna lub piekielnego psa. **Oczyść** — Tenpony Tower. Ołówek — ręczne ustawienie zapisu (bez rzutów). Przerzut kartą szczęścia rozstrzyga etap jeszcze raz. Alikorny i piekielne psy są odporne.
+
+## Mutacje, ghule i szaleństwo {#mutations}
+
+„They were ponies, once…” — mutacje z promieniowania, różowej chmury i skażenia, przemiana w alikorna, szaleństwo i dziczenie ghuli. (s. 610–614)
+
+- **Mutacje z promieniowania** są dość powtarzalne: cecha jak u ghula, z małą korzyścią i dużą karą do Speechcraft/CHA, jeśli widać. Przykłady: szkieletowe skrzydła (kara do Flight), oczy świecące po 200+ radach, głos ghula (premia u niezdziczałych ghuli), trawienie mięsa z ciągotami do kanibalizmu.
+- **Zamiana w ghula od promieniowania:** tylko gdy postać umarłaby od choroby popromiennej — rzut **END ¼**. Sukces: dusza zostaje w ciele, potem **INT ½** (+25 z Fixation): krytyczna porażka — od razu dziki ghul, porażka — przeżywa, ale w ciągu kilku dni dziczeje, sukces — ghul.
+- **Różowa chmura:** tak samo, ale END **1/10** i INT **¾**. Ghule z Canterlotu są odporne na promieniowanie, a ghule od promieniowania — na różową chmurę. Ghul z Canterlotu wydycha chmurę jako atak, jednorożec może ją rzucać jak czar.
+- **Mutacje od skażenia** są całkowicie losowe — MG je wymyśla (narośle, świecące krosty, chitynowe kolce, macki z oczami…). Wyjątki: alikorn, piekielny pies, centaur.
+- **Etapy alikorna** (albo piekielnego psa) po trzech udanych rzutach Szczęścia — każda dawka to kolejny etap: 1) +1k4 strain (pies: +1 END lub STR); 2) mniejszy apetyt, 100+ radów dziennie zastępuje jedzenie, kończyny odrastają przy 200+ radach; 3) promieniowanie leczy; 4) rozmiar +1, róg i skrzydła rosną; 5) pełna przemiana: Large (+ Channeler), Magic od 50, Flight od 25. Proponowane perki misji: Touched by Taint (1–3), You Got a Friend in Me!
+- **Szaleństwo:** gdy postać dostaje wadę psychiczną przez grę, MG potajemnie rzuca INT (każda Psychosis to krok MFD łatwiej). Krytyczny sukces — postać całkiem traci rozum.
+- **Choroba najeźdźców** (blood hunger plague) — jak szaleństwo; zob. choroby.
+- **Dziczenie ghuli:** świadomy ghul trzyma się swojego **Celu**. Gdy go straci i nie ma przy sobie przyjaciół — dziczeje w ciągu **1k20 minut**. Odzyskanie Celu w ciągu tygodnia czasem przywraca rozum.
+
+> **Na karcie:** zamianę w ghula (opcja świata, domyślnie włączona) system rozgrywa sam po decyzji MG przy śmierci od promieniowania: zmienia rasę i dodaje cechę (ghul, dziczeje albo dziki ghul). Mutacje dodaje się jako wadę Mutation z podpowiedzią. Etapy alikorna — zob. [[survival/taint|Skażenie]]. Różowej chmury, szaleństwa i dziczenia system nie liczy — prowadzi je MG.
 
 ## Sen {#sleep}
 
