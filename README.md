@@ -359,18 +359,32 @@ Wygląd: ekran PipBucka. W Ustawieniach gry → Fallout: Equestria RPG każdy gr
 drabinkę MFD: wymagany poziom (CEL), osiągnięty poziom (WYNIK) i progi wszystkich poziomów.
 
 Wygląd karty postaci według drabinki (zakładka **Ustawienia** na karcie — ikona zębatki):
-- Od najwyższego szczebla: założony **PipBuck** (Ekwipunek → PipBuck, przełącznik „załóż”; jeden naraz) — ekran PipBucka,
+- Od najwyższego szczebla: założony **pancerz wspomagany** — wizjer hełmu (HUD, narożniki celownika; pancerz Enklawy
+  albo pegaz Enklawy — niebieski) → założony **PipBuck** (Ekwipunek → PipBuck, przełącznik „załóż”; jeden naraz) — ekran PipBucka,
   odcień z modelu (Golden Pipbuck — złoty, Stealthbuck/Stealthfilly — przygaszony, inne — kolor fosforu gracza) →
   inne założone urządzenie z ekranem (PRA, EqueMapper, terminal przenośny) — terminal bursztynowy →
   pochodzenie z rasy: Enklawa (pegaz Enklawy / EVC) — wojskowy terminal, zebra — notatki i talizmany (papier z ochrą),
-  gryf — skórzany notes najemnika → domyślnie **papierowa karta postaci ze Stajni**.
+  gryf — skórzany notes najemnika, ghul — pożółkłe papiery z plamami, podmieniec — chityna i zielony płomień; przed rasą
+  idzie **organizacja** z cechy Organization w kreatorze (albo cecha z jej nazwą): Stalowi Strażnicy (i Strażnicy
+  Applejack) — kodeks polowy z czerwonym paskiem, najeźdźcy — brudne świstki, EVC — terminal Enklawy
+  → domyślnie **papierowa karta postaci ze Stajni**.
 - Gracz wybiera w zakładce Ustawienia spośród wyglądów, do których postać ma prawo (swój szczebel i niższe; wygląd
   PipBucka tylko z założonym PipBuckiem — po zdjęciu wraca drabinka). MG może tam wymusić dowolny wygląd; gracz go
   wtedy nie zmieni. Napis na górnym pasku idzie za wyglądem (model PipBucka, urządzenie, „Stajnia · karta postaci”).
 - Wygląd idzie też za postacią poza kartą: okna otwierane z karty (rzut, atak, katalog, przedmioty postaci) i jej
   karty na czacie (pasek „STAJNIA // TEST”, „TERMINAL // …” zamiast „PIPBUCK //”). Portret i ikonki mają efekt ekranu
   (sepia, kolor po najechaniu) tylko na PipBucku.
-- Na razie zmienia się tylko wygląd (kolory, tło, ramka) — układ i działanie karty są te same.
+- **Akcent:** jednorożec z własnym kolorem magii (zakładka Magia) może w Ustawieniach karty wziąć go na kolor ekranu
+  (tylko ciemne wyglądy — na papierze byłby nieczytelny).
+- **Nakładki stanu** na każdym wyglądzie: porażenie prądem — zakłócenia i szarpnięcia obrazu; promieniowanie od 200 radów —
+  zielonkawy nalot (mocniejszy od 400 i 800, przy 800 pulsuje); odwodnienie od etapu 3 albo głód — ciemniejące brzegi;
+  ogień / trucizna / paraliż — pomarańczowa / zielona / niebieska ramka; nieprzytomny — przygaszony obraz i „BRAK
+  SYGNAŁU”; martwy — szarość i stempel „KIA”. Każdy gracz wyłącza je u siebie (Ustawienia karty → „Efekty stanu” albo
+  ustawienia systemu); przy systemowym „ograniczeniu ruchu” animacje stoją.
+- Układ i działanie karty są te same we wszystkich wyglądach.
+- Zasada domowa (opcja świata, domyślnie wyłączona) **„SATS i licznik Geigera tylko z PipBuckiem”**: postać gracza bez
+  założonego PipBucka nie zaznaczy SATS w oknie ataku, czaru ani rytuału zebry i nie widzi ani nie słyszy licznika
+  Geigera (MG i NPC bez ograniczeń).
 
 Motyw PipBucka dla całego Foundry (v13/v14; grafiki rysowane od zera, bez logo z gier):
 - Ekran pauzy: godło Stajni — zębate wrota z numerem (opcja świata „Numer Stajni”, domyślnie 97) i napis

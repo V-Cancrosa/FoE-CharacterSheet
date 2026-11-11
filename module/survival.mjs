@@ -21,6 +21,7 @@ import { rollContext } from "./effects.mjs";
 import { isGhoul, isAlicorn, dehydrationLevel } from "./body.mjs";
 import { deadly, registerConfirmAction } from "./confirm.mjs";
 import { ruleLink } from "./rules.mjs";
+import { needsPipbuck } from "./skin-apply.mjs";
 import {
   foodInfo, dietOf, fitsDiet, foodRads, dayOf, freshState, settleDays, ambientRads, exposure, clickCount, STARVE_DEATH,
   spacedMeals, WELL_FED, mustKeepDown, whenParts, midnights, skipNeeds, pickSupplies, H6, freshThirst, thirstStage, stageAt, drink, dehydrate, settleRecovery, thirstEffects,
@@ -805,8 +806,10 @@ function geigerText() {
   const gm = game.user.isGM;
   // PipBuck nie rejestruje promieniowania poniżej poziomu 2 (s. 484) — gracz go nie widzi, MG tak
   const shows = rate => rate > 0 && (gm || (radLevelOf(rate) ?? 0) >= GEIGER_MIN_LEVEL);
-  const exp = [...exposedOnActive()].filter(([a, e]) => shows(e.total) && (gm || a.isOwner));
-  const amb = sceneRads(scene);
+  // opcja świata „tylko z PipBuckiem”: gracz widzi odczyt tylko postaci z PipBuckiem (i tło sceny, jeśli ma taką postać)
+  const exp = [...exposedOnActive()].filter(([a, e]) => shows(e.total) && (gm || (a.isOwner && !needsPipbuck(a))));
+  const reads = gm || !game.actors?.some?.(a => a.isOwner && a.type === "character") || game.actors.some(a => a.isOwner && a.type === "character" && !needsPipbuck(a));
+  const amb = reads ? sceneRads(scene) : 0;
   if (!exp.length && !shows(amb)) return null;
   const who = exp.sort((x, y) => y[1].total - x[1].total).slice(0, gm ? 4 : 2)
     .map(([a, e]) => `${a.name} ${levelText(e.total)} (${rateText(e.total)})`);
@@ -1091,7 +1094,7 @@ export function registerSurvivalHooks() {
     if (td.parent?.active) queueGeiger();
     const a = td.actor;
     const mine = game.user.isGM ? td.object?.controlled : a?.isOwner && a.type === "character";
-    if (mine) setTimeout(() => clicks(tokenExposure(td).total), 250);
+    if (mine && (game.user.isGM || !needsPipbuck(a))) setTimeout(() => clicks(tokenExposure(td).total), 250);
   });
   Hooks.on("renderSceneConfig", (app, html) => {
     try { sceneField(app, html); } catch (err) { console.warn(`${F} | scene radiation`, err); }

@@ -22,6 +22,7 @@ import { weaponFx, customMagic, magicColorOf } from "./fx-data.mjs";
 import { coverInfo, hitBarriers, blastWalls, selectedBarriers } from "./cover.mjs";
 import { PCT_CHOICES, nearestPct } from "./cover-data.mjs";
 import { dehydrationLevel, thirstSats } from "./body.mjs";
+import { needsPipbuck } from "./skin-apply.mjs";
 
 const { DialogV2 } = foundry.applications.api;
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -65,7 +66,8 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
   // odwodnienie (tabela XXXIII): etap 4 — SATS droższy o 10 AP, etap 8 — o 20
   const followUp = volley?.index > 0;
   const cost = (volley ? volley.satsCost : Number(w.satsCost) || 0) + (followUp ? 0 : thirstSats(dehydrationLevel(actor)));
-  const canSats = sats.value >= cost;
+  const noPip = needsPipbuck(actor);   // opcja świata: SATS tylko z PipBuckiem
+  const canSats = !noPip && sats.value >= cost;
   const inc = close ? 0 : rangeIncrement(w, str);
   const bands = rangeBands(inc);
   // broń pokładowa pojazdu: ciężar nie ma znaczenia, strzela członek załogi swoją umiejętnością
@@ -105,7 +107,7 @@ export async function attackWithWeapon(actor, item, { spell = null, volley = nul
       <div class="atk-info">${info}</div>
       ${followUp ? `<div class="atk-info"><div>${volley.sats ? t("Saddle volley: in SATS (AP already paid).") : t("Saddle volley: the same action.")}</div></div>` : ""}
       ${spell || followUp ? "" : `<label class="atk-row atk-check"><input type="checkbox" name="sats" ${canSats ? "" : "disabled"}>
-        <span>SATS ${ruleLink("combat/sats")}</span><small>${canSats ? t("−{c} AP ({left} left) · no environment and haste penalties", { c: cost, left: sats.value - cost }) : t("not enough AP: {v}/{c}", { v: sats.value, c: cost })}</small></label>`}
+        <span>SATS ${ruleLink("combat/sats")}</span><small>${noPip ? t("needs a PipBuck worn") : canSats ? t("−{c} AP ({left} left) · no environment and haste penalties", { c: cost, left: sats.value - cost }) : t("not enough AP: {v}/{c}", { v: sats.value, c: cost })}</small></label>`}
       <label class="atk-row">${t("Environment and haste")} <select name="env">
         <option value="0">${t("no penalties")}</option>
         <option value="-1">${t("−1 step (smoke, fog, darkness, point-blank shot)")}</option>
