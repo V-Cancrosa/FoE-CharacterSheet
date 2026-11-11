@@ -692,6 +692,26 @@ daty; rozlicza aktywny MG, kartkami dla gracza i MG):
     i skutek porażki. Tak samo działają END ¾ przy odwodnieniu i END ½ przy utrzymaniu jedzenia.
   - przerzut kartą szczęścia (przycisk na karcie rzutu) cofa skutek, jeśli się uda: postać jednak przeżywa, nie traci
     przytomności, zjada jedzenie, a przy silnym napromieniowaniu choroba popromienna zmienia się w mutację albo znika.
+  - mutacja trafia na kartę sama: wada Mutation (−5 CHA z obcymi, gdy widać) z podpowiedzią z tabeli pomysłów
+    (s. 610–611) — opis zostawia MG.
+  - zamiana w ghula (s. 611, opcja świata „Zamiana w ghula”, domyślnie włączona): postać, która umarłaby od
+    promieniowania (1000 radów albo doba choroby popromiennej), rzuca END ¼ — sukces: INT ½ (+25 z Fixation) i ghul
+    (rasa „Ghul (wcześniej: …)” i cecha); porażka INT — dziczeje w ciągu kilku dni, krytyczna porażka — od razu dziki ghul.
+
+Skażenie (tabela XXXVI, s. 485–487, i „They Were Ponies, Once”, s. 610–612) — suwak w zakładce Walka pod zdrowiem:
+- 5 rombów i 4 kreski. MG klika **Dawka** (drobna ekspozycja +1, kleks z sufitu +2–4, kałuża +6 albo własna liczba)
+  — system sam rzuca Szczęście na pozycji, na której suwak stanął (2. romb ¼, 3. romb 1/10 dla tych, którzy zdali,
+  4. romb — tylko krytyczny sukces, 4. kreska 1/10 przy dwóch sukcesach), a przeskoczone etapy liczy jako oblane.
+  Krytyczny sukces to dwa sukcesy (poza 4. rombem i 4. kreską), krytyczna porażka zeruje sukcesy.
+- Ciężkie skutki idą przez karty decyzji MG („Rozegraj / Pomiń”): mutacja (wada Mutation z podpowiedzią), abominacja
+  (END ¼ — porażka to śmierć, Unstable Genetics −30; potem INT ¼), 5. romb (Luck ¼: krytyk — alikorn, sukces —
+  skażone stworzenie, porażka — powolna śmierć) i etapy przemiany w alikorna (u psów — w piekielnego psa).
+- Trzy sukcesy albo trzy udane rzuty z rzędu — droga alikorna: zamiast negatywnych skutków kolejne etapy 1–5 (cecha
+  z opisem i proponowanym perkiem misji, jeden etap na dawkę); 5. romb albo etap 5 — pełna przemiana: nowa rasa,
+  Large (+ Channeler), Magic co najmniej 50, Flight co najmniej 25.
+- **Oczyść** (Tenpony Tower) — suwak na zero, sukcesy i zmiany w ciele zostają. Ołówek — ręczne ustawienie zapisu
+  bez rzutów (np. dla postaci prowadzonych wcześniej na papierze). Alikorny i piekielne psy są odporne.
+- Przerzut kartą szczęścia ostatniego rzutu dawki rozstrzyga ten etap jeszcze raz.
 
 Przeskok czasu i decyzje MG (żeby planowy przeskok nie zagłodził ani nie zabił drużyny):
 - Upływ czasu poniżej progu (rundy walki, minuty, marsz) liczy się jak zwykle. Od progu (opcja świata „Przeskok czasu:

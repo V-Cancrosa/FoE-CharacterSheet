@@ -45,6 +45,7 @@ import { magicHex, customMagic } from "./fx-data.mjs";
 import { rollLockpick } from "./doors.mjs";
 import { spendLuckDialog } from "./luck.mjs";
 import { eatItem, eatLabel, survivalNote, survivalRows } from "./survival.mjs";
+import { taintView, doseDialog, cleanseTaint, setTaintDialog } from "./taint.mjs";
 import { RUNGS, skinLadder, skinOf, skinById, allSkins } from "./skins.mjs";
 import { setActiveSkin, applyOverlays, applyAccent, applySkin } from "./skin-apply.mjs";
 import { openSkinEditor } from "./skin-editor.mjs";
@@ -132,6 +133,9 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       repairArmor: FoeActorSheet.#onRepairArmor,
       endChem: FoeActorSheet.#onEndChem,
       cureAddiction: FoeActorSheet.#onCureAddiction,
+      taintDose: FoeActorSheet.#onTaintDose,
+      taintCleanse: FoeActorSheet.#onTaintCleanse,
+      taintSet: FoeActorSheet.#onTaintSet,
       rest: FoeActorSheet.#onRest,
       setLimb: FoeActorSheet.#onSetLimb,
       feedCyber: FoeActorSheet.#onFeedCyber,
@@ -293,6 +297,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const rl = radLevel(rads);
     ctx.body = { ...chemRows(this.document), rad: rl ? rl.label : "", radFx: rl ? Object.entries(rl.fx).map(([k, v]) => `${v} ${k.toUpperCase()}`).join(", ") : "" };
     ctx.body.survival = survivalRows(this.document);
+    ctx.taint = taintView(this.document);
     ctx.body.any = ctx.body.active.length || ctx.body.addictions.length || ctx.body.rad || ctx.body.survival.length;
     // cybernetyka (s. 104–107, 178)
     const cyb = cyberItems(this.document);
@@ -750,6 +755,13 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     for (const el of this.element.querySelectorAll("[data-action=woundStep]")) {
       el.addEventListener("contextmenu", ev => { ev.preventDefault(); ev.stopPropagation(); this.#stepWound(el.dataset.loc, -1); });
     }
+  }
+  static async #onTaintDose() { return doseDialog(this.document); }
+  static async #onTaintSet() { return setTaintDialog(this.document); }
+  static async #onTaintCleanse() {
+    if (!game.user.isGM) return;
+    const ok = await foundry.applications.api.DialogV2.confirm({ window: { title: t("Cleanse taint") }, content: `<p>${t("Cleanse {name} of taint (Tenpony Tower)? The slider goes back to zero; changes to the body remain.", { name: foundry.utils.escapeHTML(this.document.name) })}</p>` });
+    if (ok) await cleanseTaint(this.document);
   }
   static async #onFixWeapon(event, target) {
     const item = this.#item(target);

@@ -13,14 +13,14 @@
  *     silne napromieniowanie (ponad 400 radów w godzinę, nieusunięte przez 6 h) — END ¼, 1000 radów — END 1/10.
  */
 import { t, tn, N_ } from "./i18n.mjs";
-import { ATTRS, MFD_STEPS } from "./data.mjs";
+import { ATTRS } from "./data.mjs";
 import { healWounds } from "./healing.mjs";
 import { toggleStatus } from "./conditions.mjs";
-import { rollTest, stepIndex, shiftStep } from "./rolls.mjs";
-import { rollContext } from "./effects.mjs";
 import { isGhoul, isAlicorn, dehydrationLevel } from "./body.mjs";
 import { deadly, registerConfirmAction } from "./confirm.mjs";
 import { ruleLink } from "./rules.mjs";
+import { attrTest } from "./attr-test.mjs";
+import { addMutation, taintReroll } from "./taint.mjs";
 import { needsPipbuck } from "./skin-apply.mjs";
 import {
   foodInfo, dietOf, fitsDiet, foodRads, dayOf, freshState, settleDays, ambientRads, exposure, clickCount, STARVE_DEATH,
@@ -73,18 +73,7 @@ const CHECK_STAKES = {
  * automatycznego rzutu; udany przerzut kartą szczęścia cofa jego skutek (onReroll).
  */
 async function endTest(actor, label, stepKey, check = null) {
-  const end = actor.system.attributes.end;
-  const rc = rollContext(actor, { kind: "attr", attr: "end" });
-  const step = MFD_STEPS[shiftStep(stepIndex(stepKey), rc.fixedSteps)].key;
-  const notes = [
-    end.temp ? t("END {v} (base {b}; {list})", { v: end.total, b: end.base, list: (end.tempSources ?? []).join(", ") }) : "",
-    ...rc.mods.map(m => `${m.label} ${m.value > 0 ? "+" : ""}${m.value}`),
-    check ? t(CHECK_STAKES[check.kind]) : ""
-  ].filter(Boolean);
-  const data = { label, baseTn: end.tn, step, mod: rc.fixedMod, notes };
-  if (check) data.check = { id: foundry.utils.randomID(), ...check };
-  const msg = await rollTest(actor, data);
-  return msg?.getFlag?.(F, "test")?.result ?? msg?.flags?.[F]?.test?.result ?? "fail";
+  return attrTest(actor, "end", label, stepKey, { notes: check ? [t(CHECK_STAKES[check.kind])] : [], check });
 }
 
 /** Karta PipBucka dla gracza i MG. */
@@ -545,8 +534,33 @@ async function playLethal(actor) {
   if (passed(await endTest(actor, t("1000 rads: surviving (END 1/10)"), "1/10", { kind: "lethal" }))) {
     return card(actor, [t("{name} survives 1000 rads — for now (see “They Were Ponies, Once”; the GM decides what follows).", { name: actor.name })], { tag: t("RADIATION") });
   }
+  if (await ghoulify(actor)) return null;
   await toggleStatus(actor, "dead", true);
   return card(actor, [], { warn: t("{name} dies of severe radiation poisoning.", { name: actor.name }), tag: t("RADIATION") });
+}
+
+/**
+ * Zamiana w ghula (s. 611): postać, która umarłaby od promieniowania, rzuca END ¼ — sukces: dusza zostaje w ciele,
+ * potem INT ½ (+25 z Fixation): krytyczna porażka — od razu dziki ghul, porażka — ghul, który w ciągu kilku dni zdziczeje,
+ * sukces — ghul. Zwraca true, jeśli postać została ghulem (nie umiera). Opcja świata „ghoulification”.
+ */
+async function ghoulify(actor) {
+  if (!setting("ghoulification") || isGhoul(actor) || isAlicorn(actor)) return false;
+  const soul = await endTest(actor, t("Ghoulification: END ¼ (p. 611)"), "1/4");
+  if (!passed(soul)) return false;
+  const fix = (actor.items ?? []).some(i => i.type === "feature" && i.system?.active !== false && /fixation|fiksacj/i.test(i.name));
+  const mind = await attrTest(actor, "int", t("Ghoulification: INT ½ to keep the mind"), "1/2", { mod: fix ? 25 : 0, notes: [fix ? t("Fixation +25") : "", t("critical failure — feral at once; failure — goes feral over the next few days")].filter(Boolean) });
+  const race = String(actor.system?.race ?? "");
+  const feral = mind === "crit-fail", slow = mind === "fail";
+  const desc = feral ? t("A feral ghoul: higher brain functions are gone — the GM takes over the character (p. 614).")
+    : slow ? t("Survived as a ghoul, but will slowly go feral over the next few days (p. 611). Only a new Purpose might stop it — the GM decides.")
+    : t("A sentient ghoul: radiation no longer harms, no need to eat, drink or sleep as before. Goes feral if their Purpose is lost (p. 614).");
+  await actor.update({ "system.race": t("Ghoul (was: {race})", { race }) });
+  await actor.setFlag(F, "radlog", { ...(flagOf(actor, "radlog") ?? {}), poison: null, lethal: null, severe: null });
+  await actor.createEmbeddedDocuments("Item", [{ name: feral ? t("Feral ghoul") : slow ? t("Going feral") : t("Ghoul (from radiation)"), type: "feature",
+    system: { kind: "other", active: true, effects: [], description: `<p>${esc(desc)}</p>` }, flags: { [F]: { ghoul: feral ? "feral" : slow ? "going" : "sentient" } } }]);
+  await card(actor, [t("{name} should have died of radiation — but the soul holds on: a ghoul.", { name: actor.name }), desc], { tag: t("RADIATION") });
+  return true;
 }
 async function playSevere(actor) {
   const res = await endTest(actor, t("Severe radiation exposure (END ¼)"), "1/4", { kind: "severe" });
@@ -554,13 +568,17 @@ async function playSevere(actor) {
   if (res === "crit-fail") {
     await actor.setFlag(F, "radlog.poison", { at: now() });
     lines.push(t("Critical failure: radiation poisoning — penalties as at 800 rads; death within 24 hours unless the rads are reduced (RadAway or any treatment that lowers them)."));
-  } else if (!passed(res)) lines.push(t("Failure: a mutation (the Mutation hindrance — the GM chooses; see “They Were Ponies, Once”)."));
+  } else if (!passed(res)) {
+    const idea = await addMutation(actor, "radiation");
+    lines.push(t("Failure: a mutation — the Mutation hindrance is on the sheet; the GM describes it (“They Were Ponies, Once”, p. 610)."), t("Suggestion: {idea}", { idea }));
+  }
   else lines.push(t("Severe radiation exposure: the END roll succeeded — nothing happens."));
   return card(actor, lines, { tag: t("RADIATION") });
 }
 async function playPoisonDeath(actor) {
   if (!flagOf(actor, "radlog")?.poison) return card(actor, [t("{name} was treated in time — the radiation poisoning is gone.", { name: actor.name })], { tag: t("RADIATION") });
   await actor.setFlag(F, "radlog.poison", null);
+  if (await ghoulify(actor)) return null;
   await toggleStatus(actor, "dead", true);
   return card(actor, [], { warn: t("{name} dies of radiation poisoning (24 hours without treatment).", { name: actor.name }), tag: t("RADIATION") });
 }
@@ -1003,6 +1021,11 @@ export function registerSurvivalSettings() {
     hint: "Over 400 rads within an hour that aren't removed for 6 hours — END ¼ (failure: a mutation, critical failure: radiation poisoning, death in 24 hours without treatment). Reaching 1000 rads — END 1/10, failure: death. Rolled automatically (by the active GM).",
     scope: "world", config: true, type: Boolean, default: true
   });
+  game.settings.register(F, "ghoulification", {
+    name: "Ghoulification (p. 611)",
+    hint: "A character who would die of radiation rolls END ¼ — success: a ghoul (then INT ½, +25 with Fixation: failure — goes feral in a few days, critical failure — feral at once). Off — they just die.",
+    scope: "world", config: true, type: Boolean, default: true
+  });
   game.settings.register(F, "geigerSound", {
     name: "Geiger counter clicks",
     hint: "Clicks when your character's token moves within radiation of level 2 or more (a radiating tile, region or scene) — the stronger the dose, the more clicks.",
@@ -1030,6 +1053,7 @@ export async function onReroll(message) {
     return feed(actor, { name: check.name, system: { description: check.description } }, [t("Luck card: {name} keeps it down after all.", { name: actor.name })]);
   }
   if (!game.users.activeGM?.isSelf) return null;
+  if (check.kind === "taint") return taintReroll(actor, check, res);
   const lines = [];
   if (check.kind === "lethal" && passed(res) && actor.statuses?.has?.("dead")) {
     await toggleStatus(actor, "dead", false);

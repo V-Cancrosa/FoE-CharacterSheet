@@ -23,6 +23,7 @@ import { registerDoorHooks } from "./doors.mjs";
 import { registerCoverHooks } from "./cover.mjs";
 import { registerLuckHooks } from "./luck.mjs";
 import { registerSurvivalSettings, registerSurvivalHooks } from "./survival.mjs";
+import { registerTaintActions } from "./taint.mjs";
 import { registerConfirmSettings, registerConfirmHooks } from "./confirm.mjs";
 import { registerTimeSkipSettings, registerTimeSkipHooks } from "./timeskip.mjs";
 import { registerSkinHooks, registerSkinSettings } from "./skin-apply.mjs";
@@ -107,6 +108,7 @@ Hooks.once("init", () => {
   registerCoverHooks();
   registerLuckHooks();
   registerSurvivalHooks();
+  registerTaintActions();
   registerTimeSkipHooks();
   registerConfirmHooks();
   registerSkinSettings();

@@ -1281,3 +1281,15 @@ body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
 .foe-rules .rules-pager a:hover { color: var(--pip); }
 .foe-rules .rules-empty { padding: 2rem; color: var(--pip); }
 .foe-rules-open { margin: .3rem 0; width: 100%; }
+
+/* ---------- Suwak skażenia (taint.mjs) ---------- */
+.foe-rpg .taint-box { display: flex; flex-direction: column; gap: .25rem; padding: .2rem 0 .5rem; }
+.foe-rpg .taint-slider { position: relative; display: flex; align-items: center; justify-content: space-between; height: 22px; margin: 0 .4rem; }
+.foe-rpg .taint-slider::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--pip-line); }
+.foe-rpg .taint-slider .tm { position: relative; z-index: 1; background: var(--pip-void); border: 1px solid var(--pip-dim); }
+.foe-rpg .taint-slider .tm.dia { width: 12px; height: 12px; transform: rotate(45deg); }
+.foe-rpg .taint-slider .tm.tick { width: 3px; height: 14px; border-width: 0; background: var(--pip-dim); }
+.foe-rpg .taint-slider .tm.on { background: var(--pip-mid); border-color: var(--pip); }
+.foe-rpg .taint-slider .tm.here { background: var(--pip-alert); border-color: var(--pip-alert); box-shadow: 0 0 8px var(--pip-alert); }
+.foe-rpg .taint-here { font-size: 12px; }
+.foe-rpg .taint-ali { color: var(--pip-bright); font-weight: 700; }

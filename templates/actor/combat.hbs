@@ -79,6 +79,21 @@
   </ul>
   {{else}}<p class="hint">{{t "No active chems, addictions or radiation sickness. You take medicine and chems with the “Use” button in the Inventory."}}</p>{{/if}}
 
+  {{#if taint}}
+  <h3>{{t "Taint"}} {{rule "survival/taint"}}
+    {{#if taint.gm}}<a data-action="taintDose" title="{{t "A taint dose (Luck rolls per Table XXXVI)"}}"><i class="fa-solid fa-flask"></i> {{t "Dose"}}</a>
+    <a data-action="taintCleanse" title="{{t "Cleansing in Tenpony Tower: the slider back to zero"}}"><i class="fa-solid fa-hand-sparkles"></i> {{t "Cleanse"}}</a>
+    <a data-action="taintSet" title="{{t "Set the record by hand (no rolls)"}}"><i class="fa-solid fa-pen"></i></a>{{/if}}
+  </h3>
+  <div class="taint-box">
+    <div class="taint-slider">{{#each taint.marks}}<span class="tm {{#if diamond}}dia{{else}}tick{{/if}} {{#if on}}on{{/if}} {{#if here}}here{{/if}}" title="{{title}}"></span>{{/each}}</div>
+    <div class="taint-here">{{taint.here}}</div>
+    <div class="hint">{{taint.stats}}</div>
+    {{#if taint.alicorn}}<div class="taint-ali">{{taint.alicorn}}</div>{{/if}}
+    {{#if taint.immuneRace}}<div class="hint">{{t "This race is immune to taint."}}</div>{{/if}}
+  </div>
+  {{/if}}
+
   {{#if cyber.show}}
   <h3>{{t "Cybernetics"}}
     <a data-action="feedCyber" title="{{t "Eat a gem: power for cyberlimbs and implants (p. 178)"}}"><i class="fa-solid fa-gem"></i> {{t "Power"}}</a>
