@@ -381,6 +381,11 @@ Wygląd karty postaci według drabinki (zakładka **Ustawienia** na karcie — i
   ogień / trucizna / paraliż — pomarańczowa / zielona / niebieska ramka; nieprzytomny — przygaszony obraz i „BRAK
   SYGNAŁU”; martwy — szarość i stempel „KIA”. Każdy gracz wyłącza je u siebie (Ustawienia karty → „Efekty stanu” albo
   ustawienia systemu); przy systemowym „ograniczeniu ruchu” animacje stoją.
+- **Własne wyglądy MG** (Ustawienia systemu → „Własne wyglądy kart”, albo przycisk w zakładce Ustawienia na karcie —
+  tylko MG): reguła z nazwą, warunkiem (założony przedmiot / cecha, perk albo czar / rasa / imię postaci zawiera tekst;
+  kilka tekstów rozdziel „|”), szczeblem 1–5, wyglądem bazowym, własnym kolorem tekstu i tła oraz napisem na pasku.
+  Podgląd na żywo w edytorze. Pasująca reguła dochodzi do wyboru gracza (z gwiazdką), a gdy jej szczebel jest co
+  najmniej taki jak szczebel postaci, staje się wyglądem automatycznym. Napis na pasku idzie też na karty czatu.
 - Układ i działanie karty są te same we wszystkich wyglądach.
 - Zasada domowa (opcja świata, domyślnie wyłączona) **„SATS i licznik Geigera tylko z PipBuckiem”**: postać gracza bez
   założonego PipBucka nie zaznaczy SATS w oknie ataku, czaru ani rytuału zebry i nie widzi ani nie słyszy licznika

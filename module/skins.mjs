@@ -9,6 +9,9 @@
  *   1. domyślnie: papierowa karta postaci ze Stajni.
  * Gracz wybiera spośród wyglądów, do których postać ma prawo (swój szczebel i niższe; PipBuck tylko z PipBuckiem),
  * MG może wymusić dowolny. Flaga foe-rpg.skin: { choice, forced }.
+ * Własne szczeble MG (ustawienie świata customSkins, edytor w skin-editor.mjs): reguła { id, name, base (wbudowany wygląd
+ * pod spodem), ink, bg (kolory, opcjonalne), when (item | feature | race | name), match ("tekst|inny"), rung (1–5), bar }.
+ * Reguła, która pasuje, dodaje wygląd "c-<id>" na swoim szczeblu; przy remisie wygrywa nad wbudowanym.
  */
 import { N_ } from "./i18n.mjs";
 const F = "foe-rpg";
@@ -35,7 +38,80 @@ export const SKINS = Object.freeze([
   { id: "changeling", rung: 2, label: N_("Changeling — chitin and green flame"), dark: true },
   { id: "paper", rung: 1, label: N_("Stable character sheet (paper)"), dark: false }
 ]);
-export const skinById = id => SKINS.find(s => s.id === id) ?? null;
+// ---------- własne szczeble MG ----------
+let CUSTOM = [];
+const HEX = /^#[0-9a-f]{6}$/i;
+const CUSTOM_ID = /^c-[a-z0-9]{1,16}$/;
+/** Luminancja koloru #rrggbb (0–1). */
+export function luminance(hex) {
+  const n = parseInt(String(hex).slice(1), 16);
+  const ch = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  return 0.2126 * ch((n >> 16) & 255) + 0.7152 * ch((n >> 8) & 255) + 0.0722 * ch(n & 255);
+}
+/** Oczyszczona reguła (albo null). */
+export function cleanRule(r) {
+  if (!r || typeof r !== "object") return null;
+  const id = `c-${String(r.id ?? "").replace(/^c-/, "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 16)}`;
+  const base = SKINS.some(s => s.id === r.base) ? r.base : "paper";
+  const name = String(r.name ?? "").trim().slice(0, 60);
+  if (!CUSTOM_ID.test(id) || !name) return null;
+  return {
+    id, name, base,
+    ink: HEX.test(r.ink ?? "") ? r.ink.toLowerCase() : "", bg: HEX.test(r.bg ?? "") ? r.bg.toLowerCase() : "",
+    when: ["item", "feature", "race", "name"].includes(r.when) ? r.when : "item",
+    match: String(r.match ?? "").trim().slice(0, 200),
+    rung: Math.min(5, Math.max(1, Math.round(Number(r.rung) || 2))),
+    bar: String(r.bar ?? "").trim().slice(0, 60)
+  };
+}
+/** Wczytaj reguły MG (z ustawienia świata). */
+export function setCustomSkins(list) {
+  const seen = new Set();
+  CUSTOM = (Array.isArray(list) ? list : []).map(cleanRule).filter(r => r && !seen.has(r.id) && seen.add(r.id));
+  return CUSTOM;
+}
+export const customSkins = () => CUSTOM;
+
+/** Wygląd własny jako wpis jak w SKINS: label — nazwa MG (bez tłumaczenia), dark z koloru tła albo z bazy. */
+function customEntry(r) {
+  const b = SKINS.find(s => s.id === r.base);
+  return { id: r.id, rung: r.rung, label: r.name, dark: r.bg ? luminance(r.bg) < 0.35 : !!b?.dark, custom: r };
+}
+export const skinById = id => SKINS.find(s => s.id === id) ?? (CUSTOM_ID.test(id ?? "") ? (r => r && customEntry(r))(CUSTOM.find(c => c.id === id)) : null) ?? null;
+/** Wszystkie wyglądy: wbudowane i własne. */
+export const allSkins = () => [...SKINS, ...CUSTOM.map(customEntry)];
+
+/** Czy reguła MG pasuje do postaci. */
+export function ruleMatches(r, actor) {
+  const alts = r.match.split("|").map(x => x.trim().toLowerCase()).filter(Boolean);
+  if (!alts.length) return false;
+  const has = text => { const s = String(text ?? "").toLowerCase(); return alts.some(a => s.includes(a)); };
+  const items = [...(actor?.items ?? [])];
+  switch (r.when) {
+    case "item": return items.some(i => i.system?.equipped && has(i.name));
+    case "feature": return items.some(i => ["feature", "perk", "spell"].includes(i.type) && i.system?.active !== false && has(i.name));
+    case "race": return has(actor?.system?.race);
+    case "name": return has(actor?.name);
+  }
+  return false;
+}
+
+/**
+ * Jak pomalować okno: { base (klasa skin-…), vars ({ "--pip": … } — tylko dla własnych), tag (napis na czacie|null) }.
+ */
+export function skinPaint(id) {
+  const e = skinById(id);
+  if (!e?.custom) return { base: e ? id : "paper", vars: {}, tag: null };
+  const r = e.custom, vars = {};
+  if (r.ink) vars["--pip"] = r.ink;
+  if (r.bg) {
+    vars["--pip-bg"] = r.bg;
+    vars["--pip-bg-hi"] = `color-mix(in srgb, ${r.bg} ${e.dark ? 92 : 75}%, white)`;
+    vars["--pip-void"] = `color-mix(in srgb, ${r.bg} 65%, black)`;
+    vars["--pip-ink"] = e.dark ? "#000" : `color-mix(in srgb, ${r.bg} 82%, white)`;
+  }
+  return { base: r.base, vars, tag: (r.bar || r.name).split("·")[0].trim().toUpperCase() };
+}
 export const RUNGS = Object.freeze({ 5: N_("Power armor worn"), 4: N_("PipBuck worn"), 3: N_("Device with a screen worn"), 2: N_("Origin"), 1: N_("Basic") });
 
 const PIPBUCK = /pip-?buck|stealthbuck|stealthfilly/i;
@@ -97,6 +173,12 @@ export function skinLadder(actor) {
   if (pipbuck || screen) available.push("terminal", "terminal-white");
   for (const o of new Set([aff, race].filter(Boolean))) available.push(o);
   available.push("paper");
+  // własne szczeble MG: pasujące dochodzą do wyboru; najwyższa reguła wygrywa, jeśli jej szczebel ≥ wbudowanego
+  const custom = CUSTOM.filter(r => ruleMatches(r, actor));
+  available.unshift(...custom.map(r => r.id));
+  const builtin = armor ? 5 : pipbuck ? 4 : screen ? 3 : origin ? 2 : 1;
+  const top = custom.reduce((best, r) => (!best || r.rung > best.rung ? r : best), null);
+  if (top && top.rung >= builtin) return { rung: top.rung, auto: top.id, available, reason: { key: "custom", name: top.name } };
   if (armor) return { rung: 5, auto: enclaveArmor ? "power-armor-enclave" : "power-armor", available, reason: { key: "armor", name: armor.name } };
   if (pipbuck) return { rung: 4, auto: pipbuckSkin(pipbuck), available, reason: { key: "pipbuck", name: pipbuck.name } };
   if (screen) return { rung: 3, auto: "terminal", available, reason: { key: "screen", name: screen.name } };

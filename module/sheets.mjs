@@ -45,8 +45,9 @@ import { magicHex, customMagic } from "./fx-data.mjs";
 import { rollLockpick } from "./doors.mjs";
 import { spendLuckDialog } from "./luck.mjs";
 import { eatItem, eatLabel, survivalNote, survivalRows } from "./survival.mjs";
-import { SKINS, RUNGS, skinLadder, skinOf, skinById } from "./skins.mjs";
-import { setActiveSkin, applyOverlays, applyAccent } from "./skin-apply.mjs";
+import { RUNGS, skinLadder, skinOf, skinById, allSkins } from "./skins.mjs";
+import { setActiveSkin, applyOverlays, applyAccent, applySkin } from "./skin-apply.mjs";
+import { openSkinEditor } from "./skin-editor.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -193,24 +194,27 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const AFF = { rangers: t("Steel Rangers"), raider: t("Raider"), enclave: t("Enclave Volunteer Corps") };
     const why = { armor: t("worn: {name}", { name: ladder.reason.name }), pipbuck: t("worn: {name}", { name: ladder.reason.name }), screen: t("worn: {name}", { name: ladder.reason.name }),
       affiliation: t("organization: {name}", { name: AFF[ladder.reason.name] ?? ladder.reason.name }),
+      custom: t("GM look: {name}", { name: ladder.reason.name }),
       origin: t("origin: {race}", { race: this.document.system.race ?? "" }), basic: t("no PipBuck or device with a screen worn") }[ladder.reason.key];
     ctx.skin = {
-      current: skinOf(this.document), rung: t(RUNGS[ladder.rung]), why, auto: t(skinById(ladder.auto)?.label ?? ""),
+      current: skinOf(this.document), rung: t(RUNGS[ladder.rung]), why, auto: (s => s?.custom ? s.label : t(s?.label ?? ""))(skinById(ladder.auto)),
       choice: sf.choice ?? "", forced: sf.forced ?? "",
-      options: ladder.available.map(id => ({ id, label: t(skinById(id).label), selected: id === sf.choice })),
-      all: SKINS.map(s => ({ id: s.id, label: t(s.label), selected: s.id === sf.forced })),
+      options: ladder.available.map(id => skinById(id)).filter(Boolean).map(s => ({ id: s.id, label: s.custom ? `★ ${s.label}` : t(s.label), selected: s.id === sf.choice })),
+      all: allSkins().map(s => ({ id: s.id, label: s.custom ? `★ ${s.label}` : t(s.label), selected: s.id === sf.forced })),
       locked: !!(sf.forced && !game.user.isGM),
       canAccent: customMagic(this.document), accent: !!sf.accent,
       effects: game.settings.get("foe-rpg", "sheetEffects") !== false
     };
     // napis na pasku: model PipBucka albo urządzenia, pochodzenie, papierowa karta
-    const sk = ctx.skin.current;
+    const custom = skinById(ctx.skin.current)?.custom;
+    const sk = custom ? custom.base : ctx.skin.current;
     const dev = ladder.reason.key === "pipbuck" || ladder.reason.key === "screen" ? ladder.reason.name.toUpperCase() : "";
     ctx.skin.bar = sk.startsWith("pipbuck") || sk === "stealth" ? `${dev && ladder.reason.key === "pipbuck" ? dev : "PIPBUCK 3000"} · STABLE-TEC`
       : sk.startsWith("terminal") ? t("TERMINAL · {device}", { device: dev || "ROBRONCO" })
       : sk.startsWith("power-armor") ? t("HUD · {armor}", { armor: (ladder.reason.key === "armor" ? ladder.reason.name : t("POWER ARMOR")).toUpperCase() })
       : { enclave: t("ENCLAVE · FIELD TERMINAL"), zebra: t("NOTES AND TALISMANS"), griffin: t("MERCENARY'S NOTEBOOK"), paper: t("STABLE · CHARACTER RECORD"),
         rangers: t("STEEL RANGERS · FIELD CODEX"), raider: t("SCRAPS · DON'T TOUCH"), ghoul: t("OLD PAPERS · BEFORE THE WAR"), changeling: t("HIVE · DISGUISE RECORD") }[sk] ?? "PIPBUCK 3000 · STABLE-TEC";
+    if (custom) ctx.skin.bar = (custom.bar || custom.name).toUpperCase();
     ctx.looted = !!this.document.getFlag?.("foe-rpg", "looted");
     ctx.digSpeed = sys.skills.dig?.known !== false;
     const prog = xpProgression();
@@ -728,11 +732,11 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     super._onRender?.(context, options);
     // wygląd karty (skins.mjs): klasa skin-… na oknie
     const skin = skinOf(this.document);
-    for (const c of [...this.element.classList]) if (c.startsWith("skin-")) this.element.classList.remove(c);
-    this.element.classList.add(`skin-${skin}`);
+    applySkin(this.element, skin);
     // nakładki stanu (zakłócenia, promieniowanie, KIA…) i akcent w kolorze magii
     applyOverlays(this.element, this.document);
     applyAccent(this.element, this.document, skin);
+    this.element.querySelector("[data-foe-skin-editor]")?.addEventListener("click", ev => { ev.preventDefault(); openSkinEditor(); });
     this.element.querySelector("input[data-foe-sheetfx]")?.addEventListener("change", ev => {
       ev.stopPropagation();
       game.settings.set("foe-rpg", "sheetEffects", ev.currentTarget.checked);
