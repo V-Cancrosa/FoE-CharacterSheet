@@ -105,7 +105,7 @@ Kucyk potrzebuje około **4 godzin snu na dobę**, głównie w krótkich drzemka
 - Ghule i alikorny nie potrzebują snu, jeśli w ciągu 48 godzin dostały co najmniej 100 radów.
 - Daturana i kawa wydłużają czuwanie bez rzutów.
 
-> **Na karcie:** sen prowadzi MG (system go nie liczy).
+> **Na karcie** (opcja świata „Sen i niewyspanie”, domyślnie włączona): system liczy czas od ostatniego pełnego snu. **Odpoczynek** w zakładce walki ma pole *Sen na leżąco* — co najmniej 2 h (kucyki, zebry, alikorny) albo 8 h (inne rasy) zeruje licznik; przeskok czasu dłuższy niż ta potrzeba też (postacie śpią w tym czasie). Na nogach dłużej niż granica: wiersz *Niewyspanie* w sekcji zdrowia, cecha z karą INT i END, rzut END co godzinę (trudność podręcznik pomija — system rzuca na MFD 1); porażka — status snu: rana budzi na godzinę, inaczej sen 3 h (kucyki) albo 8 h. Po 48 h ponad granicę — karta decyzji MG (END ½). Kawa i Daturana z opisu („cannot sleep for 2d4 hours”) wydłużają granicę. Ghule i alikorny ze 100+ radami w ciągu dwóch dni nie potrzebują snu. Drzemek kucyków na stojąco system nie liczy — są w podróży.
 
 ## Podróż po pustkowiach {#travel}
 

@@ -14,6 +14,7 @@ import { LOCATIONS } from "./data.mjs";
 import { rollTest } from "./rolls.mjs";
 import { clearCondition, conditionsOf } from "./conditions.mjs";
 import { t, tn, tfields } from "./i18n.mjs";
+import { recordSleep } from "./sleep.mjs";
 
 const F = "foe-rpg";
 const { DialogV2 } = foundry.applications.api;
@@ -206,9 +207,10 @@ export async function rest(actor) {
     content: `<div class="foe-dialog">
       <label class="atk-row">${t("Hours of rest")} <input type="number" name="h" value="8" min="1" step="1"></label>
       <label class="atk-row atk-check"><input type="checkbox" name="medic"><span>${t("Under a medic's care")}</span><small>${t("Medicine 75+: healing ×2")}</small></label>
+      <label class="atk-row atk-check"><input type="checkbox" name="sleep" checked><span>${t("Sleeping lying down")}</span><small>${t("ponies 2 h, other races 8 h in a row reset the sleep counter")}</small></label>
       <p class="hint">${t("1 wound per location for every 8 h (max. 3 per day, 6 with a medic). When something is crippled — 1 wound per location per day. Rest means calm: sleep, food, reading.")}</p></div>`,
     buttons: [{ action: "ok", label: t("btn|Rest"), icon: "fa-solid fa-bed", default: true,
-      callback: (ev, btn) => ({ hours: Math.max(1, Number(btn.form.elements.h.value) || 8), medic: btn.form.elements.medic.checked }) }]
+      callback: (ev, btn) => ({ hours: Math.max(1, Number(btn.form.elements.h.value) || 8), medic: btn.form.elements.medic.checked, sleep: btn.form.elements.sleep.checked }) }]
   });
   if (!pick) return null;
   const sys = actor.system;
@@ -227,7 +229,9 @@ export async function rest(actor) {
   }
   if (parts.length) await actor.update(update);
   try { if (game.user.isGM) await game.time.advance(pick.hours * 3600); } catch { /* bez upływu czasu */ }
+  const sleepLine = pick.sleep ? await recordSleep(actor, pick.hours) : "";
   return card(actor, actor.name, t("rest {n} h", { n: pick.hours }), [
+    ...(sleepLine ? [esc(sleepLine)] : []),
     [crippled ? t("Crippling slows healing (1 per day).") : "", pick.medic ? t("Under a medic's care (×2).") : "", t("Healed per location: {n}.", { n: per })].filter(Boolean).join(" "),
     esc(parts.join(", ") || t("no wounds to heal"))
   ]);
