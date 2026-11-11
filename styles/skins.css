@@ -1,0 +1,92 @@
+/* ==========================================================================
+   Wygląd karty postaci według drabinki (module/skins.mjs): klasa skin-… na oknie karty.
+   skin-pipbuck — kolor fosforu z ustawień gracza (bez zmian w stosunku do ekranu PipBucka).
+   ========================================================================== */
+
+/* ---------- PipBuck: odcienie modeli ---------- */
+.foe-rpg.application.skin-pipbuck-green { --pip: #4dff8a; --pip-alert: #ff6a4d; }
+.foe-rpg.application.skin-pipbuck-amber { --pip: #ffb547; --pip-alert: #ff5040; }
+.foe-rpg.application.skin-pipbuck-blue  { --pip: #5fd8ff; --pip-alert: #ff6a5a; }
+.foe-rpg.application.skin-pipbuck-white { --pip: #e4f2e8; --pip-alert: #ff6a5a; }
+.foe-rpg.application.skin-pipbuck-gold {
+  --pip: #ffd65a; --pip-alert: #ff6a4d;
+  --pip-bg: color-mix(in srgb, #ffd65a 7%, #070502); --pip-bg-hi: color-mix(in srgb, #ffd65a 16%, #0c0803);
+  border-color: #b8902a; box-shadow: 0 0 0 1px #000, 0 0 0 3px #6b5216, 0 0 22px rgba(255, 214, 90, .25), 0 8px 30px rgba(0, 0, 0, .7);
+}
+/* Stealthbuck: przygaszony ekran, bez poświaty */
+.foe-rpg.application.skin-stealth {
+  --pip: #9fb4c8; --pip-alert: #e07a6a; --pip-glow: transparent;
+  --pip-bg: #06080b; --pip-bg-hi: #0b1016;
+}
+
+/* ---------- Terminal (urządzenie z ekranem) ---------- */
+.foe-rpg.application.skin-terminal, .foe-rpg.application.skin-terminal-white {
+  --pip-bg: #050403; --pip-bg-hi: #0d0a06;
+}
+.foe-rpg.application.skin-terminal { --pip: #ffb000; --pip-alert: #ff5a3c; }
+.foe-rpg.application.skin-terminal-white { --pip: #d9dcd2; --pip-alert: #ff6a5a; --pip-bg: #060606; --pip-bg-hi: #101010; }
+.foe-rpg.application:is(.skin-terminal, .skin-terminal-white) .pip-bar { letter-spacing: .14em; }
+
+/* ---------- Enklawa: wojskowy terminal chmur ---------- */
+.foe-rpg.application.skin-enclave {
+  --pip: #9ad0ff; --pip-alert: #ff7a6a;
+  --pip-bg: #030912; --pip-bg-hi: #0a1828; --pip-void: #01040a;
+  border-color: #3d6a96;
+}
+
+/* ---------- Gryf: skórzany notes najemnika (ciemny, kremowy atrament) ---------- */
+.foe-rpg.application.skin-griffin {
+  --pip: #ecdcb8; --pip-alert: #e0623e; --pip-glow: transparent;
+  --pip-mid: #cdb991; --pip-dim: #8e7a58; --pip-line: rgba(236, 220, 184, .3); --pip-faint: rgba(236, 220, 184, .08);
+  --pip-bg: #2a1b11; --pip-bg-hi: #3a2717; --pip-void: #170e08; --pip-ink: #1d120a;
+  border: 2px solid #5a3a20; box-shadow: 0 0 0 1px #000, 0 8px 30px rgba(0, 0, 0, .7);
+}
+.foe-rpg.application.skin-griffin .window-content {
+  background:
+    repeating-linear-gradient(35deg, rgba(0, 0, 0, .06) 0 2px, transparent 2px 7px),
+    radial-gradient(ellipse 120% 90% at 50% 40%, #3e2918 0%, #2a1b11 70%, #170e08 120%);
+}
+
+/* ---------- Jasne karty: papier ze Stajni i notatki zebry ---------- */
+.foe-rpg.application:is(.skin-paper, .skin-zebra) {
+  --pip-glow: transparent;
+  --pip-line: color-mix(in srgb, var(--pip) 30%, transparent);
+  --pip-faint: color-mix(in srgb, var(--pip) 8%, transparent);
+  --pip-mid: color-mix(in srgb, var(--pip) 78%, white);
+  --pip-dim: color-mix(in srgb, var(--pip) 50%, white);
+  --pip-bright: color-mix(in srgb, var(--pip) 80%, black);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .6);
+}
+.foe-rpg.application.skin-paper {
+  --pip: #1f3a5f; --pip-alert: #b3261e;
+  --pip-bg: #efe6cf; --pip-bg-hi: #f8f2e2; --pip-void: #e2d5b6; --pip-ink: #f8f2e2;
+  border: 1px solid #b9a77d;
+}
+.foe-rpg.application.skin-zebra {
+  --pip: #3b2412; --pip-alert: #a3320e;
+  --pip-bg: #e6cf9c; --pip-bg-hi: #f0dfb4; --pip-void: #d4b97e; --pip-ink: #f0dfb4;
+  border: 2px solid #7a4a1c;
+}
+.foe-rpg.application:is(.skin-paper, .skin-zebra) .window-content {
+  text-shadow: none;
+  background: radial-gradient(ellipse 120% 90% at 50% 35%, var(--pip-bg-hi) 0%, var(--pip-bg) 70%, var(--pip-void) 125%);
+}
+/* papier: bez linii skanowania, zamiast nich delikatne linie kartki */
+.foe-rpg.application.skin-paper .window-content::after {
+  background: repeating-linear-gradient(to bottom, transparent 0 23px, rgba(31, 58, 95, .07) 23px 24px);
+}
+/* zebra: wzór pasów na marginesie zamiast skanowania */
+.foe-rpg.application.skin-zebra .window-content::after {
+  background: repeating-linear-gradient(115deg, rgba(59, 36, 18, .07) 0 6px, transparent 6px 22px) left / 14px 100% no-repeat;
+}
+.foe-rpg.application:is(.skin-paper, .skin-zebra) .window-header {
+  background: var(--pip); color: var(--pip-ink); text-shadow: none; border-bottom: 0;
+}
+.foe-rpg.application:is(.skin-paper, .skin-zebra) .window-header :is(button, a) { color: var(--pip-ink); }
+.foe-rpg.application:is(.skin-paper, .skin-zebra) :is(input, select, textarea) { background: rgba(255, 255, 255, .35); }
+.foe-rpg.application:is(.skin-paper, .skin-zebra) .meter > span { box-shadow: none; }
+
+/* ---------- Zakładka „Ustawienia” na karcie ---------- */
+.foe-rpg .skin-box { display: flex; flex-direction: column; gap: .5rem; padding: .3rem 0; }
+.foe-rpg .skin-box .skin-row { display: grid; grid-template-columns: 12rem 1fr; align-items: center; gap: .6rem; text-transform: uppercase; font-size: 12px; }
+.foe-rpg .skin-box .skin-row select { text-transform: none; }

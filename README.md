@@ -358,6 +358,17 @@ Wygląd: ekran PipBucka. W Ustawieniach gry → Fallout: Equestria RPG każdy gr
 (zielony / bursztynowy / niebieski / biały) i może wyłączyć linie skanowania. Rzuty na czacie pokazują
 drabinkę MFD: wymagany poziom (CEL), osiągnięty poziom (WYNIK) i progi wszystkich poziomów.
 
+Wygląd karty postaci według drabinki (zakładka **Ustawienia** na karcie — ikona zębatki):
+- Od najwyższego szczebla: założony **PipBuck** (Ekwipunek → PipBuck, przełącznik „załóż”; jeden naraz) — ekran PipBucka,
+  odcień z modelu (Golden Pipbuck — złoty, Stealthbuck/Stealthfilly — przygaszony, inne — kolor fosforu gracza) →
+  inne założone urządzenie z ekranem (PRA, EqueMapper, terminal przenośny) — terminal bursztynowy →
+  pochodzenie z rasy: Enklawa (pegaz Enklawy / EVC) — wojskowy terminal, zebra — notatki i talizmany (papier z ochrą),
+  gryf — skórzany notes najemnika → domyślnie **papierowa karta postaci ze Stajni**.
+- Gracz wybiera w zakładce Ustawienia spośród wyglądów, do których postać ma prawo (swój szczebel i niższe; wygląd
+  PipBucka tylko z założonym PipBuckiem — po zdjęciu wraca drabinka). MG może tam wymusić dowolny wygląd; gracz go
+  wtedy nie zmieni. Napis na górnym pasku idzie za wyglądem (model PipBucka, urządzenie, „Stajnia · karta postaci”).
+- Na razie zmienia się tylko wygląd (kolory, tło, ramka) — układ i działanie karty są te same.
+
 Motyw PipBucka dla całego Foundry (v13/v14; grafiki rysowane od zera, bez logo z gier):
 - Ekran pauzy: godło Stajni — zębate wrota z numerem (opcja świata „Numer Stajni”, domyślnie 97) i napis
   „GRA WSTRZYMANA” z zakłóceniami kineskopu, w kolorze PipBucka gracza.

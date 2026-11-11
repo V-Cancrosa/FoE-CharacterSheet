@@ -1,0 +1,20 @@
+<section class="tab {{tab.cssClass}}" data-group="primary" data-tab="settings">
+  <h3>{{t "Sheet appearance"}}</h3>
+  <div class="skin-box">
+    <p>{{t "Ladder rung"}}: <b>{{skin.rung}}</b> — {{skin.why}}. {{t "Look from the ladder"}}: <b>{{skin.auto}}</b>.</p>
+    <label class="skin-row"><span>{{t "Look"}}</span>
+      <select name="flags.foe-rpg.skin.choice" {{#if skin.locked}}disabled{{/if}}>
+        <option value="">{{t "automatic (from the ladder)"}}</option>
+        {{#each skin.options}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+      </select></label>
+    {{#if skin.locked}}<p class="hint">{{t "The GM has set this sheet's look."}}</p>{{/if}}
+    {{#if isGM}}
+    <label class="skin-row"><span>{{t "GM: force a look"}}</span>
+      <select name="flags.foe-rpg.skin.forced">
+        <option value="">{{t "no — the ladder decides"}}</option>
+        {{#each skin.all}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+      </select></label>
+    {{/if}}
+    <p class="hint">{{t "The ladder, from the top: a PipBuck worn (Inventory → PipBuck, the “wear” switch; the model sets the shade) → another device with a screen worn (PRA, EqueMapper, portable terminal) → origin (Enclave, zebra, griffin) → the paper Stable character sheet. You can pick any look your character qualifies for; a PipBuck look only with a PipBuck worn."}}</p>
+  </div>
+</section>

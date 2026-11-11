@@ -45,6 +45,7 @@ import { magicHex } from "./fx-data.mjs";
 import { rollLockpick } from "./doors.mjs";
 import { spendLuckDialog } from "./luck.mjs";
 import { eatItem, eatLabel, survivalNote, survivalRows } from "./survival.mjs";
+import { SKINS, RUNGS, skinLadder, skinOf, skinById } from "./skins.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -158,7 +159,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     combat: { template: `${P}/actor/combat.hbs`, scrollable: [""] },
     gear: { template: `${P}/actor/gear.hbs`, scrollable: [""] },
     magic: { template: `${P}/actor/magic.hbs`, scrollable: [""] },
-    notes: { template: `${P}/actor/notes.hbs`, scrollable: [""] }
+    notes: { template: `${P}/actor/notes.hbs`, scrollable: [""] },
+    settings: { template: `${P}/actor/settings.hbs`, scrollable: [""] }
   };
 
   static TABS = {
@@ -168,7 +170,8 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         { id: "combat", label: N_("Combat") },
         { id: "gear", label: N_("Inventory") },
         { id: "magic", label: N_("Magic & flight") },
-        { id: "notes", label: N_("Traits & notes") }
+        { id: "notes", label: N_("Traits & notes") },
+        { id: "settings", label: N_("Settings"), icon: "fa-solid fa-gear" }
       ],
       initial: "main"
     }
@@ -183,6 +186,24 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     for (const tab of Object.values(ctx.tabs ?? {})) if (tab?.label) tab.label = t(tab.label);
     ctx.isNpc = this.document.type === "npc";
     ctx.isGM = game.user.isGM;
+    // wygląd karty: drabinka warunków (skins.mjs); gracz wybiera z dostępnych, MG może wymusić dowolny
+    const ladder = skinLadder(this.document);
+    const sf = this.document.flags?.["foe-rpg"]?.skin ?? {};
+    const why = { pipbuck: t("worn: {name}", { name: ladder.reason.name }), screen: t("worn: {name}", { name: ladder.reason.name }),
+      origin: t("origin: {race}", { race: this.document.system.race ?? "" }), basic: t("no PipBuck or device with a screen worn") }[ladder.reason.key];
+    ctx.skin = {
+      current: skinOf(this.document), rung: t(RUNGS[ladder.rung]), why, auto: t(skinById(ladder.auto)?.label ?? ""),
+      choice: sf.choice ?? "", forced: sf.forced ?? "",
+      options: ladder.available.map(id => ({ id, label: t(skinById(id).label), selected: id === sf.choice })),
+      all: SKINS.map(s => ({ id: s.id, label: t(s.label), selected: s.id === sf.forced })),
+      locked: !!(sf.forced && !game.user.isGM)
+    };
+    // napis na pasku: model PipBucka albo urządzenia, pochodzenie, papierowa karta
+    const sk = ctx.skin.current;
+    const dev = ladder.reason.key === "pipbuck" || ladder.reason.key === "screen" ? ladder.reason.name.toUpperCase() : "";
+    ctx.skin.bar = sk.startsWith("pipbuck") || sk === "stealth" ? `${dev && ladder.reason.key === "pipbuck" ? dev : "PIPBUCK 3000"} · STABLE-TEC`
+      : sk.startsWith("terminal") ? t("TERMINAL · {device}", { device: dev || "ROBRONCO" })
+      : { enclave: t("ENCLAVE · FIELD TERMINAL"), zebra: t("NOTES AND TALISMANS"), griffin: t("MERCENARY'S NOTEBOOK"), paper: t("STABLE · CHARACTER RECORD") }[sk] ?? "PIPBUCK 3000 · STABLE-TEC";
     ctx.looted = !!this.document.getFlag?.("foe-rpg", "looted");
     ctx.digSpeed = sys.skills.dig?.known !== false;
     const prog = xpProgression();
@@ -419,7 +440,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       groups.get(cat).push({
         id: i.id, name: i.name, img: i.img, qty: i.system.qty, ammoType: i.system.ammoType,
         usable: ["potion", "talisman", "drug", "medical", "food"].includes(cat),
-        equippable: cat === "saddle", equipped: !!i.system.equipped,
+        equippable: cat === "saddle" || cat === "pipbuck" || /\bPRA\b|personal research assistant|equemapper|terminal,?\s*portable/i.test(i.name), equipped: !!i.system.equipped,
         readable: cat === "book", bookStatus: cat === "book" ? bookStatus(this.document, i) : "",
         readTip: cat === "book" ? (() => {
           const b = parseBook(i.name, i.system.description);
@@ -619,6 +640,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!item) return;
     const on = !item.system.equipped;
     const updates = [{ _id: item.id, "system.equipped": on }];
+    // jeden PipBuck naraz (wygląd karty idzie za założonym)
+    if (on && item.system.category === "pipbuck" && /pip-?buck|stealthbuck|stealthfilly/i.test(item.name)) {
+      for (const o of this.document.items.filter(i => i.type === "gear" && i.id !== item.id && i.system.equipped && i.system.category === "pipbuck" && /pip-?buck|stealthbuck|stealthfilly/i.test(i.name))) updates.push({ _id: o.id, "system.equipped": false });
+    }
     if (on && saddleKindOf(item.name)) {
       for (const o of this.document.items.filter(i => i.type === "gear" && i.id !== item.id && i.system.equipped && saddleKindOf(i.name))) updates.push({ _id: o.id, "system.equipped": false });
     }
@@ -694,6 +719,10 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   _onRender(context, options) {
     super._onRender?.(context, options);
+    // wygląd karty (skins.mjs): klasa skin-… na oknie
+    const skin = skinOf(this.document);
+    for (const c of [...this.element.classList]) if (c.startsWith("skin-")) this.element.classList.remove(c);
+    this.element.classList.add(`skin-${skin}`);
     for (const el of this.element.querySelectorAll("[data-action=woundStep]")) {
       el.addEventListener("contextmenu", ev => { ev.preventDefault(); ev.stopPropagation(); this.#stepWound(el.dataset.loc, -1); });
     }
