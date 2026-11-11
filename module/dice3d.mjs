@@ -117,3 +117,13 @@ export function markCrit(roll, cls) {
   die.options.sfx = { id: SFX_ID, result };
   return roll;
 }
+
+/**
+ * Poczekaj, aż Dice So Nice pokaże kości tej wiadomości (karta rzutu pojawia się na czacie dopiero po animacji) —
+ * żeby karta skutku (zamek, przetrwanie…) nie wyprzedzała rzutu. Bez modułu albo po 12 s — od razu.
+ */
+export async function afterDice(msg) {
+  const d3 = globalThis.game?.dice3d;
+  if (!d3?.waitFor3DAnimationByMessageID || !msg?.id || !msg.rolls?.length) return;
+  await Promise.race([d3.waitFor3DAnimationByMessageID(msg.id).catch(() => null), new Promise(r => setTimeout(r, 12000))]);
+}

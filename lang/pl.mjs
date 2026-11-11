@@ -3947,6 +3947,11 @@ export default {
   "Search the rules…": "Szukaj w zasadach…",
   "The “?” links and the RULES button open the rules in a PipBuck-style window (chapters, search, back). Off — the ordinary journal.": "Linki „?” i przycisk ZASADY otwierają zasady w oknie w stylu PipBucka (rozdziały, wyszukiwarka, wstecz). Wyłączone — zwykły dziennik.",
   // ---- module/skins.mjs, sheets.mjs (wygląd karty)
+  "ENCLAVE": "ENKLAWA",
+  "NOTEBOOK": "NOTES",
+  "NOTES": "NOTATKI",
+  "STABLE": "STAJNIA",
+  "TERMINAL": "TERMINAL",
   "Basic": "Podstawowy",
   "Device with a screen worn": "Założone urządzenie z ekranem",
   "ENCLAVE · FIELD TERMINAL": "ENKLAWA · TERMINAL POLOWY",

@@ -851,7 +851,10 @@ body[data-foe-pip="white"] :is(.foe-rpg, .foe-card) img[src*="foe-rpg/icons/"] {
 .foe-rpg .cat-caps { margin-left: auto; color: var(--pip-mid); text-transform: uppercase; font-size: 12px; }
 .foe-rpg .cat-caps b { color: var(--pip-bright); font-size: 14px; }
 .foe-rpg .cat-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; border-top: 1px solid var(--pip-line); }
-.foe-rpg .cat-table thead th { position: sticky; top: 0; z-index: 2; background: #050a07; }
+.foe-rpg .cat-table thead th { position: sticky; top: 0; z-index: 2; background: var(--pip-bg); }
+/* ikonki w katalogu: tabela nie może ich ścisnąć */
+.foe-rpg .cat-table td:first-child { width: 30px; min-width: 30px; }
+.foe-rpg .cat-table img.icon { min-width: 24px; max-width: none; }
 .foe-rpg .cat-table td { font-size: 12px; }
 .foe-rpg .cat-table td.nm { font-weight: 700; min-width: 11rem; }
 .foe-rpg .cat-table td.nm i { color: var(--pip-dim); font-size: 10px; cursor: help; }
