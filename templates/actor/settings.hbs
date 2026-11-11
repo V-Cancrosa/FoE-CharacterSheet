@@ -20,6 +20,7 @@
         <option value="">{{t "no — the ladder decides"}}</option>
         {{#each skin.all}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
       </select></label>
+    <p><a class="button" data-foe-skin-editor><i class="fa-solid fa-palette"></i> {{t "GM: custom looks (editor)"}}</a></p>
     {{/if}}
     <p class="hint">{{t "The ladder, from the top: power armor worn (helmet HUD) → a PipBuck worn (Inventory → PipBuck, the “wear” switch; the model sets the shade) → another device with a screen worn (PRA, EqueMapper, portable terminal) → organization (Steel Rangers, raiders, EVC — from the creator's Organization trait) or origin (Enclave, zebra, griffin, ghoul, changeling) → the paper Stable character sheet. You can pick any look your character qualifies for; a PipBuck look only with a PipBuck worn."}}</p>
   </div>

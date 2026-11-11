@@ -10,9 +10,10 @@
  * Akcent: jednorożec z własnym kolorem magii może go użyć jako koloru ekranu (flaga foe-rpg.skin.accent).
  */
 import { t, N_ } from "./i18n.mjs";
-import { skinOf, overlaysOf, accentOk, devices } from "./skins.mjs";
+import { skinOf, overlaysOf, accentOk, devices, skinPaint, setCustomSkins } from "./skins.mjs";
 import { dehydrationLevel } from "./body.mjs";
 import { magicColorOf, customMagic } from "./fx-data.mjs";
+import { registerSkinEditorMenu } from "./skin-editor.mjs";
 const F = "foe-rpg";
 
 let active = null;   // wygląd ostatnio używanej karty postaci
@@ -24,10 +25,17 @@ export const setActiveSkin = skin => { active = skin; };
 const TAG = { terminal: N_("TERMINAL"), "terminal-white": N_("TERMINAL"), enclave: N_("ENCLAVE"), griffin: N_("NOTEBOOK"), zebra: N_("NOTES"), paper: N_("STABLE"),
   "power-armor": "HUD", "power-armor-enclave": "HUD", rangers: N_("CODEX"), raider: N_("SCRAPS"), ghoul: N_("OLD PAPERS"), changeling: N_("HIVE") };
 
+/** Pomaluj okno albo kartę czatu: klasa skin-<baza> i (dla własnych wyglądów MG) zmienne kolorów. */
 export function applySkin(el, skin) {
   if (!el || !skin) return;
+  const p = skinPaint(skin);
   for (const c of [...el.classList]) if (c.startsWith("skin-")) el.classList.remove(c);
-  el.classList.add(`skin-${skin}`);
+  el.classList.add(`skin-${p.base}`);
+  for (const v of (el.dataset.foeVars ?? "").split(" ").filter(Boolean)) el.style.removeProperty(v);
+  for (const [k, v] of Object.entries(p.vars)) el.style.setProperty(k, v);
+  if (Object.keys(p.vars).length) el.dataset.foeVars = Object.keys(p.vars).join(" ");
+  else delete el.dataset.foeVars;
+  if (skin.startsWith("c-")) el.dataset.foeSkin = skin; else delete el.dataset.foeSkin;
 }
 
 function actorOf(app) {
@@ -77,7 +85,7 @@ export function applyAccent(el, actor, skin) {
   if (!el) return;
   const on = actor?.flags?.[F]?.skin?.accent && customMagic(actor) && accentOk(skin);
   if (on) el.style.setProperty("--pip", magicColorOf(actor));
-  else el.style.removeProperty("--pip");
+  else if (!skinPaint(skin).vars["--pip"]) el.style.removeProperty("--pip");
 }
 
 /** Opcja świata: SATS i licznik Geigera tylko z założonym PipBuckiem (NPC bez ograniczeń). */
@@ -87,12 +95,24 @@ export function needsPipbuck(actor) {
   return rule && actor?.type === "character" && !devices(actor).pipbuck;
 }
 
+/** Odśwież otwarte karty postaci (po zmianie ustawień wyglądu). */
+export function rerenderSheets() {
+  for (const app of foundry.applications.instances?.values?.() ?? []) if (app.document?.documentName === "Actor") app.render?.();
+}
+
 export function registerSkinSettings() {
+  registerSkinEditorMenu();
+  game.settings.register(F, "customSkins", {
+    scope: "world", config: false, type: Array, default: [],
+    onChange: v => { setCustomSkins(v); rerenderSheets(); }
+  });
+  try { setCustomSkins(game.settings.get(F, "customSkins")); } catch { /* wczyta się w ready */ }
+  Hooks.once("ready", () => setCustomSkins(game.settings.get(F, "customSkins")));
   game.settings.register(F, "sheetEffects", {
     name: "State effects on character sheets",
     hint: "Static after an electric shock, radiation tint, a vignette when weakened by thirst or hunger, NO SIGNAL when unconscious, KIA when dead, a frame when burning, poisoned or paralyzed. Only on your screen.",
     scope: "client", config: true, type: Boolean, default: true,
-    onChange: () => { for (const app of foundry.applications.instances?.values?.() ?? []) if (app.document?.documentName === "Actor") app.render?.(); }
+    onChange: () => rerenderSheets()
   });
   game.settings.register(F, "pipbuckGadgets", {
     name: "SATS and Geiger counter only with a PipBuck",
@@ -106,7 +126,7 @@ export function registerSkinHooks() {
     const el = html instanceof HTMLElement ? html : app?.element;
     if (!el?.classList?.contains("foe-rpg")) return;
     if (el.classList.contains("actor") && SKINNED.has(app.document?.type)) return;   // karta postaci ustawia się sama
-    if (el.matches(".vehicle, .terminal, .casino")) return;
+    if (el.matches(".vehicle, .terminal, .casino, .foe-skin-editor")) return;
     const actor = actorOf(app);
     if (actor && !SKINNED.has(actor.type)) return;
     applySkin(el, actor ? skinOf(actor) : active);
@@ -122,7 +142,8 @@ export function registerSkinHooks() {
     for (const c of cards) {
       applySkin(c, skin);
       const tag = c.querySelector(".fc-tag > span:first-child");
-      if (tag && TAG[skin] && /^PIPBUCK\b/.test(tag.textContent)) tag.textContent = tag.textContent.replace(/^PIPBUCK/, t(TAG[skin]));
+      const label = skinPaint(skin).tag ?? (TAG[skin] ? t(TAG[skin]) : null);
+      if (tag && label && /^PIPBUCK\b/.test(tag.textContent)) tag.textContent = tag.textContent.replace(/^PIPBUCK/, label);
     }
   });
 }
