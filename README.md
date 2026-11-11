@@ -698,6 +698,20 @@ daty; rozlicza aktywny MG, kartkami dla gracza i MG):
     promieniowania (1000 radów albo doba choroby popromiennej), rzuca END ¼ — sukces: INT ½ (+25 z Fixation) i ghul
     (rasa „Ghul (wcześniej: …)” i cecha); porażka INT — dziczeje w ciągu kilku dni, krytyczna porażka — od razu dziki ghul.
 
+Sen i niewyspanie (s. 479–480, opcja świata „Sen i niewyspanie”, domyślnie włączona; liczy aktywny MG):
+- Kucyki, zebry i alikorny: 2 godziny snu na leżąco co 48 h (drzemki na stojąco są w podróży); inne rasy (gryfy,
+  psy, podmieńce…): 8 h na 24 h. Licznik startuje przy pierwszym upływie czasu po aktualizacji — nikt nie dostaje kar od razu.
+- **Odpocznij** (zakładka Walka) ma pole *Sen na leżąco* (domyślnie zaznaczone): wystarczająco długi sen zeruje licznik.
+  Przeskok czasu dłuższy niż potrzeba snu też (chyba że MG wybrał „pomiń”).
+- Ponad granicę: −1 INT i END za każde 2 h (cecha „Niewyspanie”, znika po śnie), rzut END co godzinę (MFD 1 —
+  podręcznik nie podaje trudności). Porażka: zasypia (status snu) — rana budzi na godzinę, inaczej śpi 3 h (kucyki)
+  albo 8 h. Udany przerzut kartą szczęścia — jednak nie zasypia.
+- 48 h ponad granicę: karta decyzji MG — END ½: krytyczny sukces — kolejna godzina, sukces — utrata przytomności,
+  porażka — śmierć.
+- Kawa, ziarna kawy, Daturana („cannot sleep for 2d4 / 4d4 hours”) wydłużają granicę o wynik rzutu, do następnego snu.
+- Ghule i alikorny, które dostały co najmniej 100 radów w ciągu dwóch dni, nie potrzebują snu.
+- Wiersz „Niewyspanie” w sekcji zdrowia pokazuje się od 75% granicy.
+
 Skażenie (tabela XXXVI, s. 485–487, i „They Were Ponies, Once”, s. 610–612) — suwak w zakładce Walka pod zdrowiem:
 - 5 rombów i 4 kreski. MG klika **Dawka** (drobna ekspozycja +1, kleks z sufitu +2–4, kałuża +6 albo własna liczba)
   — system sam rzuca Szczęście na pozycji, na której suwak stanął (2. romb ¼, 3. romb 1/10 dla tych, którzy zdali,

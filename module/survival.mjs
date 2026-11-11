@@ -22,6 +22,7 @@ import { ruleLink } from "./rules.mjs";
 import { attrTest } from "./attr-test.mjs";
 import { addMutation, taintReroll, addTaint, settlementWater, sceneTaintWater } from "./taint.mjs";
 import { itemTaint, TAINT_WATER } from "./taint-data.mjs";
+import { sleepTick, frozenSleep, resolveSleep, sleepRow, stimulant, sleepReroll } from "./sleep.mjs";
 import { needsPipbuck } from "./skin-apply.mjs";
 import {
   foodInfo, dietOf, fitsDiet, foodRads, dayOf, freshState, settleDays, ambientRads, exposure, clickCount, STARVE_DEATH,
@@ -399,6 +400,8 @@ async function feed(actor, item, lines = []) {
     if (healed?.healed) lines.push(t("Heals: {list}.", { list: healed.text }));
   }
   if (meals && await clearPenalty(actor, "starvation")) lines.push(t("A full meal: the starvation penalties are gone."));
+  const stim = await stimulant(actor, item.system.description);
+  if (stim) lines.push(stim);
   if (info.effects.length) lines.push(t("Effects (the GM applies them): {list}.", { list: info.effects.join("; ") }));
   return eatCard(actor, item, info, lines);
 }
@@ -439,6 +442,8 @@ export function survivalRows(actor) {
   if (st?.wellFed != null && st.wellFed === dayOf(w)) rows.push({ ruleHtml: ruleLink("survival/food"), name: t("Well fed"), desc: t("+15 to END rolls until midnight") });
   const log = flagOf(actor, "radlog");
   if (log?.severe && setting("radiationChecks")) rows.push({ ruleHtml: ruleLink("survival/radiation"), name: t("Severe radiation exposure"), desc: t("END ¼ roll in {h} h unless the rads are reduced (failure — a mutation)", { h: Math.max(0, Math.ceil((log.severe.at + SEVERE_WAIT - w) / 3600)) }), alert: true });
+  const sr = sleepRow(actor);
+  if (sr) rows.push({ ruleHtml: ruleLink("survival/sleep"), ...sr });
   if (log?.poison) rows.push({ ruleHtml: ruleLink("survival/radiation"), name: t("Radiation poisoning"), desc: t("penalties as at 800 rads; death in {h} h unless the rads are reduced (RadAway)", { h: Math.max(0, Math.ceil((log.poison.at + POISON_DEATH - w) / 3600)) }), alert: true });
   return rows;
 }
@@ -630,6 +635,7 @@ export async function timeTick(worldTime, dt, { rads = true } = {}) {
       if (!st || st.day !== day) await settleActor(a, day);
       await thirstTick(a, worldTime);
       await radiationTick(a, worldTime);
+      await sleepTick(a, worldTime, Number(dt) || 0);
       // koniec 8 h bez kar głodu — przelicz kartę
       if (st?.ignoreUntil && st.ignoreUntil <= worldTime) await a.setFlag(F, "survival.ignoreUntil", null);
     }).catch(err => console.error(`${F} | survival: ${a.name}`, err));
@@ -686,8 +692,10 @@ export function skipInfo(actor, from, to) {
 export async function freezeSkip(actor, from, to) {
   const dt = to - from, days = midnights(from, to);
   const st = stateOf(actor), th = flagOf(actor, "thirst"), log = flagOf(actor, "radlog");
-  const snap = { st: st ? foundry.utils.deepClone(st) : null, th: th ? foundry.utils.deepClone(th) : null };
+  const sl = flagOf(actor, "sleep");
+  const snap = { st: st ? foundry.utils.deepClone(st) : null, th: th ? foundry.utils.deepClone(th) : null, sl: sl ? foundry.utils.deepClone(sl) : null };
   const upd = {};
+  if (sl) upd[`flags.${F}.sleep`] = frozenSleep(sl, dt);
   if (st) upd[`flags.${F}.survival`] = {
     ...st, day: (Number(st.day) || dayOf(from)) + days,
     ignoreUntil: st.ignoreUntil ? st.ignoreUntil + dt : st.ignoreUntil ?? null,
@@ -810,6 +818,8 @@ export async function resolveSkip(actor, snap, choice, { from, to }) {
   }
   await thirstTick(actor, now());
   await radiationTick(actor, now());
+  const sleepLine = await resolveSleep(actor, snap?.sl ?? null, food, from, to);
+  if (sleepLine) lines.push(sleepLine);
   return lines;
 }
 
@@ -1073,6 +1083,7 @@ export async function onReroll(message) {
   }
   if (!game.users.activeGM?.isSelf) return null;
   if (check.kind === "taint") return taintReroll(actor, check, res);
+  if (check.kind === "sleep") return sleepReroll(actor, res);
   const lines = [];
   if (check.kind === "lethal" && passed(res) && actor.statuses?.has?.("dead")) {
     await toggleStatus(actor, "dead", false);
