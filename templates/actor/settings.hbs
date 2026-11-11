@@ -8,6 +8,12 @@
         {{#each skin.options}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
       </select></label>
     {{#if skin.locked}}<p class="hint">{{t "The GM has set this sheet's look."}}</p>{{/if}}
+    {{#if skin.canAccent}}
+    <label class="skin-row"><span>{{t "Accent: magic colour"}}</span>
+      <span><input type="checkbox" name="flags.foe-rpg.skin.accent" {{#if skin.accent}}checked{{/if}}> <small>{{t "dark looks take the screen colour from the magic colour"}}</small></span></label>
+    {{/if}}
+    <label class="skin-row"><span>{{t "State effects"}}</span>
+      <span><input type="checkbox" data-foe-sheetfx {{#if skin.effects}}checked{{/if}}> <small>{{t "static, radiation, NO SIGNAL, KIA… — only on your screen"}}</small></span></label>
     {{#if isGM}}
     <label class="skin-row"><span>{{t "GM: force a look"}}</span>
       <select name="flags.foe-rpg.skin.forced">
@@ -15,6 +21,6 @@
         {{#each skin.all}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
       </select></label>
     {{/if}}
-    <p class="hint">{{t "The ladder, from the top: a PipBuck worn (Inventory → PipBuck, the “wear” switch; the model sets the shade) → another device with a screen worn (PRA, EqueMapper, portable terminal) → origin (Enclave, zebra, griffin) → the paper Stable character sheet. You can pick any look your character qualifies for; a PipBuck look only with a PipBuck worn."}}</p>
+    <p class="hint">{{t "The ladder, from the top: power armor worn (helmet HUD) → a PipBuck worn (Inventory → PipBuck, the “wear” switch; the model sets the shade) → another device with a screen worn (PRA, EqueMapper, portable terminal) → organization (Steel Rangers, raiders, EVC — from the creator's Organization trait) or origin (Enclave, zebra, griffin, ghoul, changeling) → the paper Stable character sheet. You can pick any look your character qualifies for; a PipBuck look only with a PipBuck worn."}}</p>
   </div>
 </section>

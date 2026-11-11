@@ -14,6 +14,7 @@ import { attackWithWeapon } from "./attack.mjs";
 import { spendActions } from "./tracker.mjs";
 import { t, tn, tmap } from "./i18n.mjs";
 import { spellFx, magicColorOf } from "./fx-data.mjs";
+import { needsPipbuck } from "./skin-apply.mjs";
 
 const F = "foe-rpg";
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -87,7 +88,7 @@ export async function castSpell(actor, spell) {
     const cost = castCost(s.cost, layers, held);
     const deficit = Math.max(0, cost - pool);
     const satsAp = s.satsCost * (layers === 1 ? 3 : 1);
-    return { layers, cost, deficit, satsAp, satsOk: layers <= 1 && sats.value >= satsAp };
+    return { layers, cost, deficit, satsAp, satsOk: layers <= 1 && sats.value >= satsAp && !needsPipbuck(actor) };
   };
   const readExtra = form => {
     const c = calc(form);
@@ -107,7 +108,7 @@ export async function castSpell(actor, spell) {
       if (box) {
         box.disabled = !c.satsOk;
         if (!c.satsOk) box.checked = false;
-        form.querySelector(".sats-cost").textContent = c.layers > 1 ? t("not possible in SATS with 2+ layers (2 actions)")
+        form.querySelector(".sats-cost").textContent = needsPipbuck(actor) ? t("needs a PipBuck worn") : c.layers > 1 ? t("not possible in SATS with 2+ layers (2 actions)")
           : `−${c.satsAp} AP${c.layers === 1 ? " (overglow ×3)" : ""} · ${t("you have {n}", { n: sats.value })}`;
       }
     };

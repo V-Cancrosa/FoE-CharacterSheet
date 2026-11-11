@@ -25,7 +25,7 @@ import { registerLuckHooks } from "./luck.mjs";
 import { registerSurvivalSettings, registerSurvivalHooks } from "./survival.mjs";
 import { registerConfirmSettings, registerConfirmHooks } from "./confirm.mjs";
 import { registerTimeSkipSettings, registerTimeSkipHooks } from "./timeskip.mjs";
-import { registerSkinHooks } from "./skin-apply.mjs";
+import { registerSkinHooks, registerSkinSettings } from "./skin-apply.mjs";
 import { registerConditionSettings } from "./conditions.mjs";
 import { registerDice3d, registerDice3dSettings } from "./dice3d.mjs";
 import { registerRollTableClass, registerTableHooks } from "./tables.mjs";
@@ -109,6 +109,7 @@ Hooks.once("init", () => {
   registerSurvivalHooks();
   registerTimeSkipHooks();
   registerConfirmHooks();
+  registerSkinSettings();
   registerSkinHooks();
   registerDice3d();
   registerDice3dSettings();

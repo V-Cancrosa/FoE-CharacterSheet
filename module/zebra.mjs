@@ -13,6 +13,7 @@ import { promptMfd, rollTest, threshold, stepIndex } from "./rolls.mjs";
 import { attackWithWeapon } from "./attack.mjs";
 import { spendActions } from "./tracker.mjs";
 import { t, tn, isPL, tmap, tfields } from "./i18n.mjs";
+import { needsPipbuck } from "./skin-apply.mjs";
 
 const F = "foe-rpg";
 const { DialogV2 } = foundry.applications.api;
@@ -198,7 +199,7 @@ export async function castRitual(actor, recipe) {
   if (!magic || magic.known === false) return warn(t("{name} doesn't know zebra magic.", { name: actor.name }));
   const sats = actor.system.resources.sats;
   const extraHtml = `<div class="dlg-attack"><div class="atk-info"><div>${t("Ritual · ingredients: {r}", { r: RARITY[s.rarity] })}${s.special ? ` + ${esc(s.special)}` : ""}</div></div>
-    <label class="atk-row atk-check"><input type="checkbox" name="sats" ${sats.value >= 40 ? "" : "disabled"}><span>SATS</span><small>−40 AP (${t("you have {n}", { n: sats.value })})</small></label></div>`;
+    <label class="atk-row atk-check"><input type="checkbox" name="sats" ${sats.value >= 40 && !needsPipbuck(actor) ? "" : "disabled"}><span>SATS</span><small>${needsPipbuck(actor) ? t("needs a PipBuck worn") : `−40 AP (${t("you have {n}", { n: sats.value })})`}</small></label></div>`;
   const rc = rollContext(actor, { kind: "skill", skill: "magic", skillAttr: magic.attr }, { manualMod: magic.mod });
   const r = await promptMfd(t("Ritual: {name}", { name: recipe.name }), magic.tn, rc, {
     extraHtml, readExtra: f => ({ steps: 0, mod: 0, notes: f.elements.sats?.checked ? ["SATS −40 AP"] : [], data: { sats: !!f.elements.sats?.checked } })

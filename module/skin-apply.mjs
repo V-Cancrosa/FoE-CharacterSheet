@@ -5,9 +5,15 @@
  *   - karty na czacie (rzuty, zamek, przetrwanie…) — wygląd postaci, która mówi; „PIPBUCK //” na pasku karty zmienia
  *     się na „STAJNIA //”, „TERMINAL //” itd.
  * Pojazdy, terminale i stoły do gry mają własny wygląd — bez zmian.
+ * Do tego nakładki stanu na karcie postaci (overlaysOf): zakłócenia, promieniowanie, osłabienie, utrata przytomności,
+ * śmierć, ogień/trucizna/paraliż — gracz wyłącza je u siebie (ustawienie klienta „sheetEffects”, też w zakładce Ustawienia).
+ * Akcent: jednorożec z własnym kolorem magii może go użyć jako koloru ekranu (flaga foe-rpg.skin.accent).
  */
 import { t, N_ } from "./i18n.mjs";
-import { skinOf } from "./skins.mjs";
+import { skinOf, overlaysOf, accentOk, devices } from "./skins.mjs";
+import { dehydrationLevel } from "./body.mjs";
+import { magicColorOf, customMagic } from "./fx-data.mjs";
+const F = "foe-rpg";
 
 let active = null;   // wygląd ostatnio używanej karty postaci
 const SKINNED = new Set(["character", "npc"]);
@@ -15,7 +21,8 @@ const SKINNED = new Set(["character", "npc"]);
 export const setActiveSkin = skin => { active = skin; };
 
 /** Pasek kart czatu według wyglądu. */
-const TAG = { terminal: N_("TERMINAL"), "terminal-white": N_("TERMINAL"), enclave: N_("ENCLAVE"), griffin: N_("NOTEBOOK"), zebra: N_("NOTES"), paper: N_("STABLE") };
+const TAG = { terminal: N_("TERMINAL"), "terminal-white": N_("TERMINAL"), enclave: N_("ENCLAVE"), griffin: N_("NOTEBOOK"), zebra: N_("NOTES"), paper: N_("STABLE"),
+  "power-armor": "HUD", "power-armor-enclave": "HUD", rangers: N_("CODEX"), raider: N_("SCRAPS"), ghoul: N_("OLD PAPERS"), changeling: N_("HIVE") };
 
 export function applySkin(el, skin) {
   if (!el || !skin) return;
@@ -28,6 +35,70 @@ function actorOf(app) {
   if (doc?.documentName === "Actor") return doc;
   if (doc?.parent?.documentName === "Actor") return doc.parent;
   return app?.actor ?? app?.options?.actor ?? null;
+}
+
+/** Stan postaci do nakładek (overlaysOf). */
+export function stateOf(actor) {
+  const c = actor?.flags?.[F]?.conditions ?? {};
+  const st = actor?.statuses;
+  const starving = [...(actor?.items ?? [])].some(i => i.type === "feature" && i.flags?.[F]?.starvation && i.system?.active !== false)
+    && !((actor?.flags?.[F]?.survival?.ignoreUntil ?? 0) > (globalThis.game?.time?.worldTime ?? 0));
+  return {
+    dead: !!actor?.system?.dead || !!st?.has?.("dead"), out: !!st?.has?.("unconscious"),
+    jolted: !!(c.jolted || c.shocked), burning: !!c.burning, poisoned: !!c.poisoned, paralyzed: !!c.paralyzed,
+    rads: actor?.system?.resources?.rads?.value ?? 0, thirst: dehydrationLevel(actor), starving
+  };
+}
+
+const effectsOn = () => { try { return game.settings.get(F, "sheetEffects") !== false; } catch { return true; } };
+const LABEL = { "ov-out": N_("NO SIGNAL"), "ov-dead": N_("KIA") };
+
+/** Nakładki stanu na oknie karty postaci. */
+export function applyOverlays(el, actor) {
+  if (!el) return;
+  for (const c of [...el.classList]) if (c.startsWith("ov-")) el.classList.remove(c);
+  let box = el.querySelector(":scope > .foe-ov");
+  const list = effectsOn() ? overlaysOf(stateOf(actor)) : [];
+  if (!list.length) { box?.remove(); return; }
+  el.classList.add(...list);
+  if (!box) {
+    box = document.createElement("div");
+    box.className = "foe-ov";
+    box.setAttribute("aria-hidden", "true");
+    box.innerHTML = `<span class="foe-ov-label"></span>`;
+    el.append(box);
+  }
+  const lbl = list.map(c => LABEL[c]).find(Boolean);
+  box.querySelector(".foe-ov-label").textContent = lbl ? t(lbl) : "";
+}
+
+/** Akcent w kolorze magii: zmienna --pip na oknie (albo nic). */
+export function applyAccent(el, actor, skin) {
+  if (!el) return;
+  const on = actor?.flags?.[F]?.skin?.accent && customMagic(actor) && accentOk(skin);
+  if (on) el.style.setProperty("--pip", magicColorOf(actor));
+  else el.style.removeProperty("--pip");
+}
+
+/** Opcja świata: SATS i licznik Geigera tylko z założonym PipBuckiem (NPC bez ograniczeń). */
+export function needsPipbuck(actor) {
+  let rule = false;
+  try { rule = !!game.settings.get(F, "pipbuckGadgets"); } catch { /* przed init */ }
+  return rule && actor?.type === "character" && !devices(actor).pipbuck;
+}
+
+export function registerSkinSettings() {
+  game.settings.register(F, "sheetEffects", {
+    name: "State effects on character sheets",
+    hint: "Static after an electric shock, radiation tint, a vignette when weakened by thirst or hunger, NO SIGNAL when unconscious, KIA when dead, a frame when burning, poisoned or paralyzed. Only on your screen.",
+    scope: "client", config: true, type: Boolean, default: true,
+    onChange: () => { for (const app of foundry.applications.instances?.values?.() ?? []) if (app.document?.documentName === "Actor") app.render?.(); }
+  });
+  game.settings.register(F, "pipbuckGadgets", {
+    name: "SATS and Geiger counter only with a PipBuck",
+    hint: "House rule: a player character uses SATS and sees and hears the Geiger counter only with a PipBuck worn (Inventory → PipBuck). NPCs and the GM are not limited.",
+    scope: "world", config: true, type: Boolean, default: false
+  });
 }
 
 export function registerSkinHooks() {

@@ -48,7 +48,7 @@ body :is(.foe-rpg, .foe-card).skin-griffin .window-content, body .foe-card.skin-
 }
 
 /* ---------- Jasne karty: papier ze Stajni i notatki zebry ---------- */
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra) {
+body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) {
   --pip-glow: transparent;
   --pip-line: color-mix(in srgb, var(--pip) 30%, transparent);
   --pip-faint: color-mix(in srgb, var(--pip) 8%, transparent);
@@ -67,11 +67,23 @@ body :is(.foe-rpg, .foe-card).skin-zebra {
   --pip-bg: #e6cf9c; --pip-bg-hi: #f0dfb4; --pip-void: #d4b97e; --pip-ink: #f0dfb4;
   border: 2px solid #7a4a1c;
 }
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra) .window-content, body .foe-card:is(.skin-paper, .skin-zebra) {
+body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) .window-content, body .foe-card:is(.skin-paper, .skin-zebra, .skin-ghoul) {
   text-shadow: none;
   background: radial-gradient(ellipse 120% 90% at 50% 35%, var(--pip-bg-hi) 0%, var(--pip-bg) 70%, var(--pip-void) 125%);
 }
 /* papier: bez linii skanowania, zamiast nich delikatne linie kartki */
+body :is(.foe-rpg, .foe-card).skin-ghoul {
+  --pip: #4a3f1e; --pip-alert: #a3320e;
+  --pip-bg: #d6c891; --pip-bg-hi: #e4d9a8; --pip-void: #b5a364; --pip-ink: #e4d9a8;
+  border: 1px solid #8a7a3e;
+}
+/* ghul: pożółkłe papiery z plamami */
+body :is(.foe-rpg, .foe-card).skin-ghoul .window-content::after, body .foe-card.skin-ghoul::after {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(120, 95, 30, .16) 0 26px, transparent 46px),
+    radial-gradient(circle at 82% 68%, rgba(120, 95, 30, .13) 0 34px, transparent 60px),
+    radial-gradient(circle at 60% 12%, rgba(90, 110, 30, .1) 0 18px, transparent 32px);
+}
 body :is(.foe-rpg, .foe-card).skin-paper .window-content::after, body .foe-card.skin-paper::after {
   background: repeating-linear-gradient(to bottom, transparent 0 23px, rgba(31, 58, 95, .07) 23px 24px);
 }
@@ -79,12 +91,143 @@ body :is(.foe-rpg, .foe-card).skin-paper .window-content::after, body .foe-card.
 body :is(.foe-rpg, .foe-card).skin-zebra .window-content::after, body .foe-card.skin-zebra::after {
   background: repeating-linear-gradient(115deg, rgba(59, 36, 18, .07) 0 6px, transparent 6px 22px) left / 14px 100% no-repeat;
 }
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra) .window-header {
+body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) .window-header {
   background: var(--pip); color: var(--pip-ink); text-shadow: none; border-bottom: 0;
 }
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra) .window-header :is(button, a) { color: var(--pip-ink); }
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra) :is(input, select, textarea) { background: rgba(255, 255, 255, .35); }
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra) .meter > span { box-shadow: none; }
+body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) .window-header :is(button, a) { color: var(--pip-ink); }
+body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) :is(input, select, textarea) { background: rgba(255, 255, 255, .35); }
+body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) .meter > span { box-shadow: none; }
+
+/* ---------- Pancerz wspomagany: wizjer hełmu (HUD) ---------- */
+body :is(.foe-rpg, .foe-card):is(.skin-power-armor, .skin-power-armor-enclave) {
+  --pip-bg: #0a0604; --pip-bg-hi: #1a0e07; --pip-void: #030201;
+  border: 2px solid var(--pip-dim);
+}
+body :is(.foe-rpg, .foe-card).skin-power-armor { --pip: #ff9a3c; --pip-alert: #ff3b2a; }
+body :is(.foe-rpg, .foe-card).skin-power-armor-enclave { --pip: #7fd4ff; --pip-alert: #ff5a4a; --pip-bg: #02070c; --pip-bg-hi: #071624; --pip-void: #010306; }
+/* narożniki wizjera */
+body .foe-rpg:is(.skin-power-armor, .skin-power-armor-enclave) .window-content {
+  background:
+    linear-gradient(var(--pip-mid), var(--pip-mid)) top 4px left 4px / 22px 2px no-repeat,
+    linear-gradient(var(--pip-mid), var(--pip-mid)) top 4px left 4px / 2px 22px no-repeat,
+    linear-gradient(var(--pip-mid), var(--pip-mid)) top 4px right 4px / 22px 2px no-repeat,
+    linear-gradient(var(--pip-mid), var(--pip-mid)) top 4px right 4px / 2px 22px no-repeat,
+    linear-gradient(var(--pip-mid), var(--pip-mid)) bottom 4px left 4px / 22px 2px no-repeat,
+    linear-gradient(var(--pip-mid), var(--pip-mid)) bottom 4px left 4px / 2px 22px no-repeat,
+    linear-gradient(var(--pip-mid), var(--pip-mid)) bottom 4px right 4px / 22px 2px no-repeat,
+    linear-gradient(var(--pip-mid), var(--pip-mid)) bottom 4px right 4px / 2px 22px no-repeat,
+    radial-gradient(ellipse 120% 90% at 50% 40%, var(--pip-bg-hi) 0%, var(--pip-bg) 65%, var(--pip-void) 115%);
+}
+body .foe-rpg:is(.skin-power-armor, .skin-power-armor-enclave) .pip-bar { letter-spacing: .2em; }
+body .foe-rpg:is(.skin-power-armor, .skin-power-armor-enclave) .window-content::after {
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, .14) 2px 3px),
+    radial-gradient(ellipse 75% 70% at center, transparent 62%, rgba(0, 0, 0, .65) 100%);
+}
+
+/* ---------- Stalowi Strażnicy: wojskowy kodeks polowy ---------- */
+body :is(.foe-rpg, .foe-card).skin-rangers {
+  --pip: #d9dee4; --pip-alert: #ff5a48; --pip-glow: transparent;
+  --pip-mid: #b3bac3; --pip-dim: #6d7680; --pip-line: rgba(217, 222, 228, .28); --pip-faint: rgba(217, 222, 228, .07);
+  --pip-bg: #14181d; --pip-bg-hi: #1e242b; --pip-void: #0b0d10; --pip-ink: #111418;
+  border: 2px solid #59636e; box-shadow: 0 0 0 1px #000, 0 8px 30px rgba(0, 0, 0, .7);
+}
+body :is(.foe-rpg, .foe-card).skin-rangers :is(.pip-bar, .fc-tag) { --pip-ink: #f3f3f3; background: #9e2a22; color: #f3f3f3; box-shadow: none; }
+body .foe-rpg.skin-rangers .window-content::after {
+  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .025) 0 2px, transparent 2px 9px);
+}
+
+/* ---------- Najeźdźcy: brudne skrawki ---------- */
+body :is(.foe-rpg, .foe-card).skin-raider {
+  --pip: #e6cfa6; --pip-alert: #ff3b2a; --pip-glow: transparent;
+  --pip-mid: #c4ab82; --pip-dim: #85694a; --pip-line: rgba(230, 207, 166, .3); --pip-faint: rgba(230, 207, 166, .08);
+  --pip-bg: #1d110c; --pip-bg-hi: #2b1910; --pip-void: #100906; --pip-ink: #1d110c;
+  border: 2px dashed #7a2a18; box-shadow: 0 0 0 1px #000, 0 8px 30px rgba(0, 0, 0, .7);
+}
+body :is(.foe-rpg, .foe-card).skin-raider :is(.pip-bar, .fc-tag) { --pip-ink: #f0e2c4; background: #7a2414; color: #f0e2c4; box-shadow: none; transform: rotate(-.4deg); }
+body .foe-rpg.skin-raider .window-content::after {
+  background:
+    radial-gradient(circle at 88% 14%, rgba(140, 20, 10, .22) 0 6px, transparent 22px),
+    radial-gradient(circle at 12% 80%, rgba(140, 20, 10, .16) 0 4px, transparent 16px),
+    repeating-linear-gradient(80deg, rgba(0, 0, 0, .07) 0 3px, transparent 3px 11px);
+}
+
+/* ---------- Podmieniec: chityna i zielony płomień ---------- */
+body :is(.foe-rpg, .foe-card).skin-changeling {
+  --pip: #93ff6e; --pip-alert: #ff5a7a;
+  --pip-bg: #071012; --pip-bg-hi: #0f2026; --pip-void: #020506;
+  border: 2px solid #2c4a52; box-shadow: 0 0 0 1px #000, 0 0 18px rgba(147, 255, 110, .18), 0 8px 30px rgba(0, 0, 0, .7);
+}
+body .foe-rpg.skin-changeling .window-content::after {
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 110%, rgba(147, 255, 110, .1), transparent 70%),
+    repeating-linear-gradient(60deg, rgba(0, 0, 0, .12) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(-60deg, rgba(0, 0, 0, .12) 0 1px, transparent 1px 14px);
+}
+
+/* ==========================================================================
+   Nakładki stanu (skin-apply.mjs → applyOverlays): klasy ov-… na oknie karty i warstwa .foe-ov.
+   ========================================================================== */
+.foe-rpg > .foe-ov { position: absolute; inset: 0; z-index: 60; pointer-events: none; overflow: hidden; border-radius: inherit; }
+.foe-rpg > .foe-ov::before, .foe-rpg > .foe-ov::after { content: ""; position: absolute; inset: 0; }
+.foe-rpg > .foe-ov .foe-ov-label:empty { display: none; }
+
+/* porażenie prądem: zakłócenia i szarpnięcia obrazu */
+.foe-rpg.ov-static > .foe-ov {
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, .07) 0 1px, transparent 1px 3px, rgba(0, 0, 0, .1) 3px 4px);
+  animation: foe-ov-noise .18s steps(3) infinite;
+}
+.foe-rpg.ov-static .window-content { animation: foe-ov-glitch 3.2s infinite; }
+@keyframes foe-ov-noise { to { background-position: 0 7px; } }
+@keyframes foe-ov-glitch {
+  0%, 88%, 100% { transform: none; filter: none; }
+  90% { transform: translateX(3px) skewX(-2deg); filter: hue-rotate(40deg); }
+  92% { transform: translateX(-4px); }
+  94% { transform: translateX(1px) skewX(1deg); filter: brightness(1.4); }
+}
+
+/* promieniowanie: zielonkawe zabarwienie, im więcej radów, tym mocniej (na papierze — plamy) */
+.foe-rpg:is(.ov-rads-1, .ov-rads-2, .ov-rads-3) > .foe-ov::before {
+  background:
+    radial-gradient(circle at 20% 30%, rgba(150, 230, 40, var(--rad-a)) 0 40px, transparent 110px),
+    radial-gradient(circle at 75% 75%, rgba(150, 230, 40, var(--rad-a)) 0 50px, transparent 140px),
+    linear-gradient(rgba(150, 230, 40, calc(var(--rad-a) / 2)), rgba(150, 230, 40, calc(var(--rad-a) / 2)));
+}
+.foe-rpg.ov-rads-1 { --rad-a: .05; }
+.foe-rpg.ov-rads-2 { --rad-a: .1; }
+.foe-rpg.ov-rads-3 { --rad-a: .17; }
+.foe-rpg.ov-rads-3 > .foe-ov::before { animation: foe-ov-pulse 2.4s ease-in-out infinite; }
+
+/* odwodnienie od etapu 3 albo głód: ciemniejące brzegi */
+.foe-rpg.ov-faint > .foe-ov::after {
+  background: radial-gradient(ellipse at center, transparent 48%, rgba(0, 0, 0, .55) 100%);
+  animation: foe-ov-pulse 6s ease-in-out infinite;
+}
+@keyframes foe-ov-pulse { 0%, 100% { opacity: .65; } 50% { opacity: 1; } }
+
+/* ogień, trucizna, paraliż: ramka */
+.foe-rpg.ov-burning > .foe-ov { box-shadow: inset 0 0 22px 5px rgba(255, 110, 20, .55); animation: foe-ov-flicker .9s infinite alternate; }
+.foe-rpg.ov-poison > .foe-ov { box-shadow: inset 0 0 20px 4px rgba(110, 220, 60, .45); animation: foe-ov-pulse 2.5s ease-in-out infinite; }
+.foe-rpg.ov-paralyzed > .foe-ov { box-shadow: inset 0 0 18px 4px rgba(120, 170, 255, .5); }
+@keyframes foe-ov-flicker { 0% { opacity: .7; } 40% { opacity: 1; } 70% { opacity: .8; } 100% { opacity: 1; } }
+
+/* nieprzytomny: przygaszony obraz i BRAK SYGNAŁU; śmierć: szarość i stempel KIA */
+.foe-rpg.ov-out .window-content { filter: brightness(.45) saturate(.4); }
+.foe-rpg.ov-dead .window-content { filter: grayscale(1) brightness(.8) contrast(.9); }
+.foe-rpg:is(.ov-out, .ov-dead) > .foe-ov .foe-ov-label {
+  position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%);
+  font-family: var(--foe-crt); font-size: 2.6rem; letter-spacing: .25em; white-space: nowrap;
+  color: var(--pip); text-shadow: 0 0 8px var(--pip-glow);
+}
+.foe-rpg.ov-out > .foe-ov .foe-ov-label { animation: foe-ov-pulse 1.6s steps(2) infinite; }
+.foe-rpg.ov-dead > .foe-ov .foe-ov-label {
+  transform: translate(-50%, -50%) rotate(-12deg); font-size: 4rem; padding: 0 .4em;
+  color: #c2261b; border: 5px solid #c2261b; border-radius: 6px; text-shadow: none; opacity: .85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foe-rpg[class*="ov-"] .window-content, .foe-rpg > .foe-ov, .foe-rpg > .foe-ov::before, .foe-rpg > .foe-ov::after, .foe-rpg > .foe-ov .foe-ov-label { animation: none !important; }
+}
 
 /* ---------- Zakładka „Ustawienia” na karcie ---------- */
 .foe-rpg .skin-box { display: flex; flex-direction: column; gap: .5rem; padding: .3rem 0; }
