@@ -23,6 +23,8 @@ const enabled = () => {
 
 /** Stan per okno ataku: zapamiętany widok kamery i otwarta nakładka. */
 const STATE = new WeakMap();
+/** Zmiana checkboxa SATS przez sam ekran celowania (nie otwieraj go wtedy drugi raz). */
+let syncing = false;
 
 export function registerSatsSettings() {
   game.settings.register(F, "satsTargeting", {
@@ -74,7 +76,7 @@ export function registerSatsHooks() {
     loc.after(btn);
 
     sats.addEventListener("change", () => {
-      if (sats.checked && setting("autoOpen")) openSats(app, form, { viaCheckbox: true });
+      if (sats.checked && !syncing && setting("autoOpen")) openSats(app, form, { viaCheckbox: true });
     });
   });
 
@@ -238,8 +240,8 @@ async function openSats(app, form, { viaCheckbox }) {
       </ol>
     </section>
     <footer class="sats-foot">
-      <span>${t("Hover — preview · click — choose · ↑↓ and Enter · Esc — {what}", { what: viaCheckbox ? t("exit SATS") : t("close") })}</span>
-      <button type="button" data-cancel>${viaCheckbox ? t("Exit SATS") : t("Close")}</button>
+      <span>${t("Hover — preview · click — choose · ↑↓ and Enter · Esc — {what}", { what: t("exit SATS") })}</span>
+      <button type="button" data-cancel>${t("Exit SATS")}</button>
     </footer>`;
 
   const values = rows.map(r => r.value);
@@ -259,17 +261,23 @@ async function openSats(app, form, { viaCheckbox }) {
     window.removeEventListener("keydown", onKey, { capture: true });
     if (dialogEl) dialogEl.style.visibility = "";
   };
+  // ekran celowania to wejście w SATS: wybór części zaznacza SATS (jeśli stać na AP), wyjście przywraca stan sprzed
+  const wasSats = viaCheckbox ? false : !!sats?.checked;
+  const setSats = on => {
+    if (!sats || sats.disabled || sats.checked === on) return;
+    sats.checked = on;
+    syncing = true;
+    try { sats.dispatchEvent(new Event("change", { bubbles: true })); } finally { syncing = false; }
+  };
   const choose = v => {
     select.value = v;
     select.dispatchEvent(new Event("change", { bubbles: true }));
     close();
+    setSats(true);
   };
   const cancel = () => {
     close();
-    if (viaCheckbox && sats?.checked) {
-      sats.checked = false;
-      sats.dispatchEvent(new Event("change", { bubbles: true }));
-    }
+    setSats(wasSats);
     restoreCamera(st);
     restoreSheets(st);
   };

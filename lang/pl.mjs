@@ -2797,7 +2797,6 @@ export default {
   "Hover — preview · click — choose · ↑↓ and Enter · Esc — {what}": "Najedź — podgląd · klik — wybierz · ↑↓ i Enter · Esc — {what}",
   "exit SATS": "wyjdź z SATS",
   "Exit SATS": "Wyjdź z SATS",
-  "Close": "Zamknij",
   "Body parts of the target": "Części ciała celu",
   // ---- module/dice3d.mjs
   "FoE: zebra stripes": "FoE: paski zebry",
