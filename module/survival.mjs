@@ -20,7 +20,8 @@ import { isGhoul, isAlicorn, dehydrationLevel } from "./body.mjs";
 import { deadly, registerConfirmAction } from "./confirm.mjs";
 import { ruleLink } from "./rules.mjs";
 import { attrTest } from "./attr-test.mjs";
-import { addMutation, taintReroll } from "./taint.mjs";
+import { addMutation, taintReroll, addTaint, settlementWater, sceneTaintWater } from "./taint.mjs";
+import { itemTaint, TAINT_WATER } from "./taint-data.mjs";
 import { needsPipbuck } from "./skin-apply.mjs";
 import {
   foodInfo, dietOf, fitsDiet, foodRads, dayOf, freshState, settleDays, ambientRads, exposure, clickCount, STARVE_DEATH,
@@ -390,6 +391,9 @@ async function feed(actor, item, lines = []) {
     await actor.update({ "system.resources.rads.value": next });
     lines.push(rads > 0 ? t("+{n} rads ({total} in total).", { n: rads, total: next }) : t("Removes {n} rads.", { n: cur - next }));
   }
+  // skażone jedzenie i woda (ułamki kreski się sumują; pełna kreska — dawka z rzutami)
+  const taintLine = await addTaint(actor, itemTaint(item), item.name);
+  if (taintLine) lines.push(taintLine);
   if (fits && info.wounds) {
     const healed = await healWounds(actor, info.wounds, { quiet: true, source: item.name });
     if (healed?.healed) lines.push(t("Heals: {list}.", { list: healed.text }));
@@ -609,6 +613,8 @@ async function provide(actor, w) {
     await actor.setFlag(F, "thirst", { ...r.th, last: w, deathAsked: false });
     if (th.out && actor.statuses?.has?.("unconscious")) await toggleStatus(actor, "unconscious", false);
   }
+  // skażona woda w osadzie — raz na dzień gry
+  await settlementWater(actor, sceneTaintWater(game.scenes?.active), 1, dayOf(w));
 }
 
 /** Zwykły upływ czasu (poniżej progu przeskoku): promieniowanie, osada, północ, etapy odwodnienia, rzuty promieniowania. */
@@ -737,6 +743,9 @@ export async function resolveSkip(actor, snap, choice, { from, to }) {
         if (it) await it.update({ "system.qty": Math.max(0, (Number(it.system.qty) || 0) - u.n) });
       }
       if (pick.use.length) lines.push(t("From supplies: {list}.", { list: pick.use.map(u => `${u.name} ×${u.n}`).join(", ") }));
+      const tx = pick.use.reduce((sum, u) => sum + itemTaint(actor.items.get?.(u.id) ?? actor.items.find?.(i => i.id === u.id)) * u.n, 0);
+      const taintLine = await addTaint(actor, tx, t("supplies"));
+      if (taintLine) lines.push(taintLine);
       const traits = traitNames(actor);
       const rads = foodRads(pick.rads, { resist: actor.system.radResistTotal ?? 0, ironStomach: traits.some(x => /^iron stomach\b|^żelazny żołądek/i.test(x)) });
       if (rads) {
@@ -767,6 +776,8 @@ export async function resolveSkip(actor, snap, choice, { from, to }) {
         th = { ...th, until: to + 4 * H6, last: to };
       }
       lines.push(t("Food and water provided."));
+      const waterLine = await settlementWater(actor, sceneTaintWater(game.scenes?.active), days, dayOf(to));
+      if (waterLine) lines.push(waterLine);
     }
     if (ghoul || byRads) { fed = food === "provided" || byRads || (food !== "count" && fed); fedDays = fed ? days : 0; }
     // głód za dni przeskoku — na stanie sprzed przeskoku
@@ -956,6 +967,14 @@ function sceneField(app, html) {
     <div class="form-fields"><input type="checkbox" name="flags.${F}.provided"${providedScene(doc) ? " checked" : ""}></div>
     <p class="hint">${t("A settlement, inn or caravan: characters with a token on this scene (when it is the active one) eat and drink as much as they need, without using their supplies; a time skip here is settled without asking.")}</p>`;
   group.after(fed);
+  const cur = sceneTaintWater(doc);
+  const opts = TAINT_WATER.some(o => o.v === cur) ? TAINT_WATER : [...TAINT_WATER, { v: cur, label: String(cur) }];
+  const water = document.createElement("div");
+  water.className = "form-group foe-scene-taint";
+  water.innerHTML = `<label>${t("Tainted water in the settlement (Fallout: Equestria)")}</label>
+    <div class="form-fields"><select name="flags.${F}.taintWater" data-dtype="Number">${opts.map(o => `<option value="${o.v}"${o.v === cur ? " selected" : ""}>${esc(t(o.label))}</option>`).join("")}</select></div>
+    <p class="hint">${t("With food and water provided: each day here adds taint (p. 485 — a week or two of drinking river water in Hoofington is one tick). Only alicorns and hellhounds are immune.")}</p>`;
+  fed.after(water);
 }
 
 function tileField(app, html) {

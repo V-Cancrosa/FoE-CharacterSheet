@@ -60,6 +60,9 @@
     {{#if reserveGear}}
     <label title="{{t "Energy reserve: points (energy cell 2, MFC 4, gem cell 1); fuel reserve: fuel units"}}">{{t "Reserve contents"}} <input type="number" name="system.charges" value="{{system.charges}}" min="0"> / {{reserveCap}}</label>
     {{/if}}
+    {{#if foodTaint}}
+    <label title="{{t "Taint per portion (p. 485): fractions add up on the character's taint slider; a full tick is a dose with Luck rolls"}}">{{t "Taint"}} <select name="flags.foe-rpg.taint" data-dtype="Number">{{#each foodTaint}}<option value="{{v}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></label>
+    {{/if}}
     {{#if medGear}}
     <label>{{t "Healing type"}} <select name="system.heal">{{selectOptions healKinds selected=system.heal}}</select></label>
     <label title="{{t "Talismans: charged with a healing spell of level 2+ (rejuvenating: 3+)"}}">{{t "Charges"}} <input type="number" name="system.charges" value="{{system.charges}}" min="0"></label>

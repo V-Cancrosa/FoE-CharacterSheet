@@ -14,6 +14,8 @@ import { activeChems, addictionsOf, worldTime } from "./body.mjs";
 import { clearCondition, conditionsOf } from "./conditions.mjs";
 import { healWounds } from "./healing.mjs";
 import { t, tn, tdata } from "./i18n.mjs";
+import { addTaint } from "./taint.mjs";
+import { itemTaint } from "./taint-data.mjs";
 
 const F = "foe-rpg";
 const esc = s => foundry.utils.escapeHTML(String(s ?? ""));
@@ -106,6 +108,10 @@ export async function useChem(actor, item) {
     const healed = await healWounds(actor, r.total, { source: item.name, quiet: true });
     lines.push(tn(r.total, "heals {n} wound", "heals {n} wounds") + (healed?.text ? ` (${healed.text})` : ""));
   }
+
+  // skażenie (np. Hydra: +½ kreski na dawkę)
+  const taintLine = await addTaint(actor, itemTaint(item), item.name);
+  if (taintLine) lines.push(taintLine);
 
   // efekt trwający
   const fx = [...(chem.fx ?? [])];
