@@ -77,6 +77,8 @@ Skażenie (biomagiczny flux) działa tylko przy bezpośrednim kontakcie, ale jes
 - Skażenie usuwa tylko Tenpony Tower; zmiany w ciele zostają.
 
 > **Na karcie:** suwak skażenia jest w zakładce walki pod zdrowiem (gracz go widzi, gdy postać ma skażenie). MG daje **Dawkę** (drobna ekspozycja, kleks, kałuża albo własna liczba kresek) — system sam rzuca Szczęście na pozycji, na której suwak stanął, liczy sukcesy i przeskoczone etapy. Ciężkie skutki czekają na decyzję MG: mutacja (wada Mutation z podpowiedzią — opisujesz ją sam), abominacja (END ¼, INT ¼), 5. romb (Luck ¼), etapy przemiany w alikorna lub piekielnego psa. **Oczyść** — Tenpony Tower. Ołówek — ręczne ustawienie zapisu (bez rzutów). Przerzut kartą szczęścia rozstrzyga etap jeszcze raz. Alikorny i piekielne psy są odporne.
+>
+> **Skażone jedzenie i woda:** produkt z kategorii *Jedzenie i picie* ma pole *Skażenie* (ułamek kreski na porcję: woda z rzeki ≈ 40 porcji na kreskę, mocno skażona woda ≈ 20, skażona ryba ≈ 3, ½ kreski, czysty flux — 1). Produkty z katalogu z „½ taint level” (Hellhound Stew, Hydra) liczą się same. Ułamki zbierają się przy *Zjedz* / *Wypij*, przy lekach i przy zapasach zjedzonych w przeskoku czasu; pełna kreska to zwykła dawka z rzutami. Scena z zapewnionym wyżywieniem ma pole *Skażona woda w osadzie* (kreski na tydzień picia) — liczy się raz na dzień gry.
 
 ## Mutacje, ghule i szaleństwo {#mutations}
 

@@ -46,6 +46,7 @@ import { rollLockpick } from "./doors.mjs";
 import { spendLuckDialog } from "./luck.mjs";
 import { eatItem, eatLabel, survivalNote, survivalRows } from "./survival.mjs";
 import { taintView, doseDialog, cleanseTaint, setTaintDialog } from "./taint.mjs";
+import { TAINT_FOOD, itemTaint } from "./taint-data.mjs";
 import { RUNGS, skinLadder, skinOf, skinById, allSkins } from "./skins.mjs";
 import { setActiveSkin, applyOverlays, applyAccent, applySkin } from "./skin-apply.mjs";
 import { openSkinEditor } from "./skin-editor.mjs";
@@ -882,6 +883,12 @@ export class FoeItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     ctx.hasFx = ctx.isFeature || ctx.isArmor;
     ctx.armorCats = ARMOR_CATEGORIES;
     ctx.gearCats = GEAR_CATEGORIES;
+    // skażone jedzenie i picie: ułamek kreski skażenia na porcję
+    if (ctx.isGear && sys.category === "food") {
+      const cur = itemTaint(this.document);
+      const opts = TAINT_FOOD.some(o => o.v === cur) ? TAINT_FOOD : [...TAINT_FOOD, { v: cur, label: String(cur) }];
+      ctx.foodTaint = opts.map(o => ({ v: o.v, label: t(o.label), selected: o.v === cur }));
+    }
     ctx.weaponKinds = { "": "—", ...WEAPON_KINDS };
     ctx.hitModes = { "": t("opt|no"), hit: t("on every hit"), crit: t("only on a critical") };
     ctx.poisons = POISONS;

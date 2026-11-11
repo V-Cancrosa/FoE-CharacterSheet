@@ -712,6 +712,13 @@ Skażenie (tabela XXXVI, s. 485–487, i „They Were Ponies, Once”, s. 610–
 - **Oczyść** (Tenpony Tower) — suwak na zero, sukcesy i zmiany w ciele zostają. Ołówek — ręczne ustawienie zapisu
   bez rzutów (np. dla postaci prowadzonych wcześniej na papierze). Alikorny i piekielne psy są odporne.
 - Przerzut kartą szczęścia ostatniego rzutu dawki rozstrzyga ten etap jeszcze raz.
+- Skażone jedzenie i woda (s. 485): w produkcie z kategorii *Jedzenie i picie* pole **Skażenie** — ułamek kreski na
+  porcję (woda z rzeki ≈ 40 porcji, czyli ok. 10 dni picia, na kreskę; mocno skażona woda ≈ 20; skażona ryba ≈ 3;
+  ½ kreski; czysty flux — 1). Ułamki zbierają się na karcie („następna kreska: zebrane …%”) przy *Zjedz* / *Wypij*,
+  przy lekach (Hydra: +½ na dawkę) i przy zapasach zjedzonych w przeskoku czasu; pełna kreska to zwykła dawka z rzutami.
+  Produkty z katalogu z „½ taint level” w opisie liczą się same, także te już dodane do świata.
+- Scena z zapewnionym wyżywieniem ma pole **Skażona woda w osadzie** (czysta / ½ / 1 / 2 kreski na tydzień picia) —
+  postacie na niej zbierają skażenie raz na dzień gry, także w przeskoku czasu.
 
 Przeskok czasu i decyzje MG (żeby planowy przeskok nie zagłodził ani nie zabił drużyny):
 - Upływ czasu poniżej progu (rundy walki, minuty, marsz) liczy się jak zwykle. Od progu (opcja świata „Przeskok czasu:

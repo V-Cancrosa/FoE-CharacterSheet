@@ -16,7 +16,7 @@ import { HINDRANCES, TRAITS } from "./creation-data.mjs";
 import { resolveFeature, featureItem } from "./creator-logic.mjs";
 import {
   TAINT_MARKS, TAINT_DOSES, ALICORN_STAGES, MUTATION_IDEAS, TAINT_MAX, taintOf, need, step, dosePlan, alicornAfter, cleanse,
-  taintImmuneRace, isDogRace, isDiamond
+  taintImmuneRace, isDogRace, isDiamond, accumulate
 } from "./taint-data.mjs";
 
 const F = "foe-rpg";
@@ -117,6 +117,34 @@ async function announce(actor, before, st, outs, { n, source, alicornChanged, sk
       : t("Handbook p. 612: a stage feature with the suggested quest perk; instead of negative effects each further dose is the next stage.")
   });
 }
+
+/**
+ * Skażone jedzenie i woda: x kresek (ułamek) do zebranego; pełne kreski — zwykła dawka z rzutami (osobna karta).
+ * Zwraca linię na kartę jedzenia (albo "" — rasa odporna, nic).
+ */
+export async function addTaint(actor, x, source = "") {
+  if (!(x > 0) || actor?.type !== "character" || taintImmuneRace(actor.system?.race)) return "";
+  const { st, n } = accumulate(taintState(actor), x);
+  await save(actor, st);
+  if (n > 0) await exposeTaint(actor, n, source);
+  return n > 0 ? t("Taint: +{n} on the slider (see the taint card).", { n })
+    : t("Taint: {pct}% of the next tick collected.", { pct: Math.round(st.acc * 100) });
+}
+
+/**
+ * Woda w osadzie (scena z wyżywieniem, flaga foe-rpg.taintWater — kreski na tydzień): days dni picia, liczone raz na dzień
+ * gry (day — dzień, który już jest policzony). Zwraca linię na kartę albo "".
+ */
+export async function settlementWater(actor, perWeek, days, day) {
+  if (!(perWeek > 0) || !(days > 0) || actor?.type !== "character" || taintImmuneRace(actor.system?.race)) return "";
+  const cur = taintState(actor);
+  if (cur.waterDay === day && days === 1) return "";
+  const { st, n } = accumulate(cur, (perWeek / 7) * days);
+  await save(actor, { ...st, waterDay: day });
+  if (n > 0) await exposeTaint(actor, n, t("tainted water in the settlement"));
+  return n > 0 ? t("Tainted water: +{n} on the taint slider.", { n }) : t("Tainted water: {pct}% of the next taint tick collected.", { pct: Math.round(st.acc * 100) });
+}
+export const sceneTaintWater = scene => Math.max(0, Number(scene?.flags?.[F]?.taintWater) || 0);
 
 /** Oczyszczenie z Tenpony Tower. */
 export async function cleanseTaint(actor) {
@@ -276,13 +304,13 @@ export async function setTaintDialog(actor) {
 export function taintView(actor) {
   if (actor?.type !== "character") return null;
   const st = taintState(actor);
-  const show = game.user.isGM || st.pos > 0 || st.alicorn > 0 || st.cleansed > 0;
+  const show = game.user.isGM || st.pos > 0 || st.alicorn > 0 || st.cleansed > 0 || st.acc > 0;
   if (!show) return null;
   const dog = isDogRace(actor.system?.race);
   return {
     marks: TAINT_MARKS.map(m => ({ pos: m.pos, diamond: isDiamond(m.pos), on: m.pos <= st.pos && st.pos > 0, here: m.pos === st.pos && st.pos > 0, title: `${t(m.label)}: ${t(m.desc)}` })),
     here: `${t(TAINT_MARKS[st.pos].label)} — ${t(TAINT_MARKS[st.pos].desc)}`,
-    stats: [t("Successful Luck rolls: {n}", { n: st.wins }), st.streak ? t("in a row: {n}", { n: st.streak }) : "", st.cleansed ? t("cleansed: {n}×", { n: st.cleansed }) : "",
+    stats: [t("Successful Luck rolls: {n}", { n: st.wins }), st.acc > 0 ? t("next tick: {pct}% collected", { pct: Math.round(st.acc * 100) }) : "", st.streak ? t("in a row: {n}", { n: st.streak }) : "", st.cleansed ? t("cleansed: {n}×", { n: st.cleansed }) : "",
       st.immune ? t("immune to disease") : ""].filter(Boolean).join(" · "),
     alicorn: !st.alicorn ? "" : dog ? t("Hellhound transformation: stage {n} of 5", { n: st.alicorn }) : t("Alicorn transformation: stage {n} of 5", { n: st.alicorn }),
     immuneRace: taintImmuneRace(actor.system?.race),

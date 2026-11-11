@@ -167,9 +167,52 @@ export function alicornAfter(before, st) {
 }
 
 /** Oczyszczenie (Tenpony Tower): suwak na zero, reszta zostaje. */
-export const cleanse = st => ({ ...taintOf(st), pos: 0, cleansed: (Number(st?.cleansed) || 0) + 1 });
+export const cleanse = st => ({ ...taintOf(st), pos: 0, acc: 0, cleansed: (Number(st?.cleansed) || 0) + 1 });
 
 /** Rasa odporna na skażenie (alikorny, piekielne psy) — karta rasy w kreatorze. */
 export const taintImmuneRace = race => /alicorn|alikorn|hellhound|piekieln/i.test(String(race ?? ""));
 /** Pies (piekielny pies zamiast alikorna). */
 export const isDogRace = race => /\bdog\b|diamond dog|sand dog|\bpies\b|psy\b|psów/i.test(String(race ?? ""));
+
+// ---------- skażone jedzenie i woda (s. 485) ----------
+/**
+ * Skażenie na porcję (ułamek kreski). Podręcznik: jedna kreska to „picie wody z rzeki w Hoofington przez tydzień–dwa”
+ * albo „kilka razy widocznie skażona ryba lub wodorosty”. Ułamki się sumują (st.acc); pełne kreski to zwykła dawka.
+ */
+export const TAINT_FOOD = Object.freeze([
+  { v: 0, label: N_("none") },
+  { v: 0.025, label: N_("tainted river water (≈ 40 portions — 10 days of drinking — per tick)") },
+  { v: 0.05, label: N_("heavily tainted water (≈ 20 portions — 5 days of drinking — per tick)") },
+  { v: 0.34, label: N_("visibly tainted fish or seaweed (a few portions ≈ 1 tick)") },
+  { v: 0.5, label: N_("½ tick per portion (e.g. Hellhound Stew)") },
+  { v: 1, label: N_("raw biomagical flux (1 tick per portion)") }
+]);
+/** Skażenie wody w osadzie (kreski na tydzień picia). */
+export const TAINT_WATER = Object.freeze([
+  { v: 0, label: N_("clean") },
+  { v: 0.5, label: N_("slightly tainted (½ tick a week)") },
+  { v: 1, label: N_("tainted, like the river in Hoofington (1 tick a week)") },
+  { v: 2, label: N_("heavily tainted (2 ticks a week)") }
+]);
+const FRAC = { "½": 0.5, "¼": 0.25, "¾": 0.75 };
+/** Skażenie z opisu z katalogu: „Contains ½ taint level per serving”, „+½ Taint level per dose”. */
+export function taintFromText(text) {
+  const m = String(text ?? "").match(/([0-9]+(?:[.,][0-9]+)?|½|¼|¾)\s*taint level/i);
+  if (!m) return 0;
+  return FRAC[m[1]] ?? (Number(m[1].replace(",", ".")) || 0);
+}
+/** Skażenie na porcję: pole przedmiotu (flaga foe-rpg.taint), a bez niego — z opisu. */
+export function itemTaint(item) {
+  const f = item?.flags?.["foe-rpg"]?.taint;
+  if (f !== undefined && f !== null && f !== "") return Math.max(0, Number(f) || 0);
+  return taintFromText(item?.system?.description);
+}
+const r3 = x => Math.round(x * 1000) / 1000;
+/** Dodaj x kresek do zebranego ułamka: { st (z nowym acc), n (pełne kreski do dawki) }. */
+export function accumulate(st, x) {
+  const sum = r3((Number(st?.acc) || 0) + Math.max(0, Number(x) || 0));
+  const n = Math.floor(sum + 1e-9);
+  return { st: { ...taintOf(st), acc: r3(sum - n) }, n };
+}
+/** Woda w osadzie: kreski za dany czas (sekundy). */
+export const waterTaint = (perWeek, seconds) => Math.max(0, Number(perWeek) || 0) * Math.max(0, seconds) / (7 * 86400);
