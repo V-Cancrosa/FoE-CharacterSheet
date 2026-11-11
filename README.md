@@ -367,6 +367,9 @@ Wygląd karty postaci według drabinki (zakładka **Ustawienia** na karcie — i
 - Gracz wybiera w zakładce Ustawienia spośród wyglądów, do których postać ma prawo (swój szczebel i niższe; wygląd
   PipBucka tylko z założonym PipBuckiem — po zdjęciu wraca drabinka). MG może tam wymusić dowolny wygląd; gracz go
   wtedy nie zmieni. Napis na górnym pasku idzie za wyglądem (model PipBucka, urządzenie, „Stajnia · karta postaci”).
+- Wygląd idzie też za postacią poza kartą: okna otwierane z karty (rzut, atak, katalog, przedmioty postaci) i jej
+  karty na czacie (pasek „STAJNIA // TEST”, „TERMINAL // …” zamiast „PIPBUCK //”). Portret i ikonki mają efekt ekranu
+  (sepia, kolor po najechaniu) tylko na PipBucku.
 - Na razie zmienia się tylko wygląd (kolory, tło, ramka) — układ i działanie karty są te same.
 
 Motyw PipBucka dla całego Foundry (v13/v14; grafiki rysowane od zera, bez logo z gier):

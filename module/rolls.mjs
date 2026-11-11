@@ -1,4 +1,4 @@
-import { markCrit, tint } from "./dice3d.mjs";
+import { markCrit, tint, afterDice } from "./dice3d.mjs";
 import { MFD_STEPS, LOCATIONS } from "./data.mjs";
 import { actorEffects, sumFx, hitsAttack } from "./effects.mjs";
 import {
@@ -290,13 +290,16 @@ export async function rollTest(actor, data) {
     ${canReroll ? `<button type="button" class="foe-luck" data-action="foeLuckReroll"><i class="fa-solid fa-clover"></i> ${t("Reroll with a Luck card")}</button>` : ""}
   </div>`;
 
-  return ChatMessage.create({
+  const msg = await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content,
     rolls: [roll, ...extraRolls, ...luckRolls],
     sound: CONFIG.sounds.dice,
     flags: { "foe-rpg": { test: { ...data, attack: atk ?? undefined, actorUuid: actor.uuid, rerolls, result: cls } } }
   });
+  // skutki rzutu (karty po nim) czekają na animację kości — kolejność na czacie jak w grze
+  await afterDice(msg);
+  return msg;
 }
 
 /**

@@ -7,6 +7,7 @@
  *   - terminale: komendy drzwi działają przez Threshold (uchylenie, pole siłowe, zasłony), a bez niego — jak dotąd.
  * Część bez Foundry: doors-data.mjs.
  */
+import { afterDice } from "./dice3d.mjs";
 import { t } from "./i18n.mjs";
 import { SKILLS } from "./data.mjs";
 import { rollContext } from "./effects.mjs";
@@ -266,6 +267,6 @@ export function registerDoorHooks() {
       return;
     }
     if (!gm.isSelf) return;
-    inOrder(lk.id, () => resolvePick(msg)).catch(err => console.error(`${F} | lockpicking`, err));
+    inOrder(lk.id, async () => { await afterDice(msg); return resolvePick(msg); }).catch(err => console.error(`${F} | lockpicking`, err));
   });
 }

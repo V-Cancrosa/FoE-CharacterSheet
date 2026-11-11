@@ -46,6 +46,7 @@ import { rollLockpick } from "./doors.mjs";
 import { spendLuckDialog } from "./luck.mjs";
 import { eatItem, eatLabel, survivalNote, survivalRows } from "./survival.mjs";
 import { SKINS, RUNGS, skinLadder, skinOf, skinById } from "./skins.mjs";
+import { setActiveSkin } from "./skin-apply.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -723,6 +724,12 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const skin = skinOf(this.document);
     for (const c of [...this.element.classList]) if (c.startsWith("skin-")) this.element.classList.remove(c);
     this.element.classList.add(`skin-${skin}`);
+    // okna otwierane z tej karty (rzut, katalog…) dostaną ten sam wygląd
+    setActiveSkin(skin);
+    if (!this.element.dataset.skinWired) {
+      this.element.dataset.skinWired = "1";
+      this.element.addEventListener("pointerdown", () => setActiveSkin(skinOf(this.document)), true);
+    }
     for (const el of this.element.querySelectorAll("[data-action=woundStep]")) {
       el.addEventListener("contextmenu", ev => { ev.preventDefault(); ev.stopPropagation(); this.#stepWound(el.dataset.loc, -1); });
     }
