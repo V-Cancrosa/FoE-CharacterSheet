@@ -205,6 +205,12 @@ body .foe-rpg.skin-changeling .window-content::after {
 }
 @keyframes foe-ov-pulse { 0%, 100% { opacity: .65; } 50% { opacity: 1; } }
 
+/* różowa chmura: różowa mgła od dołu */
+.foe-rpg.ov-pink > .foe-ov {
+  background: linear-gradient(to top, rgba(255, 120, 200, .38), rgba(255, 150, 210, .12) 55%, transparent 85%);
+  animation: foe-ov-pulse 4s ease-in-out infinite;
+}
+
 /* ogień, trucizna, paraliż: ramka */
 .foe-rpg.ov-burning > .foe-ov { box-shadow: inset 0 0 22px 5px rgba(255, 110, 20, .55); animation: foe-ov-flicker .9s infinite alternate; }
 .foe-rpg.ov-poison > .foe-ov { box-shadow: inset 0 0 20px 4px rgba(110, 220, 60, .45); animation: foe-ov-pulse 2.5s ease-in-out infinite; }

@@ -27,6 +27,7 @@ import { registerTaintActions } from "./taint.mjs";
 import { registerSleep } from "./sleep.mjs";
 import { registerTravel } from "./travel.mjs";
 import { registerMind } from "./mind.mjs";
+import { registerPink } from "./pink.mjs";
 import { registerConfirmSettings, registerConfirmHooks } from "./confirm.mjs";
 import { registerTimeSkipSettings, registerTimeSkipHooks } from "./timeskip.mjs";
 import { registerSkinHooks, registerSkinSettings } from "./skin-apply.mjs";
@@ -115,6 +116,7 @@ Hooks.once("init", () => {
   registerSleep();
   registerTravel();
   registerMind();
+  registerPink();
   registerTimeSkipHooks();
   registerConfirmHooks();
   registerSkinSettings();
