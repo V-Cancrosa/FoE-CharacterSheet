@@ -409,7 +409,8 @@ Motyw PipBucka dla całego Foundry (v13/v14; grafiki rysowane od zera, bez logo 
   „GRA WSTRZYMANA” z zakłóceniami kineskopu, w kolorze PipBucka gracza.
 - Interfejs (opcja gracza „Motyw PipBucka dla interfejsu”, domyślnie włączona): pasek boczny, czat jak terminal
   (szepty z przerywaną ramką), lista graczy, pasek makr, sceny, kontrolki, tracker walki, powiadomienia i nagłówki
-  okien w kolorach ekranu PipBucka. Motyw zmienia kolory przez zmienne Foundry — elementy, których nie obejmuje,
+  okien w kolorach ekranu PipBucka, a także HUD tokena (prawy przycisk: przyciski, pola pasków i wysokości jak klawisze
+  PipBucka). Motyw zmienia kolory przez zmienne Foundry — elementy, których nie obejmuje,
   zostają w zwykłym wyglądzie. Wyłączenie przywraca wygląd Foundry od razu.
 - Tokeny w kolorach radaru EFS (opcja świata): obwódki i pierścienie — zielone swoi, czerwone wrogowie, żółte neutralni.
 - Ekran powitalny PipBucka po zalogowaniu (opcja gracza): imię postaci, kapsle, SATS i promieniowanie; MG widzi
@@ -579,7 +580,9 @@ magia, leczenie, karta szczęścia, pułapka (Radiacja); inni widzą te same kol
 Inne moduły (działa samo, gdy moduł jest włączony):
 - Carousel Combat Tracker — przy portretach SATS, karty szczęścia, rany i ruch, a pod imieniem rasa i poziom (NPC:
   „NPC”, pojazd: „Pojazd”). To wartości domyślne: jeśli MG zmienił już listę w ustawieniach Carousel („Tooltip
-  Attributes” → „Configure Attributes”), zostaje jego lista. Dymek z wartościami w czcionkach PipBucka; kolory pasków — z ustawień Carousel.
+  Attributes” → „Configure Attributes”), zostaje jego lista. Z motywem PipBucka portrety wyglądają jak okienka
+  PipBucka (zielona ramka, linie kineskopu, poświata aktywnej postaci, tytuł i ikony w kolorze ekranu), paski — kolor
+  PipBucka i bursztyn (ustawienia kolorów Carousel działają po wyłączeniu motywu); dymek w czcionkach PipBucka.
 - Dice Tray — tacka pod czatem ma d100 na wierzchu (testy) i kości obrażeń z podręcznika (d4, d6, d8, d10, d12, d20),
   przyciski KH / KL zostają; z motywem PipBucka — w jego kolorach.
 - Levels (i bez niego) — opcja świata „Wysokość lotu przesuwa token” (domyślnie włączona): gdy pegaz albo pojazd
