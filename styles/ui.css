@@ -275,6 +275,22 @@ body[data-foe-crt="off"] .foe-welcome .fw-frame::after { display: none; }
   font-family: var(--foe-crt); font-size: 22px; line-height: 1.2; text-shadow: 0 0 5px var(--pip-glow);
 }
 
+/* HUD tokena (prawy przycisk): przyciski, paski i wysokość jak klawisze PipBucka */
+body.foe-ui #token-hud .control-icon {
+  background: var(--pip-panel); border: 1px solid var(--pip-line); color: var(--pip);
+  box-shadow: 0 0 0 1px #000, 0 0 6px var(--pip-faint); border-radius: 3px;
+}
+body.foe-ui #token-hud .control-icon :is(i, .fa-solid, .fas) { color: inherit; text-shadow: 0 0 4px var(--pip-glow); }
+body.foe-ui #token-hud .control-icon img { filter: drop-shadow(0 0 2px var(--pip-glow)); }
+body.foe-ui #token-hud .control-icon:hover { border-color: var(--pip); color: var(--pip-bright); box-shadow: 0 0 0 1px #000, 0 0 10px var(--pip-glow); }
+body.foe-ui #token-hud .control-icon.active { background: color-mix(in srgb, var(--pip) 22%, var(--pip-bg)); border-color: var(--pip-bright); color: var(--pip-bright); }
+body.foe-ui #token-hud .attribute input {
+  background: var(--pip-bg); color: var(--pip-bright); border: 1px solid var(--pip-line);
+  font-family: var(--foe-crt); font-size: 1.35em; letter-spacing: .04em; text-shadow: 0 0 4px var(--pip-glow);
+}
+body.foe-ui #token-hud .attribute input:focus { border-color: var(--pip); box-shadow: 0 0 8px var(--pip-glow); outline: none; }
+body.foe-ui #token-hud .palette:not(.status-effects) { background: var(--pip-panel); border: 1px solid var(--pip-line); box-shadow: 0 0 8px var(--pip-faint); color: var(--pip); }
+
 /* HUD tokena: stany FoE (białe ikony; aktywne świecą) i światło PipBucka / rogu */
 body.foe-ui #token-hud .status-effects { background: var(--pip-panel); border: 1px solid var(--pip-line); box-shadow: 0 0 8px var(--pip-faint); }
 body.foe-ui #token-hud .status-effects .effect-control { opacity: .45; }

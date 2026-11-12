@@ -5,8 +5,44 @@
    integrations.mjs zwykłym <link>, poza warstwami (style spoza warstw wygrywają ze wszystkimi warstwami).
    ========================================================================== */
 
-/* Carousel Combat Tracker (moduł combat-tracker-dock): przyciski to .ui-control, dymek to #tooltip (kolory z motywu);
-   tu czcionki PipBucka zamiast „Amiri” — kolory pasków zostają z ustawień modułu */
+/* Carousel Combat Tracker (moduł combat-tracker-dock): przyciski to .ui-control, dymek to #tooltip (kolory z motywu).
+   Portrety jak okienka PipBucka: zielona ramka, poświata aktywnego, tytuł i paski w kolorach ekranu
+   (paski: pierwszy — kolor PipBucka, drugi — bursztyn; ustawienia kolorów modułu z motywem PipBucka nie działają). */
+body.foe-ui .combat-dock {
+  --carousel-font-family: var(--foe-crt);
+  --attribute-bar-primary-color: var(--pip);
+  --attribute-bar-secondary-color: color-mix(in srgb, var(--pip) 35%, black);
+  --attribute-bar-primary-color2: #ffb547;
+  --attribute-bar-secondary-color2: #5a3a08;
+  --attribute-bar-portrait-color: var(--pip-alert, #ff3b30);
+  --carousel-tooltip-color: var(--pip);
+  --carousel-tooltip-bg-color: var(--pip-bg);
+}
+body.foe-ui .combat-dock .combatant-portrait {
+  border: 1px solid var(--pip-line); border-top-width: 0; background-color: var(--pip-bg);
+  box-shadow: 0 0 0 1px #000, 0 4px 10px rgba(0, 0, 0, .6);
+}
+body.foe-ui .combat-dock .combatant-portrait::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, .18) 2px 3px);
+}
+body[data-foe-crt="off"] .combat-dock .combatant-portrait::before { display: none; }
+body.foe-ui .combat-dock .combatant-portrait:is(:hover, .hovered) { border-color: var(--pip-dim); }
+body.foe-ui .combat-dock .combatant-portrait.active { border-color: var(--pip); box-shadow: 0 0 0 1px #000, 0 0 14px var(--pip-glow); }
+body.foe-ui .combat-dock .combatant-portrait.active::after { border-color: var(--pip-bright); }
+body.foe-ui .combat-dock .combatant-wrapper .combatant-title {
+  font-family: var(--foe-crt); color: var(--pip-bright); text-transform: uppercase; letter-spacing: .05em;
+  text-shadow: 0 0 6px var(--pip-glow), 0 0 2px #000; border-bottom-color: var(--pip);
+}
+body.foe-ui .combat-dock .combatant-wrapper .portrait-initiative { color: var(--pip-bright); text-shadow: 0 0 4px var(--pip-glow), 0 0 2px #000; }
+body.foe-ui .combat-dock .combatant-wrapper .image-border { filter: grayscale(1) brightness(.8) sepia(1) hue-rotate(70deg) saturate(3); }
+body.foe-ui .combat-dock .combatant-wrapper .overlay-ui-container .tracked-attribute-bar-max { background-color: rgba(0, 0, 0, .85); }
+body.foe-ui .combat-dock .combatant-wrapper .overlay-ui-container .tracked-attribute-bar-current { border-top-color: var(--pip-bright); }
+body.foe-ui .combat-dock .combatant-wrapper :is(.system-icons, .combatant-buttons) i { color: var(--pip); text-shadow: 0 0 4px #000; }
+body.foe-ui .combat-dock .combatant-wrapper :is(.system-icons i.callback, .combatant-buttons i):hover { color: var(--pip-bright); text-shadow: 0 0 6px var(--pip-glow); }
+body.foe-ui .combat-dock .combatant-wrapper .effects-container li { border-color: var(--pip-line); background-color: var(--pip-bg); }
+body.foe-ui .combat-dock :is(.roll-initiative, .portrait-pass i) { color: var(--pip-bright); text-shadow: 0 0 6px var(--pip-glow); }
+/* czcionki PipBucka zamiast „Amiri” */
 body.foe-ui .combat-dock :is(.portrait-initiative-text, .tracked-attribute-text-container) { font-family: var(--foe-crt); letter-spacing: .03em; }
 body.foe-ui .combat-dock-tooltip .combat-dock-tooltip-wrapper { font-family: var(--foe-mono); }
 body.foe-ui .combat-dock-tooltip .combat-dock-tooltip-wrapper :is(h2, h3) { font-family: var(--foe-crt); color: var(--pip-bright); letter-spacing: .04em; text-shadow: 0 0 6px var(--pip-glow); }
