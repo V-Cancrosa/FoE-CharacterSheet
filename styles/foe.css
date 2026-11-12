@@ -8,7 +8,7 @@
 @font-face { font-family: "FoE Plex Mono"; src: url("../fonts/IBMPlexMono-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "FoE Plex Mono"; src: url("../fonts/IBMPlexMono-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
 
-.foe-rpg, .foe-card {
+.foe-rpg, .foe-card, .foe-msg {
   --pip: #4dff8a;
   --pip-alert: #ff6a4d;
   --pip-bright: color-mix(in srgb, var(--pip) 70%, white);
@@ -24,9 +24,9 @@
   --pip-ink: #000;   /* tekst na podświetleniu (tło var(--pip)) */
   --pip-void: #000;  /* najgłębsze tło */
 }
-body[data-foe-pip="amber"] :is(.foe-rpg, .foe-card) { --pip: #ffb547; --pip-alert: #ff5040; }
-body[data-foe-pip="blue"]  :is(.foe-rpg, .foe-card) { --pip: #5fd8ff; --pip-alert: #ff6a5a; }
-body[data-foe-pip="white"] :is(.foe-rpg, .foe-card) { --pip: #e4f2e8; --pip-alert: #ff6a5a; }
+body[data-foe-pip="amber"] :is(.foe-rpg, .foe-card, .foe-msg) { --pip: #ffb547; --pip-alert: #ff5040; }
+body[data-foe-pip="blue"]  :is(.foe-rpg, .foe-card, .foe-msg) { --pip: #5fd8ff; --pip-alert: #ff6a5a; }
+body[data-foe-pip="white"] :is(.foe-rpg, .foe-card, .foe-msg) { --pip: #e4f2e8; --pip-alert: #ff6a5a; }
 
 /* ---------- Ramka okna ---------- */
 .foe-rpg.application {

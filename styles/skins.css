@@ -4,51 +4,51 @@
    ========================================================================== */
 
 /* ---------- PipBuck: odcienie modeli ---------- */
-body :is(.foe-rpg, .foe-card).skin-pipbuck-green { --pip: #4dff8a; --pip-alert: #ff6a4d; }
-body :is(.foe-rpg, .foe-card).skin-pipbuck-amber { --pip: #ffb547; --pip-alert: #ff5040; }
-body :is(.foe-rpg, .foe-card).skin-pipbuck-blue  { --pip: #5fd8ff; --pip-alert: #ff6a5a; }
-body :is(.foe-rpg, .foe-card).skin-pipbuck-white { --pip: #e4f2e8; --pip-alert: #ff6a5a; }
-body :is(.foe-rpg, .foe-card).skin-pipbuck-gold {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-pipbuck-green { --pip: #4dff8a; --pip-alert: #ff6a4d; }
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-pipbuck-amber { --pip: #ffb547; --pip-alert: #ff5040; }
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-pipbuck-blue  { --pip: #5fd8ff; --pip-alert: #ff6a5a; }
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-pipbuck-white { --pip: #e4f2e8; --pip-alert: #ff6a5a; }
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-pipbuck-gold {
   --pip: #ffd65a; --pip-alert: #ff6a4d;
   --pip-bg: color-mix(in srgb, #ffd65a 7%, #070502); --pip-bg-hi: color-mix(in srgb, #ffd65a 16%, #0c0803);
   border-color: #b8902a; box-shadow: 0 0 0 1px #000, 0 0 0 3px #6b5216, 0 0 22px rgba(255, 214, 90, .25), 0 8px 30px rgba(0, 0, 0, .7);
 }
 /* Stealthbuck: przygaszony ekran, bez poświaty */
-body :is(.foe-rpg, .foe-card).skin-stealth {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-stealth {
   --pip: #9fb4c8; --pip-alert: #e07a6a; --pip-glow: transparent;
   --pip-bg: #06080b; --pip-bg-hi: #0b1016;
 }
 
 /* ---------- Terminal (urządzenie z ekranem) ---------- */
-body :is(.foe-rpg, .foe-card).skin-terminal, body :is(.foe-rpg, .foe-card).skin-terminal-white {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-terminal, body :is(.foe-rpg, .foe-card, .foe-msg).skin-terminal-white {
   --pip-bg: #050403; --pip-bg-hi: #0d0a06;
 }
-body :is(.foe-rpg, .foe-card).skin-terminal { --pip: #ffb000; --pip-alert: #ff5a3c; }
-body :is(.foe-rpg, .foe-card).skin-terminal-white { --pip: #d9dcd2; --pip-alert: #ff6a5a; --pip-bg: #060606; --pip-bg-hi: #101010; }
-body :is(.foe-rpg, .foe-card):is(.skin-terminal, .skin-terminal-white) .pip-bar { letter-spacing: .14em; }
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-terminal { --pip: #ffb000; --pip-alert: #ff5a3c; }
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-terminal-white { --pip: #d9dcd2; --pip-alert: #ff6a5a; --pip-bg: #060606; --pip-bg-hi: #101010; }
+body :is(.foe-rpg, .foe-card, .foe-msg):is(.skin-terminal, .skin-terminal-white) .pip-bar { letter-spacing: .14em; }
 
 /* ---------- Enklawa: wojskowy terminal chmur ---------- */
-body :is(.foe-rpg, .foe-card).skin-enclave {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-enclave {
   --pip: #9ad0ff; --pip-alert: #ff7a6a;
   --pip-bg: #030912; --pip-bg-hi: #0a1828; --pip-void: #01040a;
   border-color: #3d6a96;
 }
 
 /* ---------- Gryf: skórzany notes najemnika (ciemny, kremowy atrament) ---------- */
-body :is(.foe-rpg, .foe-card).skin-griffin {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-griffin {
   --pip: #ecdcb8; --pip-alert: #e0623e; --pip-glow: transparent;
   --pip-mid: #cdb991; --pip-dim: #8e7a58; --pip-line: rgba(236, 220, 184, .3); --pip-faint: rgba(236, 220, 184, .08);
   --pip-bg: #2a1b11; --pip-bg-hi: #3a2717; --pip-void: #170e08; --pip-ink: #1d120a;
   border: 2px solid #5a3a20; box-shadow: 0 0 0 1px #000, 0 8px 30px rgba(0, 0, 0, .7);
 }
-body :is(.foe-rpg, .foe-card).skin-griffin .window-content, body .foe-card.skin-griffin {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-griffin .window-content, body .foe-card.skin-griffin {
   background:
     repeating-linear-gradient(35deg, rgba(0, 0, 0, .06) 0 2px, transparent 2px 7px),
     radial-gradient(ellipse 120% 90% at 50% 40%, #3e2918 0%, #2a1b11 70%, #170e08 120%);
 }
 
 /* ---------- Jasne karty: papier ze Stajni i notatki zebry ---------- */
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) {
+body :is(.foe-rpg, .foe-card, .foe-msg):is(.skin-paper, .skin-zebra, .skin-ghoul) {
   --pip-glow: transparent;
   --pip-line: color-mix(in srgb, var(--pip) 30%, transparent);
   --pip-faint: color-mix(in srgb, var(--pip) 8%, transparent);
@@ -57,54 +57,54 @@ body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) {
   --pip-bright: color-mix(in srgb, var(--pip) 80%, black);
   box-shadow: 0 8px 30px rgba(0, 0, 0, .6);
 }
-body :is(.foe-rpg, .foe-card).skin-paper {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-paper {
   --pip: #1f3a5f; --pip-alert: #b3261e;
   --pip-bg: #efe6cf; --pip-bg-hi: #f8f2e2; --pip-void: #e2d5b6; --pip-ink: #f8f2e2;
   border: 1px solid #b9a77d;
 }
-body :is(.foe-rpg, .foe-card).skin-zebra {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-zebra {
   --pip: #3b2412; --pip-alert: #a3320e;
   --pip-bg: #e6cf9c; --pip-bg-hi: #f0dfb4; --pip-void: #d4b97e; --pip-ink: #f0dfb4;
   border: 2px solid #7a4a1c;
 }
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) .window-content, body .foe-card:is(.skin-paper, .skin-zebra, .skin-ghoul) {
+body :is(.foe-rpg, .foe-card, .foe-msg):is(.skin-paper, .skin-zebra, .skin-ghoul) .window-content, body .foe-card:is(.skin-paper, .skin-zebra, .skin-ghoul) {
   text-shadow: none;
   background: radial-gradient(ellipse 120% 90% at 50% 35%, var(--pip-bg-hi) 0%, var(--pip-bg) 70%, var(--pip-void) 125%);
 }
 /* papier: bez linii skanowania, zamiast nich delikatne linie kartki */
-body :is(.foe-rpg, .foe-card).skin-ghoul {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-ghoul {
   --pip: #4a3f1e; --pip-alert: #a3320e;
   --pip-bg: #d6c891; --pip-bg-hi: #e4d9a8; --pip-void: #b5a364; --pip-ink: #e4d9a8;
   border: 1px solid #8a7a3e;
 }
 /* ghul: pożółkłe papiery z plamami */
-body :is(.foe-rpg, .foe-card).skin-ghoul .window-content::after, body .foe-card.skin-ghoul::after {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-ghoul .window-content::after, body .foe-card.skin-ghoul::after {
   background:
     radial-gradient(circle at 18% 22%, rgba(120, 95, 30, .16) 0 26px, transparent 46px),
     radial-gradient(circle at 82% 68%, rgba(120, 95, 30, .13) 0 34px, transparent 60px),
     radial-gradient(circle at 60% 12%, rgba(90, 110, 30, .1) 0 18px, transparent 32px);
 }
-body :is(.foe-rpg, .foe-card).skin-paper .window-content::after, body .foe-card.skin-paper::after {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-paper .window-content::after, body .foe-card.skin-paper::after {
   background: repeating-linear-gradient(to bottom, transparent 0 23px, rgba(31, 58, 95, .07) 23px 24px);
 }
 /* zebra: wzór pasów na marginesie zamiast skanowania */
-body :is(.foe-rpg, .foe-card).skin-zebra .window-content::after, body .foe-card.skin-zebra::after {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-zebra .window-content::after, body .foe-card.skin-zebra::after {
   background: repeating-linear-gradient(115deg, rgba(59, 36, 18, .07) 0 6px, transparent 6px 22px) left / 14px 100% no-repeat;
 }
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) .window-header {
+body :is(.foe-rpg, .foe-card, .foe-msg):is(.skin-paper, .skin-zebra, .skin-ghoul) .window-header {
   background: var(--pip); color: var(--pip-ink); text-shadow: none; border-bottom: 0;
 }
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) .window-header :is(button, a) { color: var(--pip-ink); }
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) :is(input, select, textarea) { background: rgba(255, 255, 255, .35); }
-body :is(.foe-rpg, .foe-card):is(.skin-paper, .skin-zebra, .skin-ghoul) .meter > span { box-shadow: none; }
+body :is(.foe-rpg, .foe-card, .foe-msg):is(.skin-paper, .skin-zebra, .skin-ghoul) .window-header :is(button, a) { color: var(--pip-ink); }
+body :is(.foe-rpg, .foe-card, .foe-msg):is(.skin-paper, .skin-zebra, .skin-ghoul) :is(input, select, textarea) { background: rgba(255, 255, 255, .35); }
+body :is(.foe-rpg, .foe-card, .foe-msg):is(.skin-paper, .skin-zebra, .skin-ghoul) .meter > span { box-shadow: none; }
 
 /* ---------- Pancerz wspomagany: wizjer hełmu (HUD) ---------- */
-body :is(.foe-rpg, .foe-card):is(.skin-power-armor, .skin-power-armor-enclave) {
+body :is(.foe-rpg, .foe-card, .foe-msg):is(.skin-power-armor, .skin-power-armor-enclave) {
   --pip-bg: #0a0604; --pip-bg-hi: #1a0e07; --pip-void: #030201;
   border: 2px solid var(--pip-dim);
 }
-body :is(.foe-rpg, .foe-card).skin-power-armor { --pip: #ff9a3c; --pip-alert: #ff3b2a; }
-body :is(.foe-rpg, .foe-card).skin-power-armor-enclave { --pip: #7fd4ff; --pip-alert: #ff5a4a; --pip-bg: #02070c; --pip-bg-hi: #071624; --pip-void: #010306; }
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-power-armor { --pip: #ff9a3c; --pip-alert: #ff3b2a; }
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-power-armor-enclave { --pip: #7fd4ff; --pip-alert: #ff5a4a; --pip-bg: #02070c; --pip-bg-hi: #071624; --pip-void: #010306; }
 /* narożniki wizjera */
 body .foe-rpg:is(.skin-power-armor, .skin-power-armor-enclave) .window-content {
   background:
@@ -126,25 +126,25 @@ body .foe-rpg:is(.skin-power-armor, .skin-power-armor-enclave) .window-content::
 }
 
 /* ---------- Stalowi Strażnicy: wojskowy kodeks polowy ---------- */
-body :is(.foe-rpg, .foe-card).skin-rangers {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-rangers {
   --pip: #d9dee4; --pip-alert: #ff5a48; --pip-glow: transparent;
   --pip-mid: #b3bac3; --pip-dim: #6d7680; --pip-line: rgba(217, 222, 228, .28); --pip-faint: rgba(217, 222, 228, .07);
   --pip-bg: #14181d; --pip-bg-hi: #1e242b; --pip-void: #0b0d10; --pip-ink: #111418;
   border: 2px solid #59636e; box-shadow: 0 0 0 1px #000, 0 8px 30px rgba(0, 0, 0, .7);
 }
-body :is(.foe-rpg, .foe-card).skin-rangers :is(.pip-bar, .fc-tag) { --pip-ink: #f3f3f3; background: #9e2a22; color: #f3f3f3; box-shadow: none; }
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-rangers :is(.pip-bar, .fc-tag) { --pip-ink: #f3f3f3; background: #9e2a22; color: #f3f3f3; box-shadow: none; }
 body .foe-rpg.skin-rangers .window-content::after {
   background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .025) 0 2px, transparent 2px 9px);
 }
 
 /* ---------- Najeźdźcy: brudne skrawki ---------- */
-body :is(.foe-rpg, .foe-card).skin-raider {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-raider {
   --pip: #e6cfa6; --pip-alert: #ff3b2a; --pip-glow: transparent;
   --pip-mid: #c4ab82; --pip-dim: #85694a; --pip-line: rgba(230, 207, 166, .3); --pip-faint: rgba(230, 207, 166, .08);
   --pip-bg: #1d110c; --pip-bg-hi: #2b1910; --pip-void: #100906; --pip-ink: #1d110c;
   border: 2px dashed #7a2a18; box-shadow: 0 0 0 1px #000, 0 8px 30px rgba(0, 0, 0, .7);
 }
-body :is(.foe-rpg, .foe-card).skin-raider :is(.pip-bar, .fc-tag) { --pip-ink: #f0e2c4; background: #7a2414; color: #f0e2c4; box-shadow: none; transform: rotate(-.4deg); }
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-raider :is(.pip-bar, .fc-tag) { --pip-ink: #f0e2c4; background: #7a2414; color: #f0e2c4; box-shadow: none; transform: rotate(-.4deg); }
 body .foe-rpg.skin-raider .window-content::after {
   background:
     radial-gradient(circle at 88% 14%, rgba(140, 20, 10, .22) 0 6px, transparent 22px),
@@ -153,7 +153,7 @@ body .foe-rpg.skin-raider .window-content::after {
 }
 
 /* ---------- Podmieniec: chityna i zielony płomień ---------- */
-body :is(.foe-rpg, .foe-card).skin-changeling {
+body :is(.foe-rpg, .foe-card, .foe-msg).skin-changeling {
   --pip: #93ff6e; --pip-alert: #ff5a7a;
   --pip-bg: #071012; --pip-bg-hi: #0f2026; --pip-void: #020506;
   border: 2px solid #2c4a52; box-shadow: 0 0 0 1px #000, 0 0 18px rgba(147, 255, 110, .18), 0 8px 30px rgba(0, 0, 0, .7);
@@ -261,3 +261,20 @@ body .foe-rpg:not(.skin-pipbuck, .skin-pipbuck-green, .skin-pipbuck-amber, .skin
 .foe-skin-editor .skr-buttons { display: flex; gap: .5rem; justify-content: flex-end; margin-top: auto; padding-top: .3rem; }
 .foe-skin-editor .skr-buttons > button { width: auto; }
 @container foe-sheet (max-width: 480px) { .foe-skin-editor .skr-grid { grid-template-columns: 1fr; } }
+
+
+/* ---------- Cała wiadomość na czacie w wyglądzie postaci (skin-apply.mjs: klasa foe-msg) ----------
+   Ramka, nagłówek, szept i kości w barwach wyglądu — bez mieszania z motywem interfejsu. */
+:is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message.foe-msg {
+  background: var(--pip-bg); color: var(--pip); border: 1px solid var(--pip-line); border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), 0 0 6px var(--pip-faint); text-shadow: none;
+}
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message.foe-msg { background: var(--pip-bg); }
+body.foe-ui :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message.foe-msg.whisper { background: var(--pip-bg-hi); }
+:is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message.foe-msg :is(.message-header, .message-metadata, .whisper-to, .flavor-text) { color: var(--pip-dim); border-color: var(--pip-line); }
+:is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message.foe-msg .message-sender { color: var(--pip-bright); text-shadow: none; }
+:is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message.foe-msg .foe-card { border-color: var(--pip-line); }
+/* jasne wyglądy: kości i dymek rzutu na jasnym tle */
+body :is(.chat-log, #chat-log, .chat-popout, #chat-notifications) .message.foe-msg:is(.skin-paper, .skin-zebra, .skin-ghoul) :is(.dice-roll .dice-total, .dice-formula, .dice-tooltip, .dice-roll .part-header) {
+  background: rgba(255, 255, 255, .45); color: var(--pip); border-color: var(--pip-line);
+}

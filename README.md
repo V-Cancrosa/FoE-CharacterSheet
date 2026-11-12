@@ -399,6 +399,8 @@ Wygląd karty postaci według drabinki (zakładka **Ustawienia** na karcie — i
   kilka tekstów rozdziel „|”), szczeblem 1–5, wyglądem bazowym, własnym kolorem tekstu i tła oraz napisem na pasku.
   Podgląd na żywo w edytorze. Pasująca reguła dochodzi do wyboru gracza (z gwiazdką), a gdy jej szczebel jest co
   najmniej taki jak szczebel postaci, staje się wyglądem automatycznym. Napis na pasku idzie też na karty czatu.
+- Wiadomości na czacie z kartą postaci (rzuty, skutki) mają w całości wygląd tej postaci — ramka, nagłówek z imieniem
+  i datą, szept i karta w środku — żeby nie mieszać go z motywem interfejsu.
 - Układ i działanie karty są te same we wszystkich wyglądach.
 - Zasada domowa (opcja świata, domyślnie wyłączona) **„SATS i licznik Geigera tylko z PipBuckiem”**: postać gracza bez
   założonego PipBucka nie zaznaczy SATS w oknie ataku, czaru ani rytuału zebry i nie widzi ani nie słyszy licznika

@@ -163,8 +163,15 @@ export async function taintReroll(actor, check, res) {
   const a = alicornAfter(before, r.st);
   const next = { ...a.st, lastCheck: null, last: st.last };
   await save(actor, next);
-  const lines = [t("Luck card: the taint roll is resolved again."), ...r.out.filter(o => OUT_TEXT[o]).map(o => t(OUT_TEXT[o])),
-    t("Successful Luck rolls: {n}", { n: next.wins }), t("If a GM decision card from the first roll is still open, skip it.")];
+  // nieudany przerzut: wynik ten sam (najwyżej krytyczna porażka zamieniona na zwykłą) — krótka informacja
+  if (!passed(res)) {
+    await card(actor, [t("Luck card: the taint roll failed again — nothing changes."), t("Successful Luck rolls: {n}", { n: next.wins })]);
+    return next;
+  }
+  const lines = [t("Luck card: the taint roll succeeded — the stage is resolved again."), ...r.out.filter(o => OUT_TEXT[o]).map(o => t(OUT_TEXT[o])),
+    t("Successful Luck rolls: {n}", { n: next.wins }),
+    // karty decyzji MG powstają tylko od 4. rombu (mutacje, abominacja, 5. romb)
+    check.pos >= 6 ? t("If a GM decision card from the first roll is still open, skip it.") : ""].filter(Boolean);
   await card(actor, lines);
   if (a.changed) await deadly(actor, "taint-alicorn", { from: before.alicorn, to: next.alicorn }, { title: t("{name}: alicorn transformation, stage {n}.", { name: actor.name, n: next.alicorn }) });
   return next;
