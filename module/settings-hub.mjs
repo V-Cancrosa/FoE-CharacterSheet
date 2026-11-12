@@ -196,6 +196,28 @@ export function openSettingsHub() {
   return open ? open.bringToFront?.() ?? open.render({ force: true }) : new FoeSettingsHub().render({ force: true });
 }
 
+/** Klucz bez przestrzeni nazw (Foundry zapisuje go raz jako „klucz”, raz jako „foe-rpg.klucz”). */
+const shortKey = (k, id = "") => String(k ?? id).replace(new RegExp(`^${F}\\.`), "");
+
+/** Ustawienia i menu systemu z listy Foundry → do okna (zostaje język i przycisk okna). */
+export function collect() {
+  HUB.settings = [];
+  for (const [id, s] of [...(game.settings.settings?.entries?.() ?? [])]) {
+    if (s.namespace !== F || !s.config) continue;
+    const key = shortKey(s.key, id);
+    HUB.settings.push({ ...s, key });
+    if (!KEEP_IN_CORE.has(key)) s.config = false;
+  }
+  HUB.menus = [];
+  for (const [id, m] of [...(game.settings.menus?.entries?.() ?? [])]) {
+    const key = shortKey(m.key, id);
+    if (m.namespace !== F || key === "settingsHub") continue;
+    HUB.menus.push({ ...m, key });
+    game.settings.menus.delete(id);
+  }
+  return HUB;
+}
+
 export function registerSettingsHub() {
   class Menu extends ApplicationV2 { async render() { openSettingsHub(); return this; } }
   game.settings.registerMenu(F, "settingsHub", {
@@ -207,18 +229,17 @@ export function registerSettingsHub() {
     restricted: false
   });
   // po rejestracji wszystkiego: ustawienia i menu systemu z listy Foundry przechodzą do okna
-  Hooks.once("setup", () => {
-    HUB.settings = [];
-    for (const s of game.settings.settings?.values?.() ?? []) {
-      if (s.namespace !== F || !s.config) continue;
-      HUB.settings.push(s);
-      if (!KEEP_IN_CORE.has(s.key)) s.config = false;
-    }
-    HUB.menus = [];
-    for (const [id, m] of [...(game.settings.menus?.entries?.() ?? [])]) {
-      if (m.namespace !== F || m.key === "settingsHub") continue;
-      HUB.menus.push(m);
-      game.settings.menus.delete(id);
-    }
+  Hooks.once("setup", () => collect());
+  // zapasowe wejście: przycisk w zakładce Ustawienia na pasku bocznym (obok „Konfiguruj ustawienia”)
+  Hooks.on("renderSettings", (app, html) => {
+    const root = html instanceof HTMLElement ? html : html?.[0];
+    if (!root || root.querySelector(".foe-hub-open")) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "foe-hub-open";
+    btn.innerHTML = `<i class="fa-solid fa-sliders"></i> ${esc(t("Fallout: Equestria settings"))}`;
+    btn.addEventListener("click", ev => { ev.preventDefault(); openSettingsHub(); });
+    const anchor = root.querySelector('[data-action="configure"], [data-app="configure"], button[data-action="openApp"]');
+    if (anchor) anchor.after(btn); else (root.querySelector("section, .settings, #settings-game") ?? root).prepend(btn);
   });
 }
