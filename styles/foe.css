@@ -1293,3 +1293,8 @@ body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
 .foe-rpg .taint-slider .tm.here { background: var(--pip-alert); border-color: var(--pip-alert); box-shadow: 0 0 8px var(--pip-alert); }
 .foe-rpg .taint-here { font-size: 12px; }
 .foe-rpg .taint-ali { color: var(--pip-bright); font-weight: 700; }
+
+/* ---------- Podróż (travel.mjs) ---------- */
+.foe-rpg .foe-travel .trv-party { display: flex; flex-direction: column; gap: .15rem; max-height: 220px; overflow-y: auto; border: 1px solid var(--pip-line); padding: .25rem .4rem; }
+.foe-rpg .foe-travel .trv-preview .warn { color: var(--pip-alert); }
+.foe-travel-open { margin: .3rem 0; width: 100%; }

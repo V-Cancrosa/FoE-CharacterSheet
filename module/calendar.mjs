@@ -42,6 +42,19 @@ export function currentDate() {
   return { date: dateText(d, lastDay()), time: timeText(d), holidays: holidaysOn(d), sc: false };
 }
 
+/** Data i godzina w dowolnej chwili czasu świata (Simple Calendar, gdy jest; inaczej kalendarz Equestrii z czasu świata). */
+export function dateAt(worldTime) {
+  const api = scApi();
+  if (api?.timestampToDate) {
+    try {
+      const d = api.timestampToDate(worldTime);
+      if (d?.display?.date) return [d.display.date, d.display.time].filter(Boolean).join(" · ");
+    } catch { /* moduł jeszcze się nie załadował — data z czasu świata */ }
+  }
+  const d = dateOf(Number(worldTime) || 0, startYear());
+  return `${dateText(d, lastDay())} · ${timeText(d)}`;
+}
+
 const lineText = c => [c.date, c.time].filter(Boolean).join(" · ");
 const lineTitle = c => [
   ...c.holidays.map(h => `${t(h.name)} — ${t(h.text)}`),

@@ -83,13 +83,23 @@ export async function stimulant(actor, text) {
   return t("Can't sleep and keeps going without rolls: +{n} h ({f}).", { n: roll.total, f });
 }
 
+/**
+ * Podpowiedź z podróży: przeskok kończący się w chwili to miał najdłuższy postój campHours godzin — sen liczy się, gdy
+ * wystarcza rasie (w marszu kucyk nie leży). Pamiętana tylko u MG, do rozliczenia tego przeskoku.
+ */
+let HINT = null;
+export const travelSleepHint = (to, campHours) => { HINT = { to, campHours: Number(campHours) || 0 }; };
+const hintFor = to => (HINT && HINT.to === to ? HINT.campHours : null);
+/** Czy przeskok liczy się jako sen: bez podpowiedzi — gdy dość długi; z podpowiedzią — gdy postój wystarczył. */
+const sleptDuring = (actor, to, hours) => { const c = hintFor(to); return c === null ? hours >= needHours(race(actor)) : c >= needHours(race(actor)); };
+
 /** Upływ czasu (aktywny MG). dt — sekundy od poprzedniego. */
 export async function sleepTick(actor, w = now(), dt = 0) {
   if (!sleepOn(actor) || actor.system?.dead || actor.statuses?.has?.("dead")) return;
   let st = sleepState(actor);
   if (!st) return save(actor, freshSleep(w));
   // długi upływ czasu naraz (przeskok bez pytań) — postać w tym czasie spała
-  if (dt >= needHours(race(actor)) * H && !st.asleep) { await recordSleep(actor, dt / H, w); return; }
+  if (dt >= needHours(race(actor)) * H && !st.asleep && sleptDuring(actor, w, dt / H)) { await recordSleep(actor, hintFor(w) ?? dt / H, w); return; }
   if (radSleeper(actor)) {
     if (awakeHours(st, w) > 1 || st.asleep) { await save(actor, freshSleep(w)); await setPenalty(actor, 0); }
     return;
@@ -160,9 +170,9 @@ export function frozenSleep(st, dt) {
 /** Po decyzji MG: przeskok ≥ potrzeby snu — postacie spały; krótszy — liczy się czuwanie. food "skip" — zostaje zamrożone. */
 export async function resolveSleep(actor, snap, food, from, to) {
   if (!sleepOn(actor) || food === "skip") return "";
-  if (to - from >= needHours(race(actor)) * H && !snap?.asleep) return recordSleep(actor, (to - from) / H, to);
+  if (!snap?.asleep && sleptDuring(actor, to, (to - from) / H)) return recordSleep(actor, hintFor(to) ?? (to - from) / H, to);
   if (snap) await save(actor, snap);
-  await sleepTick(actor, to, to - from);
+  await sleepTick(actor, to, 0);
   return "";
 }
 

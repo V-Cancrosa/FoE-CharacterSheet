@@ -698,6 +698,24 @@ daty; rozlicza aktywny MG, kartkami dla gracza i MG):
     promieniowania (1000 radów albo doba choroby popromiennej), rzuca END ¼ — sukces: INT ½ (+25 z Fixation) i ghul
     (rasa „Ghul (wcześniej: …)” i cecha); porażka INT — dziczeje w ciągu kilku dni, krytyczna porażka — od razu dziki ghul.
 
+Podróż (s. 481–482, tabela XXXIV) — przycisk MG **Podróż (Fallout: Equestria)** w zakładce aktorów:
+- Postacie graczy z zaznaczeniem, kto liczy się do tempa (domyślnie ci z tokenem na aktywnej scenie); tempo to
+  najwolniejszy zaznaczony. Sposób: marsz (tabela „na godzinę” i „na dobę” z postojami), pośpiech ×2, bieg ×4,
+  lot ×2 (wszyscy zaznaczeni muszą latać), pojazd (szybkość ciągnących wpisuje MG). Dystans w milach albo czas.
+- Podgląd na żywo: tempo, mile na godzinę i dobę, czas drogi.
+- **Tylko policz** — karta z planem. **Wyrusz** — rzuty w drodze (pośpiech: END ¾ po 2 h, potem ½, porażka — godzina
+  postoju; bieg: END ¼ co godzinę, porażka — wyczerpanie 1k6 h; lot: Flight ¾ co godzinę, od 6. godziny END ½,
+  porażka — lądowanie i godzina odpoczynku), karta z wynikami i przesunięcie czasu świata. Jedzenie, picie,
+  promieniowanie i sen rozlicza przeskok czasu; sen liczy się, gdy postój nocny był dość długi (kucykom 2 h, innym 8 h).
+- **Spotkania losowe**: pole w oknie (bez spotkań / rzadkie 5% / zwykłe 10% / częste 17% / bardzo częste 33%, co 4 h
+  w drodze i na postoju; ostatni wybór jest pamiętany). Spotkanie zatrzymuje podróż w swojej chwili — czas idzie tylko
+  do niego, karta pokazuje, czy grupa była w drodze, czy na postoju nocnym, ile przebyła i ile zostało, a z tabeli
+  „Spotkania losowe” (Tabele FoE, s. 618) losuje się wynik z przyciskiem „Dodaj NPC” przy stworach. Przycisk
+  **Kontynuuj podróż** (MG) prowadzi resztę trasy z tymi samymi ustawieniami.
+- Inne moduły: karta podaje datę wymarszu i dotarcia albo spotkania (Simple Calendar Reborn, gdy jest; inaczej
+  kalendarz Equestrii z czasu świata); pogoda FoE albo Weather Forging zmienia rzuty Flight w locie jak w walce;
+  wynik z tabeli spotkań turla się z Dice So Nice; Simple Calendar i Weather Forging same idą za przesuniętym czasem.
+
 Sen i niewyspanie (s. 479–480, opcja świata „Sen i niewyspanie”, domyślnie włączona; liczy aktywny MG):
 - Kucyki, zebry i alikorny: 2 godziny snu na leżąco co 48 h (drzemki na stojąco są w podróży); inne rasy (gryfy,
   psy, podmieńce…): 8 h na 24 h. Licznik startuje przy pierwszym upływie czasu po aktualizacji — nikt nie dostaje kar od razu.
