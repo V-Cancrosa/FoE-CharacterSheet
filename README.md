@@ -8,7 +8,8 @@ Language: *Configure Settings → System Settings → “Language (Fallout: Eque
 of whoever created them. The rest of this README is in Polish.
 
 
-Ustawienia systemu: w „Ustawieniach gry” jest jeden przycisk **Ustawienia Fallout: Equestria** (i wybór języka). Otwiera
+Ustawienia systemu: w „Ustawieniach gry” jest jeden przycisk **Ustawienia Fallout: Equestria** (i wybór języka); ten sam
+przycisk jest też w zakładce Ustawienia na pasku bocznym. Otwiera
 okno w stylu PipBucka: kategorie (przetrwanie i czas; promieniowanie, ghule i umysł; różowa chmura; walka; S.A.T.S.
 i PipBuck; postacie i rozwój; świat; wygląd i dźwięk; narzędzia MG), wyszukiwarka, przy każdej opcji opis, na co
 wpływa, i znaczniki: „świat — MG” albo „tylko u ciebie”, „zasada domowa”, „Project Horizons”, „wymaga przeładowania”.
