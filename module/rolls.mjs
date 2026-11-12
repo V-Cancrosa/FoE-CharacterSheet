@@ -293,6 +293,8 @@ export async function rollTest(actor, data) {
   const msg = await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content,
+    // rzut tajny (np. szaleństwo, s. 613): widzi tylko MG
+    ...(data.secret ? { whisper: game.users.filter(u => u.isGM).map(u => u.id), blind: true } : {}),
     rolls: [roll, ...extraRolls, ...luckRolls],
     sound: CONFIG.sounds.dice,
     flags: { "foe-rpg": { test: { ...data, attack: atk ?? undefined, actorUuid: actor.uuid, rerolls, result: cls } } }

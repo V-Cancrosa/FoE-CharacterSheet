@@ -93,7 +93,11 @@ Skażenie (biomagiczny flux) działa tylko przy bezpośrednim kontakcie, ale jes
 - **Choroba najeźdźców** (blood hunger plague) — jak szaleństwo; zob. choroby.
 - **Dziczenie ghuli:** świadomy ghul trzyma się swojego **Celu**. Gdy go straci i nie ma przy sobie przyjaciół — dziczeje w ciągu **1k20 minut**. Odzyskanie Celu w ciągu tygodnia czasem przywraca rozum.
 
-> **Na karcie:** zamianę w ghula (opcja świata, domyślnie włączona) system rozgrywa sam po decyzji MG przy śmierci od promieniowania: zmienia rasę i dodaje cechę (ghul, dziczeje albo dziki ghul). Mutacje dodaje się jako wadę Mutation z podpowiedzią. Etapy alikorna — zob. [[survival/taint|Skażenie]]. Różowej chmury, szaleństwa i dziczenia system nie liczy — prowadzi je MG.
+> **Na karcie:** zamianę w ghula (opcja świata, domyślnie włączona) system rozgrywa sam po decyzji MG przy śmierci od promieniowania: zmienia rasę i dodaje cechę (ghul, dziczeje albo dziki ghul). Mutacje dodaje się jako wadę Mutation z podpowiedzią. Etapy alikorna — zob. [[survival/taint|Skażenie]]. Różowej chmury system jeszcze nie liczy — prowadzi ją MG.
+>
+> **Szaleństwo** (opcja świata „Rzuty na szaleństwo”, domyślnie włączona): gdy postać gracza dostaje wadę psychiczną w trakcie gry (nie w kreatorze), MG dostaje tajny rzut INT na MFD 1 — każda Psychosis o krok łatwiej. Krytyczny sukces to karta decyzji MG; po *Rozegraj* postać dostaje cechę *Obłęd*.
+>
+> **Dziczenie ghuli:** karta ghula ma w zakładce walki sekcję *Cel ghula*. MG klika *Utrata Celu* i wybiera: sam (dziczeje za 1k20 minut) albo z przyjaciółmi (czeka; *Bez wsparcia* uruchamia odliczanie). *Odzyskany Cel* przerywa dziczenie, a dzikiego ghula przywraca tylko w ciągu tygodnia (decyzja MG). Gdy czas minie — karta decyzji MG i cecha *Dziki ghul*. Ghul z promieniowania z oblanym INT dziczeje w ciągu kilku dni (system: 1k4+1).
 
 ## Sen {#sleep}
 

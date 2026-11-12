@@ -47,6 +47,7 @@ import { spendLuckDialog } from "./luck.mjs";
 import { eatItem, eatLabel, survivalNote, survivalRows } from "./survival.mjs";
 import { taintView, doseDialog, cleanseTaint, setTaintDialog } from "./taint.mjs";
 import { TAINT_FOOD, itemTaint } from "./taint-data.mjs";
+import { mindView, losePurpose, supportGone, regainPurpose } from "./mind.mjs";
 import { RUNGS, skinLadder, skinOf, skinById, allSkins } from "./skins.mjs";
 import { setActiveSkin, applyOverlays, applyAccent, applySkin } from "./skin-apply.mjs";
 import { openSkinEditor } from "./skin-editor.mjs";
@@ -137,6 +138,9 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       taintDose: FoeActorSheet.#onTaintDose,
       taintCleanse: FoeActorSheet.#onTaintCleanse,
       taintSet: FoeActorSheet.#onTaintSet,
+      purposeLost: FoeActorSheet.#onPurposeLost,
+      supportGone: FoeActorSheet.#onSupportGone,
+      purposeRegained: FoeActorSheet.#onPurposeRegained,
       rest: FoeActorSheet.#onRest,
       setLimb: FoeActorSheet.#onSetLimb,
       feedCyber: FoeActorSheet.#onFeedCyber,
@@ -299,6 +303,7 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ctx.body = { ...chemRows(this.document), rad: rl ? rl.label : "", radFx: rl ? Object.entries(rl.fx).map(([k, v]) => `${v} ${k.toUpperCase()}`).join(", ") : "" };
     ctx.body.survival = survivalRows(this.document);
     ctx.taint = taintView(this.document);
+    ctx.mind = mindView(this.document);
     ctx.body.any = ctx.body.active.length || ctx.body.addictions.length || ctx.body.rad || ctx.body.survival.length;
     // cybernetyka (s. 104–107, 178)
     const cyb = cyberItems(this.document);
@@ -758,6 +763,17 @@ export class FoeActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
   }
   static async #onTaintDose() { return doseDialog(this.document); }
+  static async #onPurposeLost() {
+    if (!game.user.isGM) return;
+    const support = await foundry.applications.api.DialogV2.wait({
+      window: { title: t("Purpose lost: {name}", { name: this.document.name }) }, rejectClose: false,
+      content: `<p>${t("Are friends or family around who support the ghoul (p. 614)? Then going feral waits until that support is gone; otherwise it takes 1d20 minutes.")}</p>`,
+      buttons: [{ action: "alone", label: t("Alone — 1d20 minutes"), default: true }, { action: "friends", label: t("With friends — waits") }]
+    });
+    if (support) await losePurpose(this.document, { support: support === "friends" });
+  }
+  static async #onSupportGone() { if (game.user.isGM) await supportGone(this.document); }
+  static async #onPurposeRegained() { if (game.user.isGM) await regainPurpose(this.document); }
   static async #onTaintSet() { return setTaintDialog(this.document); }
   static async #onTaintCleanse() {
     if (!game.user.isGM) return;

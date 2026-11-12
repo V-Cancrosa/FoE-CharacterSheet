@@ -79,6 +79,16 @@
   </ul>
   {{else}}<p class="hint">{{t "No active chems, addictions or radiation sickness. You take medicine and chems with the “Use” button in the Inventory."}}</p>{{/if}}
 
+  {{#if mind}}
+  <h3>{{t "Ghoul's Purpose"}} {{rule "survival/mutations"}}
+    {{#if mind.gm}}{{#if mind.feral}}<a data-action="purposeRegained" title="{{t "Restored Purpose within a week — rarely brings a feral ghoul back (GM's call)"}}"><i class="fa-solid fa-heart"></i> {{t "Restore"}}</a>
+    {{else}}{{#if mind.lost}}{{#if mind.support}}<a data-action="supportGone" title="{{t "The friends' support is gone — 1d20 minutes to going feral"}}"><i class="fa-solid fa-user-slash"></i> {{t "Support gone"}}</a>{{/if}}
+    <a data-action="purposeRegained" title="{{t "A new or restored Purpose stops going feral"}}"><i class="fa-solid fa-heart"></i> {{t "Purpose regained"}}</a>
+    {{else}}<a data-action="purposeLost" title="{{t "The ghoul's main Purpose is gone (p. 614)"}}"><i class="fa-solid fa-heart-crack"></i> {{t "Purpose lost"}}</a>{{/if}}{{/if}}{{/if}}
+  </h3>
+  <p class="hint {{#if mind.alert}}warn{{/if}}">{{mind.state}}</p>
+  {{/if}}
+
   {{#if taint}}
   <h3>{{t "Taint"}} {{rule "survival/taint"}}
     {{#if taint.gm}}<a data-action="taintDose" title="{{t "A taint dose (Luck rolls per Table XXXVI)"}}"><i class="fa-solid fa-flask"></i> {{t "Dose"}}</a>
