@@ -48,8 +48,15 @@ function readParams(form) {
     rads: num("rads"), pink: num("pink"), persistent: e.persistent?.checked, taint: num("taint"), save: e.save?.checked };
 }
 
+let hazardsOpen = false;
 export async function openHazards() {
   if (!game.user.isGM || !canvas?.scene) return ui.notifications.warn(t("Open a scene first."));
+  if (hazardsOpen) return null;   // jedno okno naraz
+  hazardsOpen = true;
+  try { return await hazardsDialog(); } finally { hazardsOpen = false; }
+}
+
+async function hazardsDialog() {
   const list = allPresets();
   const cards = list.map((h, i) => `<label class="hz-card" title="${esc(h.custom ? h.name : t(h.desc))}"><input type="radio" name="preset" value="${i}" ${i ? "" : "checked"}>
     <span class="hz-ico">${iconHtml(h.texture || h.icon)}</span><span class="hz-name">${h.custom ? "★ " : ""}${esc(h.custom ? h.name : t(h.label))}</span>
@@ -159,9 +166,11 @@ export function registerHazards() {
   game.settings.register(F, "hazardPresets", { scope: "world", config: false, type: Array, default: [] });
   Hooks.on("getSceneControlButtons", controls => {
     if (!game.user?.isGM) return;
+    // v13+: narzędzie-przycisk woła onChange; v12 (lista): onClick — tylko jedno, inaczej okno otwiera się dwa razy
+    const legacy = Array.isArray(controls);
     const tool = { name: "foeHazards", title: t("Hazards (Fallout: Equestria)"), icon: "fa-solid fa-biohazard", button: true, visible: true, order: 99,
-      onChange: () => openHazards(), onClick: () => openHazards() };
-    const tiles = Array.isArray(controls) ? controls.find(c => c.name === "tiles") : controls.tiles;
+      ...(legacy ? { onClick: () => openHazards() } : { onChange: () => openHazards() }) };
+    const tiles = legacy ? controls.find(c => c.name === "tiles") : controls.tiles;
     if (!tiles) return;
     if (Array.isArray(tiles.tools)) tiles.tools.push(tool); else tiles.tools.foeHazards = tool;
   });

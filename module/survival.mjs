@@ -493,13 +493,16 @@ export function tokenExposure(td) {
   return exposure({ token, grid, ambient: sceneRads(scene), regions, sources });
 }
 
-/** Postacie graczy na aktywnej scenie z dawką (najwyższą z ich tokenów). */
+/**
+ * Postacie i NPC z tokenem na aktywnej scenie z dawką (najwyższą z ich tokenów). Także postacie bez gracza-właściciela
+ * (prowadzone przez MG) — promieniowanie działa na każdego, kto stoi w strefie.
+ */
 function exposedOnActive() {
   const scene = game.scenes?.active;
   const out = new Map();
   for (const td of scene?.tokens ?? []) {
     const a = td.actor;
-    if (a?.type !== "character" || !a.hasPlayerOwner || isDead(a)) continue;
+    if (!["character", "npc"].includes(a?.type) || a.system?.resources?.rads === undefined || isDead(a)) continue;
     const e = tokenExposure(td);
     if (!out.has(a) || out.get(a).total < e.total) out.set(a, e);
   }
