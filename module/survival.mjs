@@ -24,6 +24,7 @@ import { addMutation, taintReroll, addTaint, settlementWater, sceneTaintWater } 
 import { itemTaint, TAINT_WATER } from "./taint-data.mjs";
 import { sleepTick, frozenSleep, resolveSleep, sleepRow, stimulant, sleepReroll } from "./sleep.mjs";
 import { feralTick, slowFeral } from "./mind.mjs";
+import { pinkTick, pinkRow } from "./pink.mjs";
 import { needsPipbuck } from "./skin-apply.mjs";
 import {
   foodInfo, dietOf, fitsDiet, foodRads, dayOf, freshState, settleDays, ambientRads, exposure, clickCount, STARVE_DEATH,
@@ -443,6 +444,8 @@ export function survivalRows(actor) {
   if (st?.wellFed != null && st.wellFed === dayOf(w)) rows.push({ ruleHtml: ruleLink("survival/food"), name: t("Well fed"), desc: t("+15 to END rolls until midnight") });
   const log = flagOf(actor, "radlog");
   if (log?.severe && setting("radiationChecks")) rows.push({ ruleHtml: ruleLink("survival/radiation"), name: t("Severe radiation exposure"), desc: t("END ¼ roll in {h} h unless the rads are reduced (failure — a mutation)", { h: Math.max(0, Math.ceil((log.severe.at + SEVERE_WAIT - w) / 3600)) }), alert: true });
+  const pr = pinkRow(actor);
+  if (pr) rows.push({ ruleHtml: ruleLink("survival/mutations"), ...pr });
   const sr = sleepRow(actor);
   if (sr) rows.push({ ruleHtml: ruleLink("survival/sleep"), ...sr });
   if (log?.poison) rows.push({ ruleHtml: ruleLink("survival/radiation"), name: t("Radiation poisoning"), desc: t("penalties as at 800 rads; death in {h} h unless the rads are reduced (RadAway)", { h: Math.max(0, Math.ceil((log.poison.at + POISON_DEATH - w) / 3600)) }), alert: true });
@@ -639,6 +642,7 @@ export async function timeTick(worldTime, dt, { rads = true } = {}) {
       await radiationTick(a, worldTime);
       await sleepTick(a, worldTime, Number(dt) || 0);
       await feralTick(a, worldTime);
+      await pinkTick(a, worldTime, Number(dt) || 0);
       // koniec 8 h bez kar głodu — przelicz kartę
       if (st?.ignoreUntil && st.ignoreUntil <= worldTime) await a.setFlag(F, "survival.ignoreUntil", null);
     }).catch(err => console.error(`${F} | survival: ${a.name}`, err));

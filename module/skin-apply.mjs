@@ -53,7 +53,8 @@ export function stateOf(actor) {
     && !((actor?.flags?.[F]?.survival?.ignoreUntil ?? 0) > (globalThis.game?.time?.worldTime ?? 0));
   return {
     dead: !!actor?.system?.dead || !!st?.has?.("dead"), out: !!st?.has?.("unconscious"),
-    jolted: !!(c.jolted || c.shocked), burning: !!c.burning, poisoned: !!c.poisoned, paralyzed: !!c.paralyzed,
+    jolted: !!(c.jolted || c.shocked) || [...(actor?.items ?? [])].some(i => i.flags?.[F]?.pink === "scream"),
+    burning: !!c.burning, poisoned: !!c.poisoned, paralyzed: !!c.paralyzed, pink: !!actor?.flags?.[F]?.pinkState?.in,
     rads: actor?.system?.resources?.rads?.value ?? 0, thirst: dehydrationLevel(actor), starving
   };
 }

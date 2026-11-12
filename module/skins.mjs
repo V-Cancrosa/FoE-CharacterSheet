@@ -207,6 +207,7 @@ export function overlaysOf(s = {}) {
   const rads = Number(s.rads) || 0;
   if (rads >= 200) out.push(`ov-rads-${rads >= 800 ? 3 : rads >= 400 ? 2 : 1}`);
   if ((Number(s.thirst) || 0) >= 3 || s.starving) out.push("ov-faint");
+  if (s.pink) out.push("ov-pink");
   if (s.out) return [...out, "ov-out"];
   if (s.jolted) out.push("ov-static");
   if (s.burning) out.push("ov-burning");

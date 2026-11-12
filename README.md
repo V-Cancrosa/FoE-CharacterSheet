@@ -730,6 +730,17 @@ Sen i niewyspanie (s. 479–480, opcja świata „Sen i niewyspanie”, domyśln
 - Ghule i alikorny, które dostały co najmniej 100 radów w ciągu dwóch dni, nie potrzebują snu.
 - Wiersz „Niewyspanie” w sekcji zdrowia pokazuje się od 75% granicy.
 
+Różowa chmura (s. 611, bestiariusz; poziomy 1, 2, 3 i 5 — zasada domowa) — opcja świata „Różowa chmura”, domyślnie włączona:
+- Gęstość 0–5 w konfiguracji sceny i regionu (pole „stała” — nie rzednie; inaczej −1 poziom na godzinę od ustawienia).
+- Postacie graczy z tokenem w chmurze na aktywnej scenie: rany co rundę (6 s) w głowę i tułów (bez aparatu
+  oddechowego: pancerz wspomagany, rebreather, kombinezon — nie maska) i w odsłonięte lokacje (bez pancerza). Karta na
+  czacie, różowa mgła na karcie postaci, wiersz w sekcji zdrowia.
+- Śmierć w chmurze — karta decyzji MG: END 1/10, potem INT ¾ (+25 z Fixation) — ghul z Canterlotu (rasa i cecha;
+  dziczejący albo dziki przy porażce INT). Odporne: ghule z Canterlotu, ghule od promieniowania, alikorny z IMP.
+- Opcje z Project Horizons (domyślnie wyłączone): korozja pancerza, zrastanie z otoczeniem (END ½ od gęstości 4),
+  „jednych zabija wolniej” (END o połowę ran), nabyta odporność po przeżyciu (decyzja MG), wyjące PipBucki (−1 PER),
+  alikorny tylko odporniejsze (−2 poziomy zamiast odporności).
+
 Szaleństwo i dziczenie ghuli (s. 613–614):
 - Opcja świata „Rzuty na szaleństwo” (domyślnie włączona): nowa wada psychiczna postaci gracza w trakcie gry (nie
   z kreatora) — tajny rzut INT dla MG (MFD 1, każda Psychosis o krok łatwiej); krytyczny sukces — karta decyzji MG
