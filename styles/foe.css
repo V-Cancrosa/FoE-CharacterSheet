@@ -1298,3 +1298,41 @@ body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
 .foe-rpg .foe-travel .trv-party { display: flex; flex-direction: column; gap: .15rem; max-height: 220px; overflow-y: auto; border: 1px solid var(--pip-line); padding: .25rem .4rem; }
 .foe-rpg .foe-travel .trv-preview .warn { color: var(--pip-alert); }
 .foe-travel-open { margin: .3rem 0; width: 100%; }
+
+/* ---------- Okno ustawień systemu (settings-hub.mjs) ---------- */
+.foe-hub .window-content { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: .6rem; padding: .5rem; overflow: hidden; }
+.foe-hub .hub-nav { display: flex; flex-direction: column; gap: .15rem; overflow-y: auto; border-right: 1px solid var(--pip-line); padding-right: .5rem; }
+.foe-hub .hub-nav .hub-search { margin-bottom: .4rem; width: 100%; box-sizing: border-box; }
+.foe-hub .hub-nav a { display: flex; align-items: center; gap: .45rem; padding: .3rem .4rem; color: var(--pip-mid); text-transform: uppercase; font-size: 12px; border: 1px solid transparent; cursor: pointer; }
+.foe-hub .hub-nav a i { width: 1.1em; text-align: center; }
+.foe-hub .hub-nav a:hover { color: var(--pip); border-color: var(--pip-line); }
+.foe-hub .hub-nav a.active { color: var(--pip-ink); background: var(--pip); text-shadow: none; }
+.foe-hub .hub-body { display: flex; flex-direction: column; min-height: 0; }
+.foe-hub .hub-head h2 { margin: 0 0 .2rem; border: 0; font-size: 18px; color: var(--pip); }
+.foe-hub .hub-head p { margin: 0 0 .4rem; color: var(--pip-mid); font-size: 12px; }
+.foe-hub .hub-head .hub-note { color: var(--pip-dim); }
+.foe-hub .hub-list { flex: 1 1 auto; overflow-y: auto; display: flex; flex-direction: column; gap: .3rem; padding-right: .3rem; }
+.foe-hub .hub-row { display: flex; gap: .7rem; align-items: center; border: 1px solid var(--pip-line); padding: .4rem .55rem; background: var(--pip-faint); }
+.foe-hub .hub-row.changed { border-color: var(--pip); box-shadow: 0 0 6px var(--pip-glow); }
+.foe-hub .hub-row.locked { opacity: .7; }
+.foe-hub .hub-main { flex: 1 1 auto; min-width: 0; }
+.foe-hub .hub-name { color: var(--pip); font-weight: 700; }
+.foe-hub .hub-hint { color: var(--pip-mid); font-size: 12px; margin-top: .15rem; }
+.foe-hub .hub-badges { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .25rem; }
+.foe-hub .hub-badge { font-size: 10px; text-transform: uppercase; padding: 0 .35rem; border: 1px solid var(--pip-dim); color: var(--pip-dim); }
+.foe-hub .hub-badge.world { border-color: var(--pip-mid); color: var(--pip-mid); }
+.foe-hub .hub-badge.ph { border-color: #e889c0; color: #e889c0; }
+.foe-hub .hub-badge.house { border-color: var(--pip-alert); color: var(--pip-alert); }
+.foe-hub .hub-badge.reload { border-style: dashed; }
+.foe-hub .hub-ctl { flex: 0 0 auto; display: flex; align-items: center; gap: .4rem; max-width: 45%; }
+.foe-hub .hub-ctl :is(select, input[type="text"], input[type="number"]) { max-width: 220px; }
+.foe-hub .hub-ctl input[type="number"] { width: 80px; }
+.foe-hub .hub-ctl > a { color: var(--pip-dim); cursor: pointer; }
+.foe-hub .hub-ctl > a:hover { color: var(--pip); }
+.foe-hub .hub-ctl > button { width: auto; white-space: nowrap; }
+.foe-hub .hub-toggle { width: 1.3rem; height: 1.3rem; }
+.foe-hub .hub-foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding-top: .4rem; border-top: 1px solid var(--pip-line); margin-top: .4rem; }
+.foe-hub .hub-foot span { color: var(--pip-mid); font-size: 12px; }
+.foe-hub .hub-foot button { width: auto; }
+.foe-hub .hub-empty { color: var(--pip-dim); }
+@media (max-width: 700px) { .foe-hub .window-content { grid-template-columns: 1fr; } }

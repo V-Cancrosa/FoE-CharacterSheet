@@ -7,6 +7,15 @@ Language: *Configure Settings → System Settings → “Language (Fallout: Eque
 (the page reloads after the change). Chat messages and created documents (items, actors, roll tables) stay in the language
 of whoever created them. The rest of this README is in Polish.
 
+
+Ustawienia systemu: w „Ustawieniach gry” jest jeden przycisk **Ustawienia Fallout: Equestria** (i wybór języka). Otwiera
+okno w stylu PipBucka: kategorie (przetrwanie i czas; promieniowanie, ghule i umysł; różowa chmura; walka; S.A.T.S.
+i PipBuck; postacie i rozwój; świat; wygląd i dźwięk; narzędzia MG), wyszukiwarka, przy każdej opcji opis, na co
+wpływa, i znaczniki: „świat — MG” albo „tylko u ciebie”, „zasada domowa”, „Project Horizons”, „wymaga przeładowania”.
+Strzałka przywraca wartość domyślną, „Zapisz” zapisuje wszystkie zmiany naraz. Gracze otwierają to samo okno i
+zmieniają swoje ustawienia (wygląd, dźwięk, animacje); światowe widzą tylko do odczytu. Przyciski narzędzi MG
+(ustawienia tokenów, własne wyglądy kart, kalendarz w Simple Calendar) są w kategorii „Narzędzia MG”.
+
 ## Aktualizacja systemu
 Po aktualizacji systemu (Foundry, The Forge) **uruchom świat ponownie**: zakładka Ustawienia → „Wróć do konfiguracji”
 („Return to Setup”), potem znów uruchom świat. Samo odświeżenie strony nie wystarczy — serwer trzyma opis systemu z chwili
