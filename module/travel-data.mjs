@@ -108,3 +108,39 @@ export function simulate(mode, moving, members, roll, d6) {
 
 /** Czy podróż obejmuje noclegi (doba i dłużej) — wtedy przeskok liczy sen. */
 export const campsOvernight = total => total >= 24;
+
+// ---------- spotkania losowe w drodze i na postoju ----------
+/** Częstotliwość: szansa na spotkanie przy każdym sprawdzeniu (co ENCOUNTER_EVERY godzin). Podręcznik jej nie podaje. */
+export const ENCOUNTER_EVERY = 4;
+export const ENCOUNTER_CHANCE = Object.freeze({ none: 0, rare: 5, normal: 10, often: 17, danger: 33 });
+
+/** Godziny ruchu na dobę przy marszu z noclegami (reszta doby to postój). */
+export function movingPerDay(p, mode) {
+  if (!(mode === "walk" || mode === "vehicle") || !p.rate.hourly) return 24;
+  return Math.min(24, p.rate.day / p.rate.hourly);
+}
+
+/** Pierwsze spotkanie: godzina (licząc od wymarszu) albo null. roll() → 1–100. Sprawdzenia co ENCOUNTER_EVERY h przed metą. */
+export function encounterAt(total, chance, roll) {
+  if (!(chance > 0)) return null;
+  for (let h = ENCOUNTER_EVERY; h < total; h += ENCOUNTER_EVERY) if (roll() <= chance) return h;
+  return null;
+}
+
+/** Faza w chwili h: "road" (w drodze) albo "camp" (postój nocny). */
+export const phaseAt = (h, mDay) => ((h % 24) < mDay - 1e-9 ? "road" : "camp");
+
+/** Najdłuższy postój nocny w pierwszych e godzinach (do snu). */
+export function longestCamp(e, mDay) {
+  if (mDay >= 24) return 0;
+  const full = Math.floor(e / 24);
+  const part = Math.max(0, e - full * 24 - mDay);
+  return Math.max(full ? 24 - mDay : 0, part);
+}
+
+/** Przebyte mile po e godzinach (marsz: według planu po czasie; inne: tempo godzinowe minus postoje przed e). */
+export function milesAfter({ speed, mode, e, extraBefore = 0, maxMiles = Infinity }) {
+  const daily = mode === "walk" || mode === "vehicle";
+  const m = daily ? plan({ speed, mode, hours: e }).miles : Math.round(Math.max(0, e - extraBefore) * plan({ speed, mode, hours: 1 }).rate.hourly * 10) / 10;
+  return Math.min(maxMiles, m);
+}

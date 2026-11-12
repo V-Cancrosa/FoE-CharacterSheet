@@ -706,7 +706,12 @@ Podróż (s. 481–482, tabela XXXIV) — przycisk MG **Podróż (Fallout: Eques
 - **Tylko policz** — karta z planem. **Wyrusz** — rzuty w drodze (pośpiech: END ¾ po 2 h, potem ½, porażka — godzina
   postoju; bieg: END ¼ co godzinę, porażka — wyczerpanie 1k6 h; lot: Flight ¾ co godzinę, od 6. godziny END ½,
   porażka — lądowanie i godzina odpoczynku), karta z wynikami i przesunięcie czasu świata. Jedzenie, picie,
-  promieniowanie i sen rozlicza przeskok czasu; podróż od doby wzwyż ma noclegi i liczy się jako sen, krótsza nie.
+  promieniowanie i sen rozlicza przeskok czasu; sen liczy się, gdy postój nocny był dość długi (kucykom 2 h, innym 8 h).
+- **Spotkania losowe**: pole w oknie (bez spotkań / rzadkie 5% / zwykłe 10% / częste 17% / bardzo częste 33%, co 4 h
+  w drodze i na postoju; ostatni wybór jest pamiętany). Spotkanie zatrzymuje podróż w swojej chwili — czas idzie tylko
+  do niego, karta pokazuje, czy grupa była w drodze, czy na postoju nocnym, ile przebyła i ile zostało, a z tabeli
+  „Spotkania losowe” (Tabele FoE, s. 618) losuje się wynik z przyciskiem „Dodaj NPC” przy stworach. Przycisk
+  **Kontynuuj podróż** (MG) prowadzi resztę trasy z tymi samymi ustawieniami.
 
 Sen i niewyspanie (s. 479–480, opcja świata „Sen i niewyspanie”, domyślnie włączona; liczy aktywny MG):
 - Kucyki, zebry i alikorny: 2 godziny snu na leżąco co 48 h (drzemki na stojąco są w podróży); inne rasy (gryfy,
