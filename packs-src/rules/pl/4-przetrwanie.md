@@ -129,6 +129,8 @@ Grupa idzie tempem najwolniejszego członka idącego o własnych siłach. Tabela
 - **Lot** (×2 dystansu pieszego): rzut Flight ¾ co godzinę; ponad 6 godzin — END ½ co godzinę, inaczej lądowanie i godzina odpoczynku.
 - Wozy i inne pojazdy jadą tempem tych, którzy je ciągną.
 
+> **Na karcie:** MG ma przycisk **Podróż (Fallout: Equestria)** w zakładce aktorów. Zaznaczasz, kto liczy się do tempa (niesieni i jadący — nie), wybierasz sposób (marsz, pośpiech, bieg, lot, pojazd) i dystans albo czas — okno od razu pokazuje tempo z tabeli i czas drogi. *Tylko policz* daje kartę z planem; *Wyrusz* rzuca testy w drodze i przesuwa czas świata, a jedzenie, picie, promieniowanie i sen rozlicza przeskok czasu. Założenia systemu: przy pośpiechu grupa zawsze staje na godzinę po oblanym rzucie (bez ran za marsz bez postoju); skutki oblanego Flight ¾ ocenia MG; pośpiech, bieg i lot liczą tylko tempo godzinowe (bez noclegów); podróż od doby wzwyż ma noclegi (liczy się jako sen), krótsza nie.
+
 ## Przeskok czasu {#timeskip}
 
 Zasada systemu: planowy przeskok czasu (podróż, odpoczynek, tydzień w osadzie) nie liczy się sam.
