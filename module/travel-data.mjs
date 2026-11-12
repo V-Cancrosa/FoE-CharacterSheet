@@ -61,7 +61,8 @@ export function plan({ speed, mode = "walk", miles = null, hours = null }) {
 }
 
 /**
- * Rzuty w drodze (pośpiech, bieg, lot). members — [{ name, end (TN END), flight (TN Flight) }], roll(tn, f) → true/false,
+ * Rzuty w drodze (pośpiech, bieg, lot). members — [{ name, end (TN END), flight (TN Flight) }], roll(tn, f, kind) → true/false
+ * (kind "flight" — rzut Flight, do pogody),
  * d6() → 1–6. Zwraca { extra (godziny postojów), log: [{ at, kind, who: [nazwy, które oblały], step }] }.
  */
 export function simulate(mode, moving, members, roll, d6) {
@@ -94,7 +95,7 @@ export function simulate(mode, moving, members, roll, d6) {
     let since = 0;
     for (let t = 1; t <= Math.ceil(moving); t++) {
       since += 1;
-      const fl = members.filter(m => !roll(m.flight, 0.75)).map(m => m.name);
+      const fl = members.filter(m => !roll(m.flight, 0.75, "flight")).map(m => m.name);
       log.push({ at: t, kind: "flight", step: "3/4", who: fl });
       if (since >= 6 && t < moving) {
         const who = members.filter(m => !roll(m.end, 0.5)).map(m => m.name);

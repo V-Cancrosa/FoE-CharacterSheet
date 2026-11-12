@@ -712,6 +712,9 @@ Podróż (s. 481–482, tabela XXXIV) — przycisk MG **Podróż (Fallout: Eques
   do niego, karta pokazuje, czy grupa była w drodze, czy na postoju nocnym, ile przebyła i ile zostało, a z tabeli
   „Spotkania losowe” (Tabele FoE, s. 618) losuje się wynik z przyciskiem „Dodaj NPC” przy stworach. Przycisk
   **Kontynuuj podróż** (MG) prowadzi resztę trasy z tymi samymi ustawieniami.
+- Inne moduły: karta podaje datę wymarszu i dotarcia albo spotkania (Simple Calendar Reborn, gdy jest; inaczej
+  kalendarz Equestrii z czasu świata); pogoda FoE albo Weather Forging zmienia rzuty Flight w locie jak w walce;
+  wynik z tabeli spotkań turla się z Dice So Nice; Simple Calendar i Weather Forging same idą za przesuniętym czasem.
 
 Sen i niewyspanie (s. 479–480, opcja świata „Sen i niewyspanie”, domyślnie włączona; liczy aktywny MG):
 - Kucyki, zebry i alikorny: 2 godziny snu na leżąco co 48 h (drzemki na stojąco są w podróży); inne rasy (gryfy,

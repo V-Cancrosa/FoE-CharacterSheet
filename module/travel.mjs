@@ -9,6 +9,9 @@
 import { t, N_ } from "./i18n.mjs";
 import { trackedActors } from "./survival.mjs";
 import { travelSleepHint } from "./sleep.mjs";
+import { dateAt } from "./calendar.mjs";
+import { currentWeather, weatherSummary } from "./weather.mjs";
+import { MFD_STEPS } from "./data.mjs";
 import {
   rateOf, partySpeed, plan, simulate, ENCOUNTER_EVERY, ENCOUNTER_CHANCE, movingPerDay, encounterAt, phaseAt, longestCamp, milesAfter
 } from "./travel-data.mjs";
@@ -121,7 +124,12 @@ export async function travel(r, go) {
   if (!r.p.rate.hourly || (r.mode !== "vehicle" && r.ps && !r.ps.slowest)) return ui.notifications.warn(t("The group can't move — check the speed and who counts towards the pace."));
   if (r.ps?.grounded?.length) return ui.notifications.warn(t("Can't fly: {list}", { list: r.ps.grounded.map(m => m.name).join(", ") }));
   const rollers = r.rollers ?? r.ms.filter(m => m.pace).map(m => ({ name: m.name, end: m.end, flight: m.flight }));
-  const sim = go ? simulate(r.mode, r.p.moving, rollers, (tn, f) => d100() <= Math.floor(tn * f), d6) : { extra: 0, log: [] };
+  // pogoda (FoE albo Weather Forging na oglądanej scenie) zmienia rzuty Flight jak w walce (s. 628)
+  const weather = currentWeather();
+  const wSteps = Number(weather.acc?.steps) || 0, wMod = Number(weather.acc?.mod) || 0;
+  const flyF = f => { const i = MFD_STEPS.findIndex(s => s.f === f); return i < 0 ? f : MFD_STEPS[Math.max(0, Math.min(MFD_STEPS.length - 1, i - wSteps))].f; };
+  const roll = (tn, f, kind) => (kind === "flight" ? d100() <= Math.floor(tn * flyF(f)) + wMod : d100() <= Math.floor(tn * f));
+  const sim = go ? simulate(r.mode, r.p.moving, rollers, roll, d6) : { extra: 0, log: [] };
   const fullTotal = r.p.total + sim.extra;
   const mDay = movingPerDay(r.p, r.mode);
   const chance = Number(r.enc) || 0;
@@ -144,6 +152,11 @@ export async function travel(r, go) {
     t("{mode}: {mi} mi, pace {s} ({h} mi/h).", { mode: modes[r.mode], mi: r.p.miles, s: r.speed, h: r.p.rate.hourly }),
     t("On the road: {time}{extra}.", { time: hoursText(fullTotal), extra: sim.extra ? t(" (incl. {n} h of stops)", { n: sim.extra }) : "" }),
     go ? t("Random encounters: {c}% every {n} h.", { c: chance, n: ENCOUNTER_EVERY }) : "",
+    r.mode === "fly" && (wSteps || wMod) ? t("Weather: {w} — {fx}.", { w: weather.label, fx: weatherSummary(weather) }) : "",
+    t("Departure: {d}", { d: dateAt(game.time.worldTime) }),
+    go ? (encAt != null ? t("Encounter: {d}", { d: dateAt((Number(game.time.worldTime) || 0) + Math.round(total * 3600)) })
+      : t("Arrival: {d}", { d: dateAt((Number(game.time.worldTime) || 0) + Math.round(total * 3600)) }))
+      : t("Arrival: {d}", { d: dateAt((Number(game.time.worldTime) || 0) + Math.round(fullTotal * 3600)) }),
     ...logLines,
     !go ? t("Plan only — world time unchanged.") : encAt != null ? "" : camp ? t("Night camps on the way — counts as sleep.") : t("Under a day on the road — no proper sleep.")
   ].filter(Boolean);

@@ -132,6 +132,8 @@ Grupa idzie tempem najwolniejszego członka idącego o własnych siłach. Tabela
 > **Na karcie:** MG ma przycisk **Podróż (Fallout: Equestria)** w zakładce aktorów. Zaznaczasz, kto liczy się do tempa (niesieni i jadący — nie), wybierasz sposób (marsz, pośpiech, bieg, lot, pojazd) i dystans albo czas — okno od razu pokazuje tempo z tabeli i czas drogi. *Tylko policz* daje kartę z planem; *Wyrusz* rzuca testy w drodze i przesuwa czas świata, a jedzenie, picie, promieniowanie i sen rozlicza przeskok czasu. Założenia systemu: przy pośpiechu grupa zawsze staje na godzinę po oblanym rzucie (bez ran za marsz bez postoju); skutki oblanego Flight ¾ ocenia MG; pośpiech, bieg i lot liczą tylko tempo godzinowe (bez noclegów); sen liczy się, gdy postój nocny był dość długi (kucykom 2 h, innym 8 h).
 >
 > **Spotkania losowe w podróży:** w oknie wybierasz częstotliwość (bez spotkań, rzadkie 5%, zwykłe 10%, częste 17%, bardzo częste 33% — co 4 godziny, w drodze i na postoju nocnym; podręcznik jej nie podaje, więc dobierz ją do okolicy). Gdy wypadnie spotkanie, podróż staje: czas idzie tylko do chwili spotkania, karta mówi, czy grupa była w drodze, czy na postoju, ile przebyła i ile zostało, a z tabeli *Spotkania losowe* (folder *Tabele FoE*, s. 618) losuje się wynik. Po scenie przycisk **Kontynuuj podróż** prowadzi resztę trasy.
+>
+> Karta podróży podaje datę wymarszu i dotarcia (albo spotkania) — z Simple Calendar, gdy jest włączony, inaczej z kalendarza Equestrii. Pogoda (wybrana w FoE albo z Weather Forging na oglądanej scenie) zmienia rzuty Flight w czasie lotu tak samo jak w walce (s. 628).
 
 ## Przeskok czasu {#timeskip}
 
