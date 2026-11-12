@@ -23,6 +23,7 @@ import { attrTest } from "./attr-test.mjs";
 import { addMutation, taintReroll, addTaint, settlementWater, sceneTaintWater } from "./taint.mjs";
 import { itemTaint, TAINT_WATER } from "./taint-data.mjs";
 import { sleepTick, frozenSleep, resolveSleep, sleepRow, stimulant, sleepReroll } from "./sleep.mjs";
+import { feralTick, slowFeral } from "./mind.mjs";
 import { needsPipbuck } from "./skin-apply.mjs";
 import {
   foodInfo, dietOf, fitsDiet, foodRads, dayOf, freshState, settleDays, ambientRads, exposure, clickCount, STARVE_DEATH,
@@ -568,6 +569,7 @@ async function ghoulify(actor) {
   await actor.setFlag(F, "radlog", { ...(flagOf(actor, "radlog") ?? {}), poison: null, lethal: null, severe: null });
   await actor.createEmbeddedDocuments("Item", [{ name: feral ? t("Feral ghoul") : slow ? t("Going feral") : t("Ghoul (from radiation)"), type: "feature",
     system: { kind: "other", active: true, effects: [], description: `<p>${esc(desc)}</p>` }, flags: { [F]: { ghoul: feral ? "feral" : slow ? "going" : "sentient" } } }]);
+  if (slow) await slowFeral(actor);
   await card(actor, [t("{name} should have died of radiation — but the soul holds on: a ghoul.", { name: actor.name }), desc], { tag: t("RADIATION") });
   return true;
 }
@@ -636,6 +638,7 @@ export async function timeTick(worldTime, dt, { rads = true } = {}) {
       await thirstTick(a, worldTime);
       await radiationTick(a, worldTime);
       await sleepTick(a, worldTime, Number(dt) || 0);
+      await feralTick(a, worldTime);
       // koniec 8 h bez kar głodu — przelicz kartę
       if (st?.ignoreUntil && st.ignoreUntil <= worldTime) await a.setFlag(F, "survival.ignoreUntil", null);
     }).catch(err => console.error(`${F} | survival: ${a.name}`, err));

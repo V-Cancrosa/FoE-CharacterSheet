@@ -730,6 +730,15 @@ Sen i niewyspanie (s. 479–480, opcja świata „Sen i niewyspanie”, domyśln
 - Ghule i alikorny, które dostały co najmniej 100 radów w ciągu dwóch dni, nie potrzebują snu.
 - Wiersz „Niewyspanie” w sekcji zdrowia pokazuje się od 75% granicy.
 
+Szaleństwo i dziczenie ghuli (s. 613–614):
+- Opcja świata „Rzuty na szaleństwo” (domyślnie włączona): nowa wada psychiczna postaci gracza w trakcie gry (nie
+  z kreatora) — tajny rzut INT dla MG (MFD 1, każda Psychosis o krok łatwiej); krytyczny sukces — karta decyzji MG
+  i cecha „Obłęd”.
+- Ghul: sekcja „Cel ghula” w zakładce Walka. MG: *Utrata Celu* (sam — zdziczeje za 1k20 minut; z przyjaciółmi —
+  czeka, aż kliknie *Bez wsparcia*), *Odzyskany Cel* (przerywa; dzikiego ghula przywraca tylko w ciągu tygodnia).
+  Termin mija — karta decyzji MG i cecha „Dziki ghul”. Ghul z promieniowania z oblanym INT — zdziczeje za 1k4+1 dni.
+- Rzuty mogą być tajne (widzi je tylko MG) — rollTest z opcją secret.
+
 Skażenie (tabela XXXVI, s. 485–487, i „They Were Ponies, Once”, s. 610–612) — suwak w zakładce Walka pod zdrowiem:
 - 5 rombów i 4 kreski. MG klika **Dawka** (drobna ekspozycja +1, kleks z sufitu +2–4, kałuża +6 albo własna liczba)
   — system sam rzuca Szczęście na pozycji, na której suwak stanął (2. romb ¼, 3. romb 1/10 dla tych, którzy zdali,
