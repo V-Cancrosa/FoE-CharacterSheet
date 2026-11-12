@@ -25,6 +25,7 @@ import { itemTaint, TAINT_WATER } from "./taint-data.mjs";
 import { sleepTick, frozenSleep, resolveSleep, sleepRow, stimulant, sleepReroll } from "./sleep.mjs";
 import { feralTick, slowFeral } from "./mind.mjs";
 import { pinkTick, pinkRow } from "./pink.mjs";
+import { strainTick } from "./strain.mjs";
 import { needsPipbuck } from "./skin-apply.mjs";
 import {
   foodInfo, dietOf, fitsDiet, foodRads, dayOf, freshState, settleDays, ambientRads, exposure, clickCount, STARVE_DEATH,
@@ -643,6 +644,7 @@ export async function timeTick(worldTime, dt, { rads = true } = {}) {
       await sleepTick(a, worldTime, Number(dt) || 0);
       await feralTick(a, worldTime);
       await pinkTick(a, worldTime, Number(dt) || 0);
+      await strainTick(a, Number(dt) || 0);
       // koniec 8 h bez kar głodu — przelicz kartę
       if (st?.ignoreUntil && st.ignoreUntil <= worldTime) await a.setFlag(F, "survival.ignoreUntil", null);
     }).catch(err => console.error(`${F} | survival: ${a.name}`, err));
@@ -825,6 +827,7 @@ export async function resolveSkip(actor, snap, choice, { from, to }) {
   }
   await thirstTick(actor, now());
   await radiationTick(actor, now());
+  await strainTick(actor, to - from);
   const sleepLine = await resolveSleep(actor, snap?.sl ?? null, food, from, to);
   if (sleepLine) lines.push(sleepLine);
   return lines;

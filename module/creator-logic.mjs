@@ -254,6 +254,7 @@ export function buildPcUpdate(state, r) {
     "system.speedBonus": 0,
     "system.resources.sats.value": r.preview.sats,
     "system.resources.luck.value": r.preview.luckCards,
+    "flags.foe-rpg.strainFill": true,   // pełna pula strain po przeliczeniu (strain.mjs)
     "flags.foe-rpg.created": true,
     // jako tekst JSON — zwykły zapis obiektu scalałby się ze starym i nie usuwał odznaczonych cech
     "flags.foe-rpg.creation": JSON.stringify({ ...state, step: 0, filter: "" })
@@ -360,6 +361,7 @@ export function buildNpcUpdate(opts, r) {
     "system.speedBonus": 0,
     "system.resources.sats.value": SATS(r.attrs.agi),
     "system.resources.luck.value": LUCK_CARDS(r.attrs.luck),
+    "flags.foe-rpg.strainFill": true,
     "flags.foe-rpg.created": true,
     "flags.foe-rpg.npcCreation": JSON.stringify(opts)
   };

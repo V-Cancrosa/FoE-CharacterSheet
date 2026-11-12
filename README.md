@@ -130,7 +130,11 @@ Stany widać w zakładce Walka (z przyciskami) i jako ikony na tokenie; w walce 
 
 Magia jednorożców i alikornów (rozdz. 5): katalog 235 zaklęć z podręcznika (poziomy 0–4; koszt strain, koszt SATS, wymagany
 poziom, prekursory, obrażenia) w zakładce „Zaklęcia” katalogu, zakładka „Magia” na karcie postaci.
-- Pula strain liczy się sama: END + INT + 2 (alikorny +5) + cechy (np. Channeler); „+1 strain” to godzina odpoczynku (Shift — do pełna).
+- Pula strain liczy się sama: END + INT + 2 (alikorny +5) + cechy (np. Channeler). To zasób: zaklęcia z niej pobierają,
+  a kłopoty zaczynają się dopiero po zejściu do zera. Nowa postać (i postać z kreatora) zaczyna z pełną pulą; postacie
+  sprzed wersji 0.64.1 z pulą 0 dostają ją pełną raz (częściowo wydanej puli system nie rusza).
+- Pula odnawia się sama z upływem czasu świata: 1 punkt na godzinę, z Channelerem co 45 albo 30 minut (także
+  w przeskoku czasu). „+1 strain” to ręczna godzina odpoczynku (Shift — do pełna).
 - Rzucanie: rzut Magic, overglow 0–3 (każda warstwa ×2 efekty i koszt; 1 warstwa = SATS ×3, więcej = 2 akcje i bez SATS),
   krytyk daje darmową warstwę, porażka — zaklęcie nie wychodzi (krytyczna porażka zabiera strain).
 - Za mało strain: każdy brakujący punkt = krok MFD trudniej; porażka oznacza wypalenie (bez magii 1d4 tygodnie).
