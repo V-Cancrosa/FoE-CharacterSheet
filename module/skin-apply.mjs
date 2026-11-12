@@ -140,6 +140,9 @@ export function registerSkinHooks() {
     const actor = (sp.token && game.scenes?.get(sp.scene)?.tokens?.get(sp.token)?.actor) || game.actors?.get(sp.actor);
     if (!actor || !SKINNED.has(actor.type)) return;
     const skin = skinOf(actor);
+    // cała wiadomość (ramka, nagłówek) w wyglądzie postaci — bez mieszania z motywem interfejsu
+    const msg = root.matches?.(".message, .chat-message") ? root : root.closest?.(".message, .chat-message");
+    if (msg) { msg.classList.add("foe-msg"); applySkin(msg, skin); }
     for (const c of cards) {
       applySkin(c, skin);
       const tag = c.querySelector(".fc-tag > span:first-child");
