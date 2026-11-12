@@ -1336,3 +1336,33 @@ body[data-foe-crt="off"] .foe-rpg .term-boot::after { display: none; }
 .foe-hub .hub-foot button { width: auto; }
 .foe-hub .hub-empty { color: var(--pip-dim); }
 @media (max-width: 700px) { .foe-hub .window-content { grid-template-columns: 1fr; } }
+
+/* ---------- Sekcja FoE w konfiguracji sceny, regionu i kafelka (hazards.mjs) ---------- */
+fieldset.foe-env {
+  --env: #4dff8a; --env-dim: rgba(77, 255, 138, .45); --env-bg: rgba(6, 20, 10, .88);
+  border: 1px solid var(--env-dim); background: var(--env-bg); color: #cfffe0; padding: .5rem .7rem .6rem; margin: .6rem 0;
+  box-shadow: 0 0 10px rgba(77, 255, 138, .15), inset 0 0 18px rgba(0, 0, 0, .5);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, .18) 2px 3px);
+}
+fieldset.foe-env > legend { color: var(--env); font-family: "FoE VT323", "VT323", monospace; font-size: 1.25em; letter-spacing: .06em; text-transform: uppercase; text-shadow: 0 0 6px rgba(77, 255, 138, .6); padding: 0 .35rem; }
+fieldset.foe-env .form-group > label { color: var(--env); text-transform: uppercase; font-size: .9em; letter-spacing: .03em; }
+fieldset.foe-env .hint { color: rgba(207, 255, 224, .7); }
+fieldset.foe-env :is(input, select) { background: rgba(0, 0, 0, .55); color: #e0ffe9; border: 1px solid var(--env-dim); }
+fieldset.foe-env :is(input, select):focus { border-color: var(--env); box-shadow: 0 0 6px rgba(77, 255, 138, .5); }
+fieldset.foe-env .foe-env-preset { border-bottom: 1px dashed var(--env-dim); padding-bottom: .4rem; margin-bottom: .3rem; }
+
+/* ---------- Okno zagrożeń ---------- */
+.foe-rpg .foe-hazards .hz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .35rem; }
+.foe-rpg .foe-hazards .hz-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .35rem .3rem; border: 1px solid var(--pip-line); cursor: pointer; text-align: center; background: var(--pip-faint); }
+.foe-rpg .foe-hazards .hz-card input { position: absolute; opacity: 0; pointer-events: none; }
+.foe-rpg .foe-hazards .hz-card:has(input:checked) { border-color: var(--pip); box-shadow: 0 0 8px var(--pip-glow); }
+.foe-rpg .foe-hazards .hz-ico { width: 44px; height: 44px; display: grid; place-items: center; font-size: 28px; color: var(--pip); }
+.foe-rpg .foe-hazards .hz-ico img { width: 44px; height: 44px; border: 0; }
+.foe-rpg .foe-hazards .hz-name { font-size: 11px; text-transform: uppercase; color: var(--pip); line-height: 1.15; }
+.foe-rpg .foe-hazards .hz-del { position: absolute; top: 2px; right: 4px; color: var(--pip-dim); }
+.foe-rpg .foe-hazards .hz-del:hover { color: var(--pip-alert); }
+.foe-rpg .foe-hazards .hz-desc { min-height: 2.4em; }
+.foe-rpg .foe-hazards .hz-params { display: flex; flex-direction: column; gap: .3rem; }
+.foe-rpg .foe-hazards .hz-file { display: flex; gap: .3rem; flex: 1 1 auto; }
+.foe-rpg .foe-hazards .hz-file input { flex: 1 1 auto; min-width: 0; }
+.foe-rpg .foe-hazards .hz-file button { width: auto; flex: 0 0 auto; }

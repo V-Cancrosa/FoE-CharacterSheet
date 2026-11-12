@@ -30,6 +30,7 @@ import { registerMind } from "./mind.mjs";
 import { registerPink } from "./pink.mjs";
 import { registerSettingsHub } from "./settings-hub.mjs";
 import { registerStrain } from "./strain.mjs";
+import { registerHazards } from "./hazards.mjs";
 import { registerConfirmSettings, registerConfirmHooks } from "./confirm.mjs";
 import { registerTimeSkipSettings, registerTimeSkipHooks } from "./timeskip.mjs";
 import { registerSkinHooks, registerSkinSettings } from "./skin-apply.mjs";
@@ -121,6 +122,7 @@ Hooks.once("init", () => {
   registerPink();
   registerSettingsHub();
   registerStrain();
+  registerHazards();
   registerTimeSkipHooks();
   registerConfirmHooks();
   registerSkinSettings();
