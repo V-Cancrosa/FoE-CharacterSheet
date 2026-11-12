@@ -1,8 +1,8 @@
 {
   "id": "foe-rpg",
   "title": "Fallout: Equestria RPG (fan, v1.22)",
-  "description": "Unofficial system for the Fallout: Equestria RPG System v1.22 (English as in the rulebook, with a Polish translation): d100 roll-under with MFD, S.P.E.C.I.A.L., character creator, SATS, armor and wounds per location, the rulebook's weapon, armor and gear catalog.",
-  "version": "0.65.0",
+  "description": "<p><strong>Unofficial fan system</strong> for the <em>Fallout: Equestria</em> Role-Playing Game v1.22 — English as in the rulebook, with a full Polish translation.</p><ul><li>d100 roll-under with MFD steps, S.P.E.C.I.A.L., luck cards and rerolls</li><li>Character creator, perks, levels; unicorn magic, zebra alchemy, changelings and bat ponies</li><li>SATS targeting, wounds and armor per location, the rulebook’s weapon, armor and gear catalog</li><li>Survival: food, water, sleep, radiation, taint, the pink cloud, travel with random encounters</li><li>PipBuck-style sheets and interface, rules compendium, map hazards</li></ul><p><em>Nieoficjalny system fanowski — pełne tłumaczenie na polski.</em> Not affiliated with the authors of Fallout or My Little Pony.</p>",
+  "version": "0.65.1",
   "authors": [{ "name": "V_Cancrosa" }],
   "compatibility": { "minimum": "13", "verified": "14" },
   "esmodules": ["module/foe.mjs"],
@@ -26,6 +26,10 @@
   "grid": { "distance": 5, "units": "ft" },
   "primaryTokenAttribute": "resources.sats",
   "secondaryTokenAttribute": "resources.luck",
+  "media": [
+    { "type": "cover", "url": "https://raw.githubusercontent.com/V-Cancrosa/FoE-CharacterSheet/main/assets/cover.png", "thumbnail": "https://raw.githubusercontent.com/V-Cancrosa/FoE-CharacterSheet/main/assets/icon.png" },
+    { "type": "icon", "url": "https://raw.githubusercontent.com/V-Cancrosa/FoE-CharacterSheet/main/assets/icon.png" }
+  ],
   "url": "https://github.com/V-Cancrosa/FoE-CharacterSheet",
   "manifest": "https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/latest/download/system.json",
   "download": "https://github.com/V-Cancrosa/FoE-CharacterSheet/releases/download/v0.30.1/foe-rpg.zip"
