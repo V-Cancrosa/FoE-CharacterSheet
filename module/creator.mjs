@@ -18,6 +18,16 @@ const readFlag = (actor, key) => {
 };
 const signed = n => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "");
 
+/** Kapsle i karma przy ponownym uruchomieniu: obecne ± różnica między starymi a nowymi cechami. */
+function rerunKeep(actor, oldState, r, pool) {
+  let old = { caps: r.caps, karma: r.karma };
+  try { if (oldState?.race) old = computePc({ ...defaultPcState(actor.name), ...oldState }, pool); } catch { /* stary zapis — bez różnicy */ }
+  return {
+    caps: Math.max(0, (Number(actor.system.caps) || 0) + r.caps - old.caps),
+    karma: (Number(actor.system.karma) || 0) + r.karma - old.karma
+  };
+}
+
 /** Usuwa przedmioty utworzone wcześniej przez kreator, zapisuje zmiany i dodaje nowe cechy. */
 async function applyToActor(actor, update, items, raceKey = "") {
   const old = actor.items.filter(i => i.getFlag("foe-rpg", "creator")).map(i => i.id);
@@ -35,7 +45,8 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
   constructor(actor, options = {}) {
     super(options);
     this.actor = actor;
-    this.wiz = { ...defaultPcState(actor.name), ...readFlag(actor, "creation") };
+    // nazwa zawsze z aktora — zmieniona po stworzeniu postaci nie wraca do starej
+    this.wiz = { ...defaultPcState(actor.name), ...readFlag(actor, "creation"), name: actor.name };
     this.wiz.step = 0;
   }
 
@@ -289,14 +300,16 @@ export class CharacterCreator extends HandlebarsApplicationMixin(ApplicationV2) 
   static async #finish() {
     const r = computePc(this.wiz, this.pool);
     if (r.errors.length) return ui.notifications.warn(r.errors[0]);
+    let keep = null;
     if (this.actor.getFlag("foe-rpg", "created")) {
       const ok = await DialogV2.confirm({
         window: { title: t("Overwrite the character?") },
-        content: `<p>${t("The creator will overwrite the attributes, skills and features it added earlier. Items and notes will stay.")}</p>`
+        content: `<p>${t("The creator will overwrite the attributes, skills and features it added earlier. Items and notes will stay.")}</p><p>${t("Level, XP, skill points from level-ups and manual modifiers stay; caps and karma change only by what the changed traits give or take.")}</p>`
       });
       if (!ok) return;
+      keep = rerunKeep(this.actor, readFlag(this.actor, "creation"), r, this.pool);
     }
-    const { update, items } = buildPcUpdate(this.wiz, r);
+    const { update, items } = buildPcUpdate(this.wiz, r, keep);
     await applyToActor(this.actor, update, items, this.wiz.race);
     ui.notifications.info(t("{name}: character ready.", { name: this.actor.name }));
     this.close();
