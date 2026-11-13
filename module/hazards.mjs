@@ -3,7 +3,7 @@
  *   - Przycisk MG „Zagrożenia (FoE)” na pasku narzędzi kafelków: okno z presetami (beczka, generator, reaktor,
  *     balefire, strefa promieniowania, wysypisko, różowa chmura, kałuża skażenia) i własnymi presetami MG; „Postaw”
  *     tworzy kafelek albo region na środku widoku (potem przesuwasz go jak zwykle).
- *   - Kałuża skażenia: token postaci wchodzący do regionu z flagą taintPuddle dostaje dawkę skażenia (aktywny MG).
+ *   - Kałuża skażenia: token postaci albo NPC wchodzący do regionu z flagą taintPuddle dostaje dawkę skażenia (aktywny MG).
  *   - Konfiguracja sceny, regionu i kafelka: wszystkie pola FoE w jednej sekcji „Fallout: Equestria” z presetem.
  */
 import { t } from "./i18n.mjs";
@@ -138,7 +138,7 @@ function envSection(app, html, kind) {
     const g = document.createElement("div");
     g.className = "form-group foe-taint-puddle";
     g.innerHTML = `<label>${esc(t("Taint puddle"))}</label><div class="form-fields"><select name="flags.${F}.taintPuddle" data-dtype="Number">${TAINT_ENTRY.map(o => `<option value="${o.v}" ${o.v === cur ? "selected" : ""}>${esc(t(o.label))}</option>`).join("")}</select></div>
-      <p class="hint">${esc(t("A character's token entering this region gets this many taint ticks (Luck rolls per Table XXXVI)."))}</p>`;
+      <p class="hint">${esc(t("A character's or NPC's token entering this region gets this many taint ticks (Luck rolls per Table XXXVI)."))}</p>`;
     parts.push(g);
   }
   if (!parts.length) return;
@@ -182,7 +182,7 @@ export function registerHazards() {
     options.foeFrom = centerOf(td);
   });
   Hooks.on("updateToken", (td, changes, options) => {
-    if (!game.users.activeGM?.isSelf || !options.foeFrom || td.actor?.type !== "character") return;
+    if (!game.users.activeGM?.isSelf || !options.foeFrom || !["character", "npc"].includes(td.actor?.type)) return;
     const to = centerOf(td, changes);
     for (const r of td.parent?.regions ?? []) {
       const dose = Number(r.flags?.[F]?.taintPuddle) || 0;

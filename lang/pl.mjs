@@ -3979,7 +3979,7 @@ export default {
   "2 — wading through": "2 — brodzenie",
   "4 — up to the belly": "4 — po brzuch",
   "6 — falling in": "6 — upadek w kałużę",
-  "A character's token entering this region gets this many taint ticks (Luck rolls per Table XXXVI).": "Token postaci wchodzący do tego regionu dostaje tyle kresek skażenia (rzuty Szczęścia według tabeli XXXVI).",
+  "A character's or NPC's token entering this region gets this many taint ticks (Luck rolls per Table XXXVI).": "Token postaci albo NPC wchodzący do tego regionu dostaje tyle kresek skażenia (rzuty Szczęścia według tabeli XXXVI).",
   "A leaking barrel: 100 rads/min at the barrel, fading with distance, 15 ft.": "Cieknąca beczka: 100 radów/min przy beczce, słabnie z odległością, 15 ft.",
   "A pink cloud region (choose the density); thins by a level an hour unless persistent.": "Region z różową chmurą (wybierz gęstość); rzednie o poziom na godzinę, chyba że stała.",
   "A recently detonated or cracked balefire egg: level 4 — 100 rads/min, 30 ft.": "Świeżo zdetonowane albo pęknięte jajo balefire: poziom 4 — 100 radów/min, 30 ft.",

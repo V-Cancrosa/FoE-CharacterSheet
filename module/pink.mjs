@@ -77,7 +77,7 @@ async function setScream(actor, on) {
 
 /** Upływ czasu (aktywny MG). */
 export async function pinkTick(actor, w = now(), dt = 0) {
-  if (!setting("pinkCloud", true) || actor.type !== "character" || actor.system?.dead || actor.statuses?.has?.("dead")) return;
+  if (!setting("pinkCloud", true) || !["character", "npc"].includes(actor.type) || actor.system?.dead || actor.statuses?.has?.("dead")) return;
   const tokens = [...(game.scenes?.active?.tokens ?? [])].filter(td => td.actor === actor);
   const raw = tokens.reduce((m, td) => Math.max(m, pinkAt(td, w)), 0);
   const st = { carry: 0, round: 0, took: 0, in: false, ...(actor.flags?.[F]?.pinkState ?? {}) };
@@ -181,6 +181,21 @@ async function playResist(actor) {
     system: { kind: "trait", active: true, effects: [], description: `<p>${esc(t("Project Horizons: a partial exposure survived — the pink cloud acts one density level lower (house rule)."))}</p>` }
   }]);
   return card(actor, [t("{name} gains partial resistance to the pink cloud.", { name: actor.name })]);
+}
+
+/**
+ * Upływ czasu (aktywny MG): każda postać i NPC z tokenem na aktywnej scenie — także bez gracza-właściciela
+ * (jak promieniowanie). Aktor liczony raz, nawet z kilkoma tokenami.
+ */
+export async function pinkOnScene(w = now(), dt = 0) {
+  if (!setting("pinkCloud", true)) return;
+  const seen = new Set();
+  for (const td of game.scenes?.active?.tokens ?? []) {
+    const a = td.actor;
+    if (!a || seen.has(a) || !["character", "npc"].includes(a.type)) continue;
+    seen.add(a);
+    try { await pinkTick(a, w, dt); } catch (err) { console.error(`${F} | pink cloud: ${a.name}`, err); }
+  }
 }
 
 /** Wiersz na karcie (sekcja zdrowia). */
