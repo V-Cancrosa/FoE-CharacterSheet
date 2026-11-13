@@ -1,0 +1,27 @@
+# Ikony przedmiotów / Item icons
+
+Rysunki z [game-icons.net](https://game-icons.net) na licencji [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
+(część autorów — CC0). Zmiany: kolor PipBucka, ciemne tło, ramka, znaczniki (kaliber, model, inicjały).
+Drawings from game-icons.net under CC BY 3.0 (some CC0). Changes: PipBuck colour, dark background, frame, badges.
+
+Autorzy użytych rysunków (katalog autora w repozytorium game-icons/icons):
+
+- **andymeneely** — police-badge
+- **carl-olsen** — brutal-helm, crossbow
+- **caro-asercion** — archaeopteryx-fossil, artichoke, blender, bowl-of-rice, mason-jar, pressure-cooker, rolling-suitcase, round-potion, soda-bottle, tesla-coil, warlord-helmet
+- **cathelineau** — bad-gnome
+- **darkzaitzev** — fried-fish, sharp-shuriken, skull-sabertooth
+- **delapouite** — abdominal-armor, acoustic-megaphone, american-shield, animal-hide, armor-cuisses, armored-boomerang, backpack, bacon, balloon-dog, barracks-tent, barrel-leak, baseball-bat, battle-mech, beach-ball, beach-bucket, beer-bottle, bell-pepper, berries-bowl, billed-cap, binoculars, black-belt, blanket, boat-fishing, body-balance, book-cover, book-pile, bottle-cap, brain-dump, broccoli, bullet-bill, buy-card, cactus, canned-fish, cape, car-battery, caravan, cardboard-box, carnivorous-plant, carrot, cave-entrance, chainsaw, cherry, chest-armor, chestnut-leaf, cigar, cigarette, claws, closed-barbute, clothes, cloud-download, coffee-cup, cooking-pot, corn, crowbar, cupcake, curling-stone, dart, desert-camp, dial-padlock, dice-fire, doner-kebab, dough-roller, drill, dynamite, empty-chessboard, executioner-hood, falcon-moon, farm-tractor, film-spool, flamethrower, flour, food-truck, fork-knife-spoon, fried-eggs, fuel-tank, full-motorcycle-helmet, gas-pump, gold-mine, green-power, griffin-shield, hamburger, hazmat-suit, headphones, heavy-bullets, hexagonal-nut, honey-jar, hook-swords, horse-head, horseshoe, hospital, hot-meal, jerrycan, katana, kick-scooter, lab-coat, laptop, lead-pipe, leather-armor, leg-armor, life-bar, light-helm, lockpicks, lunar-module, machine-gun-magazine, magic-axe, meal, medical-drip, medicine-pills, meeple-army, melting-metal, metal-plate, metal-skirt, military-fort, modern-city, mug-shot, noodles, notebook, nurse-female, opened-food-can, paddle-steamer, paint-brush, paper-clip, party-flags, pear, peas, pencil-brush, pencil-ruler, pendant-key, photo-camera, phrygian-cap, pirate-coat, pizza-slice, plunger, pocket-radio, pool-triangle, position-marker, potato, powder-bag, power-generator, primitive-torch, puzzle, quick-man, radio-tower, rail-road, rake, revolver, ring, robber-mask, robot-helmet, rope-coil, rubber-boot, rule-book, saiyan-suit, samurai-helmet, sandwich, sawed-off-shotgun, scroll-quill, secret-book, security-gate, seedling, sergeant, shotgun-rounds, siege-tower, smartphone, space-needle, spark-plug, spartan-helmet, spell-book, squirrel, stable, steak, steampunk-goggles, stone-pile, strawberry, stun-grenade, sun-priest, sunglasses, t-shirt, target-prize, ticket, toaster, toolbox, toy-mallet, trail, tribal-gear, tv-remote, unicorn, uzi, vacuum-cleaner, vr-headset, watch, water-bottle, water-flask, western-hat, whistle, wine-bottle, wood-club, wood-pile, wood-stick, wooden-crate
+- **faithtoken** — card-random
+- **guard13007** — soda-can
+- **irongamer** — armored-pants
+- **john-colburn** — pistol-gun
+- **john-redman** — scissors
+- **lorc** — angel-outfit, angel-wings, apple-seeds, armor-vest, arrow-cluster, auto-repair, bandage-roll, barbed-wire, barbute, bat-blade, battle-axe, beanstalk, beast-eye, bone-gnawer, bookmark, boots, bowie-knife, boxing-glove, brandy-bottle, breastplate, broadsword, bullets, cake-slice, cannon, chalice-drops, cheese-wedge, chicken-leg, coffee-mug, cog, compass, crested-helmet, cross-flare, crystal-growth, daisy, doctor-face, domino-mask, dust-cloud, egg-clutch, feathered-wing, fedora, fire-axe, fist, flaming-sheet, flash-grenade, flat-hammer, flower-pot, gas-mask, gear-hammer, gears, gecko, gem-chain, gem-necklace, gem-pendant, grenade, grim-reaper, hammer-nails, hidden, hydra-shot, knapsack, lamellar, land-mine, lantern-flame, laser-blast, laser-precision, laser-sparks, light-bulb, locked-chest, mad-scientist, magnifying-glass, mail-shirt, martini, materials-science, meat, meat-cleaver, mechanical-arm, metal-bar, minigun, molotov, movement-sensor, nails, oat, open-book, pie-slice, pill, pill-drop, plasma-bolt, pocket-bow, poison-bottle, poker-hand, potion-ball, profit, radioactive, ray-gun, riot-shield, roast-chicken, robe, rocket, rocket-flight, root-tip, royal-love, scale-mail, scorpion-tail, shiny-apple, sliced-bread, snow-bottle, sonic-boom, spade, spanner, spectacles, spiked-armor, spiral-bloom, standing-potion, steeltoe-boots, supersonic-bullet, swap-bag, syringe, teapot, thrown-spear, time-bomb, top-hat, treasure-map, two-feathers, vile-fluid, visored-helm, wheat, white-tower, wizard-staff, wolf-head, wrapped-sweet, zebra-shield
+- **lucasms** — shirt
+- **quoting** — bunker-assault, lost-limb
+- **rihlsul** — milk-carton
+- **sbed** — ammo-box, battery-pack, battery-pack-alt, electric, laser-gun, rifle, shotgun, trigger-hurt, vial, wrench
+- **seregacthtuf** — armor-blueprint
+- **skoll** — ak47, blood, colt-m1911, dress, fangs, ham-shank, kevlar-vest, laser-burst, machine-gun, nuclear-bomb, pocket-watch, spiked-bat, switchblade, winchester-rifle
+- **willdabeast** — black-book, white-book

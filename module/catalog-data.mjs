@@ -17,6 +17,20 @@ export const ICONS = {
   spell: { default: `${I}/spell.svg`, zebra: `${I}/recipe.svg`, flight: `${I}/wing.svg` }
 };
 
+/** Czy obrazek to domyślna ikona (kategorii systemu albo Foundry) — wtedy można ją zastąpić ikoną z katalogu. */
+export function isDefaultIcon(img) {
+  if (!img || img === "icons/svg/item-bag.svg") return true;
+  return Object.values(ICONS).some(set => Object.values(set).includes(img));
+}
+
+/** Aktualizacje obrazków dla przedmiotów z katalogu, które mają jeszcze domyślną ikonę. icons: Map nazwa → ścieżka. */
+export function iconUpdates(items, icons) {
+  return items.filter(i => {
+    const name = i.flags?.["foe-rpg"]?.catalog;
+    return name && icons.has(name) && i.img !== icons.get(name) && isDefaultIcon(i.img);
+  }).map(i => ({ _id: i._id ?? i.id, img: icons.get(i.flags["foe-rpg"].catalog) }));
+}
+
 /** Ikona dla przedmiotu danego typu (np. nowego, bez obrazka). */
 export function iconFor(type, sys = {}) {
   const set = ICONS[type] ?? ICONS.gear;
@@ -84,7 +98,7 @@ export function weaponItem(e) {
     specials: specialsFrom(e), consumable: e.kind === "explosive", qty: 1,
     mw: !!e.mw, weight: e.weight || 0, value: e.value || 0, description: notesHtml(tdata(e, "notes"))
   };
-  return { name: e.name, type: "weapon", img: iconFor("weapon", system), system, flags: { "foe-rpg": { catalog: e.name } } };
+  return { name: e.name, type: "weapon", img: e.icon || iconFor("weapon", system), system, flags: { "foe-rpg": { catalog: e.name } } };
 }
 
 export function armorItem(e) {
@@ -94,7 +108,7 @@ export function armorItem(e) {
     effects: (e.effects ?? []).map(x => ({ type: x.type, target: x.target ?? "all", value: Number(x.value) || 0, when: x.when ?? "" })),
     weight: e.weight || 0, value: e.value || 0, description: notesHtml(tdata(e, "notes"))
   };
-  return { name: e.name, type: "armor", img: iconFor("armor", system), system, flags: { "foe-rpg": { catalog: e.name } } };
+  return { name: e.name, type: "armor", img: e.icon || iconFor("armor", system), system, flags: { "foe-rpg": { catalog: e.name } } };
 }
 
 export function gearItem(e, qty = 1) {
@@ -102,7 +116,7 @@ export function gearItem(e, qty = 1) {
     category: e.category || "misc", qty: Math.max(1, qty), weight: e.weight || 0, value: e.value || 0,
     ammoType: e.ammoType || "", heal: e.heal || "", charges: e.charges || 0, description: notesHtml(tdata(e, "notes"))
   };
-  return { name: e.name, type: "gear", img: iconFor("gear", system), system, flags: { "foe-rpg": { catalog: e.name } } };
+  return { name: e.name, type: "gear", img: e.icon || iconFor("gear", system), system, flags: { "foe-rpg": { catalog: e.name } } };
 }
 
 /** Dane przedmiotu z wpisu katalogu; tab: weapons | armor | gear. */

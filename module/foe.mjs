@@ -9,7 +9,7 @@ import { FoeActorSheet, FoeItemSheet } from "./sheets.mjs";
 import { registerCombatHooks } from "./attack.mjs";
 import { openCreator } from "./creator.mjs";
 import { openCatalog, registerCatalogButton, loadCatalog } from "./catalog.mjs";
-import { specialsFrom } from "./catalog-data.mjs";
+import { specialsFrom, iconUpdates } from "./catalog-data.mjs";
 import { FoeCombat, registerTrackerHooks, registerTrackerSettings } from "./tracker.mjs";
 import { registerWeatherSettings, registerWeatherHooks, setWeather } from "./weather.mjs";
 import { registerCalendarSettings, registerCalendarHooks, promptApply as applyCalendar } from "./calendar.mjs";
@@ -229,6 +229,28 @@ Hooks.once("ready", async () => {
   }
 });
 
+/**
+ * Jednorazowo (MG, v0.66): przedmioty z katalogu z domyślną ikoną kategorii dostają własną ikonę
+ * (icons/items) — u postaci, NPC na scenach i w świecie. Własne obrazki MG zostają.
+ */
+Hooks.once("ready", async () => {
+  if (!game.user.isGM || game.settings.get("foe-rpg", "itemIconsMigrated")) return;
+  try {
+    const cat = await loadCatalog();
+    const icons = new Map([...cat.weapons, ...cat.armor, ...cat.gear].filter(e => e.icon).map(e => [e.name, e.icon]));
+    const actors = [...game.actors, ...game.scenes.contents.flatMap(s => s.tokens.contents.filter(tk => !tk.actorLink && tk.actor).map(tk => tk.actor))];
+    for (const actor of actors) {
+      const updates = iconUpdates(actor.items.contents, icons);
+      if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
+    }
+    const world = iconUpdates(game.items.contents, icons);
+    if (world.length) await Item.implementation.updateDocuments(world);
+    await game.settings.set("foe-rpg", "itemIconsMigrated", true);
+  } catch (err) {
+    console.error("foe-rpg | item icons migration", err);
+  }
+});
+
 /** Zasady opcjonalne z rozdziału o walce. */
 function registerCombatSettings() {
   game.settings.register("foe-rpg", "powerArmorUntrainedAgi", {
@@ -258,6 +280,7 @@ function registerCombatSettings() {
   });
   game.settings.register("foe-rpg", "specialsMigrated", { scope: "world", config: false, type: Boolean, default: false });
   game.settings.register("foe-rpg", "shockMigrated", { scope: "world", config: false, type: Boolean, default: false });
+  game.settings.register("foe-rpg", "itemIconsMigrated", { scope: "world", config: false, type: Boolean, default: false });
   game.settings.register("foe-rpg", "randomHitLocations", {
     name: "Random hit locations",
     hint: "Optional rule (pp. 449–450): the attack dialog defaults to a hit location rolled on a d20 for the target's race instead of the torso. Called shots always work.",
