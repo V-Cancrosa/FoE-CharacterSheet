@@ -24,7 +24,7 @@ import { addMutation, taintReroll, addTaint, settlementWater, sceneTaintWater } 
 import { itemTaint, TAINT_WATER } from "./taint-data.mjs";
 import { sleepTick, frozenSleep, resolveSleep, sleepRow, stimulant, sleepReroll } from "./sleep.mjs";
 import { feralTick, slowFeral } from "./mind.mjs";
-import { pinkTick, pinkRow } from "./pink.mjs";
+import { pinkOnScene, pinkRow } from "./pink.mjs";
 import { strainTick } from "./strain.mjs";
 import { needsPipbuck } from "./skin-apply.mjs";
 import {
@@ -646,12 +646,13 @@ export async function timeTick(worldTime, dt, { rads = true } = {}) {
       await radiationTick(a, worldTime);
       await sleepTick(a, worldTime, Number(dt) || 0);
       await feralTick(a, worldTime);
-      await pinkTick(a, worldTime, Number(dt) || 0);
       await strainTick(a, Number(dt) || 0);
       // koniec 8 h bez kar głodu — przelicz kartę
       if (st?.ignoreUntil && st.ignoreUntil <= worldTime) await a.setFlag(F, "survival.ignoreUntil", null);
     }).catch(err => console.error(`${F} | survival: ${a.name}`, err));
   }
+  // różowa chmura: każdy z tokenem na aktywnej scenie (także NPC i postacie MG)
+  await pinkOnScene(worldTime, Number(dt) || 0);
 }
 
 // ---------- przeskok czasu: podgląd, zamrożenie, decyzja MG ----------

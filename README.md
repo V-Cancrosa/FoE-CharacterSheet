@@ -756,7 +756,7 @@ Zagrożenia na mapie (MG):
   toksycznych odpadów, różowa chmura, kałuża skażenia (regiony). Parametry do zmiany (dawka, zasięg, rozmiar,
   promień, gęstość, dawka skażenia, własna grafika), „Postaw na mapie” — na środku widoku, potem przesuwasz jak zwykle.
   „Zapisz też jako własny preset” — preset z gwiazdką na liście (kosz go usuwa).
-- **Kałuża skażenia:** token postaci wchodzący do regionu dostaje dawkę skażenia (kreski na suwaku, rzuty
+- **Kałuża skażenia:** token postaci albo NPC wchodzący do regionu dostaje dawkę skażenia (kreski na suwaku, rzuty
   Szczęścia); ruch w środku nie daje nowej dawki.
 - Konfiguracja sceny, regionu i kafelka: wszystkie pola FoE (promieniowanie, źródło, różowa chmura, wyżywienie,
   skażona woda, kałuża skażenia) w jednej sekcji „Fallout: Equestria” w stylu PipBucka; w regionie i kafelku lista
@@ -764,7 +764,7 @@ Zagrożenia na mapie (MG):
 
 Różowa chmura (s. 611, bestiariusz; poziomy 1, 2, 3 i 5 — zasada domowa) — opcja świata „Różowa chmura”, domyślnie włączona:
 - Gęstość 0–5 w konfiguracji sceny i regionu (pole „stała” — nie rzednie; inaczej −1 poziom na godzinę od ustawienia).
-- Postacie graczy z tokenem w chmurze na aktywnej scenie: rany co rundę (6 s) w głowę i tułów (bez aparatu
+- Każda postać i NPC z tokenem w chmurze na aktywnej scenie (także postacie prowadzone przez MG): rany co rundę (6 s) w głowę i tułów (bez aparatu
   oddechowego: pancerz wspomagany, rebreather, kombinezon — nie maska) i w odsłonięte lokacje (bez pancerza). Karta na
   czacie, różowa mgła na karcie postaci, wiersz w sekcji zdrowia.
 - Śmierć w chmurze — karta decyzji MG: END 1/10, potem INT ¾ (+25 z Fixation) — ghul z Canterlotu (rasa i cecha;
