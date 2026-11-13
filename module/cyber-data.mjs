@@ -45,7 +45,7 @@ export function cyberItemData(e, { loc = "", attr = "" } = {}) {
   })).filter(x => x.target);
   const suffix = e.slot === "leg" && where ? `: ${LOC_NAME[where]}` : e.slot === "attr" && attr ? `: ${ATTR_SHORT[attr]}` : "";
   return {
-    name: `${tdata(e, "name")}${suffix}`, type: "feature", img: "systems/foe-rpg/icons/cyber.svg",
+    name: `${tdata(e, "name")}${suffix}`, type: "feature", img: e.icon || "systems/foe-rpg/icons/cyber.svg",
     system: {
       kind: e.kind === "limb" ? "cyberlimb" : "implant", active: true, effects, description: `<p>${tdata(e, "desc") ?? ""}</p>`,
       cyber: { loc: where, power: Number(e.power) || 0, talisman: !!e.talisman, capacity: Number(e.capacity) || 0, charges: 0, regen: Number(e.regen) || 0 }

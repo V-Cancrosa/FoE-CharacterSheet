@@ -121,7 +121,9 @@ export function buildNpc(e, { catalog = {}, spells = [], maneuvers = [], spellIt
   const system = { notes, race: e.race ?? (e.pony ? t("Earth pony / unicorn") : e.group ?? e.name) };
   const items = [];
   const flags = { [F]: { bestiary: e.name } };
-  if (!has) return { actor: { name: e.name, type: "npc", system, flags, prototypeToken: { disposition: -1, actorLink: false } }, items };
+  const art = e.icon ? { img: e.icon } : {};
+  const tex = e.icon ? { texture: { src: e.icon } } : {};
+  if (!has) return { actor: { name: e.name, type: "npc", ...art, system, flags, prototypeToken: { disposition: -1, actorLink: false, ...tex } }, items };
 
   const level = Math.max(1, firstNum(e.lvl) || 1);
   system.level = level;
@@ -207,7 +209,7 @@ export function buildNpc(e, { catalog = {}, spells = [], maneuvers = [], spellIt
   }
   if (e.ab) items.push({ name: t("Abilities (bestiary)"), type: "feature", system: { kind: "other", active: true, effects: [], description: `<p>${esc(e.ab)}</p>` } });
 
-  return { actor: { name: e.name, type: "npc", system, flags, prototypeToken: { disposition: -1, actorLink: false, name: e.name } }, items };
+  return { actor: { name: e.name, type: "npc", ...art, system, flags, prototypeToken: { disposition: -1, actorLink: false, name: e.name, ...tex } }, items };
 }
 
 let cache = null;

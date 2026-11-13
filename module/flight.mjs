@@ -36,7 +36,7 @@ export function loadManeuvers() {
 export function maneuverItemData(e) {
   const weather = isWeatherManeuver(e.name);
   return {
-    name: e.name, type: "spell", img: `systems/foe-rpg/icons/${weather ? "cloud" : "wing"}.svg`,
+    name: e.name, type: "spell", img: e.icon || `systems/foe-rpg/icons/${weather ? "cloud" : "wing"}.svg`,
     system: {
       tradition: "flight", level: e.level, mfd: e.mfd || "1", kind: e.kind || "active", tag: e.tag || "", actions: e.actions ?? 1,
       requires: e.requires || "", learned: e.level === 0 || e.kind === "passive", attempts: 0, cost: 0, learn: 0,

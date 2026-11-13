@@ -138,7 +138,7 @@ export function buildVehicle(e, { catalog = { weapons: [] }, weaponItem } = {}) 
   const skills = {};
   for (const [k, pts] of Object.entries(e.points ?? {})) skills[k] = { points: pts };
   const actor = {
-    name: tdata(e, "name"), type: "vehicle", img: "systems/foe-rpg/icons/vehicle.svg",
+    name: tdata(e, "name"), type: "vehicle", img: e.icon || "systems/foe-rpg/icons/vehicle.svg",
     system: {
       race: t("Vehicle"), attributes, skills, locations,
       vehicle: {

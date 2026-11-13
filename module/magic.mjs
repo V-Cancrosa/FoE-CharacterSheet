@@ -34,7 +34,7 @@ export function loadSpells() {
 /** Wpis z katalogu → dane przedmiotu „spell”. */
 export function spellItemData(e) {
   return {
-    name: e.name, type: "spell", img: "systems/foe-rpg/icons/spell.svg",
+    name: e.name, type: "spell", img: e.icon || "systems/foe-rpg/icons/spell.svg",
     system: {
       level: e.level, cost: e.cost, costText: e.costText, learn: 0, satsCost: e.sats, targeted: !!e.targeted, maintained: !!e.maintained,
       damage: e.damage || "", ignoreDT: e.ignoreDT || 0, levelReq: e.levelReq || 0, requirements: e.requirements || "",

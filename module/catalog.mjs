@@ -76,13 +76,13 @@ function rowOf(tab, e, i, actor = null) {
   if (tab === "spells") {
     const req = e.requirements || "—";
     return {
-      i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `L${e.level}`, img: "systems/foe-rpg/icons/spell.svg", qty: 0, noBuy: true,
+      i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `L${e.level}`, img: e.icon || "systems/foe-rpg/icons/spell.svg", qty: 0, noBuy: true,
       cols: [e.level, COST_LABELS[e.cost] ?? e.costText, e.sats ? `${e.sats} AP` : "—", e.levelReq || "—", req.length > 70 ? `${req.slice(0, 68)}…` : req]
     };
   }
   if (tab === "recipes") {
     return {
-      i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `L${e.level}`, img: "systems/foe-rpg/icons/recipe.svg", qty: 0, noBuy: true,
+      i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: `L${e.level}`, img: e.icon || "systems/foe-rpg/icons/recipe.svg", qty: 0, noBuy: true,
       cols: [e.level, e.usage || "—", RARITY[e.rarity] ?? e.rarityText ?? "—", e.special || "—", e.school || "—"]
     };
   }
@@ -90,7 +90,7 @@ function rowOf(tab, e, i, actor = null) {
     const areas = (e.ar ?? []).map(([l, dt]) => `${l} ${dt}`).join(", ");
     return {
       i, name: e.name, notes: e.desc, search: `${e.name} ${e.group ?? ""}`.toLowerCase(), kind: `${e.kind}${e.a ? " S" : ""}`,
-      img: "systems/foe-rpg/icons/creature.svg", qty: 0, noBuy: true,
+      img: e.icon || "systems/foe-rpg/icons/creature.svg", qty: 0, noBuy: true,
       cols: [BESTIARY_KINDS[e.kind] ?? e.kind, e.lvl ?? "—", areas ? (areas.length > 60 ? `${areas.slice(0, 58)}…` : areas) : "—", e.dw ?? "—", e.a ? "✓" : t("description only")]
     };
   }
@@ -104,7 +104,7 @@ function rowOf(tab, e, i, actor = null) {
     const labels = fxLabels();
     const fxt = (e.fx ?? []).map(([type, target, value, when]) => shortFx({ type, target: target === "@loc" ? t("cyberlimb location") : target === "@attr" ? t("chosen") : target, value, when }, labels)).join(", ");
     return {
-      i, name: tdata(e, "name"), notes: tdata(e, "desc"), search: `${e.name} ${e.name_pl ?? ""}`.toLowerCase(), kind: e.kind, img: "systems/foe-rpg/icons/cyber.svg", qty: 0, noBuy: true,
+      i, name: tdata(e, "name"), notes: tdata(e, "desc"), search: `${e.name} ${e.name_pl ?? ""}`.toLowerCase(), kind: e.kind, img: e.icon || "systems/foe-rpg/icons/cyber.svg", qty: 0, noBuy: true,
       cols: [e.kind === "limb" ? t("cyberlimb") : "implant", fxt || t("description"), e.power ? `${e.power} ${t("units")}` : "—", e.talisman ? "✓" : "—"]
     };
   }
@@ -112,7 +112,7 @@ function rowOf(tab, e, i, actor = null) {
     const size = sizeRow(e.size);
     return {
       i, name: tdata(e, "name"), notes: tdata(e, "desc"), search: `${e.name} ${e.name_pl ?? ""}`.toLowerCase(), kind: `${e.kind} ${e.power}`,
-      img: "systems/foe-rpg/icons/vehicle.svg", qty: 0, noBuy: true,
+      img: e.icon || "systems/foe-rpg/icons/vehicle.svg", qty: 0, noBuy: true,
       cols: [`${VEHICLE_KINDS[e.kind] ?? e.kind}, ${(VEHICLE_POWER[e.power] ?? e.power).split(" (")[0].toLowerCase()}`, `×${size.key} (${size.dw})`,
         e.power === "pulled" ? t("speed|pulled") : `${e.speed} ft`, `${e.crewMax}${e.passengers ? ` + ${e.passengers}` : ""}`, e.dt?.torso ?? 0, (e.weapons ?? []).join(", ") || "—"]
     };
@@ -123,7 +123,7 @@ function rowOf(tab, e, i, actor = null) {
     const auto = autoSummary(e.name, fxLabels());
     return {
       i, name: e.ranks > 1 ? `${e.name} (×${e.ranks})` : e.name, notes: e.desc, search: `${e.name} ${e.alt}`.toLowerCase(),
-      kind: `L${e.level}${st?.status === "ok" ? " A" : ""}`, img: "systems/foe-rpg/icons/perk.svg", qty: 0, noBuy: true,
+      kind: `L${e.level}${st?.status === "ok" ? " A" : ""}`, img: e.icon || "systems/foe-rpg/icons/perk.svg", qty: 0, noBuy: true,
       cols: [e.level, req.length > 60 ? `${req.slice(0, 58)}…` : req, auto ? (auto.length > 60 ? `${auto.slice(0, 58)}…` : auto) : "—",
         st ? `${PERK_STATUS[st.status]}${st.status === "fail" && st.missing.length ? ` ${st.missing.join(", ")}` : ""}` : "—"]
     };
@@ -132,7 +132,7 @@ function rowOf(tab, e, i, actor = null) {
     const weather = isWeatherManeuver(e.name);
     return {
       i, name: e.name, notes: e.desc, search: e.name.toLowerCase(), kind: weather ? `L${e.level} W` : `L${e.level}`,
-      img: `systems/foe-rpg/icons/${weather ? "cloud" : "wing"}.svg`, qty: 0, noBuy: true,
+      img: e.icon || `systems/foe-rpg/icons/${weather ? "cloud" : "wing"}.svg`, qty: 0, noBuy: true,
       cols: [e.level, e.mfd ? MFD_LABEL[e.mfd] ?? e.mfd : "—", e.kind === "passive" ? "—" : e.actions,
         [KIND_LABEL[e.kind], e.tag === "dodge" ? t("aerial dodge") : e.tag === "block" ? t("aerial block") : "", weather ? t("man|weather") : "", e.requires ? e.requires.replace(/^Requires/i, t("man|requires")) : ""].filter(Boolean).join(", ") || "—"]
     };
