@@ -80,6 +80,13 @@ Katalog przedmiotów: 182 bronie, 288 ubrań, pancerzy, hełmów i akcesoriów o
 Walka i Ekwipunek) albo „Katalog FoE” w zakładce Przedmioty (dla MG): wyszukiwanie, filtr rodzaju, „Dodaj” za darmo
 albo „Kup” za kapsle postaci. Ten sam ekwipunek łączy się w stos; broń przychodzi naładowana.
 
+Ikony przedmiotów: każdy przedmiot z katalogu (1198) ma własną ikonę — zielony rysunek na ciemnym tle w stylu PipBucka.
+Rysunki pochodzą z [game-icons.net](https://game-icons.net) (licencja CC BY 3.0, część CC0); gdy kilka przedmiotów ma
+ten sam rysunek, różnią się tłem i znacznikiem (kaliber, model albo inicjały). Autorzy: `icons/items/CREDITS.md`.
+Przy pierwszym uruchomieniu po aktualizacji przedmioty z katalogu, które już są u postaci, NPC i w świecie, same dostają
+nowe ikony — o ile mają jeszcze domyślną ikonę kategorii (własnych obrazków MG to nie zmienia). Ikony buduje
+`node tools/build-item-icons.mjs <repozytorium game-icons>`.
+
 Walka:
 - Atak (kliknij nazwę broni): okno z SATS (koszt AP z broni; znosi kary otoczenia i pośpiechu), odległością (każdy przedział
   zasięgu po pierwszym = 1 krok MFD trudniej), strzałem celowanym (głowa −2 kroki i ×1,5 obrażeń, nogi, skrzydła, róg, oko,
