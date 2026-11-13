@@ -80,11 +80,13 @@ Katalog przedmiotów: 182 bronie, 288 ubrań, pancerzy, hełmów i akcesoriów o
 Walka i Ekwipunek) albo „Katalog FoE” w zakładce Przedmioty (dla MG): wyszukiwanie, filtr rodzaju, „Dodaj” za darmo
 albo „Kup” za kapsle postaci. Ten sam ekwipunek łączy się w stos; broń przychodzi naładowana.
 
-Ikony przedmiotów: każdy przedmiot z katalogu (1198) ma własną ikonę — zielony rysunek na ciemnym tle w stylu PipBucka.
+Ikony: każdy przedmiot z katalogu (1198) oraz każde zaklęcie, przepis zebr, manewr lotu, perk, wszczep, stworzenie
+z bestiariusza i pojazd (razem 1913) ma własną ikonę — zielony rysunek na ciemnym tle w stylu PipBucka. Stworzenia
+z bestiariusza dostają ją też jako obrazek tokena, a mikstury i talizmany zebr — ikonę swojego przepisu.
 Rysunki pochodzą z [game-icons.net](https://game-icons.net) (licencja CC BY 3.0, część CC0); gdy kilka przedmiotów ma
 ten sam rysunek, różnią się tłem i znacznikiem (kaliber, model albo inicjały). Autorzy: `icons/items/CREDITS.md`.
-Przy pierwszym uruchomieniu po aktualizacji przedmioty z katalogu, które już są u postaci, NPC i w świecie, same dostają
-nowe ikony — o ile mają jeszcze domyślną ikonę kategorii (własnych obrazków MG to nie zmienia). Ikony buduje
+Przy pierwszym uruchomieniu po aktualizacji to, co już jest u postaci, NPC i w świecie (przedmioty, zaklęcia, perki…,
+aktorzy stworzeń i pojazdów), samo dostaje nowe ikony — o ile ma jeszcze domyślną ikonę (własnych obrazków MG to nie zmienia). Ikony buduje
 `node tools/build-item-icons.mjs <repozytorium game-icons>`.
 
 Walka:

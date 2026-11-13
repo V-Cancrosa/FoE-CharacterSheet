@@ -84,7 +84,7 @@ export function modesOf(usage) {
 
 export function recipeItemData(e) {
   return {
-    name: e.name, type: "spell", img: "systems/foe-rpg/icons/recipe.svg",
+    name: e.name, type: "spell", img: e.icon || "systems/foe-rpg/icons/recipe.svg",
     system: {
       tradition: "zebra", level: e.level, usage: e.usage, rarity: e.rarity || 1, special: e.special || "", school: e.school || "",
       levelReq: e.levelReq || 0, damage: e.damage || "", cost: 0, learn: 0,
@@ -172,7 +172,7 @@ export async function prepareRecipe(actor, recipe, mode) {
   const tr = await new Roll(timeF).evaluate();
   if (m.category) {
     await addStack(actor, {
-      name: recipe.name, type: "gear", img: m.category === "talisman" ? "systems/foe-rpg/icons/talisman.svg" : "systems/foe-rpg/icons/potion.svg",
+      name: recipe.name, type: "gear", img: recipe.img?.includes("/icons/items/") ? recipe.img : m.category === "talisman" ? "systems/foe-rpg/icons/talisman.svg" : "systems/foe-rpg/icons/potion.svg",
       system: { category: m.category, usage: mode, damage: mode === "Throw" ? s.damage || "" : "", weight: 0, value: 0, description: s.description },
       flags: { [F]: { recipe: recipe.name } }
     }, 1);

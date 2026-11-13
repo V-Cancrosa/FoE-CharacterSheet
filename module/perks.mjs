@@ -265,7 +265,7 @@ export function perkItemData(e, rank = 1, effects = null) {
   const fxList = effects ?? (rank > 1 && d.rankFx?.[rank] ? d.rankFx[rank] : d.fx ?? []);
   const auto = autoSummary(e.name);
   return {
-    name: rank > 1 ? `${e.name} (${rank})` : e.name, type: "feature", img: "systems/foe-rpg/icons/perk.svg",
+    name: rank > 1 ? `${e.name} (${rank})` : e.name, type: "feature", img: e.icon || "systems/foe-rpg/icons/perk.svg",
     system: {
       kind: "perk", active: true, effects: fxList,
       description: `${auto ? `<p><b>${t("Automatically:")}</b> ${esc(auto)}</p>` : ""}<p><b>${t("Requirements:")}</b> ${t("level {n}", { n: e.level })}${e.requires ? `; ${esc(e.requires)}` : ""}</p><p>${esc(e.desc)}</p>`

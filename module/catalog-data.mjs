@@ -17,18 +17,49 @@ export const ICONS = {
   spell: { default: `${I}/spell.svg`, zebra: `${I}/recipe.svg`, flight: `${I}/wing.svg` }
 };
 
-/** Czy obrazek to domyślna ikona (kategorii systemu albo Foundry) — wtedy można ją zastąpić ikoną z katalogu. */
+const OTHER_DEFAULTS = ["perk", "cyber", "cloud", "wing", "recipe", "spell", "creature", "vehicle"].map(n => `${I}/${n}.svg`)
+  .concat("icons/svg/item-bag.svg", "icons/svg/mystery-man.svg");
+
+/** Czy obrazek to domyślna ikona (kategorii systemu albo Foundry) — wtedy można ją zastąpić ikoną z listy. */
 export function isDefaultIcon(img) {
-  if (!img || img === "icons/svg/item-bag.svg") return true;
+  if (!img || OTHER_DEFAULTS.includes(img)) return true;
   return Object.values(ICONS).some(set => Object.values(set).includes(img));
 }
 
-/** Aktualizacje obrazków dla przedmiotów z katalogu, które mają jeszcze domyślną ikonę. icons: Map nazwa → ścieżka. */
-export function iconUpdates(items, icons) {
-  return items.filter(i => {
-    const name = i.flags?.["foe-rpg"]?.catalog;
-    return name && icons.has(name) && i.img !== icons.get(name) && isDefaultIcon(i.img);
-  }).map(i => ({ _id: i._id ?? i.id, img: icons.get(i.flags["foe-rpg"].catalog) }));
+/** Mapa ikon z list (katalog po loadCatalog): klucz "rodzaj:nazwa" → ścieżka. */
+export function iconMap(cat) {
+  const m = new Map();
+  const add = (kind, list) => { for (const e of list ?? []) if (e.icon) m.set(`${kind}:${e.name}`, e.icon); };
+  add("item", [...(cat.weapons ?? []), ...(cat.armor ?? []), ...(cat.gear ?? [])]);
+  add("spell", cat.spells); add("recipe", cat.recipes); add("maneuver", cat.maneuvers); add("perk", cat.perks);
+  add("cyber", cat.cyber); add("bestiary", cat.bestiary); add("vehicle", cat.vehicles);
+  return m;
+}
+
+/** Klucz ikony dokumentu (przedmiotu albo aktora) z flag systemu; null — nie pochodzi z listy. */
+export function iconKeyOf(doc) {
+  const f = doc.flags?.["foe-rpg"] ?? {};
+  if (f.perk?.name) return `perk:${f.perk.name}`;
+  if (f.cyber) return `cyber:${f.cyber}`;
+  if (f.bestiary) return `bestiary:${f.bestiary}`;
+  if (f.vehicle) return `vehicle:${f.vehicle}`;
+  if (!f.catalog) return null;
+  if (doc.type !== "spell") return `item:${f.catalog}`;
+  const tr = doc.system?.tradition;
+  return `${tr === "zebra" ? "recipe" : tr === "flight" ? "maneuver" : "spell"}:${f.catalog}`;
+}
+
+/** Aktualizacje obrazków dla dokumentów z list, które mają jeszcze domyślną ikonę. icons: z iconMap(). */
+export function iconUpdates(docs, icons) {
+  const out = [];
+  for (const d of docs) {
+    const icon = icons.get(iconKeyOf(d));
+    if (!icon || d.img === icon || !isDefaultIcon(d.img)) continue;
+    const u = { _id: d._id ?? d.id, img: icon };
+    if (d.prototypeToken && isDefaultIcon(d.prototypeToken.texture?.src)) u["prototypeToken.texture.src"] = icon;
+    out.push(u);
+  }
+  return out;
 }
 
 /** Ikona dla przedmiotu danego typu (np. nowego, bez obrazka). */

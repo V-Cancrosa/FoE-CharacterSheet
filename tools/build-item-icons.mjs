@@ -1,5 +1,6 @@
 /**
- * Ikony przedmiotów z katalogu (data/catalog.json) z zestawu game-icons.net (CC BY 3.0).
+ * Ikony przedmiotów z katalogu (data/catalog.json) i pozostałych list (zaklęcia, przepisy, manewry, perki,
+ * bestiariusz, cybernetyka, pojazdy — reguły w tools/icon-rules-lists.mjs) z zestawu game-icons.net (CC BY 3.0).
  * Użycie: node tools/build-item-icons.mjs <katalog repozytorium game-icons/icons> [--check]
  *   - dopasowanie rysunku do nazwy: reguły (pierwsza pasująca), potem domyślne dla kategorii,
  *   - powtórzony rysunek dostaje inne tło i znacznik (kaliber, model, inicjały) — każdy plik jest inny,
@@ -9,6 +10,7 @@
  */
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, rmSync, existsSync } from "node:fs";
 import { join, resolve, basename } from "node:path";
+import { LISTS } from "./icon-rules-lists.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const SRC = process.argv[2];
@@ -179,7 +181,9 @@ const slug = s => s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").rep
 const has = n => INDEX.has(n);
 
 /** Znacznik: kaliber, kod modelu, inaczej inicjały (max 5 znaków). */
-function badgeOf(name) {
+function badgeOf(name, roman = false) {
+  const rn = roman && name.match(/\b(I{1,3}|IV|VI{0,3})\b(?!.*\b(I{1,3}|IV|VI{0,3})\b)/);
+  if (rn) return rn[1];
   const cal = name.match(/(\.\d{2,3}|\d{1,3}(?:\.\d)?\s?mm|\d+\s?gauge|\d+\s?cal)/i);
   if (cal) return cal[1].replace(/\s/g, "").toUpperCase().replace("GAUGE", "G").replace("CAL", "");
   const model = name.match(/\b([A-Z]{1,4}-?\d{1,4}[A-Z]?)\b/);
@@ -206,7 +210,9 @@ function iconSvg(glyph, { bg, badge }) {
 // ---------- przypisanie ----------
 const catalog = JSON.parse(readFileSync(join(ROOT, "data/catalog.json"), "utf8"));
 const items = [];
-for (const [tab, list] of Object.entries(catalog)) for (const e of list) items.push({ tab, e, cat: tab === "weapons" ? e.skill : e.category });
+for (const [tab, list] of Object.entries(catalog)) for (const e of list) items.push({ tab, e, cat: tab === "weapons" ? e.skill : e.category, prefix: tab[0], rules: RULES });
+const lists = LISTS.map(l => ({ ...l, data: JSON.parse(readFileSync(join(ROOT, `data/${l.file}.json`), "utf8")) }));
+for (const l of lists) for (const e of l.data) items.push({ tab: l.file, e, prefix: l.prefix, rules: l.rules, fallback: l.fallback, roman: true });
 const missing = new Set();
 const STOP = new Set(["with", "from", "that", "this", "your", "pony", "ponies", "equestria", "equestrian", "edition", "model", "mark", "type", "special", "unique", "light", "heavy", "medium", "small", "large", "big", "little", "mini", "power", "stealth", "dash", "pinkie", "rarity", "twilight", "sparkle", "fluttershy", "applejack", "celestia", "luna"]);
 const PARTS = new Map();
@@ -223,13 +229,13 @@ const wordMatches = name => {
 for (const it of items) {
   const n = it.e.name.toLowerCase();
   let pick = [];
-  for (const [re, icons] of RULES) {
+  for (const [re, icons] of it.rules) {
     if (!re.test(n)) continue;
     for (const i of icons) if (!has(i)) missing.add(i);
     pick = icons.filter(has);
     if (pick.length) break;
   }
-  const cat = (FALLBACK[it.cat] ?? FALLBACK.misc).filter(has);
+  const cat = (it.fallback ?? FALLBACK[it.cat] ?? FALLBACK.misc).filter(has);
   const words = wordMatches(it.e.name);
   it.candidates = [...new Set([...pick, ...words, ...cat])];
   if (!it.candidates.length) it.candidates = ["swap-bag"];
@@ -249,7 +255,7 @@ for (const it of items) {
   seen.set(it.glyph, k + 1);
   const shared = (use.get(it.glyph) ?? 0) > 1;
   it.bg = PALETTE[k % PALETTE.length];
-  it.badge = shared ? badgeOf(it.e.name) : (/(\.\d{2,3}|\d+mm)/i.test(it.e.name) ? badgeOf(it.e.name) : "");
+  it.badge = shared ? badgeOf(it.e.name, it.roman) : (/(\.\d{2,3}|\d+mm)/i.test(it.e.name) ? badgeOf(it.e.name) : "");
 }
 // unikalność: ten sam rysunek + tło + znacznik → dopisz numer
 const key = it => `${it.glyph}|${it.bg}|${it.badge}`;
@@ -258,7 +264,7 @@ for (const it of items) { const c = dup.get(key(it)) ?? 0; dup.set(key(it), c + 
 if (new Set(items.map(key)).size !== items.length) { console.error("Ikony nie są unikalne."); process.exit(1); }
 
 const glyphs = new Set(items.map(i => i.glyph));
-console.log(`przedmiotów: ${items.length} | różnych rysunków: ${glyphs.size} | z wariantem: ${items.filter(i => (use.get(i.glyph) ?? 0) > 1).length}`);
+console.log(`ikon: ${items.length} | różnych rysunków: ${glyphs.size} | z wariantem: ${items.filter(i => (use.get(i.glyph) ?? 0) > 1).length}`);
 if (missing.size) console.log(`nieznane nazwy rysunków (pominięte): ${[...missing].sort().join(", ")}`);
 if (process.env.DEBUG) { const top = [...use.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40); console.log(top.map(([g, c]) => `${g}:${c}`).join(" ")); for (const it of items) if (process.env.DEBUG === it.glyph) console.log(" -", it.e.name); }
 if (CHECK) process.exit(0);
@@ -271,8 +277,8 @@ const used = new Map();
 const names = new Set();
 const cache = new Map();
 for (const it of items) {
-  let s = slug(`${it.tab[0]}-${it.e.name}`);
-  for (let i = 2; names.has(s); i++) s = `${slug(`${it.tab[0]}-${it.e.name}`)}-${i}`;
+  let s = slug(`${it.prefix}-${it.e.name}`);
+  for (let i = 2; names.has(s); i++) s = `${slug(`${it.prefix}-${it.e.name}`)}-${i}`;
   names.add(s);
   if (!cache.has(it.glyph)) cache.set(it.glyph, glyphOf(INDEX.get(it.glyph).path));
   writeFileSync(join(OUT, `${s}.svg`), iconSvg(cache.get(it.glyph), it));
@@ -282,9 +288,13 @@ for (const it of items) {
   used.get(a).add(it.glyph);
 }
 writeFileSync(join(ROOT, "data/catalog.json"), JSON.stringify(catalog));
+for (const l of lists) {
+  const pretty = readFileSync(join(ROOT, `data/${l.file}.json`), "utf8").includes("\n");
+  writeFileSync(join(ROOT, `data/${l.file}.json`), pretty ? `${JSON.stringify(l.data, null, 2)}\n` : JSON.stringify(l.data));
+}
 const credits = [...used.entries()].sort((a, b) => a[0].localeCompare(b[0]))
   .map(([a, set]) => `- **${a}** — ${[...set].sort().join(", ")}`).join("\n");
-writeFileSync(join(OUT, "CREDITS.md"), `# Ikony przedmiotów / Item icons
+writeFileSync(join(OUT, "CREDITS.md"), `# Ikony / Icons
 
 Rysunki z [game-icons.net](https://game-icons.net) na licencji [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
 (część autorów — CC0). Zmiany: kolor PipBucka, ciemne tło, ramka, znaczniki (kaliber, model, inicjały).
