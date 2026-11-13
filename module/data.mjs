@@ -299,7 +299,7 @@ class BaseActorData extends foundry.abstract.TypeDataModel {
     add("skillRoll", "flight", -this.flightLoad, t("Weight over 100 lb ({w} lb)", { w: this.weight }));
     const otherCrippled = Object.keys(L).filter(k => k !== "horn" && L[k].isCrippled).length;
     add("mfdStep", "magic", -(L.horn.isCrippled ? 2 : 0) - otherCrippled, t("Crippled limbs (spells)"));
-    add("skillRoll", "sneak", -this.sneakPenalty, t("Load {w} lb", { w: this.weight }));
+    add("skillRoll", "sneak", -this.sneakPenalty, t("Gear over 50 lb — Sneak ({w} lb, p. 438)", { w: this.weight }));
     // Podtrzymywane zaklęcia: −1 krok celności i rzutów INT/AGI za każde (s. 244)
     const held = this.maintained.length;
     if (held) {

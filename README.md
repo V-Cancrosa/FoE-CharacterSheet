@@ -154,6 +154,9 @@ poziom, prekursory, obrażenia) w zakładce „Zaklęcia” katalogu, zakładka 
   z „Nanieś obrażenia”; INT i ranga Magic/10 w formułach liczą się same, overglow podwaja obrażenia.
 - Procent nauki: +1% za każde rzucenie; rzut ≤ procent podpowiada, że można nauczyć się zaklęcia, dla którego to jest prekursor.
 - Limity znanych zaklęć (poziom 2 — INT, 3 — INT/3, 4 — jedno; Magical Savant / Arcane Devotion podwajają) — ostrzeżenie przy dodawaniu.
+- Kreator na gotowej postaci (ponowne uruchomienie): nadpisuje tylko to, co sam ustawił — atrybuty, umiejętności i cechy
+  z kreatora. Poziom, PD, punkty umiejętności z awansów, ręczne modyfikatory i nazwa postaci zostają; kapsle i karma
+  zmieniają się tylko o różnicę wynikającą ze zmienionych cech.
 - Kreator: jednorożce dostają Telekinezę, alikorny z Unity — swoją listę startową; zaklęcie poziomu 1 wybierasz z katalogu.
 
 Magia zebr i alchemia (s. 327–332): katalog 128 receptur w zakładce „Receptury zebr”, sekcja zebr w zakładce „Magia”.

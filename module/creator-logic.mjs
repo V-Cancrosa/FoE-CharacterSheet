@@ -241,13 +241,17 @@ export function featureItem(f) {
 const SATS = (agi, bonus = 0) => 40 + agi * 5 + bonus;
 const LUCK_CARDS = (luck, bonus = 0) => Math.max(0, Math.max(3, Math.ceil(luck / 2) + 2) + bonus);
 
-/** Zmiany dla aktora i lista przedmiotów-cech na podstawie wyniku computePc. */
-export function buildPcUpdate(state, r) {
+/**
+ * Zmiany dla aktora i lista przedmiotów-cech na podstawie wyniku computePc.
+ * keep — ponowne uruchomienie na gotowej postaci: { caps, karma } (już przeliczone o różnicę z cech);
+ * wtedy zostają poziom, punkty umiejętności z awansów i ręczne modyfikatory.
+ */
+export function buildPcUpdate(state, r, keep = null) {
   const update = {
     "system.race": r.race.manual ? (state.raceName || "") : r.race.label,
-    "system.level": 1,
-    "system.caps": r.caps,
-    "system.karma": r.karma,
+    ...(keep ? {} : { "system.level": 1 }),
+    "system.caps": keep ? keep.caps : r.caps,
+    "system.karma": keep ? keep.karma : r.karma,
     // premie z cech (Large, Young…) liczą teraz efekty cech, więc pola ręczne zerujemy
     "system.woundBonus": 0,
     "system.carryBonus": 0,
@@ -262,13 +266,15 @@ export function buildPcUpdate(state, r) {
   if (state.name) update.name = state.name;
   for (const [k, a] of Object.entries(r.attrs)) {
     update[`system.attributes.${k}.value`] = Math.max(0, Math.min(12, a.base));
-    update[`system.attributes.${k}.mod`] = 0;
+    if (!keep) update[`system.attributes.${k}.mod`] = 0;
   }
   for (const [k, s] of Object.entries(r.skills)) {
     update[`system.skills.${k}.tag`] = s.tag;
     update[`system.skills.${k}.bonus`] = s.bonus;
-    update[`system.skills.${k}.points`] = 0;
-    update[`system.skills.${k}.mod`] = 0;
+    if (!keep) {
+      update[`system.skills.${k}.points`] = 0;
+      update[`system.skills.${k}.mod`] = 0;
+    }
     update[`system.skills.${k}.attr`] = s.attr;
     update[`system.skills.${k}.known`] = s.known;
   }
